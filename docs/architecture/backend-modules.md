@@ -67,7 +67,7 @@ Layer 5  ranking   progression   moderation   notification   (event consumers)
 | moderation | identity, profile, content, game, creator, chat |
 | notification | identity, profile, social, team |
 
-\* **matchmaking → ranking** is the one upward call: matchmaking needs a player's current rating to place them in a queue. It goes through a narrow read-only interface (`ranking.RatingReader`) declared in matchmaking and **implemented** by ranking, wired in `internal/app`. matchmaking never imports ranking's package directly, so there is no import cycle.
+\* **matchmaking → ranking** (and **identity → game** for the guest-cleanup `ActivityReader`, see `schema-identity.md` §6) are the upward reads: matchmaking needs a player's current rating to place them in a queue. It goes through a narrow read-only interface (`ranking.RatingReader`) declared in matchmaking and **implemented** by ranking, wired in `internal/app`. matchmaking never imports ranking's package directly, so there is no import cycle.
 
 **Rules**
 1. **No cycles.** If two modules need each other, one side defines an interface and `internal/app` wires the implementation (same pattern as `RatingReader`).

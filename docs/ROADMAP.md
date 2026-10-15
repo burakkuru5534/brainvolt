@@ -65,6 +65,9 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 | D-016a | Guests in team formats | Guests cannot create or lead persistent teams, but **can** join random matchmaking for 2v2/3v3/4v4 and be placed on temporary sides with strangers. Post-match "add friend" / "form team" prompts an account upgrade | 2026-10-15 | 0.2.5, 0.5, Phase 5, Phase 6 |
 | D-018 | Couple Contest classification | Couple Contest is a **player format** (specialised 2v2 of couple profiles), not a category mode | 2026-10-15 | glossary, 0.3.8, 0.5.1 |
 | D-019 | Team answer modes | Shared Answer = one collective decision per question; Individual Turns = questions cycle through members in order; Fast Team Round = all answer simultaneously, side score by predefined aggregation rule (e.g. fastest correct, majority, total correct) | 2026-10-15 | glossary, 0.3.6, Phase 6 |
+| D-020 | Minimum age | 13+; confirmation checkbox at first launch; store only `age_verified_at` | 2026-10-15 | 0.2.2, Phase 1 |
+| D-021 | Avatars | Built-in presets only at launch (no photo uploads); cosmetic frames & custom badges in Phase 9 | 2026-10-15 | 0.2.2, Phase 9 |
+| D-022 | Retention | Abandoned guest (0 matches, no activity) deleted after 7 days; inactive guest (≥1 match, not upgraded) after 90 days inactive; user deletion has a 14-day cooling-off window before purge/anonymisation | 2026-10-15 | 0.2.2, 0.2.10 |
 
 ---
 
@@ -82,8 +85,8 @@ Verification for each task: document reviewed against the requirement list + cro
 
 ### 0.2 Data models & database schema
 - [x] 0.2.1 `docs/domain/glossary.md` — canonical terms (match, round, question slot, participant, side, team, couple, MMR, SP, XP, league…)
-- [~] 0.2.2 Schema: identity — users, firebase identity link, profiles, devices/FCM tokens, settings, country
-- [ ] 0.2.3 Schema: content — categories, sub-categories, questions, answer options, difficulty, locale, source & license
+- [x] 0.2.2 Schema: identity — users, firebase identity link, profiles, devices/FCM tokens, settings, country
+- [~] 0.2.3 Schema: content — categories, sub-categories, questions, answer options, difficulty, locale, source & license
 - [ ] 0.2.4 Schema: game — matches, match_configs, sides/teams in match, participants, rounds, match_questions, answers, results
 - [ ] 0.2.5 Schema: social — friendships, friend requests, direct challenges, invite codes, private rooms, team profiles, couple profiles, rematch links
 - [ ] 0.2.6 Schema: ranking & progression — ratings (per bucket), seasons, season points, XP/levels, leagues, streaks, badges, quests, leaderboard snapshots
@@ -248,3 +251,5 @@ Verification for each task: document reviewed against the requirement list + cro
 - 2026-10-15 — 0.2.1 done: glossary with code names and Turkish UI labels; side vs team, score vs SP vs XP vs rating, answer vs play streak disambiguated; working definitions for modes flagged for 0.3.x.
 - 2026-10-15 — Decisions D-016a, D-018, D-019 recorded; glossary revised (player formats section with Couple Contest, confirmed team answer modes, temporary side term).
 - 2026-10-15 — 0.2.2 drafted: `docs/domain/schema-identity.md` (users, auth identity mirror, roles, profiles, settings, devices; tier rules; guest upgrade, email verification, link conflict, suspension, deletion flows). Waiting on owner for min age, avatars, retention durations.
+- 2026-10-15 — Decisions D-020…D-022 recorded; 0.2.2 done (age gate, preset avatars, retention rules, ActivityReader for guest cleanup).
+- 2026-10-15 — 0.2.3 drafted: `docs/domain/schema-content.md` (taxonomy, sources/licenses, language-neutral questions + per-locale text, two-level verification, question sets & daily sets, stats, OpenTDB import & CC BY-SA obligations). Waiting on owner for D-023…D-025.
