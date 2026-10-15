@@ -80,6 +80,7 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 | D-032 | Redis-level limits | Matchmaking ticket 10 min; resume token 2 min after disconnect (game reconnect window ≤ this); no-repeat window 30 days / 2 000 questions per user; API 60 req/10 s per user, 300 req/min per IP, 20 WS msg/s per connection, 20 session calls/h per installation | 2026-10-15 | 0.2.9, 0.3.9, 0.4.8, Phase 4, Phase 5 |
 | D-033 | Remaining retention | Closed friend requests, challenges, rooms, team invites purged after 90 days; quest assignments 12 months after period end; commerce transactions/subscriptions/store notifications 10 years (TTK / VUK); match transitions & round event logs = match detail, 12 months | 2026-10-15 | 0.2.10 |
 | D-034 | Ready flow & voiding | Ready deadline 20 s after creation (tournaments own window); 3 s start countdown; 3 missed matchmade ready checks in 30 min → 5 min queue cooldown (queue health, not a sanction); ready players return to the front of the queue; voiding revokes SP & leaderboard points only — non-cheaters keep XP, quest progress, streaks; cheaters handled by sanctions | 2026-10-15 | 0.3.1, Phase 4, Phase 5 |
+| D-035 | Round flow | 3 s reveal; early close when all expected active answerers answered; Shared Answer: live teammate picks, any member locks, fallback most-picked (tie → earliest), none → timeout; Fast Team Round: teammates see only "answered" until reveal; Individual Turns: seat-order rotation, symmetric for both sides | 2026-10-15 | 0.3.2, 0.3.6, Phase 4, Phase 6 |
 
 ---
 
@@ -109,8 +110,8 @@ Verification for each task: document reviewed against the requirement list + cro
 
 ### 0.3 Game state machine & scoring rules
 - [x] 0.3.1 Match lifecycle: states `waiting → ready → in_progress → completed | cancelled`, transitions, guards, triggers, side effects
-- [~] 0.3.2 Round / question sub-state machine (dispatched → answering → locked → revealed)
-- [ ] 0.3.3 Server timer authority model (server timestamps, latency grace window, late-answer rejection)
+- [x] 0.3.2 Round / question sub-state machine (dispatched → answering → locked → revealed)
+- [~] 0.3.3 Server timer authority model (server timestamps, latency grace window, late-answer rejection)
 - [ ] 0.3.4 Base scoring formula (correctness, speed bonus, streak bonus, caps)
 - [ ] 0.3.5 Match type rules: Quick Duel, Ranked, Sudden Death, Marathon
 - [ ] 0.3.6 Team answer mode rules: Shared Answer, Individual Turns, Fast Team Round
@@ -283,3 +284,5 @@ Verification for each task: document reviewed against the requirement list + cro
 - 2026-10-15 — 0.3.1 drafted: `docs/game/match-lifecycle.md` (5 states, 7 transitions with triggers/guards/effects, participant sub-states, ready flow per origin, single-writer execution model, award matrix, invariants, key tests). Waiting on owner for 4 proposals.
 - 2026-10-15 — D-034 recorded; 0.3.1 done.
 - 2026-10-15 — 0.3.2 drafted: `docs/game/round-lifecycle.md` (phases pre_round → question → locked → reveal → end_check, expected answerers per team mode, Shared Answer propose/lock, visibility rules, server steps, invariants, tests). Waiting on owner for 5 proposals.
+- 2026-10-15 — D-035 recorded; 0.3.2 done.
+- 2026-10-15 — 0.3.3 drafted: `docs/game/timing.md` (server-time-only decisions, RTT median, capped latency compensation, synchronized show_at, per-player grace, response_ms formula with worked example, client offset display-only, timer table). Waiting on owner for 5 proposals.

@@ -1,10 +1,10 @@
 # Round sub-state machine
 
 - **Roadmap task:** 0.3.2
-- **Status:** Draft for review (2026-10-15)
+- **Status:** Accepted (2026-10-15)
 - **Owner module:** `game` — runs only while the match is `in_progress` (match-lifecycle.md)
 - **Related:** timing & latency 0.3.3, scoring 0.3.4, match types 0.3.5, team answer mode details 0.3.6, category modes 0.3.7, disconnects 0.3.9, WS messages 0.4.4/0.4.5, Redis keys `redis-keys.md` §2
-- Values marked **(P)** are proposals (§9).
+- Values marked **(P)** were proposed and accepted (D-035, §9).
 
 ---
 
@@ -48,7 +48,7 @@ Disconnected expected answerers are still expected: early lock waits for the dea
 
 ---
 
-## 3. Shared Answer mechanics (proposal — finalised in 0.3.6)
+## 3. Shared Answer mechanics (D-035; scoring details in 0.3.6)
 
 1. During `question`, any member may send `answer.propose {option_id}`; teammates see each other's current proposals live (side-only event). Opponents see nothing.
 2. Any member may send `answer.lock {option_id}` → that becomes the side's answer immediately (`is_side_answer = true`); response time = lock time.
@@ -129,7 +129,7 @@ sequenceDiagram
 
 ---
 
-## 9. Proposals to confirm
+## 9. Accepted proposals (D-035)
 1. **Reveal display time 3 s** before the next round (or the results screen).
 2. **Early lock:** a round closes as soon as every expected answerer has answered.
 3. **Shared Answer:** teammates propose live; any member can lock the side answer; no lock by the deadline → most-proposed option (tie → earliest); no proposals → timeout.
