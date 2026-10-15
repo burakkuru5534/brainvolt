@@ -94,7 +94,10 @@ Initial event catalogue (expanded in 0.2 / 0.3):
 | Event | Producer | Consumers |
 |-------|----------|-----------|
 | `identity.UserRegistered` | identity | profile, progression, notification |
-| `identity.UserStatusChanged` | identity | matchmaking, lobby, realtime |
+| `identity.UserStatusChanged` | identity | matchmaking, lobby, realtime, chat |
+| `identity.AccountTierChanged` | identity | ranking, social, team, notification |
+| `identity.GuestAbandoned` | identity | matchmaking, lobby, realtime |
+| `identity.UserDeleted` | identity | all modules holding personal data |
 | `content.QuestionVerified` / `QuestionRejected` | content | creator, moderation |
 | `social.FriendshipCreated` / `Removed` | social | ranking (friends boards), notification |
 | `team.MemberJoined` / `MemberLeft` / `TeamDisbanded` | team | chat, ranking, notification |

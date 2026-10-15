@@ -82,7 +82,7 @@ Verification for each task: document reviewed against the requirement list + cro
 
 ### 0.2 Data models & database schema
 - [x] 0.2.1 `docs/domain/glossary.md` — canonical terms (match, round, question slot, participant, side, team, couple, MMR, SP, XP, league…)
-- [ ] 0.2.2 Schema: identity — users, firebase identity link, profiles, devices/FCM tokens, settings, country
+- [~] 0.2.2 Schema: identity — users, firebase identity link, profiles, devices/FCM tokens, settings, country
 - [ ] 0.2.3 Schema: content — categories, sub-categories, questions, answer options, difficulty, locale, source & license
 - [ ] 0.2.4 Schema: game — matches, match_configs, sides/teams in match, participants, rounds, match_questions, answers, results
 - [ ] 0.2.5 Schema: social — friendships, friend requests, direct challenges, invite codes, private rooms, team profiles, couple profiles, rematch links
@@ -247,3 +247,4 @@ Verification for each task: document reviewed against the requirement list + cro
 - 2026-10-15 — Decisions D-015…D-017 recorded (link conflict, guest limits, email verification).
 - 2026-10-15 — 0.2.1 done: glossary with code names and Turkish UI labels; side vs team, score vs SP vs XP vs rating, answer vs play streak disambiguated; working definitions for modes flagged for 0.3.x.
 - 2026-10-15 — Decisions D-016a, D-018, D-019 recorded; glossary revised (player formats section with Couple Contest, confirmed team answer modes, temporary side term).
+- 2026-10-15 — 0.2.2 drafted: `docs/domain/schema-identity.md` (users, auth identity mirror, roles, profiles, settings, devices; tier rules; guest upgrade, email verification, link conflict, suspension, deletion flows). Waiting on owner for min age, avatars, retention durations.
