@@ -49,7 +49,7 @@ func TestLoadDevDefaults(t *testing.T) {
 		Env: EnvDev,
 		HTTP: HTTP{
 			Addr: ":8080", ReadTimeout: 10 * time.Second, WriteTimeout: 15 * time.Second,
-			IdleTimeout: 60 * time.Second, ShutdownTimeout: 20 * time.Second,
+			IdleTimeout: 60 * time.Second, HandlerTimeout: 10 * time.Second, ShutdownTimeout: 20 * time.Second,
 		},
 		Log: Log{Level: slog.LevelDebug, Format: logging.FormatText},
 		Postgres: Postgres{
@@ -101,6 +101,8 @@ func TestLoadErrors(t *testing.T) {
 		{"bad duration", with(devVars(), "BRAINVOLT_HTTP_READ_TIMEOUT", "ten"), []string{"BRAINVOLT_HTTP_READ_TIMEOUT"}},
 		{"zero duration", with(devVars(), "BRAINVOLT_POSTGRES_STATEMENT_TIMEOUT", "0s"),
 			[]string{"BRAINVOLT_POSTGRES_STATEMENT_TIMEOUT", "must be positive"}},
+		{"handler timeout not below write timeout", with(devVars(), "BRAINVOLT_HTTP_HANDLER_TIMEOUT", "15s"),
+			[]string{"must be shorter than BRAINVOLT_HTTP_WRITE_TIMEOUT"}},
 		{"bad addr", with(devVars(), "BRAINVOLT_HTTP_ADDR", "8080"), []string{"BRAINVOLT_HTTP_ADDR"}},
 		{"wrong scheme", with(devVars(), "BRAINVOLT_REDIS_URL", "http://localhost:6379"),
 			[]string{"BRAINVOLT_REDIS_URL", `scheme "http"`}},

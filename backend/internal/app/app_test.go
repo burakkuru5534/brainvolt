@@ -109,6 +109,7 @@ func TestRunComponentFailureStopsOthers(t *testing.T) {
 // devEnv is a valid local configuration (see .env.example).
 var devEnv = map[string]string{
 	"BRAINVOLT_LOG_FORMAT":          "text",
+	"BRAINVOLT_HTTP_ADDR":           "127.0.0.1:0",
 	"BRAINVOLT_POSTGRES_URL":        "postgres://brainvolt:pw@localhost:5432/brainvolt?sslmode=disable",
 	"BRAINVOLT_REDIS_URL":           "redis://:pw@localhost:6379/0",
 	"BRAINVOLT_FIREBASE_PROJECT_ID": "demo-brainvolt",

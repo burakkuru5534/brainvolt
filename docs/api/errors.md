@@ -3,7 +3,7 @@
 - **Roadmap task:** 0.4.7
 - **Status:** Accepted (2026-10-15)
 - **Format:** conventions.md §6 (REST envelope) and websocket.md §3 (`sys.error {re, code, message, details}`).
-- **Rules:** codes are UPPER_SNAKE_CASE, never renamed or reused; new codes may be added any time; clients must handle unknown codes generically (show `message`). Each code has TR and EN messages in `backend/internal/platform/httpserver/errors_{tr,en}` (Phase 1) and mobile ARB keys `error_<code>`.
+- **Rules:** codes are UPPER_SNAKE_CASE, never renamed or reused; new codes may be added any time; clients must handle unknown codes generically (show `message`). Each code has TR and EN messages in `backend/internal/platform/apierror/messages_{tr,en}.go` (shared by REST and WebSocket; a test keeps `codes.go` identical to this table) and mobile ARB keys `error_<code>`.
 
 | Code | HTTP | WS | Meaning / when |
 |---|---|---|---|
@@ -12,6 +12,7 @@
 | `MALFORMED_REQUEST` | 400 | ✓ (close 4000 if repeated) | invalid JSON / unknown required shape |
 | `PAYLOAD_TOO_LARGE` | 413 | close 4000 | over limits.md |
 | `NOT_FOUND` | 404 | ✓ | missing or not visible |
+| `METHOD_NOT_ALLOWED` | 405 | — | route exists but not for this HTTP method; `Allow` header lists the methods (added in Phase 1, D-055) |
 | `FORBIDDEN` | 403 | ✓ | role/permission |
 | `RATE_LIMITED` | 429 | ✓ / close 4008 | `details.retry_after_s` |
 | `IDEMPOTENCY_KEY_REUSED` | 409 | — | same key, different body |

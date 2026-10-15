@@ -18,6 +18,7 @@ import (
 	"syscall"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/config"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/logging"
 )
 
@@ -51,11 +52,11 @@ func New(role Role, logger *slog.Logger, components ...Component) *App {
 	return &App{role: role, logger: logger, components: components}
 }
 
-// NewAPI builds the composition for cmd/api.
-// Components are registered here as the roadmap adds them
-// (HTTP server in 1.4.5, WebSocket gateway in Phase 4, matchmaking in Phase 5).
-func NewAPI(_ config.Config, logger *slog.Logger) (*App, error) {
-	return New(RoleAPI, logger), nil
+// NewAPI builds the composition for cmd/api: the HTTP server now; the
+// WebSocket gateway (Phase 4) and matchmaking loops (Phase 5) join it.
+func NewAPI(cfg config.Config, logger *slog.Logger) (*App, error) {
+	srv := httpserver.New(cfg.HTTP, cfg.Env, logger)
+	return New(RoleAPI, logger, srv), nil
 }
 
 // NewWorker builds the composition for cmd/worker.

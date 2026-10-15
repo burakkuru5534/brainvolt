@@ -47,6 +47,7 @@ backend/
 │   │   ├── postgres/                   connection pool, transactions, health check
 │   │   ├── redis/                      client, health check, key helpers
 │   │   ├── httpserver/                 router setup, middleware, error envelope
+│   │   ├── apierror/                   error-code registry + TR/EN messages, shared by REST and WebSocket
 │   │   ├── wsserver/                   WebSocket hub, connection lifecycle, envelope codec
 │   │   ├── firebase/                   ID-token verification, FCM client
 │   │   ├── clock/                      injectable server clock (all timers use this; tests use a fake)

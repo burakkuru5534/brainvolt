@@ -1,0 +1,87 @@
+package apierror
+
+// messagesTR are the Turkish fallback messages. Clients show their own
+// translation for known codes (ARB key error_<code>); these are used for
+// codes the app does not know yet.
+//
+//nolint:gosec // G101 false positive: user-facing messages, no credentials
+var messagesTR = map[Code]string{
+	ValidationFailed:      "Gönderilen bilgiler geçersiz.",
+	MalformedRequest:      "İstek okunamadı.",
+	PayloadTooLarge:       "İstek çok büyük.",
+	NotFound:              "Aradığın şey bulunamadı.",
+	MethodNotAllowed:      "Bu işlem bu adreste desteklenmiyor.",
+	Forbidden:             "Bu işlem için yetkin yok.",
+	RateLimited:           "Çok fazla istek gönderdin. Biraz bekleyip tekrar dene.",
+	IdempotencyKeyReused:  "Bu istek anahtarı farklı bir istek için zaten kullanıldı.",
+	VersionConflict:       "Bu kayıt başka biri tarafından değiştirildi. Yenileyip tekrar dene.",
+	AppVersionUnsupported: "Devam etmek için uygulamayı güncellemelisin.",
+	Internal:              "Beklenmeyen bir hata oluştu. Lütfen tekrar dene.",
+	Unavailable:           "Hizmet şu anda kullanılamıyor. Biraz sonra tekrar dene.",
+
+	Unauthenticated:         "Oturum açman gerekiyor.",
+	TokenExpired:            "Oturumunun süresi doldu. Lütfen tekrar dene.",
+	AgeConfirmationRequired: "Devam etmek için yaşını onaylamalısın.",
+	AccountUpgradeRequired:  "Bu işlem için hesabını yükseltmelisin.",
+	AccountSuspended:        "Hesabın askıya alındı.",
+	AccountDeletionPending:  "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
+	Sanctioned:              "Bu özellik hesabın için geçici olarak kısıtlandı.",
+	UsernameTaken:           "Bu kullanıcı adı zaten alınmış.",
+	ChangeTooSoon:           "Bunu henüz değiştiremezsin. Daha sonra tekrar dene.",
+	TextRejected:            "Bu metin kurallarımıza uymuyor.",
+
+	Blocked:            "Bu kullanıcıyla etkileşim kuramazsın.",
+	FriendLimitReached: "Arkadaş sınırına ulaştın.",
+	AlreadyFriends:     "Zaten arkadaşsınız.",
+	RequestPending:     "Bekleyen bir arkadaşlık isteği zaten var.",
+	ChallengesDisabled: "Bu kullanıcı şu anda meydan okuma kabul etmiyor.",
+	InviteCodeInvalid:  "Davet kodu geçersiz.",
+	InviteCodeExpired:  "Davet kodunun süresi doldu.",
+	RoomFull:           "Oda dolu.",
+	RoomClosed:         "Oda kapandı.",
+	RoomFriendsOnly:    "Bu odaya yalnızca kurucunun arkadaşları katılabilir.",
+	ChallengeExpired:   "Meydan okumanın süresi doldu.",
+	RevengeNotAllowed:  "Rövanş maçı şu anda mümkün değil.",
+	TeamLimitReached:   "Takım sınırına ulaştın.",
+	TeamFull:           "Takım dolu.",
+	NotCaptain:         "Bunu yalnızca takım kaptanı yapabilir.",
+	CoupleExists:       "Zaten bir çiftin var.",
+	CoupleCooldown:     "Yeni bir çift oluşturmak için biraz beklemelisin.",
+
+	AlreadyInMatch:      "Zaten devam eden bir maçın var.",
+	AlreadyQueued:       "Zaten eşleşme sırasındasın.",
+	QueueCooldown:       "Bir süre eşleşme sırasına giremezsin.",
+	ModeNotAllowed:      "Bu oyun modu kombinasyonu desteklenmiyor.",
+	NotEnoughQuestions:  "Bu ayarlar için yeterli soru yok.",
+	NoActiveSeason:      "Şu anda aktif bir sezon yok.",
+	MatchNotFound:       "Maç bulunamadı.",
+	NotAParticipant:     "Bu maçın oyuncusu değilsin.",
+	MatchStateInvalid:   "Bu işlem maçın şu anki aşamasında yapılamaz.",
+	AnswerLate:          "Cevap süresi doldu.",
+	AnswerDuplicate:     "Bu soruyu zaten cevapladın.",
+	AnswerInvalidOption: "Geçersiz cevap seçeneği.",
+	NotYourTurn:         "Sıra sende değil.",
+	PickNotAllowed:      "Bu kategori seçilemez.",
+	SeatTakenElsewhere:  "Bu maça başka bir cihazdan bağlandın.",
+
+	DailyAttemptUsed:       "Bugünkü resmi denemeni zaten kullandın.",
+	DailyAttemptInProgress: "Devam eden bir günlük denemen var.",
+	DailyNotAvailable:      "Günün meydan okuması henüz hazır değil.",
+
+	QuestionSourceRequired: "Sorunun kaynağı ve lisansı belirtilmeli.",
+	QuestionInUse:          "Bu soru maçlarda kullanıldığı için bu şekilde değiştirilemez.",
+	QuizLimitReached:       "Quiz sınırına ulaştın.",
+	QuizSizeInvalid:        "Quiz soru sayısı izin verilen aralıkta değil.",
+	ReportLimitReached:     "Bugün için bildirim sınırına ulaştın.",
+	AlreadyReported:        "Bunu zaten bildirdin.",
+	AppealExists:           "Bu yaptırım için zaten bir itirazın var.",
+	SelfReviewForbidden:    "Kendi dosyanı inceleyemezsin.",
+
+	PurchaseInvalid:          "Satın alma doğrulanamadı.",
+	PurchaseAlreadyProcessed: "Bu satın alma zaten işlendi.",
+	AdRewardLimit:            "Bugün için reklam ödülü sınırına ulaştın.",
+
+	TournamentRegistrationClosed: "Turnuva kayıtları kapandı.",
+	TournamentFull:               "Turnuva dolu.",
+	TournamentRequirementsNotMet: "Bu turnuvanın katılım şartlarını karşılamıyorsun.",
+}

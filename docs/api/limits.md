@@ -32,6 +32,7 @@
 | Item | Limit |
 |---|---|
 | REST request body | 64 KB (creator quiz save: 256 KB) |
+| REST request headers | 32 KB (D-055) |
 | WebSocket client message | 4 KB |
 | WebSocket server message | 256 KB (snapshots) |
 | Chat message body | 300 chars (D-031) |
@@ -46,6 +47,8 @@
 | Item | Value |
 |---|---|
 | HTTP server read / write / idle | 10 s / 15 s / 60 s |
+| HTTP handler deadline (request context) | 10 s — shorter than the write timeout so the `503 UNAVAILABLE` envelope can still be sent (D-055) |
+| HTTP graceful shutdown | 20 s for in-flight requests |
 | WS `sys.auth` deadline | 5 s |
 | WS dead-connection detection | 3 missed pongs (6 s in play, 60 s idle) |
 | Outbound calls (Firebase, stores, FCM) | 5 s, 2 retries with backoff (in River jobs, not in request path where possible) |

@@ -41,10 +41,13 @@ type Config struct {
 
 // HTTP configures the REST/WebSocket server (timeouts: docs/api/limits.md §3).
 type HTTP struct {
-	Addr            string        `env:"BRAINVOLT_HTTP_ADDR" envDefault:":8080"`
-	ReadTimeout     time.Duration `env:"BRAINVOLT_HTTP_READ_TIMEOUT" envDefault:"10s"`
-	WriteTimeout    time.Duration `env:"BRAINVOLT_HTTP_WRITE_TIMEOUT" envDefault:"15s"`
-	IdleTimeout     time.Duration `env:"BRAINVOLT_HTTP_IDLE_TIMEOUT" envDefault:"60s"`
+	Addr         string        `env:"BRAINVOLT_HTTP_ADDR" envDefault:":8080"`
+	ReadTimeout  time.Duration `env:"BRAINVOLT_HTTP_READ_TIMEOUT" envDefault:"10s"`
+	WriteTimeout time.Duration `env:"BRAINVOLT_HTTP_WRITE_TIMEOUT" envDefault:"15s"`
+	IdleTimeout  time.Duration `env:"BRAINVOLT_HTTP_IDLE_TIMEOUT" envDefault:"60s"`
+	// HandlerTimeout bounds each request's context; it is shorter than
+	// WriteTimeout so the error response can still be written.
+	HandlerTimeout  time.Duration `env:"BRAINVOLT_HTTP_HANDLER_TIMEOUT" envDefault:"10s"`
 	ShutdownTimeout time.Duration `env:"BRAINVOLT_HTTP_SHUTDOWN_TIMEOUT" envDefault:"20s"`
 }
 
@@ -142,6 +145,9 @@ func (c Config) Validate() error {
 		add("BRAINVOLT_ENV=%q: want dev or prod", c.Env)
 	}
 
+	if c.HTTP.HandlerTimeout >= c.HTTP.WriteTimeout {
+		add("BRAINVOLT_HTTP_HANDLER_TIMEOUT=%s must be shorter than BRAINVOLT_HTTP_WRITE_TIMEOUT=%s", c.HTTP.HandlerTimeout, c.HTTP.WriteTimeout)
+	}
 	if _, _, err := net.SplitHostPort(c.HTTP.Addr); err != nil {
 		add("BRAINVOLT_HTTP_ADDR=%q: want host:port or :port", c.HTTP.Addr)
 	}
@@ -149,6 +155,7 @@ func (c Config) Validate() error {
 		"BRAINVOLT_HTTP_READ_TIMEOUT":                 c.HTTP.ReadTimeout,
 		"BRAINVOLT_HTTP_WRITE_TIMEOUT":                c.HTTP.WriteTimeout,
 		"BRAINVOLT_HTTP_IDLE_TIMEOUT":                 c.HTTP.IdleTimeout,
+		"BRAINVOLT_HTTP_HANDLER_TIMEOUT":              c.HTTP.HandlerTimeout,
 		"BRAINVOLT_HTTP_SHUTDOWN_TIMEOUT":             c.HTTP.ShutdownTimeout,
 		"BRAINVOLT_POSTGRES_STATEMENT_TIMEOUT":        c.Postgres.StatementTimeout,
 		"BRAINVOLT_POSTGRES_WORKER_STATEMENT_TIMEOUT": c.Postgres.WorkerStatementTimeout,
