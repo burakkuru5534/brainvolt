@@ -1,10 +1,10 @@
 # Schema — moderation & anti-cheat (reports, cases, actions, sanctions, appeals, cheat signals)
 
 - **Roadmap task:** 0.2.7
-- **Status:** Draft for review (2026-10-15)
+- **Status:** Accepted (2026-10-15)
 - **Module / Postgres schema:** `moderation`
 - **Decisions applied:** D-006 / D-007 / D-023 (content verification), D-016 (restricted accounts), D-026 (answer detail kept 12 months)
-- Full moderation console & automated detection rules ship in **Phase 8**; the minimal question-review endpoints needed earlier are in Phase 2 (`schema-content.md` §4.2). Thresholds marked **(P)** are proposals (§8).
+- Full moderation console & automated detection rules ship in **Phase 8**; the minimal question-review endpoints needed earlier are in Phase 2 (`schema-content.md` §4.2). Values marked **(P)** were proposed and accepted (D-030, §8).
 - Conventions: as in `schema-identity.md`.
 
 ---
@@ -235,7 +235,7 @@ Signals never change a match result automatically.
 | `game.MatchVoided` (new, produced by game on admin request) | game | ranking, progression, tournament |
 | `identity.SessionStarted` (new) | identity | moderation (installation links) |
 
-## 7. Retention (proposal, finalised in 0.2.10)
+## 7. Retention (D-030)
 | Data | Keep |
 |---|---|
 | Cases, actions, sanctions, appeals | **3 years** after resolution / sanction end (P); permanent bans kept while the ban applies |
@@ -244,7 +244,7 @@ Signals never change a match result automatically.
 | Installation links | **12 months** after `last_seen_at` (P) |
 | After account deletion | records stay linked to the anonymised `user_id` (no personal data), so bans and audit remain valid |
 
-## 8. Proposals to confirm
+## 8. Accepted proposals (D-030)
 1. Reports: max 20 per user per day; guests/unverified may report with lower weight.
 2. 3 `wrong_answer` reports → question automatically pulled back to review (out of ranked).
 3. Cheating sanctions always require a human decision; signals alone never sanction.

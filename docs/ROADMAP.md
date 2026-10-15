@@ -75,6 +75,7 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 | D-027 | Social limits | Accepted as proposed in `schema-social.md` §6 (friends 300, 50 requests/day, 6-char codes, rematch 30 s, revenge & direct challenge 24 h, 20 challenges/h, idle room 15 min, teams 2–4 members & max 3 per user, couple one per user). Revenge only by the losing side | 2026-10-15 | 0.2.5, 0.3.7, Phase 5 |
 | D-028 | Temporary sides & team boards | Results of temporary sides do not count toward Team leaderboards; members' individual rating/leaderboards update normally | 2026-10-15 | 0.2.6, 0.3.10 |
 | D-029 | Ranking & progression parameters | Rating buckets solo/team/couple; leaderboard periods on Europe/Istanbul time, week starts Monday; team country = captain's country; top 1 000 per board archived each period; 3 daily + 3 weekly quests, rewards claimed manually | 2026-10-15 | 0.2.6, 0.3.10, Phase 7 |
+| D-030 | Moderation & anti-cheat policy | Max 20 reports/user/day, restricted-account reports weigh less; 3 `wrong_answer` reports pull a question from Ranked into review; cheat signals only flag — every sanction needs a human; voided match revokes SP/leaderboard points, no retroactive Glicko-2 recompute, cheater gets ranked ban + SP reset, honest opponents keep results; "too fast" signal < 300 ms + 15 ms/char (tune in Phase 8); retention: cases/sanctions/appeals 3 years, report comments/cheat signals/install links 12 months, records stay on anonymised id after deletion | 2026-10-15 | 0.2.7, 0.2.10, Phase 8 |
 
 ---
 
@@ -97,8 +98,8 @@ Verification for each task: document reviewed against the requirement list + cro
 - [x] 0.2.4 Schema: game — matches, match_configs, sides/teams in match, participants, rounds, match_questions, answers, results
 - [x] 0.2.5 Schema: social — friendships, friend requests, direct challenges, invite codes, private rooms, team profiles, couple profiles, rematch links
 - [x] 0.2.6 Schema: ranking & progression — ratings (per bucket), seasons, season points, XP/levels, leagues, streaks, badges, quests, leaderboard snapshots
-- [~] 0.2.7 Schema: moderation & anti-cheat — question reports, moderation actions, user sanctions, cheat signals
-- [ ] 0.2.8 Schema: platform — notifications log, team chat, tournaments, subscriptions, cosmetics/inventory, ad events, creator quizzes, daily challenges
+- [x] 0.2.7 Schema: moderation & anti-cheat — question reports, moderation actions, user sanctions, cheat signals
+- [~] 0.2.8 Schema: platform — notifications log, team chat, tournaments, subscriptions, cosmetics/inventory, ad events, creator quizzes, daily challenges
 - [ ] 0.2.9 `docs/domain/redis-keys.md` — key naming, data types, TTLs (queues, live match state, presence, locks, rate limits, leaderboard ZSETs)
 - [ ] 0.2.10 Consolidated ERD (`docs/domain/erd.md`, Mermaid) + index/constraint/retention review
 
@@ -268,3 +269,5 @@ Verification for each task: document reviewed against the requirement list + cro
 - 2026-10-15 — 0.2.6 drafted: `docs/domain/schema-ranking.md` (entity-based Glicko-2 ratings per bucket + full change history, seasons, leagues, standings, points ledger feeding Redis leaderboards for every filter combo, snapshots, XP ledger, play streaks, badges, quests). Allowed dependency progression → ranking added. Waiting on owner for 5 proposals.
 - 2026-10-15 — D-029 recorded; 0.2.6 done.
 - 2026-10-15 — 0.2.7 drafted: `docs/domain/schema-moderation.md` (cases grouping reports & signals, immutable action log, sanctions & appeals, cheat signals, installation links, blocked terms, interface-based enforcement, anti-cheat pipeline, match void). game schema gains voided_* + MatchVoided. Waiting on owner for 6 proposals.
+- 2026-10-15 — D-030 recorded; 0.2.7 done.
+- 2026-10-15 — 0.2.8 drafted: `docs/domain/schema-platform.md` (notification preferences/inbox/push log, team & side chat, tournaments with brackets, commerce: server-verified subscriptions, entitlements, cosmetics, inventory, rewarded ads; creator quizzes; daily challenge attempts). Waiting on owner for 8 proposals.
