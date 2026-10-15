@@ -19,7 +19,8 @@ brainvolt/
 ├── deploy/               (reserved) container & production deployment files — Phase 9
 ├── scripts/              Dev helper scripts (cross-platform)
 ├── docs/                 All design docs, ADRs, contracts, runbooks
-├── docker-compose.yml    Local dev services (Postgres, Redis; backend added in Phase 1)
+├── docker-compose.yml    Local dev services (Postgres, Redis, Firebase Auth emulator; backend added in Phase 1)
+├── .env.example          Documented env vars for Compose, Makefile and backend — no secrets (D-054)
 ├── Makefile              Dev task shortcuts (run, test, lint, migrate, seed)
 ├── .gitignore
 ├── .gitattributes        Line-ending rules (Phase 1 — see "Windows notes")
@@ -62,8 +63,7 @@ backend/
 │           └── *_test.go               tests live next to the code they test
 ├── migrations/                         numbered SQL migrations, one global sequence for all modules
 ├── testdata/                           fixtures shared by integration tests
-├── Dockerfile                          (Phase 1)
-└── .env.example                        documented env vars, no secrets (Phase 1)
+└── Dockerfile                          (Phase 1)
 ```
 
 **Why `modules/<m>/internal/`:** Go refuses to compile an import of `modules/game/internal/...` from anywhere outside `modules/game/`. Module boundaries are therefore enforced by the compiler, not by convention — other modules can only use what `<module>.go` exports.
@@ -132,7 +132,7 @@ docs/
 ## `scripts/` and `Makefile`
 
 - `Makefile` holds short targets (`make up`, `make test`, `make migrate`, …) that only call `docker compose`, `go` and `flutter`.
-- `scripts/` holds anything longer. Scripts are written so they run in **Git Bash on Windows** as well as Linux/macOS (or are written in Go under `backend/cmd/` when logic is non-trivial).
+- `scripts/` holds anything longer, plus dev-only container builds (`scripts/firebase-emulator/` — Firebase Auth emulator image used by `docker-compose.yml`, D-054). Scripts are written so they run in **Git Bash on Windows** as well as Linux/macOS (or are written in Go under `backend/cmd/` when logic is non-trivial).
 
 ## Windows notes (owner develops on Windows)
 - `make` is not built into Windows: use it from Git Bash, or install via `winget`/`scoop`. Every Makefile target is also documented as the plain command it runs, so `make` is optional.

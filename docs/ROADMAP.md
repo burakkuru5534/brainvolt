@@ -23,7 +23,7 @@ Standard game rules, retention periods, default limits and small details are dec
 | # | Phase | Status |
 |---|-------|--------|
 | 0 | Planning & Architecture | [x] |
-| 1 | Core Infrastructure | [ ] |
+| 1 | Core Infrastructure | [~] |
 | 2 | Question & Category System | [ ] |
 | 3 | Game Engine | [ ] |
 | 4 | Real-time 1v1 | [ ] |
@@ -103,6 +103,7 @@ Standard game rules, retention periods, default limits and small details are dec
 | D-051 | WebSocket protocol (delegated) | One socket per installation; one seat-holding device per match; per-stream gap-free `seq`; ack/error per intent; ping 2 s in play / 20 s idle, dead after 3 missed; replay-or-snapshot resume (2 min); awards sent asynchronously; reconnect backoff 0.5 s → 10 s — `docs/api/websocket.md` | 2026-10-15 (delegated) | 0.4, Phase 4 |
 | D-052 | Extra limits & timeouts (delegated) | Rooms 10/h, wrong invite codes 10/10 min, codes 30/day, tickets 30/10 min, quick chat 3/5 s, profile edits 10/h, creator writes 60/h; REST body 64 KB (quiz 256 KB), WS 4 KB in / 256 KB out; HTTP timeouts 10/15/60 s, DB statement 3 s (worker 60 s) — `docs/api/limits.md` | 2026-10-15 (delegated) | 0.4.8, Phase 1 |
 | D-053 | Mode matrix choices (delegated) | Matchmade team/couple queues (ranked & casual) = Fast Team Round + average at launch (other team modes via rooms, challenges, rematch/revenge, tournaments; future config flag); tournament matches never ranked; rematch of ranked converts like revenge (quick_duel, 10 MC, unrated) — `docs/game/mode-matrix.md` | 2026-10-15 (delegated) | 0.5, Phase 3, Phase 5 |
+| D-054 | Local dev environment (delegated) | One `.env.example` at the repo root, shared by Docker Compose, the Makefile and the backend (repo-layout updated; was `backend/.env.example`); Compose fails fast on missing credentials (`${VAR:?}`); dev ports bound to `127.0.0.1`; local Redis password-protected (`BRAINVOLT_REDIS_PASSWORD`); Firebase Auth emulator built from `scripts/firebase-emulator/` (`node:24.22.0-alpine` + `firebase-tools` 15.34.0) with offline project `demo-brainvolt`, emulator users in memory | 2026-10-15 (delegated) | 1.1, 1.2, Phase 1 |
 
 ---
 
@@ -165,7 +166,7 @@ Verification for each task: document reviewed against the requirement list + cro
 
 ---
 
-## Phase 1 — Core Infrastructure  `[ ]`
+## Phase 1 — Core Infrastructure  `[~]`
 Goal: running skeleton — backend (config, logging, health, Postgres, Redis, migrations, Firebase auth, session/profile endpoints), Flutter app (age gate, guest + Google/Apple/email sign-in, upgrade, TR/EN), Docker Compose, CI. Every task ends with its tests green.
 
 **Owner prerequisites (external accounts — cannot be done from code):**
@@ -173,16 +174,16 @@ Goal: running skeleton — backend (config, logging, health, Postgres, Redis, mi
 - [ ] P1.B Apple Developer Program membership (required for iOS builds and Sign in with Apple; annual fee) and Google Play Console account
 - [ ] P1.C GitHub repository `burakkuru5534/brainvolt` with Actions enabled (D-008, D-010)
 
-### 1.1 Repository & tooling
-- [ ] 1.1.1 `.gitattributes` (LF; `*.bat`/`*.ps1` CRLF) and `.editorconfig`
-- [ ] 1.1.2 `README.md` quick start (Windows + Git Bash notes)
-- [ ] 1.1.3 Makefile targets (`up`, `down`, `run`, `test`, `lint`, `migrate`, `gen`) — each also documented as the plain command
+### 1.1 Repository & tooling  `[x]`
+- [x] 1.1.1 `.gitattributes` (LF; `*.bat`/`*.ps1` CRLF) and `.editorconfig`
+- [x] 1.1.2 `README.md` quick start (Windows + Git Bash notes)
+- [x] 1.1.3 Makefile targets (`up`, `down`, `run`, `test`, `lint`, `migrate`, `gen`) — each also documented as the plain command
 
-### 1.2 Local environment (Docker Compose)
-- [ ] 1.2.1 Compose v2: `postgres:18.6-alpine`, `redis:8.10.2-alpine`, named volumes (PG 18 mounts `/var/lib/postgresql`), healthchecks, no `version:` key (ADR-0001)
-- [ ] 1.2.2 Redis config: AOF everysec + RDB, `maxmemory-policy noeviction` (redis-keys §1)
-- [ ] 1.2.3 `.env.example` with all `BRAINVOLT_*` vars; credentials only from env
-- [ ] 1.2.4 Firebase Auth Emulator service for local dev (ADR-0003)
+### 1.2 Local environment (Docker Compose)  `[x]`
+- [x] 1.2.1 Compose v2: `postgres:18.6-alpine`, `redis:8.10.2-alpine`, named volumes (PG 18 mounts `/var/lib/postgresql`), healthchecks, no `version:` key (ADR-0001)
+- [x] 1.2.2 Redis config: AOF everysec + RDB, `maxmemory-policy noeviction` (redis-keys §1)
+- [x] 1.2.3 `.env.example` with all `BRAINVOLT_*` vars; credentials only from env
+- [x] 1.2.4 Firebase Auth Emulator service for local dev (ADR-0003)
 
 ### 1.3 Go project setup
 - [ ] 1.3.1 `backend/go.mod` (`github.com/burakkuru5534/brainvolt/backend`, `go 1.27`, `toolchain go1.27.2`) + `cmd/api/main.go` that starts and stops cleanly
@@ -400,3 +401,4 @@ Goal: running skeleton — backend (config, logging, health, Postgres, Redis, mi
 - 2026-10-15 — 0.4.7 done: `docs/api/errors.md` (~65 stable codes, REST status + WS mapping). 0.4.8 done (delegated D-052): `docs/api/limits.md`. **Section 0.4 complete.**
 - 2026-10-15 — 0.5.1–0.5.4 done (delegated D-053): `docs/game/mode-matrix.md` — 7 axes, 11 520 raw combinations → 1 178 valid (5 ranked), 21 rules (R01–R21), 6 transformations, 36 test cases + property tests. **Section 0.5 complete.**
 - 2026-10-15 — 0.6 done: consistency check (all decision refs logged, no broken doc links, enum values aligned; glossary gained `origin` and `aggregation`), `docs/ARCHITECTURE.md` rewritten as overview & document map. **Phase 0 complete.** Phase 1 broken into 51 atomic tasks + 3 owner prerequisites (all original Phase 1 items kept).
+- 2026-10-15 — 1.1 done: `.gitattributes` (LF, CRLF for `*.bat`/`*.cmd`/`*.ps1`), `.editorconfig`, `README.md` quick start with Windows/Git Bash notes, Makefile (`up`, `down`, `reset`, `ps`, `logs`, `psql`, `redis-cli`, `run`, `test`, `lint`, `migrate`, `gen`; each documented as its plain command). 1.2 done (delegated D-054): Compose v2 with `postgres:18.6-alpine` / `redis:8.10.2-alpine`, named volumes (PG 18 at `/var/lib/postgresql`), healthchecks, Redis AOF everysec + RDB + `noeviction`, `.env.example`, Firebase Auth emulator service. Verified: all services healthy, PG 18.6 data dir `/var/lib/postgresql/18/docker`, Redis config applied and auth enforced, emulator anonymous sign-up works, data survives `down`/`up`.
