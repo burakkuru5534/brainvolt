@@ -185,11 +185,11 @@ Goal: running skeleton — backend (config, logging, health, Postgres, Redis, mi
 - [x] 1.2.3 `.env.example` with all `BRAINVOLT_*` vars; credentials only from env
 - [x] 1.2.4 Firebase Auth Emulator service for local dev (ADR-0003)
 
-### 1.3 Go project setup
-- [ ] 1.3.1 `backend/go.mod` (`github.com/burakkuru5534/brainvolt/backend`, `go 1.27`, `toolchain go1.27.2`) + `cmd/api/main.go` that starts and stops cleanly
-- [ ] 1.3.2 `internal/app` composition root skeleton (api / worker wiring)
-- [ ] 1.3.3 `.golangci.yml` (v2) + `go vet` clean
-- [ ] 1.3.4 Architecture test enforcing `backend-modules.md` §2 import rules
+### 1.3 Go project setup  `[x]`
+- [x] 1.3.1 `backend/go.mod` (`github.com/burakkuru5534/brainvolt/backend`, `go 1.27`, `toolchain go1.27.2`) + `cmd/api/main.go` that starts and stops cleanly
+- [x] 1.3.2 `internal/app` composition root skeleton (api / worker wiring)
+- [x] 1.3.3 `.golangci.yml` (v2) + `go vet` clean
+- [x] 1.3.4 Architecture test enforcing `backend-modules.md` §2 import rules
 
 ### 1.4 Platform packages (each with unit tests)
 - [ ] 1.4.1 `platform/config` — env v11 parsing + validation
@@ -402,3 +402,4 @@ Goal: running skeleton — backend (config, logging, health, Postgres, Redis, mi
 - 2026-10-15 — 0.5.1–0.5.4 done (delegated D-053): `docs/game/mode-matrix.md` — 7 axes, 11 520 raw combinations → 1 178 valid (5 ranked), 21 rules (R01–R21), 6 transformations, 36 test cases + property tests. **Section 0.5 complete.**
 - 2026-10-15 — 0.6 done: consistency check (all decision refs logged, no broken doc links, enum values aligned; glossary gained `origin` and `aggregation`), `docs/ARCHITECTURE.md` rewritten as overview & document map. **Phase 0 complete.** Phase 1 broken into 51 atomic tasks + 3 owner prerequisites (all original Phase 1 items kept).
 - 2026-10-15 — 1.1 done: `.gitattributes` (LF, CRLF for `*.bat`/`*.cmd`/`*.ps1`), `.editorconfig`, `README.md` quick start with Windows/Git Bash notes, Makefile (`up`, `down`, `reset`, `ps`, `logs`, `psql`, `redis-cli`, `run`, `test`, `lint`, `migrate`, `gen`; each documented as its plain command). 1.2 done (delegated D-054): Compose v2 with `postgres:18.6-alpine` / `redis:8.10.2-alpine`, named volumes (PG 18 at `/var/lib/postgresql`), healthchecks, Redis AOF everysec + RDB + `noeviction`, `.env.example`, Firebase Auth emulator service. Verified: all services healthy, PG 18.6 data dir `/var/lib/postgresql/18/docker`, Redis config applied and auth enforced, emulator anonymous sign-up works, data survives `down`/`up`.
+- 2026-10-15 — 1.3 done: `backend/go.mod` (`go 1.27`, `toolchain go1.27.2`, deps `golang.org/x/tools` v0.52.0, `go-cmp` v0.7.0); `cmd/api` + `cmd/worker` call `internal/app` (composition root: `Component` interface, `App.Run` stops all components together, `Main` handles SIGINT/SIGTERM and exit codes); `backend/.golangci.yml` (v2, golangci-lint v2.14.0 built with Go 1.27; misspell without locale because docs use British spelling); architecture test `internal/archtest` reads the §1 catalogue and §2 import table straight from `backend-modules.md`. Verified: `go vet`, `go test -race` (incl. real binaries stopping cleanly on SIGTERM), `golangci-lint run` 0 issues; the architecture test was shown to fail on a forbidden edge (identity → profile) and on an uncatalogued module folder.

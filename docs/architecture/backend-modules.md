@@ -72,7 +72,7 @@ Layer 5  ranking   progression   moderation   notification   (event consumers)
 **Rules**
 1. **No cycles.** If two modules need each other, one side defines an interface and `internal/app` wires the implementation (same pattern as `RatingReader`).
 2. **Public package only.** Importing `modules/X/internal/...` from outside X is impossible (Go internal rule).
-3. **Not in the table = forbidden.** A Phase 1 architecture test parses imports and fails CI on any edge not listed here. Adding an edge requires updating this document in the same commit.
+3. **Not in the table = forbidden.** The architecture test `backend/internal/archtest` reads the §1 catalogue and this table **from this file** and fails CI on any import edge not listed here, on imports of a module's non-public packages, and on module folders missing from §1. Adding an edge therefore means updating this document — keep the table's two-column format (`—` for none, `*` for interface-wired reads that are not imports, `(…)` for comments).
 4. **platform never imports modules.**
 
 ---

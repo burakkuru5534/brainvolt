@@ -14,6 +14,7 @@ Real-time, social, competitive quiz platform — Flutter app (Android + iOS), Go
 | Docker | Docker Desktop / Engine with **Compose v2** (`docker compose`) | Runs Postgres, Redis and the Firebase Auth emulator |
 | Go | **1.27.x** | `backend/go.mod` pins `toolchain go1.27.2`; an older 1.27 downloads it automatically (ADR-0001) |
 | Flutter | **3.47.1** (Dart 3.13) | Exact version in `mobile/.flutter-version` once the app exists |
+| golangci-lint | **v2.14.0**, built with Go 1.27 | `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0` — a binary built with an older Go refuses to lint Go 1.27 code |
 | make | GNU make | Optional — every target is also a plain command (see below) |
 
 Exact versions and the reasons for them are in [ADR-0001](docs/adr/0001-tech-stack-and-versions.md).
@@ -70,7 +71,11 @@ Credentials and ports live in `.env` (git-ignored); `.env.example` documents eve
 set -a; . ./.env; set +a
 ```
 
-Targets that need `backend/` or `mobile/` print a message until those parts are created (roadmap 1.3 and 1.7).
+Targets that need `mobile/` print a message until the app is created (roadmap 1.7).
+
+## Backend layout rules
+
+Module boundaries from [`backend-modules.md`](docs/architecture/backend-modules.md) are checked by a test: `go test ./internal/archtest/` reads the allowed-import table from that document and fails on any edge not listed there. To add a dependency between modules, edit the table first.
 
 ## Windows notes (Git Bash)
 

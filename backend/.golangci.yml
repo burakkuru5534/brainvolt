@@ -1,0 +1,78 @@
+# golangci-lint v2 configuration (ADR-0002, roadmap 1.3.3).
+# Run: cd backend && golangci-lint run   (or `make lint` from the repo root)
+version: "2"
+
+run:
+  go: "1.27"
+  tests: true
+
+linters:
+  default: standard # errcheck, govet, ineffassign, staticcheck, unused
+  enable:
+    - bodyclose # HTTP response bodies are closed
+    - contextcheck # context is passed down, not replaced
+    - copyloopvar
+    - durationcheck # no Duration * Duration
+    - errname # error types/vars named Err…/…Error
+    - errorlint # errors.Is / errors.As with wrapped errors
+    - exhaustive # switches over enums (match states, modes…) cover every value
+    - gocritic
+    - gosec
+    - misspell # no locale set: docs and enums use British spelling (match state `cancelled`)
+    - nilerr # no `return nil` right after an err != nil check
+    - noctx # outgoing requests and queries carry a context
+    - nolintlint # every //nolint names a linter and a reason
+    - prealloc
+    - revive
+    - rowserrcheck # rows.Err() checked
+    - sqlclosecheck # rows/statements closed
+    - unconvert
+    - unparam
+    - usestdlibvars
+    - wastedassign
+  settings:
+    exhaustive:
+      # A `default:` branch counts as handling the remaining values.
+      default-signifies-exhaustive: true
+    gocritic:
+      enabled-tags: [diagnostic, performance, style]
+      disabled-checks:
+        - hugeParam # value semantics are deliberate for small config/DTO structs
+        - unnamedResult
+    govet:
+      enable-all: true
+      disable:
+        - fieldalignment # readability over struct packing
+        - shadow # `err :=` shadowing is idiomatic
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+    revive:
+      rules:
+        - name: exported
+        - name: package-comments
+        - name: var-naming
+        - name: indent-error-flow
+        - name: error-strings
+        - name: error-return
+        - name: receiver-naming
+        - name: context-as-argument
+        - name: unused-parameter
+          disabled: true # interface implementations often ignore parameters
+  exclusions:
+    generated: strict # sqlc output and other generated files are not linted
+    presets:
+      - std-error-handling
+    rules:
+      # Tests may use fixed test credentials, run subprocesses and skip some checks.
+      - path: _test\.go
+        linters: [gosec, noctx, prealloc, unparam]
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/burakkuru5534/brainvolt/backend
