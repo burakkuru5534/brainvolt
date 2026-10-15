@@ -44,7 +44,7 @@ A round can also be **aborted** from any phase if the match leaves `in_progress`
 | **Individual Turns** (D-019) | per side, **only the member whose turn it is** (`answering_user_id`; rotation by `seat_no`, round 1 = seat 1, round 2 = seat 2, …, wrapping) | both turn-holders answered |
 | **Fast Team Round** (D-019) | **every** participant on both sides, independently | all participants answered |
 
-Disconnected expected answerers are still expected: early lock waits for the deadline (they may reconnect); a missing answer becomes a **timeout** (`option_id = NULL`, `is_correct = false`). What happens to a side whose turn-holder has *left* is a 0.3.9 rule.
+Disconnected expected answerers are still expected: early lock waits for the deadline (they may reconnect); a missing answer becomes a **timeout** (`option_id = NULL`, `is_correct = false`). **Exception — Individual Turns (D-039):** if the turn holder is disconnected or has left at round start, the turn passes to the next active seat for that round.
 
 ---
 

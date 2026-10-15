@@ -1,12 +1,12 @@
 # Team answer mode rules — Shared Answer, Individual Turns, Fast Team Round
 
 - **Roadmap task:** 0.3.6
-- **Status:** Draft for review (2026-10-15)
+- **Status:** Accepted (2026-10-15)
 - **Owner module:** `game` (`domain/teammode`: one aggregator per mode)
 - **Applies to:** formats `2v2`, `3v3`, `4v4`, `couple` (any side with > 1 participant)
 - **Builds on:** D-019 (definitions), D-035 (round flow: Shared Answer propose/lock/fallback, Fast Team privacy, Individual Turns rotation), D-037 (per-answer scoring, ruleset 1), D-038 (Shared Answer +5 s)
 - **Related:** round-lifecycle.md §2–§4, scoring.md, match-types.md (Sudden Death needs a per-side "correct"), disconnect rules 0.3.9, combinations 0.5
-- Values marked **(P)** are proposals (§8).
+- Values marked **(P)** were proposed and accepted (D-039, §8).
 
 ---
 
@@ -51,8 +51,7 @@ For each side, the aggregator returns:
 | `side_points` | `ScoreAnswer(turn holder answer, response_ms, side_streak)` |
 | Streak | **side streak** — continues across different turn holders (rewards the whole team keeping the run) |
 | `contribution` | all of `side_points` to the turn holder |
-| Turn holder disconnected | stays the turn holder; if no answer → side timeout (they may reconnect within the window) |
-| Turn holder **left** the match | turn passes to the next seat that is still in the match (rule detailed with forfeits in 0.3.9) |
+| Turn holder **disconnected or left** (D-039) | the turn passes automatically to the **next active seat** in rotation order for that round (an "active" member = connected and still in the match at round start); the rotation then continues from that seat. If no member is active → side timeout. Reconnection rules in 0.3.9. |
 
 ---
 
@@ -65,7 +64,7 @@ The side result then depends on the **aggregation rule** stored in `match_config
 
 | Rule | `side_correct` | `side_points` | `contribution` |
 |---|---|---|---|
-| **`average`** — "total correct", normalised (P default) | ≥ half of members correct (P) | `round(sum(member_points) / side_size)` — timeouts and wrong answers count as 0 | each member's own `member_points / side_size` |
+| **`average`** — "total correct", normalised (P default) | ≥ half of **active** members correct (D-039; active = connected and in the match at round start) | `round(sum(member_points) / side_size)` — timeouts, wrong answers and inactive members count as 0 (dividing by the full side size means disconnecting never raises a side's average) | each member's own `member_points / side_size` |
 | **`fastest_correct`** | ≥ 1 member correct | `member_points` of the fastest correct member (lowest `response_ms`; tie → earliest `received_at`) | all to that member |
 | **`majority`** | the most-chosen option is correct (tie between options → the option whose first chooser was fastest; timeouts don't vote) | `ScoreAnswer(majority option, median response_ms of members who chose it, side_streak)` | split equally among members who chose the majority option |
 
@@ -121,9 +120,9 @@ In **Individual Turns** (A3's turn, wrong): **0**, side streak resets.
 
 ---
 
-## 8. Proposals to confirm
+## 8. Accepted proposals (D-039)
 1. **Same scale for all formats:** a side's round points never exceed one player's maximum (260), so 1v1 and 4v4 scores are comparable.
 2. **Shared Answer:** auto-locked (fallback) answers get **no speed bonus**; side streak; points shared equally among members (remainder to the locker).
-3. **Individual Turns:** side streak continues across turn holders; points credited to the turn holder; if the turn holder left, turn passes to the next seat.
-4. **Fast Team Round:** personal streaks; three aggregation rules — `average` (default), `fastest_correct`, `majority`; side counts as "correct" when at least half the members are correct (`average`).
+3. **Individual Turns:** side streak continues across turn holders; points credited to the turn holder; if the turn holder is disconnected or has left, the turn passes automatically to the next active seat.
+4. **Fast Team Round:** personal streaks; three aggregation rules — `average` (default), `fastest_correct`, `majority`; side counts as "correct" when at least half of the **active** members are correct (`average`).
 5. **Who picks the rule:** Ranked and matchmade casual fixed to `average`; private rooms, challenges and tournaments let the host/organiser pick.
