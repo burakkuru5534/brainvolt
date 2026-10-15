@@ -60,7 +60,7 @@ Verification for each task: document reviewed against the requirement list + cro
 
 ### 0.1 Repository & codebase analysis
 - [x] 0.1.1 Inventory repository, record baseline (section above)
-- [ ] 0.1.2 Write `docs/adr/0001-tech-stack-and-versions.md` — pin Go, Flutter/Dart, Postgres, Redis versions; Firebase products used
+- [x] 0.1.2 Write `docs/adr/0001-tech-stack-and-versions.md` — pin Go, Flutter/Dart, Postgres, Redis versions; Firebase products used
 - [ ] 0.1.3 Write `docs/architecture/repo-layout.md` — monorepo folder layout (backend/, mobile/, docs/, deploy/, scripts/)
 - [ ] 0.1.4 Write `docs/architecture/backend-modules.md` — Go module boundaries & allowed dependencies (auth, user, content, game, realtime, matchmaking, social, team, ranking, progression, moderation, notification, chat, tournament, monetization)
 - [ ] 0.1.5 Write `docs/adr/0002-backend-libraries.md` — HTTP router, WebSocket lib, DB driver/query layer, migration tool, logging, config, test tooling
@@ -220,3 +220,4 @@ Verification for each task: document reviewed against the requirement list + cro
 ## Change log
 - 2026-10-15 — Roadmap created; Phase 0 broken into atomic tasks; task 0.1.1 completed.
 - 2026-10-15 — Decisions D-001…D-007 recorded (language, i18n, Glicko-2, casual unrated, seed sources, source tracking, verified-only ranked content).
+- 2026-10-15 — 0.1.2 done: ADR-0001 pins Go 1.27, Flutter 3.47 / Dart 3.13, PostgreSQL 18, Redis 8.10, Compose v2; Firebase scoped to Auth + FCM.
