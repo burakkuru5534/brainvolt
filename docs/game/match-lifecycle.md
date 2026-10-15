@@ -92,6 +92,7 @@ A participant leaves or disconnects without returning before the countdown ends 
 | Owner lost and state cannot be recovered within the takeover limit (0.3.9) | `server_error` |
 | Admin cancels a live match | `admin` |
 | Integrity check fails during the match (e.g. question set corrupted, impossible state) | `integrity_violation` |
+| No active participant on **either** side at the same moment (edge-cases.md §3) | `all_sides_absent` |
 
 Effects as T3, plus already-persisted rounds stay (for audit and cheat analysis) but **count for nothing**.
 

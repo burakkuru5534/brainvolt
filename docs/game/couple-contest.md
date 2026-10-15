@@ -1,10 +1,10 @@
 # Couple Contest rules
 
 - **Roadmap task:** 0.3.8 (engine rules; live feature in Phase 6)
-- **Status:** Draft for review (2026-10-15)
+- **Status:** Accepted (2026-10-15)
 - **Owner modules:** `game` (match rules), `team` (couple profiles, schema-social §4), `ranking` (couple rating & boards), `matchmaking` (couple queues, Phase 5)
 - **Builds on:** D-016 (couples need full accounts), D-018 (Couple Contest = specialised 2v2 player format), D-027 (one live couple per user, 7-day request expiry), D-028/D-029 (rating buckets solo/team/couple; team country rule), D-039 (team answer modes, same-scale rule, Ranked fixed to Average), D-041 (Ranked: no category mode; rating + RD matchmaking)
-- Values marked **(P)** are proposals (§9).
+- Values marked **(P)** were proposed and accepted (D-047, §9).
 
 ---
 
@@ -32,7 +32,7 @@ A **2v2 match in which each side is a couple profile** — two users who formed 
 
 ---
 
-## 3. Couple-specific twist — Sync Bonus (P)
+## 3. Couple-specific twist — Sync Bonus (D-047)
 
 Couples are about being in tune, so Couple Contest adds one rule on top of ruleset 1:
 
@@ -100,7 +100,7 @@ Couple Contest uses the general team disconnect and forfeit rules (0.3.9); with 
 
 ---
 
-## 9. Proposals to confirm
+## 9. Accepted proposals (D-047)
 1. **Couples play only couples** (no couple vs. temporary pair or 2-person team).
 2. **Sync Bonus +20** when both partners are correct in Fast Team Round (within the 260 cap), also in Ranked.
 3. **Two ratings:** couple rating (matchmaking, boards) + each partner's personal couple rating; new couples start from the partners' average.

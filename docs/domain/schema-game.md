@@ -59,7 +59,7 @@ CREATE TABLE game.matches (
   end_reason         text        CHECK (end_reason IN ('all_rounds_played','sudden_death_decided','forfeit',
                                                        'all_opponents_left','time_limit')),
   cancel_reason      text        CHECK (cancel_reason IN ('not_all_ready','participant_left_before_start',
-                                                          'server_error','admin','integrity_violation')),
+                                                          'all_sides_absent','server_error','admin','integrity_violation')),
   -- outcome
   winner_side_no     smallint    CHECK (winner_side_no IN (1,2)),
   is_draw            boolean     NOT NULL DEFAULT false,
