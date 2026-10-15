@@ -25,7 +25,7 @@ A **2v2 match in which each side is a couple profile** — two users who formed 
 | Axis | Allowed |
 |---|---|
 | Match types | Quick Duel, **Ranked**, Sudden Death, Marathon |
-| Team answer modes | all three: Shared Answer, Individual Turns, Fast Team Round (D-039) |
+| Team answer modes | all three: Shared Answer, Individual Turns, Fast Team Round (D-039) — **matchmade** couple queues (ranked and casual) use Fast Team Round + average (D-053); the other modes via challenges, rooms, rematch/revenge, tournaments |
 | Ranked couple matches | **Fast Team Round + Average only** (D-039), no category mode (D-041), matchmaking only (D-038) |
 | Category modes (unrated) | Blind Challenge, Category Master, Mixed Battle, Creator Quiz (room rules apply), Revenge Match |
 | Origins | couple matchmaking queue, direct couple-vs-couple challenge, private room (both couples present), rematch / revenge, tournaments with `entity_kind = couple` |

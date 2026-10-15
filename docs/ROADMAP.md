@@ -11,6 +11,10 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 - **No TODOs / mocks as final implementations.**
 - **Commits are made by the project owner**, not by the assistant.
 
+## Decision policy (from 2026-10-15, owner instruction)
+The owner reviews only **critical** decisions (anything that blocks the system, changes the architecture, or carries security / budget risk).
+Standard game rules, retention periods, default limits and small details are decided by the assistant using industry-standard practice, recorded in the relevant document and in the decision log below with source **"delegated"**, and work continues without waiting for confirmation. The owner can override any delegated decision at any time.
+
 ## Status legend
 `[ ]` not started · `[~]` in progress · `[x]` done · `[!]` blocked / needs decision
 
@@ -18,7 +22,7 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 
 | # | Phase | Status |
 |---|-------|--------|
-| 0 | Planning & Architecture | [~] |
+| 0 | Planning & Architecture | [x] |
 | 1 | Core Infrastructure | [ ] |
 | 2 | Question & Category System | [ ] |
 | 3 | Game Engine | [ ] |
@@ -93,10 +97,16 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 | D-045 | Revenge Match | Offered instantly on results screen (valid 24 h) against the preceding opponent, copies the configuration; 50 % home category (rounded down); max 3 consecutive same-category questions; never rated (Ranked only via fresh matchmade game); max 3 revenges per chain | 2026-10-15 | 0.3.7, Phase 8 |
 | D-046 | 0.3.7 confirmations | One daily set identical in TR and EN → single unified Daily leaderboard (no per-language split); Mixed Battle: turn holder picks the category, answering follows the configured team answer mode (all three compatible); practice daily runs give zero XP and zero quest progress; max 3 consecutive revenge matches per chain | 2026-10-15 | 0.3.7, Phase 8 |
 | D-047 | Couple Contest | Couples only play couples; Sync Bonus +20 when both partners correct in Fast Team Round (casual & Ranked, within 260 cap); dual rating: couple rating + each partner's personal couple rating, new couple starts at partners' average; couple appears on both partners' country boards; re-forming the same pair restores the old profile/history/rating; 7-day cooldown before forming a couple with a different partner | 2026-10-15 | 0.3.8, 0.3.10, Phase 5, Phase 6 |
+| D-048 | Edge cases | Tie-breakers: more correct rounds → lower total correct response time → draw (tournaments & revenge: up to 5 golden rounds, then higher seed / series draw); reconnect windows QD 20 s, Ranked 30 s, SD 20 s, Marathon 60 s, no pausing, >3 disconnects or >2× window away = forfeit; leaver gets loss + XP only for rounds played, staying teammates keep SP; leaver cooldown 2nd leave/24 h 5 min, 3rd+ 15 min; takeover voids open round and replaces it, no takeover in 30 s → cancel; both sides absent → cancel `all_sides_absent` | 2026-10-15 | 0.3.9, Phase 4, Phase 5 |
+| D-049 | Rating / SP / XP formulas (delegated) | Glicko-2 1500/350/0.06, τ 0.5, RD 50–350, per-match periods, daily inactivity inflation, composite opponents for team play, new team/couple RD 200; raw rating hidden (league/SP shown); SP win +30 / draw +10 / loss −15, streak +5…+15, league floor protection; leagues Bronze 0 / Silver 300 / Gold 800 / Platinum 1600 / Diamond 2800 with 3 divisions (Diamond none); leaderboard points win 20 / draw 10 + 2 per correct round, **matchmade matches only**; XP 20 + 5/correct + win 15 / draw 8, level step 100 + 25(L−1), cap 100, no premium XP boost; seasons 8 weeks, SP reset, RD raised to ≥ 150 — see `docs/game/progression-formulas.md` | 2026-10-15 (delegated) | 0.3.10, Phase 7 |
+| D-050 | API conventions (delegated) | `/v1` + forced update via 426; JSON snake_case; UUIDv7; RFC 3339 on REST, Unix ms for WS timing; Firebase Bearer; WS token in first message; `Accept-Language`; error envelope with stable codes; cursor pagination; `Idempotency-Key` (24 h) on creating/spending POSTs; `If-Match` for shared resources — `docs/api/conventions.md` | 2026-10-15 (delegated) | 0.4, Phase 1 |
+| D-051 | WebSocket protocol (delegated) | One socket per installation; one seat-holding device per match; per-stream gap-free `seq`; ack/error per intent; ping 2 s in play / 20 s idle, dead after 3 missed; replay-or-snapshot resume (2 min); awards sent asynchronously; reconnect backoff 0.5 s → 10 s — `docs/api/websocket.md` | 2026-10-15 (delegated) | 0.4, Phase 4 |
+| D-052 | Extra limits & timeouts (delegated) | Rooms 10/h, wrong invite codes 10/10 min, codes 30/day, tickets 30/10 min, quick chat 3/5 s, profile edits 10/h, creator writes 60/h; REST body 64 KB (quiz 256 KB), WS 4 KB in / 256 KB out; HTTP timeouts 10/15/60 s, DB statement 3 s (worker 60 s) — `docs/api/limits.md` | 2026-10-15 (delegated) | 0.4.8, Phase 1 |
+| D-053 | Mode matrix choices (delegated) | Matchmade team/couple queues (ranked & casual) = Fast Team Round + average at launch (other team modes via rooms, challenges, rematch/revenge, tournaments; future config flag); tournament matches never ranked; rematch of ranked converts like revenge (quick_duel, 10 MC, unrated) — `docs/game/mode-matrix.md` | 2026-10-15 (delegated) | 0.5, Phase 3, Phase 5 |
 
 ---
 
-## Phase 0 — Planning & Architecture  `[~]`
+## Phase 0 — Planning & Architecture  `[x]`
 Output: design documents under `docs/` only. No production code.
 Verification for each task: document reviewed against the requirement list + cross-references consistent.
 
@@ -129,45 +139,108 @@ Verification for each task: document reviewed against the requirement list + cro
 - [x] 0.3.6 Team answer mode rules: Shared Answer, Individual Turns, Fast Team Round
 - [x] 0.3.7 Category mode rules: Blind Challenge, Category Master, Mixed Battle, Daily Challenge, Creator Quiz, Revenge Match
 - [x] 0.3.8 Couple Contest rules
-- [~] 0.3.9 Ties, tie-breakers, forfeit, abandonment, disconnect/reconnect windows, cancellation conditions
-- [ ] 0.3.10 MMR, Season Points and XP formulas; league thresholds; seasonal reset rule
-- [ ] 0.3.11 State-machine & scoring test-case catalog (drives Phase 3 tests)
+- [x] 0.3.9 Ties, tie-breakers, forfeit, abandonment, disconnect/reconnect windows, cancellation conditions
+- [x] 0.3.10 MMR, Season Points and XP formulas; league thresholds; seasonal reset rule
+- [x] 0.3.11 State-machine & scoring test-case catalog (drives Phase 3 tests)
 
 ### 0.4 API & WebSocket contracts
-- [ ] 0.4.1 Conventions: versioning, Firebase ID-token auth, error envelope, pagination, idempotency keys, time format
-- [ ] 0.4.2 REST endpoint catalog per module (`docs/api/rest.md`)
-- [ ] 0.4.3 WS handshake, auth, envelope (type, seq, ack, ts), heartbeat
-- [ ] 0.4.4 WS client → server messages
-- [ ] 0.4.5 WS server → client events
-- [ ] 0.4.6 Reconnect / resume protocol (state snapshot, missed-event replay)
-- [ ] 0.4.7 Error-code registry (REST + WS)
-- [ ] 0.4.8 Rate limits & payload size limits
+- [x] 0.4.1 Conventions: versioning, Firebase ID-token auth, error envelope, pagination, idempotency keys, time format
+- [x] 0.4.2 REST endpoint catalog per module (`docs/api/rest.md`)
+- [x] 0.4.3 WS handshake, auth, envelope (type, seq, ack, ts), heartbeat
+- [x] 0.4.4 WS client → server messages
+- [x] 0.4.5 WS server → client events
+- [x] 0.4.6 Reconnect / resume protocol (state snapshot, missed-event replay)
+- [x] 0.4.7 Error-code registry (REST + WS)
+- [x] 0.4.8 Rate limits & payload size limits
 
 ### 0.5 Game mode combination matrix & validation
-- [ ] 0.5.1 Define axes: match type × format (1v1, 2v2, 3v3, 4v4, couple) × team answer mode × category mode × ranked/unranked
-- [ ] 0.5.2 Fill matrix: allowed / forbidden + reason for every combination
-- [ ] 0.5.3 Declarative validation rules for match configuration (input to Phase 3 validator)
-- [ ] 0.5.4 Matrix test-case table (valid + invalid combos)
+- [x] 0.5.1 Define axes: match type × format (1v1, 2v2, 3v3, 4v4, couple) × team answer mode × category mode × ranked/unranked
+- [x] 0.5.2 Fill matrix: allowed / forbidden + reason for every combination
+- [x] 0.5.3 Declarative validation rules for match configuration (input to Phase 3 validator)
+- [x] 0.5.4 Matrix test-case table (valid + invalid combos)
 
 ### 0.6 Review & sign-off
-- [~] 0.6.1 Open-decisions list resolved with owner (D-001…D-007 recorded; further decisions added as they arise)
-- [ ] 0.6.2 Cross-document consistency check; Phase 0 marked done
+- [x] 0.6.1 Open-decisions list resolved with owner (D-001 … D-053; no open decisions block Phase 1)
+- [x] 0.6.2 Cross-document consistency check; Phase 0 marked done
 
 ---
 
 ## Phase 1 — Core Infrastructure  `[ ]`
-- [ ] Go project setup (module, layout per 0.1.3/0.1.4)
-- [ ] Configuration loading (env-based, validated)
-- [ ] Structured logging
-- [ ] Health checks (liveness, readiness incl. Postgres & Redis)
-- [ ] PostgreSQL migration setup
-- [ ] Flutter app skeleton
-- [ ] Firebase Auth integration (mobile sign-in + backend token verification)
-- [ ] Docker Compose local dev environment (volumes, healthchecks, env file, backend service)
-- [ ] Makefile targets (run, test, migrate, lint)
-- [ ] `.gitattributes` (LF line endings) and `.editorconfig`
-- [ ] Module-boundary architecture test (allowed dependency graph from `backend-modules.md`)
-- [ ] GitHub Actions CI — `.github/workflows/ci.yml`: Go vet/lint/test (with Postgres & Redis services) + Flutter analyze/test (D-010)
+Goal: running skeleton — backend (config, logging, health, Postgres, Redis, migrations, Firebase auth, session/profile endpoints), Flutter app (age gate, guest + Google/Apple/email sign-in, upgrade, TR/EN), Docker Compose, CI. Every task ends with its tests green.
+
+**Owner prerequisites (external accounts — cannot be done from code):**
+- [ ] P1.A Create Firebase project `brainvolt`; add Android + iOS apps `com.brainvolt.app`; enable Anonymous, Google, Apple, Email/Password providers (D-013, D-014)
+- [ ] P1.B Apple Developer Program membership (required for iOS builds and Sign in with Apple; annual fee) and Google Play Console account
+- [ ] P1.C GitHub repository `burakkuru5534/brainvolt` with Actions enabled (D-008, D-010)
+
+### 1.1 Repository & tooling
+- [ ] 1.1.1 `.gitattributes` (LF; `*.bat`/`*.ps1` CRLF) and `.editorconfig`
+- [ ] 1.1.2 `README.md` quick start (Windows + Git Bash notes)
+- [ ] 1.1.3 Makefile targets (`up`, `down`, `run`, `test`, `lint`, `migrate`, `gen`) — each also documented as the plain command
+
+### 1.2 Local environment (Docker Compose)
+- [ ] 1.2.1 Compose v2: `postgres:18.6-alpine`, `redis:8.10.2-alpine`, named volumes (PG 18 mounts `/var/lib/postgresql`), healthchecks, no `version:` key (ADR-0001)
+- [ ] 1.2.2 Redis config: AOF everysec + RDB, `maxmemory-policy noeviction` (redis-keys §1)
+- [ ] 1.2.3 `.env.example` with all `BRAINVOLT_*` vars; credentials only from env
+- [ ] 1.2.4 Firebase Auth Emulator service for local dev (ADR-0003)
+
+### 1.3 Go project setup
+- [ ] 1.3.1 `backend/go.mod` (`github.com/burakkuru5534/brainvolt/backend`, `go 1.27`, `toolchain go1.27.2`) + `cmd/api/main.go` that starts and stops cleanly
+- [ ] 1.3.2 `internal/app` composition root skeleton (api / worker wiring)
+- [ ] 1.3.3 `.golangci.yml` (v2) + `go vet` clean
+- [ ] 1.3.4 Architecture test enforcing `backend-modules.md` §2 import rules
+
+### 1.4 Platform packages (each with unit tests)
+- [ ] 1.4.1 `platform/config` — env v11 parsing + validation
+- [ ] 1.4.2 `platform/logging` — slog JSON/text, request/user/match ids from context
+- [ ] 1.4.3 `platform/clock` — real + fake clock
+- [ ] 1.4.4 `platform/ids` — UUIDv7
+- [ ] 1.4.5 `platform/httpserver` — ServeMux, middleware (request id, recover, logging, timeouts, body limits), error envelope + codes (errors.md, TR/EN messages)
+- [ ] 1.4.6 Health checks: `/healthz`, `/readyz` (Postgres, Redis, migrations)
+- [ ] 1.4.7 `platform/postgres` — pgxpool, tx helper, statement timeout, health (integration test)
+- [ ] 1.4.8 `platform/redis` — go-redis client, health (integration test)
+- [ ] 1.4.9 `platform` rate limiter (fixed windows, limits.md §1 general + session limits)
+- [ ] 1.4.10 Idempotency middleware (`Idempotency-Key`, 24 h)
+- [ ] 1.4.11 `platform/firebase` — ID-token verification incl. emulator (unit + emulator test)
+
+### 1.5 PostgreSQL migration setup
+- [ ] 1.5.1 goose embedded migrations + `cmd/migrate` (up/down/status)
+- [ ] 1.5.2 Migration: River tables
+- [ ] 1.5.3 Migrations: `identity`, `profile`, `notification.devices` schemas (schema-identity.md)
+- [ ] 1.5.4 sqlc config per module + generated code committed + `sqlc diff` check
+- [ ] 1.5.5 Integration-test harness: template DB per package, parallel-safe
+
+### 1.6 Identity & profile (first business code)
+- [ ] 1.6.1 Tier derivation function (schema-identity §2.1) + table tests
+- [ ] 1.6.2 `POST /v1/session` provisioning (age gate, idempotent, events) + integration tests
+- [ ] 1.6.3 `POST /v1/session/abandon-guest` (D-015)
+- [ ] 1.6.4 `GET /v1/me`, `PATCH /v1/me/profile` (30-day rules), `GET/PATCH /v1/me/settings`
+- [ ] 1.6.5 Devices endpoints (`POST/DELETE /v1/me/devices`)
+- [ ] 1.6.6 Account deletion request/cancel (cooling-off only; purge job in a later phase with River)
+- [ ] 1.6.7 OpenAPI 3.1 generation for implemented endpoints (`docs/api/openapi.yaml`) + CI drift check
+- [ ] 1.6.8 Backend Dockerfile + `backend` service in Compose
+
+### 1.7 Flutter app skeleton
+- [ ] 1.7.1 `flutter create` in `mobile/` (org `com.brainvolt`, app id `com.brainvolt.app`), `.flutter-version` 3.47.1, pinned `pubspec.lock`
+- [ ] 1.7.2 `analysis_options.yaml` (flutter_lints + riverpod_lint, zero warnings)
+- [ ] 1.7.3 Folder structure `app/ core/ features/` (ADR-0003) + Riverpod + go_router skeleton
+- [ ] 1.7.4 Flavors dev/prod via `--dart-define-from-file`
+- [ ] 1.7.5 gen-l10n with `app_tr.arb` (template) + `app_en.arb`; locale override
+- [ ] 1.7.6 dio client: auth interceptor, `Accept-Language`, `X-App-Version`, error-code mapping + tests
+- [ ] 1.7.7 build_runner (freezed/json_serializable) with generated files committed
+
+### 1.8 Firebase Auth integration (mobile)
+- [ ] 1.8.1 FlutterFire configuration (needs P1.A)
+- [ ] 1.8.2 Age gate screen (D-020) + test
+- [ ] 1.8.3 Anonymous sign-in + `POST /v1/session` bootstrap
+- [ ] 1.8.4 Google, Apple, Email/Password sign-in & email verification flow
+- [ ] 1.8.5 Guest upgrade via account linking (D-013a) + link-conflict flow (D-015) + tests with mocked auth
+- [ ] 1.8.6 Profile & settings screens wired to the API
+
+### 1.9 CI (D-010)
+- [ ] 1.9.1 `.github/workflows/ci.yml`: Go vet, golangci-lint, unit + integration tests (`-race`) with Postgres 18 & Redis 8.10 services, sqlc diff, OpenAPI drift
+- [ ] 1.9.2 Flutter analyze, test, codegen-up-to-date check
+- [ ] 1.9.3 Branch protection guidance in README (owner applies on GitHub)
 
 ## Phase 2 — Question & Category System  `[ ]`
 - [ ] Category & sub-category models
@@ -319,3 +392,11 @@ Verification for each task: document reviewed against the requirement list + cro
 - 2026-10-15 — 0.3.8 drafted: `docs/game/couple-contest.md` (couple-vs-couple 2v2, allowed combinations, Sync Bonus, couple + personal couple ratings, boards, lifecycle & anti-abuse); `team.couples.last_dissolved_at` added. Waiting on owner for 5 proposals.
 - 2026-10-15 — D-047 recorded; 0.3.8 done.
 - 2026-10-15 — 0.3.9 drafted: `docs/game/edge-cases.md` (tie-breakers & golden rounds, reconnect windows & abuse limit, leave/forfeit matrix & awards, leaver cooldowns, owner takeover with round voiding, complete cancellation list); cancel_reason `all_sides_absent` added. Waiting on owner for 6 proposals.
+- 2026-10-15 — D-048 recorded; 0.3.9 done. Owner delegated non-critical decisions (decision policy added at top).
+- 2026-10-15 — 0.3.10 done (delegated D-049): `docs/game/progression-formulas.md`.
+- 2026-10-15 — 0.3.11 done: `docs/game/test-catalog.md` (≈100 test IDs across 11 rule areas, mapped to unit/integration/E2E and phases). **Section 0.3 complete.**
+- 2026-10-15 — 0.4.1 done (delegated D-050): `docs/api/conventions.md`. 0.4.2 done: `docs/api/rest.md` (~110 endpoints, 16 groups, auth tier, idempotency and phase per endpoint; OpenAPI generated in Phase 1).
+- 2026-10-15 — 0.4.3–0.4.6 done (delegated D-051): `docs/api/websocket.md` (auth handshake, close codes, envelope & streams, heartbeat, full client/server message catalogue, replay-or-snapshot resume, fan-out).
+- 2026-10-15 — 0.4.7 done: `docs/api/errors.md` (~65 stable codes, REST status + WS mapping). 0.4.8 done (delegated D-052): `docs/api/limits.md`. **Section 0.4 complete.**
+- 2026-10-15 — 0.5.1–0.5.4 done (delegated D-053): `docs/game/mode-matrix.md` — 7 axes, 11 520 raw combinations → 1 178 valid (5 ranked), 21 rules (R01–R21), 6 transformations, 36 test cases + property tests. **Section 0.5 complete.**
+- 2026-10-15 — 0.6 done: consistency check (all decision refs logged, no broken doc links, enum values aligned; glossary gained `origin` and `aggregation`), `docs/ARCHITECTURE.md` rewritten as overview & document map. **Phase 0 complete.** Phase 1 broken into 51 atomic tasks + 3 owner prerequisites (all original Phase 1 items kept).

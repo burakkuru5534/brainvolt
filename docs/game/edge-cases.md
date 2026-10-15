@@ -1,11 +1,11 @@
 # Ties, disconnects, forfeits, takeover & cancellation
 
 - **Roadmap task:** 0.3.9
-- **Status:** Draft for review (2026-10-15)
+- **Status:** Accepted (2026-10-15)
 - **Owner module:** `game` (lifecycle T3/T5/T6/T7, round engine, sweeper); `matchmaking` applies queue penalties (Phase 5)
 - **Builds on:** D-032 (resume token 2 min), D-034 (ready flow, no-show cooldown), D-035/D-039 (team modes, turn passing), D-036 (timing, owner lease), D-037/D-038 (scoring, match types), D-040 (Daily Challenge has its own disconnect rules — not repeated here), D-030 (signals, sanctions)
 - **Related:** match-lifecycle.md, round-lifecycle.md, timing.md, team-modes.md, schema-game.md, redis-keys.md §8
-- Values marked **(P)** are proposals (§8).
+- Values marked **(P)** were proposed and accepted (D-048, §8).
 
 ---
 
@@ -111,7 +111,7 @@ A cancelled match awards nothing to anyone (match-lifecycle §6) and ready playe
 
 ---
 
-## 8. Proposals to confirm
+## 8. Accepted proposals (D-048)
 1. **Tie-breakers:** more correct rounds → lower total correct response time → draw. Draws allowed except tournaments & revenge chains, which use up to 5 golden rounds (then higher seed advances / series counts a draw).
 2. **Reconnect windows:** Quick Duel 20 s, Ranked 30 s, Sudden Death 20 s, Marathon 60 s; no pausing; more than 3 disconnects or total away time over 2× window = forfeit.
 3. **Forfeit awards:** leaver gets a loss and XP only for rounds played; teammates who stayed on a losing side keep their SP (leaver protection), rating still changes.

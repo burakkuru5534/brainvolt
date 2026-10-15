@@ -65,6 +65,8 @@
 | Team | `team` | Takım | A **persistent** group profile (2–4 users) that exists outside matches (module `team`). A team *plays as* a side; a side is not necessarily a team (matchmaking may form a side from strangers). *Never use "team" for an in-match side.* Restricted accounts cannot create or lead a team (D-016, D-016a). |
 | Temporary side | `side.team_id = null` | Geçici takım | A side formed by matchmaking from individual queue entries (possibly strangers, possibly guests). Exists only for one match. In UI it may be called "takım"; in data and code it is a side with no team profile (D-016a). |
 | Couple | `couple` | Çift | A persistent two-user profile used for Couple Contest. |
+| Origin | `origin` | Maç kaynağı | How a match was created: `matchmaking`, `challenge`, `private_room`, `rematch`, `revenge`, `tournament` (mode-matrix.md). Daily Challenge runs are not matches (D-040). |
+| Aggregation rule | `aggregation` | Toplama kuralı | Fast Team Round side-result rule: `average` (default; Ranked & matchmaking), `fastest_correct`, `majority` (D-039, team-modes.md §4). |
 | Party | `party` | Grup | Users queueing together for matchmaking (Phase 5). Temporary. |
 | Rated match | `is_rated = true` | Dereceli | Changes rating (Glicko-2). Only match type `ranked` is rated. |
 | Casual match | `is_rated = false` | Dereceli olmayan | Never changes rating (D-004). SP/XP effect fixed in 0.3.10. |
