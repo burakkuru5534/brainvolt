@@ -126,6 +126,7 @@ CREATE TABLE game.match_rounds (
   round_no           smallint    NOT NULL CHECK (round_no >= 1),
   question_id        uuid        NOT NULL REFERENCES content.questions(id),
   question_revision  int         NOT NULL,              -- exact version shown (schema-content §4.3)
+  difficulty_used    smallint    NOT NULL CHECK (difficulty_used BETWEEN 1 AND 5),  -- fixed at selection; scoring input (scoring.md §2.1)
   option_order       smallint[]  NOT NULL,              -- shuffled canonical positions as shown, e.g. {3,1,4,2}
   answering_side_no  smallint    CHECK (answering_side_no IN (1,2)),     -- set only if a mode gives a round to one side
   answering_user_id  uuid        REFERENCES identity.users(id),         -- Individual Turns: whose turn it is

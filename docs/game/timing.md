@@ -1,10 +1,10 @@
 # Server timer authority & latency model
 
 - **Roadmap task:** 0.3.3
-- **Status:** Draft for review (2026-10-15)
+- **Status:** Accepted (2026-10-15)
 - **Owner module:** `game` (uses `platform/clock`; RTT measured by `realtime`)
 - **Related:** round-lifecycle.md (phases), match-lifecycle.md (ready deadline, countdown), scoring 0.3.4 (speed bonus uses `response_ms`), anti-cheat D-030 ("too fast" threshold uses `response_ms`), WS heartbeat contract 0.4.3
-- Values marked **(P)** are proposals (§9).
+- Values marked **(P)** were proposed and accepted (D-036, §9).
 
 ---
 
@@ -119,7 +119,7 @@ Every timer is an **absolute server timestamp** stored in Redis (`:state` / `:ro
 
 ---
 
-## 9. Proposals to confirm
+## 9. Accepted proposals (D-036)
 1. In-match ping every **2 s**; RTT estimate = median of last 10 samples.
 2. Latency compensation capped at **150 ms** uplink; grace = uplink estimate + **100 ms** (range 100–250 ms).
 3. Synchronized question display with `show_at` buffer capped at **250 ms**.
