@@ -42,6 +42,7 @@ Firebase is used **only** for identity and push. All game data, profiles, rating
 - PostgreSQL 18 official images store data under `/var/lib/postgresql/18/docker`; the Phase 1 compose volume must mount `/var/lib/postgresql` (not `/var/lib/postgresql/data` as with ≤17).
 - Redis 8.x is offered under RSALv2 / SSPLv1 / **AGPLv3** (our choice of license). BrainVolt runs Redis unmodified as a separate server, so no source-disclosure obligation applies to BrainVolt code. Managed Redis/Valkey providers remain an option for production; that choice belongs to Phase 9 deployment docs.
 - Developers (Windows host) need: Go 1.27.x, Flutter 3.47.x, Docker Desktop with Compose v2. Exact setup steps go into Phase 1 docs.
+- Owner machine verified 2026-10-15: Go **1.27.0**, Flutter **3.47.1**. Flutter matches. For Go, `go.mod`'s `toolchain go1.27.2` line makes the Go command fetch 1.27.2 automatically (default `GOTOOLCHAIN=auto`); installing 1.27.2 locally avoids that download. `mobile/.flutter-version` will record `3.47.1`.
 
 ## Alternatives considered
 - **Go 1.26** — still supported, but drops out of support ~6 months earlier than 1.27. Rejected for a new project.
