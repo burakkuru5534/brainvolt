@@ -79,6 +79,7 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 | D-031 | Platform policies | Marketing push opt-in; quiet hours; ≤10 push/user/h; inbox 30 days. Free-text match chat only for persistent teams/couples, temporary sides quick-chat only; 5 msgs/10 s; chat kept 6 months. Tournaments admin-created, full accounts, unrated by default, rewards XP/badges/cosmetics. Premium: no interstitials, exclusive cosmetics, +1 daily quest, extended stats — zero gameplay advantage. Ads: ≤1 interstitial per 3 matches (never mid-match / premium), ≤5 rewarded/day (quest reroll, bonus XP, cosmetic trial). No soft/hard currency at launch. Creator Quiz: full accounts, 5–30 questions, ≤20 quizzes/author, never rated / no SP. Daily Challenge: first completed attempt per day counts | 2026-10-15 | 0.2.8, 0.3.7, Phase 8, Phase 9 |
 | D-032 | Redis-level limits | Matchmaking ticket 10 min; resume token 2 min after disconnect (game reconnect window ≤ this); no-repeat window 30 days / 2 000 questions per user; API 60 req/10 s per user, 300 req/min per IP, 20 WS msg/s per connection, 20 session calls/h per installation | 2026-10-15 | 0.2.9, 0.3.9, 0.4.8, Phase 4, Phase 5 |
 | D-033 | Remaining retention | Closed friend requests, challenges, rooms, team invites purged after 90 days; quest assignments 12 months after period end; commerce transactions/subscriptions/store notifications 10 years (TTK / VUK); match transitions & round event logs = match detail, 12 months | 2026-10-15 | 0.2.10 |
+| D-034 | Ready flow & voiding | Ready deadline 20 s after creation (tournaments own window); 3 s start countdown; 3 missed matchmade ready checks in 30 min → 5 min queue cooldown (queue health, not a sanction); ready players return to the front of the queue; voiding revokes SP & leaderboard points only — non-cheaters keep XP, quest progress, streaks; cheaters handled by sanctions | 2026-10-15 | 0.3.1, Phase 4, Phase 5 |
 
 ---
 
@@ -107,8 +108,8 @@ Verification for each task: document reviewed against the requirement list + cro
 - [x] 0.2.10 Consolidated ERD (`docs/domain/erd.md`, Mermaid) + index/constraint/retention review
 
 ### 0.3 Game state machine & scoring rules
-- [~] 0.3.1 Match lifecycle: states `waiting → ready → in_progress → completed | cancelled`, transitions, guards, triggers, side effects
-- [ ] 0.3.2 Round / question sub-state machine (dispatched → answering → locked → revealed)
+- [x] 0.3.1 Match lifecycle: states `waiting → ready → in_progress → completed | cancelled`, transitions, guards, triggers, side effects
+- [~] 0.3.2 Round / question sub-state machine (dispatched → answering → locked → revealed)
 - [ ] 0.3.3 Server timer authority model (server timestamps, latency grace window, late-answer rejection)
 - [ ] 0.3.4 Base scoring formula (correctness, speed bonus, streak bonus, caps)
 - [ ] 0.3.5 Match type rules: Quick Duel, Ranked, Sudden Death, Marathon
@@ -280,3 +281,5 @@ Verification for each task: document reviewed against the requirement list + cro
 - 2026-10-15 — 0.2.10 drafted: `docs/domain/erd.md` (87 tables / 15 schemas inventory, FK-vs-dependency check passed, Mermaid diagrams, review findings F1–F5 fixed in schema docs, consolidated retention, personal-data inventory). Waiting on owner for 4 retention proposals.
 - 2026-10-15 — D-033 recorded; 0.2.10 done. **Section 0.2 (data model) complete.**
 - 2026-10-15 — 0.3.1 drafted: `docs/game/match-lifecycle.md` (5 states, 7 transitions with triggers/guards/effects, participant sub-states, ready flow per origin, single-writer execution model, award matrix, invariants, key tests). Waiting on owner for 4 proposals.
+- 2026-10-15 — D-034 recorded; 0.3.1 done.
+- 2026-10-15 — 0.3.2 drafted: `docs/game/round-lifecycle.md` (phases pre_round → question → locked → reveal → end_check, expected answerers per team mode, Shared Answer propose/lock, visibility rules, server steps, invariants, tests). Waiting on owner for 5 proposals.

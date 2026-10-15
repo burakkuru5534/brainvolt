@@ -1,10 +1,10 @@
 # Match lifecycle state machine
 
 - **Roadmap task:** 0.3.1
-- **Status:** Draft for review (2026-10-15)
+- **Status:** Accepted (2026-10-15)
 - **Owner module:** `game` (single writer per live match, `backend-modules.md` §3.4)
 - **Related:** `schema-game.md` (columns `status`, `end_reason`, `cancel_reason`, participant `status`), `redis-keys.md` §2, round sub-machine 0.3.2, timing 0.3.3, disconnect/forfeit/tie rules 0.3.9, WS contract 0.4
-- Values marked **(P)** are proposals (§9).
+- Values marked **(P)** were proposed and accepted (D-034, §9).
 
 ---
 
@@ -61,7 +61,7 @@ No other transitions exist. A terminal state never changes again.
 | Owner cannot continue (e.g. Redis loss, 0.3.9) | `server_error` |
 | Admin action | `admin` |
 
-**Effects:** Postgres `cancelled` + `cancel_reason`, `match_transitions`; outbox `game.MatchCancelled` (consumers: `matchmaking` re-queues participants who **were** ready, at their original queue position (P); `lobby` returns the room to `open`; `tournament` applies no-show rules). Live locks released, Redis keys get the 1 h TTL. Realtime `match.cancelled {reason}`.
+**Effects:** Postgres `cancelled` + `cancel_reason`, `match_transitions`; outbox `game.MatchCancelled` (consumers: `matchmaking` re-queues participants who **were** ready **at the front of the queue** (priority placement, D-034); `lobby` returns the room to `open`; `tournament` applies no-show rules). Live locks released, Redis keys get the 1 h TTL. Realtime `match.cancelled {reason}`.
 **No-show penalty (P):** a participant who misses the ready deadline in a **matchmade** match **3 times within 30 min** gets a **5 min** matchmaking cooldown (not a moderation sanction; stored in Redis `mm:` keys, Phase 5).
 
 ### T4 — `ready` → `in_progress`
@@ -173,8 +173,8 @@ Leaving on purpose during `in_progress` is final for that participant (no rejoin
 
 ---
 
-## 9. Proposals to confirm
+## 9. Accepted proposals (D-034)
 1. **Ready deadline 20 s** after creation (matchmaking, challenges, rooms, daily); tournaments use their own window.
 2. **Start countdown 3 s** after everyone is ready.
-3. **No-show cooldown:** 3 missed ready checks in matchmade matches within 30 min → 5 min matchmaking cooldown. Players who were ready go back to the queue at their old position.
-4. **Voided matches keep XP, quest progress and streaks** for everyone (only SP/leaderboard points are revoked, D-030) — the cheater is handled by sanctions.
+3. **No-show cooldown:** 3 missed ready checks in matchmade matches within 30 min → 5 min matchmaking cooldown (automatic queue-health measure, not a moderation sanction). Players who were ready return to the **front** of the queue.
+4. **Voided matches revoke SP and leaderboard points only.** Non-cheating players keep XP, quest progress and streaks; cheaters are handled separately through account-level sanctions (no automatic XP revocation).
