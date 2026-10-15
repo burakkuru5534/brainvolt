@@ -72,6 +72,8 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 | D-024 | True/false questions | Excluded from Ranked; allowed in casual and quick modes | 2026-10-15 | 0.2.3, 0.3.5, 0.5 |
 | D-025 | Question media | Text-only at launch; image/audio deferred to a future media pipeline | 2026-10-15 | 0.2.3 |
 | D-026 | Match data retention | Match results, scores, rating changes and history kept forever; round-by-round and per-answer detail kept 12 months, then purged/archived | 2026-10-15 | 0.2.4, 0.2.10 |
+| D-027 | Social limits | Accepted as proposed in `schema-social.md` §6 (friends 300, 50 requests/day, 6-char codes, rematch 30 s, revenge & direct challenge 24 h, 20 challenges/h, idle room 15 min, teams 2–4 members & max 3 per user, couple one per user). Revenge only by the losing side | 2026-10-15 | 0.2.5, 0.3.7, Phase 5 |
+| D-028 | Temporary sides & team boards | Results of temporary sides do not count toward Team leaderboards; members' individual rating/leaderboards update normally | 2026-10-15 | 0.2.6, 0.3.10 |
 
 ---
 
@@ -92,8 +94,8 @@ Verification for each task: document reviewed against the requirement list + cro
 - [x] 0.2.2 Schema: identity — users, firebase identity link, profiles, devices/FCM tokens, settings, country
 - [x] 0.2.3 Schema: content — categories, sub-categories, questions, answer options, difficulty, locale, source & license
 - [x] 0.2.4 Schema: game — matches, match_configs, sides/teams in match, participants, rounds, match_questions, answers, results
-- [~] 0.2.5 Schema: social — friendships, friend requests, direct challenges, invite codes, private rooms, team profiles, couple profiles, rematch links
-- [ ] 0.2.6 Schema: ranking & progression — ratings (per bucket), seasons, season points, XP/levels, leagues, streaks, badges, quests, leaderboard snapshots
+- [x] 0.2.5 Schema: social — friendships, friend requests, direct challenges, invite codes, private rooms, team profiles, couple profiles, rematch links
+- [~] 0.2.6 Schema: ranking & progression — ratings (per bucket), seasons, season points, XP/levels, leagues, streaks, badges, quests, leaderboard snapshots
 - [ ] 0.2.7 Schema: moderation & anti-cheat — question reports, moderation actions, user sanctions, cheat signals
 - [ ] 0.2.8 Schema: platform — notifications log, team chat, tournaments, subscriptions, cosmetics/inventory, ad events, creator quizzes, daily challenges
 - [ ] 0.2.9 `docs/domain/redis-keys.md` — key naming, data types, TTLs (queues, live match state, presence, locks, rate limits, leaderboard ZSETs)
@@ -261,3 +263,5 @@ Verification for each task: document reviewed against the requirement list + cro
 - 2026-10-15 — 0.2.4 done (draft for review): `docs/domain/schema-game.md` — Redis-live / Postgres-final split, matches with immutable config & origin, two sides (team / couple / temporary), participants with seats & tier at start, rounds with question revision & shuffled order, accepted answers only, per-side round results, lifecycle audit, MatchCompleted payload.
 - 2026-10-15 — Decision D-026 recorded (match detail retention).
 - 2026-10-15 — 0.2.5 drafted: `docs/domain/schema-social.md` (friends as directed pairs, blocks, invite codes, private rooms, direct/rematch/revenge challenges, teams with captain & lineups, couples; D-023 room rule = friends of host). Waiting on owner to confirm proposed limits.
+- 2026-10-15 — D-027 (social limits accepted) and D-028 (temporary sides off team boards, no objection raised) recorded; 0.2.5 done.
+- 2026-10-15 — 0.2.6 drafted: `docs/domain/schema-ranking.md` (entity-based Glicko-2 ratings per bucket + full change history, seasons, leagues, standings, points ledger feeding Redis leaderboards for every filter combo, snapshots, XP ledger, play streaks, badges, quests). Allowed dependency progression → ranking added. Waiting on owner for 5 proposals.

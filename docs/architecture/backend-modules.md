@@ -63,7 +63,7 @@ Layer 5  ranking   progression   moderation   notification   (event consumers)
 | creator | identity, profile, content |
 | chat | identity, profile, team, realtime |
 | ranking | identity, profile, social, team, content |
-| progression | identity, profile, content |
+| progression | identity, profile, content, ranking (seasons, for seasonal quests) |
 | moderation | identity, profile, content, game, creator, chat |
 | notification | identity, profile, social, team |
 

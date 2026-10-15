@@ -1,10 +1,10 @@
 # Schema — social, lobby, team (friends, blocks, challenges, invite codes, private rooms, teams, couples, rematch)
 
 - **Roadmap task:** 0.2.5
-- **Status:** Draft for review (2026-10-15)
+- **Status:** Accepted (2026-10-15)
 - **Modules / Postgres schemas:** `social`, `lobby`, `team`
 - **Decisions applied:** D-016 / D-016a / D-017 (restricted accounts), D-018 (couples), D-023 (unverified creator quizzes only in private rooms among friends)
-- Conventions: as in `schema-identity.md`. Proposed numeric limits are marked **(P)** and listed in §6 for confirmation.
+- Conventions: as in `schema-identity.md`. Numeric limits marked **(P)** were proposed and accepted as-is (D-027, §6).
 
 ---
 
@@ -259,7 +259,7 @@ Rules:
 
 ---
 
-## 6. Proposed limits — please confirm or change
+## 6. Limits (accepted as proposed — D-027)
 | # | Item | Proposal |
 |---|---|---|
 | 1 | Friend cap / outgoing friend requests per day | 300 / 50 |
