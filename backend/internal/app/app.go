@@ -16,6 +16,9 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/config"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/logging"
 )
 
 // Role names the process a composition is built for (backend-modules.md §5).
@@ -51,14 +54,14 @@ func New(role Role, logger *slog.Logger, components ...Component) *App {
 // NewAPI builds the composition for cmd/api.
 // Components are registered here as the roadmap adds them
 // (HTTP server in 1.4.5, WebSocket gateway in Phase 4, matchmaking in Phase 5).
-func NewAPI(logger *slog.Logger) (*App, error) {
+func NewAPI(_ config.Config, logger *slog.Logger) (*App, error) {
 	return New(RoleAPI, logger), nil
 }
 
 // NewWorker builds the composition for cmd/worker.
 // Components are registered here as the roadmap adds them
 // (River job runner from 1.5.2 on).
-func NewWorker(logger *slog.Logger) (*App, error) {
+func NewWorker(_ config.Config, logger *slog.Logger) (*App, error) {
 	return New(RoleWorker, logger), nil
 }
 
@@ -103,17 +106,25 @@ func (a *App) Run(ctx context.Context) error {
 	return nil
 }
 
-// Main is the shared body of the cmd/* entry points: it builds the App with
-// build, runs it until SIGINT/SIGTERM, and returns the process exit code
-// (0 = clean stop, 1 = start-up or run failure).
-func Main(build func(*slog.Logger) (*App, error)) int {
+// Main is the shared body of the cmd/* entry points: it loads and validates
+// the configuration, builds the logger and the App with build, runs it until
+// SIGINT/SIGTERM, and returns the process exit code (0 = clean stop,
+// 1 = configuration, start-up or run failure).
+func Main(build func(config.Config, *slog.Logger) (*App, error)) int {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	// Replaced by platform/logging (roadmap 1.4.2) once config is available.
-	logger := slog.New(slog.NewTextHandler(os.Stderr, nil))
+	cfg, err := config.Load()
+	if err != nil {
+		// No logger options yet: report in the default JSON format.
+		logging.New(os.Stderr, logging.Options{Format: logging.FormatJSON}).
+			Error("invalid configuration", "error", err)
+		return 1
+	}
+	logger := logging.New(os.Stderr, logging.Options{Format: cfg.Log.Format, Level: cfg.Log.Level})
+	logger.Info("configuration loaded", "config", cfg)
 
-	a, err := build(logger)
+	a, err := build(cfg, logger)
 	if err != nil {
 		logger.Error("start-up failed", "error", err)
 		return 1

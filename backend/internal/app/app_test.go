@@ -9,6 +9,8 @@ import (
 	"testing"
 	"testing/synctest"
 	"time"
+
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/config"
 )
 
 var discard = slog.New(slog.NewTextHandler(io.Discard, nil))
@@ -104,15 +106,45 @@ func TestRunComponentFailureStopsOthers(t *testing.T) {
 	})
 }
 
+// devEnv is a valid local configuration (see .env.example).
+var devEnv = map[string]string{
+	"BRAINVOLT_LOG_FORMAT":          "text",
+	"BRAINVOLT_POSTGRES_URL":        "postgres://brainvolt:pw@localhost:5432/brainvolt?sslmode=disable",
+	"BRAINVOLT_REDIS_URL":           "redis://:pw@localhost:6379/0",
+	"BRAINVOLT_FIREBASE_PROJECT_ID": "demo-brainvolt",
+	"FIREBASE_AUTH_EMULATOR_HOST":   "localhost:9099",
+}
+
 func TestMainReturnsOneWhenBuildFails(t *testing.T) {
-	build := func(*slog.Logger) (*App, error) { return nil, errors.New("bad config") }
+	for k, v := range devEnv {
+		t.Setenv(k, v)
+	}
+	built := false
+	build := func(config.Config, *slog.Logger) (*App, error) {
+		built = true
+		return nil, errors.New("wiring failed")
+	}
+	if code := Main(build); code != 1 || !built {
+		t.Fatalf("Main exit code = %d (build called: %v), want 1 after build", code, built)
+	}
+}
+
+func TestMainReturnsOneOnInvalidConfig(t *testing.T) {
+	for k, v := range devEnv {
+		t.Setenv(k, v)
+	}
+	t.Setenv("BRAINVOLT_POSTGRES_URL", "")
+	build := func(config.Config, *slog.Logger) (*App, error) {
+		t.Fatal("build called with invalid configuration")
+		return nil, nil
+	}
 	if code := Main(build); code != 1 {
 		t.Fatalf("Main exit code = %d, want 1", code)
 	}
 }
 
 func TestConstructorsSetRole(t *testing.T) {
-	api, err := NewAPI(discard)
+	api, err := NewAPI(config.Config{}, discard)
 	if err != nil {
 		t.Fatalf("NewAPI: %v", err)
 	}
@@ -120,7 +152,7 @@ func TestConstructorsSetRole(t *testing.T) {
 		t.Fatalf("NewAPI role = %q, want %q", api.Role(), RoleAPI)
 	}
 
-	worker, err := NewWorker(discard)
+	worker, err := NewWorker(config.Config{}, discard)
 	if err != nil {
 		t.Fatalf("NewWorker: %v", err)
 	}

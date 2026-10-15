@@ -29,7 +29,7 @@ has_mobile = test -f $(MOBILE)/pubspec.yaml
 help: ## List targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-10s %s\n", $$1, $$2}'
 
-env: ## Create .env from .env.example if missing   (cp -n .env.example .env)
+env: ## Create .env from .env.example if missing   ([ -f .env ] || cp .env.example .env)
 	@if [ ! -f .env ]; then cp .env.example .env && echo "created .env from .env.example"; fi
 
 up: env ## Start Postgres, Redis, Firebase Auth emulator and wait until healthy   (docker compose up -d --build --wait)

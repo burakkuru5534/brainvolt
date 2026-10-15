@@ -32,7 +32,7 @@ make ps      # all three services should show "(healthy)"
 Without `make`:
 
 ```bash
-cp -n .env.example .env
+[ -f .env ] || cp .env.example .env
 docker compose up -d --build --wait
 docker compose ps
 ```
@@ -53,7 +53,7 @@ Credentials and ports live in `.env` (git-ignored); `.env.example` documents eve
 
 | Target | Plain command |
 |---|---|
-| `make up` | `cp -n .env.example .env && docker compose up -d --build --wait` |
+| `make up` | `[ -f .env ] \|\| cp .env.example .env && docker compose up -d --build --wait` |
 | `make down` | `docker compose down` (keeps data) |
 | `make reset` | `docker compose down -v` (**deletes** local Postgres/Redis data) |
 | `make ps` / `make logs` | `docker compose ps` / `docker compose logs -f` |

@@ -191,11 +191,11 @@ Goal: running skeleton — backend (config, logging, health, Postgres, Redis, mi
 - [x] 1.3.3 `.golangci.yml` (v2) + `go vet` clean
 - [x] 1.3.4 Architecture test enforcing `backend-modules.md` §2 import rules
 
-### 1.4 Platform packages (each with unit tests)
-- [ ] 1.4.1 `platform/config` — env v11 parsing + validation
-- [ ] 1.4.2 `platform/logging` — slog JSON/text, request/user/match ids from context
-- [ ] 1.4.3 `platform/clock` — real + fake clock
-- [ ] 1.4.4 `platform/ids` — UUIDv7
+### 1.4 Platform packages (each with unit tests)  `[~]`
+- [x] 1.4.1 `platform/config` — env v11 parsing + validation
+- [x] 1.4.2 `platform/logging` — slog JSON/text, request/user/match ids from context
+- [x] 1.4.3 `platform/clock` — real + fake clock
+- [x] 1.4.4 `platform/ids` — UUIDv7
 - [ ] 1.4.5 `platform/httpserver` — ServeMux, middleware (request id, recover, logging, timeouts, body limits), error envelope + codes (errors.md, TR/EN messages)
 - [ ] 1.4.6 Health checks: `/healthz`, `/readyz` (Postgres, Redis, migrations)
 - [ ] 1.4.7 `platform/postgres` — pgxpool, tx helper, statement timeout, health (integration test)
@@ -403,3 +403,4 @@ Goal: running skeleton — backend (config, logging, health, Postgres, Redis, mi
 - 2026-10-15 — 0.6 done: consistency check (all decision refs logged, no broken doc links, enum values aligned; glossary gained `origin` and `aggregation`), `docs/ARCHITECTURE.md` rewritten as overview & document map. **Phase 0 complete.** Phase 1 broken into 51 atomic tasks + 3 owner prerequisites (all original Phase 1 items kept).
 - 2026-10-15 — 1.1 done: `.gitattributes` (LF, CRLF for `*.bat`/`*.cmd`/`*.ps1`), `.editorconfig`, `README.md` quick start with Windows/Git Bash notes, Makefile (`up`, `down`, `reset`, `ps`, `logs`, `psql`, `redis-cli`, `run`, `test`, `lint`, `migrate`, `gen`; each documented as its plain command). 1.2 done (delegated D-054): Compose v2 with `postgres:18.6-alpine` / `redis:8.10.2-alpine`, named volumes (PG 18 at `/var/lib/postgresql`), healthchecks, Redis AOF everysec + RDB + `noeviction`, `.env.example`, Firebase Auth emulator service. Verified: all services healthy, PG 18.6 data dir `/var/lib/postgresql/18/docker`, Redis config applied and auth enforced, emulator anonymous sign-up works, data survives `down`/`up`.
 - 2026-10-15 — 1.3 done: `backend/go.mod` (`go 1.27`, `toolchain go1.27.2`, deps `golang.org/x/tools` v0.52.0, `go-cmp` v0.7.0); `cmd/api` + `cmd/worker` call `internal/app` (composition root: `Component` interface, `App.Run` stops all components together, `Main` handles SIGINT/SIGTERM and exit codes); `backend/.golangci.yml` (v2, golangci-lint v2.14.0 built with Go 1.27; misspell without locale because docs use British spelling); architecture test `internal/archtest` reads the §1 catalogue and §2 import table straight from `backend-modules.md`. Verified: `go vet`, `go test -race` (incl. real binaries stopping cleanly on SIGTERM), `golangci-lint run` 0 issues; the architecture test was shown to fail on a forbidden edge (identity → profile) and on an uncatalogued module folder.
+- 2026-10-15 — 1.4.1–1.4.4 done: `platform/config` (env v11 → typed `Config`; defaults from limits.md §3; validation of env, addresses, URLs and durations, prod forbids the Firebase emulator and `demo-` projects; every error names its variable and never contains a password; `LogValue` redacts URL passwords); `platform/logging` (slog JSON/text, `request_id` / `user_id` / `match_id` from context); `platform/clock` (`Real` + deterministic `Fake` with timers, tickers, AfterFunc, Go 1.23 stop/reset semantics); `platform/ids` (UUIDv7 via google/uuid v1.6.0, canonical-form parsing, embedded timestamp). `app.Main` now loads config and builds the logger before wiring; invalid config exits 1 with one message per problem. Optional timeout overrides added to `.env.example`.

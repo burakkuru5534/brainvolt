@@ -6,6 +6,7 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -31,6 +32,10 @@ func TestBinariesStopCleanlyOnSIGTERM(t *testing.T) {
 			}
 
 			proc := exec.CommandContext(t.Context(), bin)
+			proc.Env = os.Environ()
+			for k, v := range devEnv {
+				proc.Env = append(proc.Env, k+"="+v)
+			}
 			stderr, err := proc.StderrPipe()
 			if err != nil {
 				t.Fatal(err)
