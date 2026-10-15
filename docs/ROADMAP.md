@@ -54,10 +54,11 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 | D-008 | Repository | Single monorepo at https://github.com/burakkuru5534/brainvolt | 2026-10-15 | 0.1.3, Phase 1 |
 | D-009 | Go module path | `github.com/burakkuru5534/brainvolt/backend` | 2026-10-15 | 0.1.3, Phase 1 |
 | D-010 | CI | GitHub Actions in Phase 1 — `.github/workflows/ci.yml` runs Go and Flutter tests | 2026-10-15 | 0.1.3, Phase 1 |
-| D-011 | Launch platforms | `[!]` pending — Android + iOS together, or Android first? | — | ADR-0003, Phase 1, Phase 9 |
-| D-012 | Application / bundle ID | `[!]` pending — e.g. `com.brainvolt.app` | — | Phase 1 (`flutter create`, Firebase apps) |
-| D-013 | Sign-in providers | `[!]` pending — Google / Apple / email / guest | — | 0.2.2, Phase 1 |
-| D-014 | Firebase projects | `[!]` pending — separate dev & prod (recommended) or single | — | ADR-0003, Phase 1 |
+| D-011 | Launch platforms | Android + iOS together | 2026-10-15 | ADR-0003, Phase 1, Phase 9 |
+| D-012 | Application / bundle ID | `com.brainvolt.app` (Android applicationId and iOS bundle ID) | 2026-10-15 | Phase 1 (`flutter create`, Firebase apps) |
+| D-013 | Sign-in methods | Firebase Auth: Anonymous (guest), Google, Apple, Email/Password. Sign in with Apple offered alongside Google (App Store rule) | 2026-10-15 | 0.2.2, 0.4.1, Phase 1 |
+| D-013a | Guest upgrade | Guests play immediately; later link Google / Apple / Email to the same account with no loss of progress (Firebase account linking keeps the same UID) | 2026-10-15 | 0.2.2, Phase 1 |
+| D-014 | Firebase projects | Single Firebase project `brainvolt` | 2026-10-15 | ADR-0003, Phase 1 |
 
 ---
 
@@ -236,3 +237,4 @@ Verification for each task: document reviewed against the requirement list + cro
 - 2026-10-15 — 0.1.4 done: 17 backend modules, allowed dependency table, outbox-based domain events, realtime push/route pattern, schema-per-module data ownership.
 - 2026-10-15 — 0.1.5 done: ADR-0002 — stdlib net/http + slog, coder/websocket, pgx v5 + sqlc, goose, River (transactional outbox + scheduled jobs), go-redis v9, Firebase Admin v4, env v11, UUIDv7, in-house Glicko-2, real PG/Redis integration tests, golangci-lint v2.
 - 2026-10-15 — 0.1.6 done: ADR-0003 — Riverpod 3 (state + DI), go_router, dio, web_socket_channel + own RealtimeClient, freezed/json_serializable, gen-l10n (TR template + EN), feature-first data/domain/presentation, client-side server-authority rules, dev/prod flavors. Pending decisions D-011…D-014 logged. Section 0.1 complete.
+- 2026-10-15 — Decisions D-011…D-014 recorded (Android + iOS, com.brainvolt.app, guest/Google/Apple/email sign-in with guest upgrade, single Firebase project).

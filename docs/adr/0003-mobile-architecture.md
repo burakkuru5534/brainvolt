@@ -1,6 +1,6 @@
 # ADR-0003 — Mobile app architecture
 
-- **Status:** Accepted (open items listed at the end)
+- **Status:** Accepted
 - **Date:** 2026-10-15
 - **Roadmap task:** 0.1.6
 - **Related:** ADR-0001 (Flutter 3.47 / Dart 3.13), `repo-layout.md` (`mobile/` tree), `backend-modules.md` (feature ↔ module mapping), D-001/D-002 (TR first, TR+EN)
@@ -54,7 +54,7 @@ Rules:
 - Fully unit-tested against a fake channel (drop, duplicate, out-of-order, slow network).
 
 ### Environments
-Build flavors **dev** and **prod** via `--dart-define-from-file=env/<flavor>.json` (API base URL, WS URL) and one Firebase app config per flavor. Exact Firebase project split is an open decision (below).
+Build flavors **dev** and **prod** via `--dart-define-from-file=env/<flavor>.json` (API base URL, WS URL). Both use the **single Firebase project `brainvolt`** (D-014) with one Android and one iOS app, both `com.brainvolt.app` (D-012). To keep test sign-ups out of real user data, local development points the app and backend at the **Firebase Auth Emulator** (backend reads `FIREBASE_AUTH_EMULATOR_HOST`); only builds talking to deployed servers use the real `brainvolt` project.
 
 ## Alternatives considered
 | Rejected | Reason |
@@ -73,11 +73,14 @@ Build flavors **dev** and **prod** via `--dart-define-from-file=env/<flavor>.jso
 - WS protocol bugs are caught by unit tests of `RealtimeClient`, not only by device tests.
 - Contract changes (0.4) require matching Dart DTO updates in the same commit (monorepo, D-008).
 
-## Open decisions (raised for the owner; logged in ROADMAP as D-011…D-014)
-1. **Launch platforms** — Android + iOS together, or Android first?
-2. **Application ID / bundle ID** — e.g. `com.brainvolt.app`?
-3. **Sign-in providers** — Google, Apple (App Store requires Sign in with Apple if Google sign-in is offered on iOS), email/password, guest (anonymous, upgradable)?
-4. **Firebase projects** — separate `brainvolt-dev` and `brainvolt-prod` projects (recommended) or one project?
+## Resolved decisions
+| # | Decision |
+|---|----------|
+| D-011 | Android + iOS ship together |
+| D-012 | Application / bundle ID `com.brainvolt.app` |
+| D-013 | Sign-in: Anonymous (guest), Google, Apple, Email/Password via Firebase Auth; Sign in with Apple alongside Google on iOS |
+| D-013a | Guests play immediately; upgrade later by **linking** a Google / Apple / Email credential to the same Firebase user (`linkWithCredential`) → same UID → same backend user → no progress lost |
+| D-014 | Single Firebase project `brainvolt` |
 
 In-app purchase library (e.g. RevenueCat vs. `in_app_purchase`) is decided in Phase 9 with its own ADR.
 
