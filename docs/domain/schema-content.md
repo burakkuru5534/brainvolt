@@ -1,9 +1,9 @@
 # Schema — content (categories, questions, translations, sources, verification)
 
 - **Roadmap task:** 0.2.3
-- **Status:** Draft for review (2026-10-15)
+- **Status:** Accepted (2026-10-15)
 - **Module / Postgres schema:** `content` (creator quizzes reuse these tables; quiz metadata lives in `creator`, 0.2.8)
-- **Decisions applied:** D-001 (TR first), D-002 (TR + EN), D-005 (OpenTDB + own pool), D-006 (source & license mandatory), D-007 (ranked = verified only)
+- **Decisions applied:** D-001 (TR first), D-002 (TR + EN), D-005 (OpenTDB + own pool), D-006 (source & license mandatory), D-007 (ranked = verified only), D-023 (no unverified content in public play), D-024 (true/false not in ranked), D-025 (text-only)
 - Conventions: same as `schema-identity.md` (UUIDv7 PKs, `timestamptz` UTC, text + CHECK enums).
 
 ---
@@ -210,12 +210,13 @@ CREATE TABLE content.question_stats (
 
 | Context | Question must be | Translation (each locale in the match) must be |
 |---|---|---|
-| **Ranked** (D-007) | `verified`, not retired, `pool = general` | `verified` |
-| Casual (Quick Duel, Sudden Death, Marathon, Blind Challenge, Category Master, Mixed Battle) | `verified`, not retired, `pool = general` | `verified` |
-| Daily Challenge | `verified`, in that day's set | `verified` in **both** `tr` and `en` (everyone plays the identical set) |
-| Creator Quiz | in the quiz's set, `pool` any, status ≥ `in_review` passed creator review rules (0.3.7 / Phase 8) | exists in the quiz's locale |
+| **Ranked** (D-007, D-024) | `verified`, not retired, `pool = general`, **`question_type = multiple_choice` only** | `verified` |
+| Casual — every non-ranked public mode (Quick Duel, Sudden Death, Marathon, Blind Challenge, Category Master, Mixed Battle, matchmade or challenge) | `verified`, not retired, `pool = general`; `true_false` allowed (D-024) | `verified` |
+| Daily Challenge | `verified`, in that day's set, `multiple_choice` only (it feeds public leaderboards) | `verified` in **both** `tr` and `en` (everyone plays the identical set) |
+| Creator Quiz — **published** (verified by review) | in the quiz's set, `verified` | `verified` in the quiz's locale |
+| Creator Quiz — **unverified** (D-023) | in the quiz's set, any status except `rejected` | exists in the quiz's locale |
 
-> **Decision needed (D-023, see §7):** may casual matches also use questions that are **not yet verified**? Default above: **no** — every match uses verified content, only the Creator Quiz has its own rules.
+**D-023:** no unverified question ever appears in public, matchmade or ranked play. The **only** exception is an *unverified* Creator Quiz, which may be played **solely in a private/custom room**, never via matchmaking, never rated, never counted for public leaderboards, Season Points or quests. Exact room-entry rule (friends only vs. anyone with the host's invite code): 0.3.7.
 
 **Mixed-locale matches:** a Turkish-speaking and an English-speaking player can meet. Each participant sees their own locale's text; therefore every selected question must satisfy the translation rule **for every locale present in the match**. If the pool is too small, matchmaking prefers same-locale opponents (Phase 5).
 
@@ -275,7 +276,9 @@ Text/option edits bump `revision`. Matches store the **revision** they used (0.2
 
 ---
 
-## 7. Open points for the owner
-1. **D-023 — Unverified content in casual matches.** Proposal: **not allowed**; every public match uses verified questions + verified translations. Only Creator Quiz follows its own rules. (Alternative: allow `in_review` questions in casual to grow the pool faster, at the risk of wrong answer keys.)
-2. **D-024 — True/false questions.** OpenTDB contains many. Proposal: keep them, allowed in casual modes, **excluded from Ranked** (50 % guess chance distorts ratings). Final per-mode rule in 0.5.
-3. **D-025 — Images/audio in questions.** Proposal: **text-only at launch**; media questions are a later extension (would need storage + moderation).
+## 7. Resolved points
+| # | Decision |
+|---|----------|
+| D-023 | No unverified questions in public, casual or ranked play. Unverified Creator Quiz sets only in private/custom rooms among friends |
+| D-024 | True/false questions excluded from Ranked (and from the Daily Challenge, which feeds public leaderboards); allowed in casual/quick modes |
+| D-025 | Text-only questions at launch; image/audio deferred to a future media pipeline |

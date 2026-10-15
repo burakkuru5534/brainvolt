@@ -68,6 +68,9 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 | D-020 | Minimum age | 13+; confirmation checkbox at first launch; store only `age_verified_at` | 2026-10-15 | 0.2.2, Phase 1 |
 | D-021 | Avatars | Built-in presets only at launch (no photo uploads); cosmetic frames & custom badges in Phase 9 | 2026-10-15 | 0.2.2, Phase 9 |
 | D-022 | Retention | Abandoned guest (0 matches, no activity) deleted after 7 days; inactive guest (≥1 match, not upgraded) after 90 days inactive; user deletion has a 14-day cooling-off window before purge/anonymisation | 2026-10-15 | 0.2.2, 0.2.10 |
+| D-023 | Unverified content | No unverified questions in public/casual/ranked matches. Unverified Creator Quiz sets allowed only in private/custom rooms among friends | 2026-10-15 | 0.2.3, 0.3.7, 0.5, Phase 8 |
+| D-024 | True/false questions | Excluded from Ranked; allowed in casual and quick modes | 2026-10-15 | 0.2.3, 0.3.5, 0.5 |
+| D-025 | Question media | Text-only at launch; image/audio deferred to a future media pipeline | 2026-10-15 | 0.2.3 |
 
 ---
 
@@ -86,8 +89,8 @@ Verification for each task: document reviewed against the requirement list + cro
 ### 0.2 Data models & database schema
 - [x] 0.2.1 `docs/domain/glossary.md` — canonical terms (match, round, question slot, participant, side, team, couple, MMR, SP, XP, league…)
 - [x] 0.2.2 Schema: identity — users, firebase identity link, profiles, devices/FCM tokens, settings, country
-- [~] 0.2.3 Schema: content — categories, sub-categories, questions, answer options, difficulty, locale, source & license
-- [ ] 0.2.4 Schema: game — matches, match_configs, sides/teams in match, participants, rounds, match_questions, answers, results
+- [x] 0.2.3 Schema: content — categories, sub-categories, questions, answer options, difficulty, locale, source & license
+- [x] 0.2.4 Schema: game — matches, match_configs, sides/teams in match, participants, rounds, match_questions, answers, results
 - [ ] 0.2.5 Schema: social — friendships, friend requests, direct challenges, invite codes, private rooms, team profiles, couple profiles, rematch links
 - [ ] 0.2.6 Schema: ranking & progression — ratings (per bucket), seasons, season points, XP/levels, leagues, streaks, badges, quests, leaderboard snapshots
 - [ ] 0.2.7 Schema: moderation & anti-cheat — question reports, moderation actions, user sanctions, cheat signals
@@ -253,3 +256,5 @@ Verification for each task: document reviewed against the requirement list + cro
 - 2026-10-15 — 0.2.2 drafted: `docs/domain/schema-identity.md` (users, auth identity mirror, roles, profiles, settings, devices; tier rules; guest upgrade, email verification, link conflict, suspension, deletion flows). Waiting on owner for min age, avatars, retention durations.
 - 2026-10-15 — Decisions D-020…D-022 recorded; 0.2.2 done (age gate, preset avatars, retention rules, ActivityReader for guest cleanup).
 - 2026-10-15 — 0.2.3 drafted: `docs/domain/schema-content.md` (taxonomy, sources/licenses, language-neutral questions + per-locale text, two-level verification, question sets & daily sets, stats, OpenTDB import & CC BY-SA obligations). Waiting on owner for D-023…D-025.
+- 2026-10-15 — Decisions D-023…D-025 recorded; 0.2.3 done (eligibility table updated: ranked & daily multiple-choice only; unverified creator quizzes private rooms only).
+- 2026-10-15 — 0.2.4 done (draft for review): `docs/domain/schema-game.md` — Redis-live / Postgres-final split, matches with immutable config & origin, two sides (team / couple / temporary), participants with seats & tier at start, rounds with question revision & shuffled order, accepted answers only, per-side round results, lifecycle audit, MatchCompleted payload.
