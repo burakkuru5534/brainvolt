@@ -1,10 +1,10 @@
 # Schema — platform (notifications, team chat, tournaments, commerce, creator quizzes, daily challenge)
 
 - **Roadmap task:** 0.2.8
-- **Status:** Draft for review (2026-10-15)
+- **Status:** Accepted (2026-10-15)
 - **Modules / Postgres schemas:** `notification`, `chat`, `tournament`, `commerce`, `creator`, plus the Daily Challenge attempt table in `game`
 - **Decisions applied:** D-002 (TR/EN), D-016 / D-016a (restricted accounts), D-020 (13+), D-021 (preset visuals; cosmetics in Phase 9), D-023 (unverified creator quizzes: private rooms, friends of host), D-024 (no true/false in daily), D-027, D-029, D-030
-- Most of these features are built in **Phase 9** (Creator Quiz and Daily Challenge in Phase 8); the schema is fixed now so earlier phases leave room for them. Values marked **(P)** are proposals (§8).
+- Most of these features are built in **Phase 9** (Creator Quiz and Daily Challenge in Phase 8); the schema is fixed now so earlier phases leave room for them. Values marked **(P)** were proposed and accepted (D-031, §8).
 - **Guiding rule for all monetization: nothing that can be bought or watched changes a match outcome, rating, SP or leaderboard position.**
 - Conventions: as in `schema-identity.md`.
 
@@ -362,7 +362,7 @@ Rule (P): the **first** completed Daily Challenge per user per day counts (leade
 | `commerce.CosmeticGranted` | commerce | notification |
 | `creator.QuizSubmitted` / `QuizPublished` / `QuizRejected` | creator | moderation, notification |
 
-## 8. Proposals to confirm
+## 8. Accepted proposals (D-031)
 1. **Notifications:** marketing push off until opt-in; quiet hours available; max 10 push/user/hour; inbox items expire after 30 days.
 2. **Chat:** free-text side chat only for persistent teams/couples; temporary sides (strangers, guests) get quick-chat presets only; 5 messages per 10 s; messages kept 6 months.
 3. **Tournaments:** admin-created only at launch; full accounts only; unrated by default; rewards are XP/badges/cosmetics only.
