@@ -83,6 +83,7 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 | D-035 | Round flow | 3 s reveal; early close when all expected active answerers answered; Shared Answer: live teammate picks, any member locks, fallback most-picked (tie → earliest), none → timeout; Fast Team Round: teammates see only "answered" until reveal; Individual Turns: seat-order rotation, symmetric for both sides | 2026-10-15 | 0.3.2, 0.3.6, Phase 4, Phase 6 |
 | D-036 | Timing & latency | In-match ping every 2 s, RTT = median of last 10; uplink compensation capped 150 ms; grace = uplink estimate + 100 ms (100–250 ms); synchronized show_at buffer ≤ 250 ms; "weak connection" warning above 400 ms sustained; operator alert on host clock drift > 50 ms; pre-round category pick window 10 s | 2026-10-15 | 0.3.3, 0.4.3, Phase 4 |
 | D-037 | Scoring ruleset 1 | No negative points (Sudden Death elimination separate); base 100 × difficulty multiplier 0.8/0.9/1.0/1.1/1.2; speed bonus up to 100, linear to 0 at deadline; streak +20 at 3–4, +40 from 5; true/false worth half (base 50, speed ≤ 50) | 2026-10-15 | 0.3.4, Phase 3 |
+| D-038 | Match types | Quick Duel 7 q / 15 s / curve 2-2-3-3-3-4-4; Ranked 10 q / 15 s / MC only / rising curve / **matchmaking only**; Sudden Death 10 s, first right-vs-wrong split decides, difficulty +1 every 3 rounds, cap 30 then highest score; Marathon 25 q / 12 s / 5 difficulty blocks / 15 s half-time after q12; category caps 2/3/5, no consecutive sub-category, TF ≤ 30 % never consecutive; Shared Answer +5 s | 2026-10-15 | 0.3.5, 0.5, Phase 3 |
 
 ---
 
@@ -115,8 +116,8 @@ Verification for each task: document reviewed against the requirement list + cro
 - [x] 0.3.2 Round / question sub-state machine (dispatched → answering → locked → revealed)
 - [x] 0.3.3 Server timer authority model (server timestamps, latency grace window, late-answer rejection)
 - [x] 0.3.4 Base scoring formula (correctness, speed bonus, streak bonus, caps)
-- [~] 0.3.5 Match type rules: Quick Duel, Ranked, Sudden Death, Marathon
-- [ ] 0.3.6 Team answer mode rules: Shared Answer, Individual Turns, Fast Team Round
+- [x] 0.3.5 Match type rules: Quick Duel, Ranked, Sudden Death, Marathon
+- [~] 0.3.6 Team answer mode rules: Shared Answer, Individual Turns, Fast Team Round
 - [ ] 0.3.7 Category mode rules: Blind Challenge, Category Master, Mixed Battle, Daily Challenge, Creator Quiz, Revenge Match
 - [ ] 0.3.8 Couple Contest rules
 - [ ] 0.3.9 Ties, tie-breakers, forfeit, abandonment, disconnect/reconnect windows, cancellation conditions
@@ -292,3 +293,5 @@ Verification for each task: document reviewed against the requirement list + cro
 - 2026-10-15 — 0.3.4 drafted: `docs/game/scoring.md` (ruleset 1: base × difficulty, linear speed bonus, streak bonus, true/false half value, no negatives, worked examples, pure-function contract); `match_rounds.difficulty_used` added. Waiting on owner for 5 proposals.
 - 2026-10-15 — D-037 recorded; 0.3.4 done.
 - 2026-10-15 — 0.3.5 drafted: `docs/game/match-types.md` (Quick Duel, Ranked, Sudden Death, Marathon: counts, windows, curves, question types, end checks, ranked = matchmaking only, default selection rules). Waiting on owner for 6 proposals.
+- 2026-10-15 — D-038 recorded; 0.3.5 done; glossary §4 definitions updated from working to final.
+- 2026-10-15 — 0.3.6 drafted: `docs/game/team-modes.md` (per-mode side_correct / side_points / contribution / streak, same-scale rule, Fast Team aggregation rules average / fastest_correct / majority with worked 3v3 example). Waiting on owner for 5 proposals.

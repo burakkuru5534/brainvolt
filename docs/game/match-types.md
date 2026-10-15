@@ -1,10 +1,10 @@
 # Match type rules — Quick Duel, Ranked, Sudden Death, Marathon
 
 - **Roadmap task:** 0.3.5
-- **Status:** Draft for review (2026-10-15)
+- **Status:** Accepted (2026-10-15)
 - **Owner module:** `game` (`domain/matchtype`: one rule object per type)
 - **Related:** scoring.md (ruleset 1, D-037), round-lifecycle.md (`end_check`), timing.md (windows), content eligibility (schema-content §3, D-007/D-023/D-024), team modes 0.3.6, category modes 0.3.7 (may **override** question selection), ties & forfeits 0.3.9, combinations 0.5
-- Values marked **(P)** are proposals (§8).
+- Values marked **(P)** were proposed and accepted (D-038, §8).
 
 ---
 
@@ -111,7 +111,7 @@ Every number above lives in the `Ruleset` (ruleset 1) so tests pin them.
 ## 7. Notes on the working definitions (glossary §4)
 - Sudden Death's working definition mentioned "wrong (or slower)". Proposed rule uses **correct vs. wrong only**; speed matters only at the 30-round cap. This keeps the knockout readable ("one mistake and you're out").
 
-## 8. Proposals to confirm
+## 8. Accepted proposals (D-038)
 1. **Quick Duel:** 7 questions, 15 s, curve 2-2-3-3-3-4-4.
 2. **Ranked:** 10 questions, 15 s, MC only, curve 2-3-3-3-4-4-4-4-5-5; **matchmaking only** (no ranked via challenges/rooms/rematch/revenge).
 3. **Sudden Death:** 10 s window; correct-vs-wrong elimination (speed does not eliminate); difficulty rises every 3 rounds; cap 30 rounds then highest score.

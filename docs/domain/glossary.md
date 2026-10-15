@@ -92,10 +92,10 @@
 
 | Term | Code name | TR | Definition |
 |---|---|---|---|
-| Quick Duel | `quick_duel` | Hızlı Düello | Short casual match with a fixed number of questions. |
-| Ranked | `ranked` | Dereceli | Rated match: verified questions only (D-007), rating and Season Points change. |
-| Sudden Death | `sudden_death` | Ani Ölüm | Continues until a side answers wrong (or slower) while the other is right (working definition). |
-| Marathon | `marathon` | Maraton | Long match with many questions; endurance format (working definition). |
+| Quick Duel | `quick_duel` | Hızlı Düello | Short casual match: 7 questions, 15 s each (D-038). |
+| Ranked | `ranked` | Dereceli | Rated match from matchmaking only: 10 multiple-choice verified questions (D-007, D-024, D-038); rating and Season Points change. |
+| Sudden Death | `sudden_death` | Ani Ölüm | Continues until, in one round, exactly one side is correct and the other wrong/timed out; cap 30 rounds (D-038). |
+| Marathon | `marathon` | Maraton | 25 questions, 12 s each, five difficulty blocks, half-time break (D-038). |
 
 ## 4a. Player formats  *(D-018)*
 
