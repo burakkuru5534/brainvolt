@@ -1,10 +1,10 @@
 # Redis key catalogue
 
 - **Roadmap task:** 0.2.9
-- **Status:** Draft for review (2026-10-15)
+- **Status:** Accepted (2026-10-15)
 - **Redis version:** 8.10 (ADR-0001). Client: go-redis v9 (ADR-0002).
 - **Related:** `backend-modules.md` §3–§4 (live match authority, module-prefixed keys), all `schema-*.md` documents.
-- Values marked **(P)** are proposals (§9).
+- Values marked **(P)** were proposed and accepted (D-032, §9).
 
 ---
 
@@ -150,7 +150,7 @@ Rewarded-ad (5/day) and interstitial (1 per 3 matches) limits are checked agains
 
 ---
 
-## 9. Proposals to confirm
+## 9. Accepted proposals (D-032)
 1. Matchmaking ticket lifetime **10 min** (then auto-cancel with "no match found").
 2. Reconnect/resume token valid **2 min** after a disconnect (actual in-match reconnect window is a game rule, 0.3.9, and is ≤ this).
 3. No-repeat window: questions seen in the last **30 days**, up to **2 000** per user.

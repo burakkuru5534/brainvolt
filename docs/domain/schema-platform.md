@@ -165,6 +165,7 @@ CREATE TABLE tournament.entries (
   registered_at  timestamptz NOT NULL,
   UNIQUE (tournament_id, entity_kind, entity_id)
 );
+CREATE INDEX entries_entity_idx ON tournament.entries (entity_kind, entity_id);
 
 CREATE TABLE tournament.bracket_matches (
   tournament_id   uuid        NOT NULL REFERENCES tournament.tournaments(id),
@@ -212,6 +213,7 @@ CREATE TABLE commerce.subscriptions (
   updated_at              timestamptz NOT NULL,
   UNIQUE (store, original_transaction_id)
 );
+CREATE INDEX subscriptions_user_idx ON commerce.subscriptions (user_id);
 
 -- Raw, verified store events (App Store Server Notifications v2, Google RTDN), for audit & replay
 CREATE TABLE commerce.store_events (

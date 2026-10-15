@@ -49,6 +49,7 @@ CREATE UNIQUE INDEX friend_requests_pending_pair_uq
   ON social.friend_requests (LEAST(from_user_id,to_user_id), GREATEST(from_user_id,to_user_id))
   WHERE status = 'pending';
 CREATE INDEX friend_requests_inbox_idx ON social.friend_requests (to_user_id) WHERE status = 'pending';
+CREATE INDEX friend_requests_outbox_idx ON social.friend_requests (from_user_id) WHERE status = 'pending';
 
 -- Stored as TWO directed rows per friendship (A→B and B→A), written in one transaction:
 -- "friends of X" is a single index range scan, which Friends leaderboards rely on.
@@ -141,6 +142,7 @@ CREATE TABLE lobby.challenges (
 );
 CREATE INDEX challenges_target_user_idx ON lobby.challenges (target_user_id) WHERE status = 'pending';
 CREATE INDEX challenges_parent_idx      ON lobby.challenges (parent_match_id) WHERE parent_match_id IS NOT NULL;
+CREATE INDEX challenges_challenger_idx  ON lobby.challenges (challenger_user_id) WHERE status = 'pending';
 ```
 
 ### 3.1 Challenge lifetimes (P)
@@ -213,6 +215,7 @@ CREATE TABLE team.invites (
   responded_at     timestamptz
 );
 CREATE UNIQUE INDEX team_invites_pending_uq ON team.invites (team_id, invited_user_id) WHERE status = 'pending';
+CREATE INDEX team_invites_user_idx ON team.invites (invited_user_id) WHERE status = 'pending';
 
 CREATE TABLE team.couples (
   id            uuid        PRIMARY KEY,

@@ -172,7 +172,7 @@ CREATE TABLE moderation.blocked_terms (
   severity    smallint    NOT NULL CHECK (severity BETWEEN 1 AND 3),   -- 1 flag, 2 block, 3 block + signal
   created_by  uuid        REFERENCES identity.users(id),
   created_at  timestamptz NOT NULL,
-  UNIQUE (term, locale, match_kind)
+  UNIQUE NULLS NOT DISTINCT (term, locale, match_kind)   -- locale NULL = all; must still be unique (F3)
 );
 ```
 

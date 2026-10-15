@@ -77,6 +77,7 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 | D-029 | Ranking & progression parameters | Rating buckets solo/team/couple; leaderboard periods on Europe/Istanbul time, week starts Monday; team country = captain's country; top 1 000 per board archived each period; 3 daily + 3 weekly quests, rewards claimed manually | 2026-10-15 | 0.2.6, 0.3.10, Phase 7 |
 | D-030 | Moderation & anti-cheat policy | Max 20 reports/user/day, restricted-account reports weigh less; 3 `wrong_answer` reports pull a question from Ranked into review; cheat signals only flag — every sanction needs a human; voided match revokes SP/leaderboard points, no retroactive Glicko-2 recompute, cheater gets ranked ban + SP reset, honest opponents keep results; "too fast" signal < 300 ms + 15 ms/char (tune in Phase 8); retention: cases/sanctions/appeals 3 years, report comments/cheat signals/install links 12 months, records stay on anonymised id after deletion | 2026-10-15 | 0.2.7, 0.2.10, Phase 8 |
 | D-031 | Platform policies | Marketing push opt-in; quiet hours; ≤10 push/user/h; inbox 30 days. Free-text match chat only for persistent teams/couples, temporary sides quick-chat only; 5 msgs/10 s; chat kept 6 months. Tournaments admin-created, full accounts, unrated by default, rewards XP/badges/cosmetics. Premium: no interstitials, exclusive cosmetics, +1 daily quest, extended stats — zero gameplay advantage. Ads: ≤1 interstitial per 3 matches (never mid-match / premium), ≤5 rewarded/day (quest reroll, bonus XP, cosmetic trial). No soft/hard currency at launch. Creator Quiz: full accounts, 5–30 questions, ≤20 quizzes/author, never rated / no SP. Daily Challenge: first completed attempt per day counts | 2026-10-15 | 0.2.8, 0.3.7, Phase 8, Phase 9 |
+| D-032 | Redis-level limits | Matchmaking ticket 10 min; resume token 2 min after disconnect (game reconnect window ≤ this); no-repeat window 30 days / 2 000 questions per user; API 60 req/10 s per user, 300 req/min per IP, 20 WS msg/s per connection, 20 session calls/h per installation | 2026-10-15 | 0.2.9, 0.3.9, 0.4.8, Phase 4, Phase 5 |
 
 ---
 
@@ -101,8 +102,8 @@ Verification for each task: document reviewed against the requirement list + cro
 - [x] 0.2.6 Schema: ranking & progression — ratings (per bucket), seasons, season points, XP/levels, leagues, streaks, badges, quests, leaderboard snapshots
 - [x] 0.2.7 Schema: moderation & anti-cheat — question reports, moderation actions, user sanctions, cheat signals
 - [x] 0.2.8 Schema: platform — notifications log, team chat, tournaments, subscriptions, cosmetics/inventory, ad events, creator quizzes, daily challenges
-- [~] 0.2.9 `docs/domain/redis-keys.md` — key naming, data types, TTLs (queues, live match state, presence, locks, rate limits, leaderboard ZSETs)
-- [ ] 0.2.10 Consolidated ERD (`docs/domain/erd.md`, Mermaid) + index/constraint/retention review
+- [x] 0.2.9 `docs/domain/redis-keys.md` — key naming, data types, TTLs (queues, live match state, presence, locks, rate limits, leaderboard ZSETs)
+- [~] 0.2.10 Consolidated ERD (`docs/domain/erd.md`, Mermaid) + index/constraint/retention review
 
 ### 0.3 Game state machine & scoring rules
 - [ ] 0.3.1 Match lifecycle: states `waiting → ready → in_progress → completed | cancelled`, transitions, guards, triggers, side effects
@@ -274,3 +275,5 @@ Verification for each task: document reviewed against the requirement list + cro
 - 2026-10-15 — 0.2.8 drafted: `docs/domain/schema-platform.md` (notification preferences/inbox/push log, team & side chat, tournaments with brackets, commerce: server-verified subscriptions, entitlements, cosmetics, inventory, rewarded ads; creator quizzes; daily challenge attempts). Waiting on owner for 8 proposals.
 - 2026-10-15 — D-031 recorded; 0.2.8 done.
 - 2026-10-15 — 0.2.9 drafted: `docs/domain/redis-keys.md` (module prefixes, hash tags, TTL on every key, live match keys with owner lease & event stream, matchmaking, presence & routing, rooms, leaderboard ZSET naming for all filters, caches, rate limits, Redis-loss recovery). Waiting on owner for 4 proposals.
+- 2026-10-15 — D-032 recorded; 0.2.9 done.
+- 2026-10-15 — 0.2.10 drafted: `docs/domain/erd.md` (87 tables / 15 schemas inventory, FK-vs-dependency check passed, Mermaid diagrams, review findings F1–F5 fixed in schema docs, consolidated retention, personal-data inventory). Waiting on owner for 4 retention proposals.

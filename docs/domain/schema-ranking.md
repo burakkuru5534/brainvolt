@@ -145,7 +145,7 @@ CREATE TABLE ranking.points_ledger (
   country_code  char(2),                            -- user's country at match time (for country boards)
   public        boolean     NOT NULL,               -- false if user was restricted at match time (D-016/D-017)
   occurred_at   timestamptz NOT NULL,               -- match end time; drives day/week/month bucketing
-  UNIQUE (match_id, entity_kind, entity_id, category_id)
+  UNIQUE NULLS NOT DISTINCT (match_id, entity_kind, entity_id, category_id)   -- overall row has NULL category; must still be unique (F3)
 );
 CREATE INDEX points_ledger_entity_idx ON ranking.points_ledger (entity_kind, entity_id, occurred_at);
 CREATE INDEX points_ledger_time_idx   ON ranking.points_ledger (occurred_at);

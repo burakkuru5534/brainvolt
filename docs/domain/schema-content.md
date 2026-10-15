@@ -143,6 +143,16 @@ CREATE TABLE content.option_translations (
   PRIMARY KEY (option_id, locale)
 );
 
+-- ---------- Revision snapshots (what players saw; review finding F1, 0.2.10) ----------
+CREATE TABLE content.question_revisions (
+  question_id  uuid        NOT NULL REFERENCES content.questions(id),
+  revision     int         NOT NULL,
+  snapshot     jsonb       NOT NULL,      -- all locales: prompt, explanation, option texts by option id, correct option id
+  created_by   uuid        REFERENCES identity.users(id),
+  created_at   timestamptz NOT NULL,
+  PRIMARY KEY (question_id, revision)
+);
+
 -- ---------- Audit ----------
 CREATE TABLE content.verification_events (
   id           uuid        PRIMARY KEY,
@@ -250,7 +260,7 @@ Every transition writes a row to `content.verification_events`.
 **Minimal review tool in Phase 2** (needed so ranked has content, as agreed earlier): admin-only endpoints to list `in_review` items and approve/reject them. The full moderation console comes in Phase 8.
 
 ### 4.3 Editing a used question
-Text/option edits bump `revision`. Matches store the **revision** they used (0.2.4), so history and reports refer to exactly what the player saw. A fact change on a verified question puts it back to `in_review` and removes it from ranked until re-approved.
+Text/option edits bump `revision` and write a full snapshot to `content.question_revisions`. **Once a question has been used in any match, its option rows are immutable** (no delete, no change of `is_correct`): `game.answers` points at them. Changing which option is correct means **retiring** the question and creating a new one; wording fixes are translation edits. Matches store the **revision** they used (0.2.4), so history and reports refer to exactly what the player saw. A fact change on a verified question puts it back to `in_review` and removes it from ranked until re-approved.
 
 ---
 

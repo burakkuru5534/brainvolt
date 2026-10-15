@@ -134,6 +134,7 @@ CREATE TABLE game.match_rounds (
   revealed_at        timestamptz NOT NULL,              -- rows are written at reveal, so never NULL
   PRIMARY KEY (match_id, round_no)
 );
+CREATE INDEX match_rounds_revealed_idx ON game.match_rounds (revealed_at);   -- purge job (D-026)
 CREATE INDEX match_rounds_question_idx ON game.match_rounds (question_id);
 
 -- ---------- Answers (accepted submissions only) ----------
@@ -148,6 +149,7 @@ CREATE TABLE game.answers (
   is_correct      boolean     NOT NULL,
   points_awarded  int         NOT NULL DEFAULT 0,               -- this answer's own points before side aggregation
   is_side_answer  boolean     NOT NULL DEFAULT false,           -- Shared Answer: the submission that counted for the side
+  created_at      timestamptz NOT NULL,                         -- row write time (reveal); drives 12-month purge / future partitioning (D-026)
   PRIMARY KEY (match_id, round_no, user_id),
   FOREIGN KEY (match_id, round_no) REFERENCES game.match_rounds(match_id, round_no) ON DELETE CASCADE,
   FOREIGN KEY (match_id, user_id)  REFERENCES game.match_participants(match_id, user_id)
