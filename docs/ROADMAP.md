@@ -54,6 +54,10 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 | D-008 | Repository | Single monorepo at https://github.com/burakkuru5534/brainvolt | 2026-10-15 | 0.1.3, Phase 1 |
 | D-009 | Go module path | `github.com/burakkuru5534/brainvolt/backend` | 2026-10-15 | 0.1.3, Phase 1 |
 | D-010 | CI | GitHub Actions in Phase 1 — `.github/workflows/ci.yml` runs Go and Flutter tests | 2026-10-15 | 0.1.3, Phase 1 |
+| D-011 | Launch platforms | `[!]` pending — Android + iOS together, or Android first? | — | ADR-0003, Phase 1, Phase 9 |
+| D-012 | Application / bundle ID | `[!]` pending — e.g. `com.brainvolt.app` | — | Phase 1 (`flutter create`, Firebase apps) |
+| D-013 | Sign-in providers | `[!]` pending — Google / Apple / email / guest | — | 0.2.2, Phase 1 |
+| D-014 | Firebase projects | `[!]` pending — separate dev & prod (recommended) or single | — | ADR-0003, Phase 1 |
 
 ---
 
@@ -67,7 +71,7 @@ Verification for each task: document reviewed against the requirement list + cro
 - [x] 0.1.3 Write `docs/architecture/repo-layout.md` — monorepo folder layout (backend/, mobile/, docs/, deploy/, scripts/)
 - [x] 0.1.4 Write `docs/architecture/backend-modules.md` — Go module boundaries & allowed dependencies (auth, user, content, game, realtime, matchmaking, social, team, ranking, progression, moderation, notification, chat, tournament, monetization)
 - [x] 0.1.5 Write `docs/adr/0002-backend-libraries.md` — HTTP router, WebSocket lib, DB driver/query layer, migration tool, logging, config, test tooling
-- [ ] 0.1.6 Write `docs/adr/0003-mobile-architecture.md` — state management, routing, networking/WS client, DI, folder structure
+- [x] 0.1.6 Write `docs/adr/0003-mobile-architecture.md` — state management, routing, networking/WS client, DI, folder structure
 
 ### 0.2 Data models & database schema
 - [ ] 0.2.1 `docs/domain/glossary.md` — canonical terms (match, round, question slot, participant, side, team, couple, MMR, SP, XP, league…)
@@ -231,3 +235,4 @@ Verification for each task: document reviewed against the requirement list + cro
 - 2026-10-15 — Decisions D-008…D-010 recorded (monorepo, Go module path, GitHub Actions CI); Phase 1 gains CI, .gitattributes/.editorconfig and architecture-test tasks.
 - 2026-10-15 — 0.1.4 done: 17 backend modules, allowed dependency table, outbox-based domain events, realtime push/route pattern, schema-per-module data ownership.
 - 2026-10-15 — 0.1.5 done: ADR-0002 — stdlib net/http + slog, coder/websocket, pgx v5 + sqlc, goose, River (transactional outbox + scheduled jobs), go-redis v9, Firebase Admin v4, env v11, UUIDv7, in-house Glicko-2, real PG/Redis integration tests, golangci-lint v2.
+- 2026-10-15 — 0.1.6 done: ADR-0003 — Riverpod 3 (state + DI), go_router, dio, web_socket_channel + own RealtimeClient, freezed/json_serializable, gen-l10n (TR template + EN), feature-first data/domain/presentation, client-side server-authority rules, dev/prod flavors. Pending decisions D-011…D-014 logged. Section 0.1 complete.
