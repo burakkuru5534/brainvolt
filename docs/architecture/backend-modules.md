@@ -108,6 +108,7 @@ Initial event catalogue (expanded in 0.2 / 0.3):
 | `game.MatchCompleted` | game | ranking, progression, tournament, moderation (anti-cheat), notification |
 | `game.MatchCancelled` | game | ranking (no change, audit), tournament, matchmaking |
 | `game.MatchVoided` | game | ranking, progression, tournament |
+| `game.DailyRunCompleted` | game | ranking (daily board), progression, notification |
 | `moderation.ReportFiled` / `SanctionApplied` | moderation | identity (status), notification |
 | `ranking.SeasonEnded` / `LeagueChanged` | ranking | progression, notification, commerce (season rewards) |
 | `progression.BadgeEarned` / `QuestCompleted` / `LevelUp` | progression | notification |

@@ -85,6 +85,12 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 | D-037 | Scoring ruleset 1 | No negative points (Sudden Death elimination separate); base 100 × difficulty multiplier 0.8/0.9/1.0/1.1/1.2; speed bonus up to 100, linear to 0 at deadline; streak +20 at 3–4, +40 from 5; true/false worth half (base 50, speed ≤ 50) | 2026-10-15 | 0.3.4, Phase 3 |
 | D-038 | Match types | Quick Duel 7 q / 15 s / curve 2-2-3-3-3-4-4; Ranked 10 q / 15 s / MC only / rising curve / **matchmaking only**; Sudden Death 10 s, first right-vs-wrong split decides, difficulty +1 every 3 rounds, cap 30 then highest score; Marathon 25 q / 12 s / 5 difficulty blocks / 15 s half-time after q12; category caps 2/3/5, no consecutive sub-category, TF ≤ 30 % never consecutive; Shared Answer +5 s | 2026-10-15 | 0.3.5, 0.5, Phase 3 |
 | D-039 | Team answer modes | Same scale (side ≤ one player's max per round); Shared Answer: auto-lock = no speed bonus, side streak, equal split (remainder to locker); Individual Turns: side streak across turns, points to turn holder, disconnected/left turn holder → next active seat; Fast Team Round: personal streaks, rules Average (default) / Fastest Correct / Majority, Average correct if ≥ 50 % of active members correct; Ranked & matchmade casual fixed to Average, hosts/organisers choose in rooms, challenges, tournaments | 2026-10-15 | 0.3.6, 0.5, Phase 6 |
+| D-040 | Daily Challenge | **Solo score race** (engine format `solo`, no opponent/winner): same 10 MC questions per day for every player (one set verified in TR and EN), Ranked curve, 15 s; ONE official attempt per day, practice runs allowed with zero leaderboard impact; board ranked by correct answers, then lowest total time (timeout = 15 s), then earliest completion; share card + "beat my score" to friends; runs stored in `game.daily_runs` / `daily_run_answers` and board in `ranking.daily_challenge_entries` + `rank:daily:*`, isolated from match tables, SP and general boards; server errors and drops before Q1 do not consume the attempt; drops after Q1: clock keeps running, resume ≤ 2 min, else remaining = timeouts and attempt consumed | 2026-10-15 | 0.3.7, 0.3.11, Phase 8 |
+| D-041 | Ranked integrity | No category mode in Ranked (global mixed pool); matchmaking driven by Glicko-2 rating **and** RD | 2026-10-15 | 0.3.7, 0.3.10, 0.5, Phase 5 |
+| D-042 | Category Master | Matchmaking only for top-level categories, pairs only identical category searches; unrated at launch; future category ratings use separate `category:<id>` buckets, never mixed with global Ranked rating | 2026-10-15 | 0.3.7, Phase 5, Phase 8 |
+| D-043 | Mixed Battle | 3 categories pre-selected before the match (host/challenger, or server in matchmaking); picking side alternates per round, 10 s pick from those 3; max 3 consecutive same category; in teams the designated turn holder (seat rotation) picks, and also answers in Individual Turns | 2026-10-15 | 0.3.7, Phase 8 |
+| D-044 | Creator Quiz | 10/15/20 s timers; author defines order, content, options, category; rooms & direct challenges; author earns zero XP on own quiz; validation required before public discovery; never in Ranked pool, never affects rating | 2026-10-15 | 0.3.7, Phase 8 |
+| D-045 | Revenge Match | Offered instantly on results screen (valid 24 h) against the preceding opponent, copies the configuration; 50 % home category (rounded down); max 3 consecutive same-category questions; never rated (Ranked only via fresh matchmade game); max 3 revenges per chain | 2026-10-15 | 0.3.7, Phase 8 |
 
 ---
 
@@ -119,7 +125,7 @@ Verification for each task: document reviewed against the requirement list + cro
 - [x] 0.3.4 Base scoring formula (correctness, speed bonus, streak bonus, caps)
 - [x] 0.3.5 Match type rules: Quick Duel, Ranked, Sudden Death, Marathon
 - [x] 0.3.6 Team answer mode rules: Shared Answer, Individual Turns, Fast Team Round
-- [~] 0.3.7 Category mode rules: Blind Challenge, Category Master, Mixed Battle, Daily Challenge, Creator Quiz, Revenge Match
+- [x] 0.3.7 Category mode rules: Blind Challenge, Category Master, Mixed Battle, Daily Challenge, Creator Quiz, Revenge Match
 - [ ] 0.3.8 Couple Contest rules
 - [ ] 0.3.9 Ties, tie-breakers, forfeit, abandonment, disconnect/reconnect windows, cancellation conditions
 - [ ] 0.3.10 MMR, Season Points and XP formulas; league thresholds; seasonal reset rule
@@ -232,7 +238,15 @@ Verification for each task: document reviewed against the requirement list + cro
 - [ ] Blind Challenge (full feature)
 - [ ] Category Master (full feature)
 - [ ] Mixed Battle (full feature)
-- [ ] Daily Challenge (full feature)
+- [ ] Daily Challenge (full feature) — solo score race per D-040:
+  - [ ] Daily set publishing job (10 MC, verified TR+EN, Ranked curve)
+  - [ ] Solo run engine (`format = solo`) reusing round phases, timing and scoring
+  - [ ] Isolated persistence: `game.daily_runs`, `game.daily_run_answers`
+  - [ ] Official-attempt limit (one per day) + practice runs
+  - [ ] Failure grace: server-error / not-started voids; strict resume (≤ 2 min, clock keeps running)
+  - [ ] Daily board (`ranking.daily_challenge_entries`, `rank:daily:*`) with tie-breakers correct → total time → completion time
+  - [ ] Share card + "beat my score" notification & deep link
+  - [ ] Tests: attempt limits, tie-breakers & score encoding, disconnect/error handling (category-modes.md §9)
 - [ ] Creator Quiz (full feature incl. authoring)
 - [ ] Revenge Match (full feature)
 - [ ] Question reporting
@@ -298,3 +312,4 @@ Verification for each task: document reviewed against the requirement list + cro
 - 2026-10-15 — 0.3.6 drafted: `docs/game/team-modes.md` (per-mode side_correct / side_points / contribution / streak, same-scale rule, Fast Team aggregation rules average / fastest_correct / majority with worked 3v3 example). Waiting on owner for 5 proposals.
 - 2026-10-15 — D-039 recorded; 0.3.6 done (turn passes on disconnect too; Average correctness over active members, points still divided by full side size).
 - 2026-10-15 — 0.3.7 drafted: `docs/game/category-modes.md` (plug-in hooks, rules for all six category modes, summary matrix; owner choice needed: Daily Challenge solo score race vs matchmade 1v1). round-lifecycle §2 updated for D-039.
+- 2026-10-15 — D-040…D-045 recorded; 0.3.7 done. Daily Challenge redesigned as isolated solo score race (category-modes.md rewritten; schema-game, schema-platform §6, schema-ranking §4.4, redis-keys §2a/§6.4, match-lifecycle, glossary, backend-modules updated). Phase 8 Daily Challenge broken into sub-tasks incl. required tests.

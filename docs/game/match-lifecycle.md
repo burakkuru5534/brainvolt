@@ -42,7 +42,7 @@ No other transitions exist. A terminal state never changes again.
 ### T1 — create → `waiting`
 | | |
 |---|---|
-| **Trigger** | `game.CreateMatch(config, sides, origin)` called by `lobby` (room, challenge, rematch, revenge), `matchmaking`, `tournament`, or the Daily Challenge flow. |
+| **Trigger** | `game.CreateMatch(config, sides, origin)` called by `lobby` (room, challenge, rematch, revenge), `matchmaking` or `tournament`. |
 | **Guards** (all must pass, else creation is rejected with an error code; nothing is written) | 1. Config valid against the mode matrix (0.5). 2. Side sizes match format; couple sides are couples (schema-game §2.1). 3. Every participant: `status = active`; no blocking sanction for this match type (`SanctionChecker`: `ranked_ban` for ranked, `matchmaking_ban` for matchmade origins, `suspension` always). 4. Every participant acquires `game:user:<id>:live` with `SET NX` — not already in a live match; on any failure all acquired locks are released. 5. Enough eligible questions exist for the config and all participant locales (content §3); fixed-length matches select **all** questions now, open-ended types select a first batch. 6. Ranked: a season is active. |
 | **Effects** | Postgres (one transaction): `matches` (`waiting`), `match_sides`, `match_participants` (`joined`), `match_transitions` #1. Redis: `:state`, `:participants`, `:owner` lease (creating instance becomes owner), added to `game:live`. Realtime: `match.created` to each participant with `ready_deadline_at`. |
 
@@ -126,7 +126,7 @@ Leaving on purpose during `in_progress` is final for that participant (no rejoin
 | `challenge`, `rematch`, `revenge` | Accepting the challenge is not enough (the challenger may have left): both sides tap Ready. |
 | `private_room` | Players already readied in the room; the app **auto-sends** `match.ready` when the match screen opens. The deadline still applies (catches a closed app). |
 | `tournament` | Ready window per round = `round_ready_window_s` (default 300 s, schema-platform §3); no-show = walkover. |
-| `daily_challenge` | Same as matchmaking (0.3.7 may change it if the Daily Challenge becomes a solo score race). |
+| *(Daily Challenge)* | Not a match: solo run with its own lifecycle (category-modes.md §5, D-040). |
 
 ---
 
@@ -174,7 +174,7 @@ Leaving on purpose during `in_progress` is final for that participant (no rejoin
 ---
 
 ## 9. Accepted proposals (D-034)
-1. **Ready deadline 20 s** after creation (matchmaking, challenges, rooms, daily); tournaments use their own window.
+1. **Ready deadline 20 s** after creation (matchmaking, challenges, rooms); tournaments use their own window.
 2. **Start countdown 3 s** after everyone is ready.
 3. **No-show cooldown:** 3 missed ready checks in matchmade matches within 30 min → 5 min matchmaking cooldown (automatic queue-health measure, not a moderation sanction). Players who were ready return to the **front** of the queue.
 4. **Voided matches revoke SP and leaderboard points only.** Non-cheating players keep XP, quest progress and streaks; cheaters are handled separately through account-level sanctions (no automatic XP revocation).

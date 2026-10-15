@@ -9,7 +9,7 @@
 
 ## 1. Inventory
 
-One PostgreSQL database, **15 schemas, 87 tables** (after the fixes in §4).
+One PostgreSQL database, **15 schemas, 89 tables** (after the fixes in §4 and the Daily Challenge redesign, D-040).
 
 | Schema (module) | Tables | Doc |
 |---|---:|---|
@@ -17,11 +17,11 @@ One PostgreSQL database, **15 schemas, 87 tables** (after the fixes in §4).
 | profile | 2 | schema-identity |
 | notification | 5 | schema-identity §4, schema-platform §1 |
 | content | 15 | schema-content |
-| game | 8 | schema-game, schema-platform §6 |
+| game | 9 | schema-game, schema-platform §6 (daily runs) |
 | social | 3 | schema-social |
 | lobby | 3 | schema-social |
 | team | 4 | schema-social |
-| ranking | 9 | schema-ranking |
+| ranking | 10 | schema-ranking (incl. daily challenge entries) |
 | progression | 9 | schema-ranking |
 | moderation | 8 | schema-moderation |
 | chat | 3 | schema-platform §2 |
@@ -140,7 +140,7 @@ erDiagram
   MATCH_ROUNDS ||--|{ ROUND_RESULTS : "per side"
   MATCHES ||--o{ MATCH_TRANSITIONS : lifecycle
   MATCHES ||--o{ MATCHES : "rematch / revenge parent"
-  MATCHES ||--o{ DAILY_CHALLENGE_ATTEMPTS : daily
+  DAILY_RUNS ||--|{ DAILY_RUN_ANSWERS : "10 questions (solo, isolated, D-040)"
   QUESTION ||--o{ MATCH_ROUNDS : "asked as"
   OPTION ||--o{ ANSWERS : "chosen"
   MATCHES {

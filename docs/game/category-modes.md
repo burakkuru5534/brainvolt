@@ -1,17 +1,16 @@
 # Category mode rules — Blind Challenge, Category Master, Mixed Battle, Daily Challenge, Creator Quiz, Revenge Match
 
 - **Roadmap task:** 0.3.7 (engine rules; full features in Phase 8)
-- **Status:** Draft for review (2026-10-15) — contains **one choice for the owner** (§5, Daily Challenge format)
-- **Owner module:** `game` (`domain/categorymode`: one selector + optional pre-round hook per mode); question sets from `content`, quizzes from `creator`, revenge offers from `lobby`
-- **Builds on:** D-023 / D-031 (creator quizzes), D-024 (no TF in daily), D-027 (revenge by losing side, 24 h), D-029 (Istanbul days), D-031 (daily first attempt counts), D-036 (10 s pick), D-038 (match types, selection defaults), D-039 (team modes)
-- **Related:** match-types.md §2 (default selection that a category mode replaces), round-lifecycle.md (`pre_round`), schema-content (question sets, daily sets), schema-platform (creator quizzes, daily attempts), combinations 0.5
-- Values marked **(P)** are proposals (§9).
+- **Status:** Accepted (2026-10-15) — decisions D-040 … D-045
+- **Owner module:** `game` (`domain/categorymode`: one selector + optional pre-round hook per mode; `domain/dailyrun` for the Daily Challenge solo engine); question sets from `content`, quizzes from `creator`, revenge offers from `lobby`
+- **Builds on:** D-023 / D-031 (creator quizzes), D-024 (no TF in daily), D-027 (revenge by losing side, 24 h), D-029 (Istanbul days), D-031 (one counted daily attempt), D-032 (2 min resume), D-036 (10 s pick), D-038 (match types, selection defaults), D-039 (team modes)
+- **Related:** match-types.md §2 (default selection that a category mode replaces), round-lifecycle.md (`pre_round`), schema-content (question sets, daily sets), schema-platform §6 (daily run tables), schema-ranking §4.4 (daily board), redis-keys §2a / §6.4, combinations 0.5
 
 ---
 
 ## 1. How a category mode plugs in
 
-A match has **one match type** (how it is played and ends) and **at most one category mode** (which questions are asked and how they are presented). No category mode = default mixed selection (match-types.md §2).
+A head-to-head match has **one match type** (how it is played and ends) and **at most one category mode** (which questions are asked and how they are presented). No category mode = default mixed selection (match-types.md §2).
 
 | Hook | What a category mode may change |
 |---|---|
@@ -21,64 +20,100 @@ A match has **one match type** (how it is played and ends) and **at most one cat
 | `Eligibility` | who may play / which origins and match types are allowed (checked at creation, matrix in 0.5) |
 | `Awards` | whether rating / SP / leaderboard / quests / XP apply (on top of 0.3.10) |
 
-Scoring (ruleset 1), team modes and end rules of the match type are **never** changed by a category mode, except where §5 / §6 say otherwise for question count.
+Scoring (ruleset 1), team modes and end rules of the match type are **never** changed by a category mode, except where §6 / §7 say otherwise for question count.
+
+**Daily Challenge is the exception:** it is **not a head-to-head match** but a **solo run** (§5) with its own engine entry point, tables and leaderboard (D-040). It reuses the round phases, timing model and per-answer scoring, but nothing is written to `game.matches` / `match_sides` / `match_participants`.
+
+**Ranked has no category mode** (D-041): it always uses the global mixed pool so ratings stay comparable.
 
 ---
 
 ## 2. Blind Challenge (`blind_challenge`)
 - **Select:** default mixed selection of the match type.
 - **Present:** the category and sub-category of each question are **hidden** during `question` and shown at `reveal` (D-035 visibility rules). The match lobby shows "Kategori: ?" instead of categories.
-- **Eligibility:** any match type except Ranked (P) — Ranked keeps one standard presentation so ratings stay comparable.
+- **Eligibility:** any match type except Ranked (D-041).
 - **Awards:** normal for its match type.
 
-## 3. Category Master (`category_master`)
-- **Select:** every question from **one chosen category** (or one sub-category, if chosen). Category caps from D-038 do not apply; "no consecutive sub-category" applies when the category has ≥ 2 sub-categories with enough questions; difficulty curve of the match type still applies.
-- **Who chooses:** room host / challenger; in matchmaking the player picks the category when queueing (queue key includes the category) — **matchmaking offered only for categories with enough eligible questions and players** (P: the top-level categories).
-- **Eligibility:** any match type except Ranked (P). Creation fails if the category has fewer eligible questions than needed in all participant locales.
-- **Awards:** normal for its match type; points also feed the **category leaderboard** for that category (0.3.10).
+## 3. Category Master (`category_master`)  (D-042)
+- **Select:** every question from **one chosen top-level category** (in rooms/challenges optionally narrowed to one sub-category). Category caps from D-038 do not apply; "no consecutive sub-category" applies when the category has ≥ 2 sub-categories with enough questions; difficulty curve of the match type still applies.
+- **Who chooses:** room host / challenger; in matchmaking the player picks the category when queueing, and **only players searching the exact same category are paired** (queue key includes the category id). Matchmaking is offered **only for top-level categories**.
+- **Eligibility:** any match type except Ranked. Creation fails if the category has fewer eligible questions than needed in all participant locales.
+- **Rating:** **unrated at launch** (casual). The rating schema already supports separate per-category buckets (`rating_bucket = 'category:<id>'`, schema-ranking §2), kept **apart from global Ranked rating**, so category ratings can be switched on later without schema changes.
+- **Awards:** normal casual awards; points also feed the **category leaderboard** for that category (0.3.10).
 
-## 4. Mixed Battle (`mixed_battle`)
-- **PreRound:** before every round, **one side picks the category** for that round from **3 random categories** offered by the server (never the previous round's category). Pick time **10 s** (D-036); no pick → server picks randomly.
-- **Who picks:** sides alternate; the first picker is chosen randomly (coin toss shown in the lobby). Inside a team: Individual Turns → the turn holder picks; Shared Answer / Fast Team Round → **any member**, first pick counts (P).
+## 4. Mixed Battle (`mixed_battle`)  (D-043)
+- **Before the match:** **3 categories are pre-selected** and shown in the lobby: chosen by the host / challenger in rooms and challenges; chosen randomly by the server (3 different top-level categories with enough eligible questions) in matchmaking.
+- **PreRound (every round):** the **picking side alternates** each round (first picker by coin toss shown in the lobby). The picking side chooses **one of the 3 match categories** for that round; pick time **10 s** (D-036); no pick → server picks randomly among the 3. The same category may be picked again, but **never more than 3 rounds in a row** (diversity cap, same as D-045).
+- **Teams:** the picking side's **designated turn holder** (seat rotation per question, D-035/D-039) makes the pick. In **Individual Turns** the same turn holder also answers; in Shared Answer / Fast Team Round the answer follows that team mode as usual.
 - **Select:** one question from the picked category at the round's curve difficulty.
-- **Eligibility:** any match type except Ranked (P); works with Sudden Death too (each round is still decided by right vs. wrong).
-- **Awards:** normal; category leaderboard rows per picked category.
+- **Eligibility:** any match type except Ranked; works with Sudden Death (each round still decided by right vs. wrong).
+- **Awards:** normal casual awards; category leaderboard rows per picked category.
 
-## 5. Daily Challenge (`daily_challenge`)
-- **Question set:** the day's `content.daily_sets` entry (Europe/Istanbul day, D-029): **10 multiple-choice questions** (P), verified in **both** TR and EN (D-024, schema-content §3), difficulty curve as Ranked (2-3-3-3-4-4-4-4-5-5). Answer window 15 s. Same set, same order for everyone; option order still shuffled per player.
-- **Counting:** only the **first completed attempt per day** counts for leaderboards, quests and play streak; later attempts are practice (D-031).
-- **Awards:** never rated; daily leaderboard points per 0.3.10.
+## 5. Daily Challenge — solo score race  (D-040)
 
-### 5.1 Owner choice — how is the Daily Challenge played?
+### 5.1 Content & rules
+| Item | Rule |
+|---|---|
+| Questions | The day's `content.daily_sets` entry (Europe/Istanbul day, D-029): **10 multiple-choice questions**, same 10 and same order for every player; verified in **both** TR and EN (D-024), so TR and EN players face the identical set. Option order shuffled per run. |
+| Difficulty | Ranked curve 2-3-3-3-4-4-4-4-5-5 |
+| Answer window | 15 s per question; timing model unchanged (show_at, grace, latency compensation — timing.md) |
+| Format | **`solo`**: one player, no opponent, no winner; engine-level format used **only** by Daily Challenge |
+| Per-answer scoring | ruleset 1 (D-037) — shown to the player for fun, **not** used for ranking |
+| Official attempt | **exactly one per player per day** (D-031). Later runs the same day are **practice**: same questions, zero leaderboard impact |
 
-| Option | How it works | Pros | Cons / changes needed |
-|---|---|---|---|
-| **A. Solo score race** (recommended) | Each player plays the 10 questions **alone**, any time during the day; score goes to the **Daily Challenge leaderboard** (global / country / friends). After playing, a player can send "beat my score" to friends (async). | Everyone faces identical conditions (no opponent luck); works at any hour; no waiting for matchmaking; perfect for a daily habit. | Needs a new player format **`solo`** (one side, no winner) used **only** by Daily Challenge: schema-game sides check becomes "2 sides, or 1 side when `format = solo`"; result = score + rank instead of win/loss. |
-| B. Matchmade 1v1 on the daily set | Players queue and play a normal 1v1 on today's set. | No schema change. | Result depends on the opponent; late-day players see fewer opponents; "first attempt" may be wasted by an opponent's disconnect. |
+### 5.2 Daily leaderboard ranking
+1. **More correct answers** ranks higher.
+2. Tie → **lower total answer time** ranks higher. Total time = sum over the 10 questions of `response_ms` (timing.md §5); an unanswered question (timeout) counts as the **full 15 000 ms** (P).
+3. Still tied → **earlier completion time** ranks higher (P).
 
-The rest of this document assumes **Option A** unless the owner chooses B.
+Boards: global, country, friends (friends computed at read time); restricted accounts are excluded from public boards (D-016). The daily board is **separate** from the general daily/weekly/monthly leaderboards and from SP (D-040): a Daily Challenge run gives no SP and no general leaderboard points.
 
-## 6. Creator Quiz (`creator_quiz`)
-- **Select:** the quiz's question set (`creator.quizzes.question_set_id`) **in the author's order**; question count = quiz length (5–30, D-031). Options shuffled per match as always. Difficulty curve does not apply (author's questions).
-- **Answer window:** the author picks **10, 15 or 20 s** per quiz (P, default 15 s).
-- **Match types:** only fixed-length play (Quick Duel rules with the quiz's length) (P) — not Ranked, not Sudden Death, not Marathon.
+### 5.3 What an official run gives
+| | Official completed | Practice | Not consumed (§5.4) |
+|---|:-:|:-:|:-:|
+| Daily Challenge leaderboard entry | ✓ | ✗ | ✗ |
+| XP (amount in 0.3.10) | ✓ | ✗ (P) | ✗ |
+| Quest progress (`daily_challenge` objective) & play streak | ✓ | ✗ | ✗ |
+| Shareable result card & "beat my score" link | ✓ | ✗ | ✗ |
+
+### 5.4 Failure grace — when the official attempt is **not** consumed
+| Situation | Result |
+|---|---|
+| **Server-side error** (our fault: run owner lost and run state unrecoverable, persistence failure, Redis loss) | Run marked `void_server_error`; **attempt not consumed**; the player may start a new official run (same questions — logged, accepted). |
+| Player's connection drops **before the first question is shown** (`show_at` of Q1 not reached) | Run marked `void_not_started`; **attempt not consumed**. |
+| Player's connection drops **after** Q1 was shown — *strict fallback validation* | The server **keeps the clock running** (questions are never paused). The player may **resume within 2 min** (D-032) at the current question. If not resumed, the run is **completed** with every remaining question as a timeout; **attempt consumed**. This prevents "disconnect when doing badly, retry tomorrow-style" abuse. |
+| App closed / killed by the player | Same as a connection drop after Q1. |
+| More than **one** `void_server_error` for the same player on the same day | Allowed; every void is logged; > 3 per day raises a moderation signal (`protocol_violation`, D-030) for review (P). |
+
+### 5.5 Sharing & "beat my score"
+- After an official run: share card (score, correct count, time, rank) and **"beat my score"** to friends: an in-app notification (`notification` category `challenge`, kind `daily.beat_my_score`) and a deep link `brainvolt://daily/<yyyy-mm-dd>?from=<username>`.
+- The friend plays **their own official run**; afterwards both see the comparison. No head-to-head match is created. Sends count toward the direct-challenge rate limit (20/h, D-027).
+
+### 5.6 Isolation (D-040 instruction)
+- Persistence: `game.daily_runs` and `game.daily_run_answers` (schema-platform §6) — **never** `game.matches` / `match_sides` / `match_participants` / `answers`.
+- Leaderboard: `ranking.daily_challenge_entries` + Redis `rank:daily:*` (schema-ranking §4.4, redis-keys §6.4) — **never** `ranking.points_ledger` / `season_standings`.
+- Event: `game.DailyRunCompleted` (official completed runs only) → ranking (daily board), progression (XP, quest, streak), notification.
+
+## 6. Creator Quiz (`creator_quiz`)  (D-044)
+- **Select:** the quiz's question set **in the author's order**; the author defines questions, options, order and the quiz category; question count = quiz length (5–30, D-031). Options shuffled per match.
+- **Answer window:** the author picks **10, 15 or 20 s** per quiz (default 15 s).
+- **Match types:** fixed-length play only (Quick Duel rules with the quiz's length) — never Ranked, Sudden Death or Marathon.
 - **Where it can be played:**
 
 | Quiz status | Where | Who can join |
 |---|---|---|
-| `draft`, `rejected`, `unpublished` (unverified) | **private rooms only** | **friends of the room host** (D-023; schema-social §3.4) |
-| `published` (verified) | private rooms and direct challenges; no matchmaking at launch (P) | anyone allowed by the room/challenge rules |
+| `draft`, `rejected`, `unpublished` (unverified) | **private rooms only** | **friends of the room host** (D-023) |
+| `published` (validated by moderation) | private rooms and direct challenges; listed in public discovery; no matchmaking at launch | anyone allowed by the room/challenge rules |
 
-- **Awards:** never rated, no SP, no leaderboard points (D-023, D-031). XP: yes for players of a **published** quiz except the **author**, who knows the answers (P); unverified quizzes give nothing.
-- **Author playing their own quiz:** allowed (e.g. hosting friends), but the author's score is shown with an "author" label and gives no XP (P).
+- **Awards:** never rated, never enters the Ranked pool, no SP, no leaderboard points (D-023, D-031). XP for players of a **published** quiz; the **author earns zero XP** on their own quiz (shown with an "author" label). Unverified quizzes give nothing.
 
-## 7. Revenge Match (`revenge_match`)
-- **Created from** a `revenge` challenge issued by the **losing side** within **24 h** of the parent match (D-027), to the same opponents (same team / couple, or the same users for temporary sides who are still available).
-- **Config:** same format and team answer mode as the parent. Match type = the parent's type, **except Ranked → Quick Duel rules with Ranked's 10-question length and MC-only** (Ranked is matchmaking-only, D-038).
-- **Special rule — "home advantage" (P):** the challenger (former loser) picks **one category** before sending; **half of the questions** (rounded down) come from that category, the rest are default mixed selection.
-- **Chain:** the loser of a revenge match may issue a revenge again (new `parent_match_id`), up to **3 revenge matches** in one chain (P), to stop endless loops.
-- **Awards:** never rated (D-038); casual SP/XP per 0.3.10; winning a revenge counts toward "revenge" badges/quests (progression).
-- Results screen shows the **series score** of the chain (e.g. "Rövanş serisi: 2–1").
+## 7. Revenge Match (`revenge_match`)  (D-045)
+- **Created from** a `revenge` challenge issued by the **losing side** against the preceding opponent(s) — offered **instantly on the results screen** and valid up to **24 h** (D-027).
+- **Config:** copies the parent match's configuration (format, team answer mode, match type, answer window). If the parent was **Ranked**, the revenge uses Quick Duel rules with Ranked's length (10 questions, MC only) and is **unrated** — rating changes only through a fresh **matchmade** Ranked game (D-038).
+- **Home category:** the challenger picks one category; **50 % of the questions** come from it, **rounded down** for odd counts (e.g. 7 → 3 home questions); the rest use default mixed selection.
+- **Diversity cap:** **at most 3 consecutive questions from the same category** (home questions are interleaved accordingly).
+- **Chain:** the loser of a revenge may issue another revenge (new `parent_match_id`), up to **3 revenge matches per chain** (P); results screen shows the series score ("Rövanş serisi: 2–1").
+- **Awards:** never rated; casual SP/XP per 0.3.10; revenge wins count toward revenge badges/quests.
 
 ---
 
@@ -86,18 +121,39 @@ The rest of this document assumes **Option A** unless the owner chooses B.
 
 | Category mode | Ranked | Quick Duel | Sudden Death | Marathon | Origins |
 |---|:-:|:-:|:-:|:-:|---|
-| none (default) | ✓ | ✓ | ✓ | ✓ | all (Ranked: matchmaking) |
+| none (default) | ✓ | ✓ | ✓ | ✓ | all (Ranked: matchmaking only) |
 | Blind Challenge | ✗ | ✓ | ✓ | ✓ | all |
-| Category Master | ✗ | ✓ | ✓ | ✓ | all |
+| Category Master | ✗ | ✓ | ✓ | ✓ | all (matchmaking: top-level categories, same-category pairing) |
 | Mixed Battle | ✗ | ✓ | ✓ | ✓ | all |
-| Daily Challenge | ✗ | (own rules, §5) | ✗ | ✗ | daily entry point only |
 | Creator Quiz | ✗ | ✓ (quiz length) | ✗ | ✗ | rooms; challenges if published |
 | Revenge Match | ✗ | ✓ (or parent type) | ✓ | ✓ | revenge challenge only |
+| **Daily Challenge** | — solo run, not a match type combination — | | | | daily entry point only |
 
-## 9. Proposals to confirm
-1. **Ranked has no category mode** (only the default mixed selection), so ratings stay comparable.
-2. **Category Master:** whole match from one chosen category (or sub-category); matchmaking queues only for top-level categories.
-3. **Mixed Battle:** sides alternate picking one of 3 offered categories each round (10 s, random if no pick); first picker by coin toss; in teams the turn holder or the first member to pick decides.
-4. **Daily Challenge:** 10 multiple-choice questions, ranked-style difficulty curve, 15 s — and **choose Option A (solo score race, recommended) or B (matchmade 1v1)**.
-5. **Creator Quiz:** author's question order; author picks 10/15/20 s; fixed-length play only; published quizzes in rooms and challenges (no matchmaking at launch); players of published quizzes get XP, the author doesn't.
-6. **Revenge Match:** copies the parent's setup (Ranked parent → unranked 10-question MC match); the challenger picks a "home" category for half the questions; max 3 revenges per chain; series score shown.
+---
+
+## 9. Test coverage required (→ 0.3.11; implemented in Phase 8 with the features)
+
+**Daily attempt limits**
+- First completed run of the day is `official`; any later run the same day is `practice` and never reaches the leaderboard, XP, quests or streak.
+- Two concurrent "start official run" requests → exactly one succeeds (unique index), the other gets `DAILY_ATTEMPT_IN_PROGRESS`.
+- Day boundary at 00:00 Europe/Istanbul: a run started 23:59:50 belongs to the day it started; the next day's official attempt is available at 00:00.
+- Restricted account completes an official run → stored, excluded from public boards, appears after upgrade (D-016).
+
+**Leaderboard tie-breakers**
+- More correct beats fewer correct regardless of time.
+- Equal correct → lower total time wins; timeouts add 15 000 ms each.
+- Equal correct and equal total time → earlier `completed_at` wins.
+- Redis score encoding round-trips exactly (no precision loss) for 0–10 correct and 0–150 000 ms.
+
+**Disconnect & error handling**
+- Server error mid-run → `void_server_error`, attempt not consumed, new official run allowed.
+- Drop before Q1 `show_at` → `void_not_started`, not consumed.
+- Drop after Q1 shown, resume within 2 min → continues at the current question with the original deadlines (no extra time).
+- Drop after Q1 shown, no resume → run completed, remaining questions timeouts, attempt consumed.
+- > 3 server-error voids for one user in one day → moderation signal emitted.
+
+**Other modes**
+- Mixed Battle: picks alternate sides; only the 3 lobby categories are offered; 4th consecutive pick of the same category rejected; no pick → random among the 3.
+- Category Master matchmaking pairs only identical category ids.
+- Revenge: 7-question revenge has exactly 3 home questions; no 4 consecutive same-category questions; Ranked parent → unrated revenge.
+- Creator Quiz: author's run gives 0 XP; unverified quiz room rejects non-friends of the host.

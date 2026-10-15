@@ -334,25 +334,53 @@ Rules (P): only **full accounts** create quizzes; **5–30 questions** per quiz;
 
 ---
 
-## 6. Daily Challenge attempts (owned by `game`)
+## 6. Daily Challenge runs (owned by `game`, isolated from head-to-head tables — D-040)
 
-The daily question set is `content.daily_sets` (`schema-content.md`). Who played it:
+The daily question set is `content.daily_sets` (`schema-content.md`). Runs are **solo** and are stored **only** here, never in `game.matches` / `match_sides` / `match_participants` / `answers`. Rules: `category-modes.md` §5.
 
 ```sql
-CREATE TABLE game.daily_challenge_attempts (
-  day         date        NOT NULL,                   -- Europe/Istanbul day (D-029)
-  user_id     uuid        NOT NULL REFERENCES identity.users(id),
-  match_id    uuid        NOT NULL REFERENCES game.matches(id),
-  counted     boolean     NOT NULL,                   -- true only for the first completed attempt that day
-  score       int,
-  completed_at timestamptz,
-  PRIMARY KEY (day, user_id, match_id)
+CREATE TABLE game.daily_runs (
+  id               uuid        PRIMARY KEY,
+  day              date        NOT NULL,                    -- Europe/Istanbul day (D-029)
+  user_id          uuid        NOT NULL REFERENCES identity.users(id),
+  set_id           uuid        NOT NULL REFERENCES content.question_sets(id),
+  locale           text        NOT NULL CHECK (locale IN ('tr','en')),
+  kind             text        NOT NULL CHECK (kind IN ('official','practice')),
+  status           text        NOT NULL CHECK (status IN ('in_progress','completed',
+                                                          'void_server_error','void_not_started')),
+  account_tier_at_start text   NOT NULL CHECK (account_tier_at_start IN ('guest','unverified','full')),
+  ruleset_version  int         NOT NULL,
+  started_at       timestamptz NOT NULL,
+  completed_at     timestamptz,
+  correct_count    smallint    CHECK (correct_count BETWEEN 0 AND 10),
+  total_time_ms    int         CHECK (total_time_ms >= 0),  -- sum of response_ms; timeout = full window (category-modes §5.2)
+  score            int,                                     -- ruleset-1 points, display only
+  disconnects      smallint    NOT NULL DEFAULT 0,
+  CHECK (status <> 'completed' OR (completed_at IS NOT NULL AND correct_count IS NOT NULL AND total_time_ms IS NOT NULL))
 );
-CREATE UNIQUE INDEX daily_attempts_counted_uq ON game.daily_challenge_attempts (day, user_id) WHERE counted;
-```
-Rule (P): the **first** completed Daily Challenge per user per day counts (leaderboard points, quests, streak); later attempts the same day are practice. How the daily match is played (vs. a matchmade opponent or as a score race against everyone) is fixed in 0.3.7.
+-- exactly one official run per user per day that is running or completed; voided runs don't count (failure grace)
+CREATE UNIQUE INDEX daily_runs_one_official_uq ON game.daily_runs (day, user_id)
+  WHERE kind = 'official' AND status IN ('in_progress','completed');
+CREATE INDEX daily_runs_user_idx ON game.daily_runs (user_id, day DESC);
 
----
+CREATE TABLE game.daily_run_answers (
+  run_id             uuid        NOT NULL REFERENCES game.daily_runs(id) ON DELETE CASCADE,
+  position           smallint    NOT NULL CHECK (position BETWEEN 1 AND 10),
+  question_id        uuid        NOT NULL REFERENCES content.questions(id),
+  question_revision  int         NOT NULL,
+  option_order       smallint[]  NOT NULL,
+  show_at            timestamptz NOT NULL,
+  deadline_at        timestamptz NOT NULL,
+  option_id          uuid        REFERENCES content.options(id),   -- NULL = timeout
+  received_at        timestamptz,
+  response_ms        int         CHECK (response_ms >= 0),
+  is_correct         boolean     NOT NULL,
+  points             int         NOT NULL DEFAULT 0,
+  created_at         timestamptz NOT NULL,                         -- 12-month purge like match detail (D-026)
+  PRIMARY KEY (run_id, position)
+);
+```
+Rules: starting an official run when one is `in_progress`/`completed` for that day fails with `DAILY_ATTEMPT_USED` / `DAILY_ATTEMPT_IN_PROGRESS`; such a player may start a `practice` run. Runs in `void_*` states free the official slot (failure grace, category-modes §5.4). Live run state is in Redis (redis-keys §2a).
 
 ## 7. Events
 | Event | Producer | Consumers |
@@ -363,6 +391,7 @@ Rule (P): the **first** completed Daily Challenge per user per day counts (leade
 | `commerce.SubscriptionChanged` / `EntitlementChanged` | commerce | notification, progression (extra quest slot) |
 | `commerce.CosmeticGranted` | commerce | notification |
 | `creator.QuizSubmitted` / `QuizPublished` / `QuizRejected` | creator | moderation, notification |
+| `game.DailyRunCompleted` (official, completed only) | game | ranking (daily board), progression (XP, quest, streak), notification |
 
 ## 8. Accepted proposals (D-031)
 1. **Notifications:** marketing push off until opt-in; quiet hours available; max 10 push/user/hour; inbox items expire after 30 days.
@@ -372,4 +401,4 @@ Rule (P): the **first** completed Daily Challenge per user per day counts (leade
 5. **Ads:** interstitial at most every 3 matches (never mid-match, never for premium); max 5 rewarded ads/day; rewarded placements = quest reroll, bonus XP after match, cosmetic trial.
 6. **No soft currency** at launch.
 7. **Creator Quiz:** full accounts only; 5–30 questions; max 20 quizzes per author; published quizzes also never rated / no SP.
-8. **Daily Challenge:** first completed attempt per day counts, later ones are practice.
+8. **Daily Challenge:** first completed attempt per day counts, later ones are practice. *(Refined by D-040: solo score race, isolated tables above.)*

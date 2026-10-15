@@ -34,19 +34,19 @@ CREATE TABLE game.matches (
   format             text        NOT NULL CHECK (format IN ('1v1','2v2','3v3','4v4','couple')),
   team_answer_mode   text        CHECK (team_answer_mode IN ('shared_answer','individual_turns','fast_team_round')),
   category_mode      text        CHECK (category_mode IN ('blind_challenge','category_master','mixed_battle',
-                                                          'daily_challenge','creator_quiz','revenge_match')),
+                                                          'creator_quiz','revenge_match')),   -- Daily Challenge is a solo run, not a match (D-040)
   is_rated           boolean     NOT NULL,
   rating_bucket      text,                                  -- which rating changes (0.3.10); NULL when unrated
   season_id          uuid,                                  -- ranking season at creation; NULL when unrated (plain id, no FK: ranking is downstream)
   question_count     smallint    CHECK (question_count BETWEEN 1 AND 100),  -- NULL for open-ended types (e.g. sudden death)
   answer_window_ms   int         NOT NULL CHECK (answer_window_ms BETWEEN 3000 AND 60000),
   locales            text[]      NOT NULL,                  -- distinct participant locales, e.g. {tr} or {tr,en}
-  question_set_id    uuid        REFERENCES content.question_sets(id),       -- daily / creator / tournament sets
+  question_set_id    uuid        REFERENCES content.question_sets(id),       -- creator / tournament sets
   config_extra       jsonb       NOT NULL DEFAULT '{}',     -- mode-specific params (aggregation rule, chosen category, …) — schema per mode in 0.3
   ruleset_version    int         NOT NULL,                  -- version of scoring/timing rules applied; history stays reproducible
   -- origin
   origin             text        NOT NULL CHECK (origin IN ('matchmaking','challenge','private_room','rematch',
-                                                            'revenge','tournament','daily_challenge')),
+                                                            'revenge','tournament')),
   origin_ref         uuid,                                  -- room / challenge / ticket / tournament-match id (owned by other modules)
   parent_match_id    uuid        REFERENCES game.matches(id),               -- rematch & revenge chains
   -- lifecycle (state machine in 0.3.1)
@@ -189,7 +189,7 @@ CREATE TABLE game.match_transitions (
 | `couple` format: each side has `couple_id`, its 2 participants are that couple's members | at creation |
 | A user is in at most **one** live match (`waiting`/`ready`/`in_progress`) | at creation (Redis lock, 0.2.9) |
 | Ranked: every round's question is `multiple_choice`, verified + verified translations for all `locales` (D-007, D-024) | at question selection |
-| `question_set_id` required for `daily_challenge`, `creator_quiz` and tournament matches | at creation |
+| `question_set_id` required for `creator_quiz` and tournament matches (Daily Challenge runs live in `game.daily_runs`, D-040) | at creation |
 | Answers only accepted while round open and before `deadline_at + grace` (0.3.3); first accepted answer per user per round is final | live, in owner |
 | Individual Turns: only `answering_user_id` may answer; others' submissions are rejected | live |
 | Shared Answer: exactly one `is_side_answer = true` per side per round | at reveal |

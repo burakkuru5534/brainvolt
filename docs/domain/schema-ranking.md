@@ -187,6 +187,26 @@ CREATE INDEX leaderboard_snapshots_entity_idx ON ranking.leaderboard_snapshots (
 ### 4.3 Category boards
 A match touching several categories writes one ledger row per category (in addition to the overall row) with that category's share of the points. How the share is computed is fixed in 0.3.10.
 
+**Future category ratings (D-042):** Category Master is unrated at launch; if category ratings are enabled later they use buckets `category:<category_id>`, entirely separate from the global `solo` / `team` / `couple` Ranked buckets.
+
+### 4.4 Daily Challenge board (D-040)
+Separate from every other board and from SP. Fed only by `game.DailyRunCompleted` (official, completed runs).
+```sql
+CREATE TABLE ranking.daily_challenge_entries (
+  day            date        NOT NULL,
+  user_id        uuid        NOT NULL REFERENCES identity.users(id),
+  correct_count  smallint    NOT NULL,
+  total_time_ms  int         NOT NULL,
+  completed_at   timestamptz NOT NULL,
+  country_code   char(2),
+  public         boolean     NOT NULL,          -- false for restricted accounts (D-016)
+  PRIMARY KEY (day, user_id)                    -- idempotent consumption; one official result per day
+);
+CREATE INDEX daily_challenge_entries_rank_idx
+  ON ranking.daily_challenge_entries (day, correct_count DESC, total_time_ms ASC, completed_at ASC);
+```
+Ordering: correct ↓, total time ↑, completion time ↑. Live board in Redis `rank:daily:*` (redis-keys §6.4); rebuildable from this table.
+
 ---
 
 ## 5. `progression` schema

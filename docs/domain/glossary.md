@@ -103,6 +103,7 @@
 |---|---|---|---|
 | 1v1 | `1v1` | 1'e 1 | One participant per side. |
 | 2v2 / 3v3 / 4v4 | `2v2`, `3v3`, `4v4` | 2'ye 2 / 3'e 3 / 4'e 4 | Two, three or four participants per side. A side is either a persistent team or a temporary side formed by matchmaking (D-016a). |
+| Solo | `solo` | Tek kişilik | Engine format with one player and no opponent/winner; used **only** by Daily Challenge runs (D-040). |
 | Couple Contest | `couple` | Çiftler Yarışması | Specialised **2v2** format in which each side is a **couple profile** (two paired users). Not a category mode. Specific rules: 0.3.8. |
 
 ## 5. Team answer modes  *(rules: 0.3.6; apply when a side has >1 participant)*
@@ -120,7 +121,7 @@
 | Blind Challenge | `blind_challenge` | Kör Meydan Okuma | Category is hidden until each question is shown. |
 | Category Master | `category_master` | Kategori Ustası | All questions come from one chosen category/sub-category. |
 | Mixed Battle | `mixed_battle` | Karışık Savaş | Questions drawn across several categories (e.g. each side contributes picks). |
-| Daily Challenge | `daily_challenge` | Günlük Meydan Okuma | Everyone plays the same daily set. |
+| Daily Challenge | `daily_challenge` | Günlük Meydan Okuma | **Solo score race**, not a match: everyone plays the same 10 daily questions alone; one official run per day; ranked by correct answers, then total time (D-040). |
 | Creator Quiz | `creator_quiz` | Kullanıcı Yarışması | Match played on a published creator quiz. |
 | Revenge Match | `revenge_match` | Rövanş | Challenge issued by the losing side to the same opponent(s) after a match, with its own rules (vs. a plain rematch). |
 

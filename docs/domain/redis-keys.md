@@ -37,6 +37,14 @@
 
 ---
 
+## 2a. `game:` — Daily Challenge solo runs (D-040; Phase 8)
+
+| Key | Type | Content | TTL |
+|---|---|---|---|
+| `game:{d:<run_id>}:state` | HASH | user, day, kind, position, show_at / deadline of current question, option order, `correct_option_id` (server only), running correct count & total time, owner instance | none while running; **1 h** after end |
+| `game:{d:<run_id>}:owner` | STRING | owner lease (same rules as matches) | **10 s** |
+| `game:daily:<yyyy-mm-dd>:<user_id>:official` | STRING | run id of the running/completed official run (fast check; Postgres unique index is authoritative) | **48 h** |
+
 ## 3. `mm:` — matchmaking (Phase 5)
 
 | Key | Type | Content | TTL |
@@ -107,6 +115,11 @@ Top 1 000 of every board is archived to `ranking.leaderboard_snapshots` before e
 
 ### 6.3 Friends boards
 `ZMSCORE` of the user + up to 300 friend ids (D-027) on the matching global board, sorted in the API. No extra keys.
+
+### 6.4 Daily Challenge board (separate family, D-040)
+`rank:daily:<yyyy-mm-dd>:<scope>` → ZSET, member = user id, scope `global` or `country:<CC>` (friends at read time).
+Score = `correct_count × 1 000 000 + (999 999 − total_time_ms)` — higher is better; `total_time_ms` ≤ 150 000, so the encoding is exact. Equal scores (same correct and same time) are ordered by `completed_at` in the API (category-modes §5.2).
+TTL **3 days** after the day ends; top 1 000 archived to `ranking.leaderboard_snapshots` with `board_key = 'daily_challenge:<date>:<scope>'`.
 
 ---
 
