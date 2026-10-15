@@ -14,6 +14,7 @@ var messagesTR = map[Code]string{
 	Forbidden:             "Bu işlem için yetkin yok.",
 	RateLimited:           "Çok fazla istek gönderdin. Biraz bekleyip tekrar dene.",
 	IdempotencyKeyReused:  "Bu istek anahtarı farklı bir istek için zaten kullanıldı.",
+	IdempotencyInProgress: "Bu istek hâlâ işleniyor. Birazdan tekrar dene.",
 	VersionConflict:       "Bu kayıt başka biri tarafından değiştirildi. Yenileyip tekrar dene.",
 	AppVersionUnsupported: "Devam etmek için uygulamayı güncellemelisin.",
 	Internal:              "Beklenmeyen bir hata oluştu. Lütfen tekrar dene.",

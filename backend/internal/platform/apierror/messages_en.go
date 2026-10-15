@@ -10,6 +10,7 @@ var messagesEN = map[Code]string{
 	Forbidden:             "You are not allowed to do this.",
 	RateLimited:           "Too many requests. Please wait a moment and try again.",
 	IdempotencyKeyReused:  "This request key was already used for a different request.",
+	IdempotencyInProgress: "This request is still being processed. Try again in a moment.",
 	VersionConflict:       "Someone else changed this. Refresh and try again.",
 	AppVersionUnsupported: "Please update the app to continue.",
 	Internal:              "Something went wrong. Please try again.",

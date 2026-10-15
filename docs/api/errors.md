@@ -16,6 +16,7 @@
 | `FORBIDDEN` | 403 | ✓ | role/permission |
 | `RATE_LIMITED` | 429 | ✓ / close 4008 | `details.retry_after_s` |
 | `IDEMPOTENCY_KEY_REUSED` | 409 | — | same key, different body |
+| `IDEMPOTENT_REQUEST_IN_PROGRESS` | 409 | — | same key still being processed by an earlier request; retry after `Retry-After` (added in Phase 1, D-056) |
 | `VERSION_CONFLICT` | 409 | ✓ | `If-Match` mismatch; `details.current` |
 | `APP_VERSION_UNSUPPORTED` | 426 | close 4026 | `details.min_version` |
 | `INTERNAL` | 500 | ✓ | unexpected; includes `request_id` |

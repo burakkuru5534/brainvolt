@@ -9,7 +9,7 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 - **Inspect before changing** — never rewrite working code.
 - **Atomic tasks** — every phase is broken into 5–10 minute tasks before it starts; each task ends with tests run (no skipped failures).
 - **No TODOs / mocks as final implementations.**
-- **Commits are made by the project owner**, not by the assistant.
+- **Commits & merges** (owner instruction 2026-10-15, replaces "commits are made by the project owner"): the assistant commits on its working branch; when a task group is finished and verified (tests, lint), it merges the branch into `main` and pushes.
 
 ## Decision policy (from 2026-10-15, owner instruction)
 The owner reviews only **critical** decisions (anything that blocks the system, changes the architecture, or carries security / budget risk).
@@ -105,6 +105,8 @@ Standard game rules, retention periods, default limits and small details are dec
 | D-053 | Mode matrix choices (delegated) | Matchmade team/couple queues (ranked & casual) = Fast Team Round + average at launch (other team modes via rooms, challenges, rematch/revenge, tournaments; future config flag); tournament matches never ranked; rematch of ranked converts like revenge (quick_duel, 10 MC, unrated) — `docs/game/mode-matrix.md` | 2026-10-15 (delegated) | 0.5, Phase 3, Phase 5 |
 | D-054 | Local dev environment (delegated) | One `.env.example` at the repo root, shared by Docker Compose, the Makefile and the backend (repo-layout updated; was `backend/.env.example`); Compose fails fast on missing credentials (`${VAR:?}`); dev ports bound to `127.0.0.1`; local Redis password-protected (`BRAINVOLT_REDIS_PASSWORD`); Firebase Auth emulator built from `scripts/firebase-emulator/` (`node:24.22.0-alpine` + `firebase-tools` 15.34.0) with offline project `demo-brainvolt`, emulator users in memory | 2026-10-15 (delegated) | 1.1, 1.2, Phase 1 |
 | D-055 | HTTP server details (delegated) | Error-code registry and TR/EN messages live in `platform/apierror` (shared by REST and WebSocket) and a test keeps them identical to `errors.md`; new code `METHOD_NOT_ALLOWED` (405 + `Allow`); handler deadline 10 s (< 15 s write timeout) → `503 UNAVAILABLE` + `Retry-After: 1`; request headers ≤ 32 KB; client `X-Request-ID` kept only if it is a canonical UUID, else a UUIDv7 is generated; JSON bodies ignore unknown fields (older server, newer client); `Cache-Control: no-store` by default, HSTS only in prod; locale = `Accept-Language` → (profile, later) → `tr` via `platform/i18n` | 2026-10-15 (delegated) | 1.4.5, 0.4 |
+| D-056 | Rate limit & idempotency behaviour (delegated) | Rate limiter = Redis fixed windows (`INCR` + `EXPIRE NX`), **fails open** if Redis is down (logged; `/readyz` already reports it); per-IP limit on every request except `/healthz` `/readyz`, subject = TCP peer until the Phase 9 load balancer defines trusted `X-Forwarded-For`; idempotency **fails closed** (503) without Redis, stores responses < 500 for 24 h keyed by user + key and fingerprint (method, path, body), 5xx frees the key, concurrent duplicate → new code `IDEMPOTENT_REQUEST_IN_PROGRESS` (409 + `Retry-After: 1`), pending claim expires after 1 min | 2026-10-15 (delegated) | 1.4.9, 1.4.10 |
+| D-057 | iOS for now (owner) | iOS code is implemented together with Android (Sign in with Apple, iOS project, FlutterFire iOS config), but iOS builds and tests are deferred until the Apple Developer account exists; Android is the tested platform meanwhile. Affects 1.7, 1.8 and CI 1.9 (no iOS job yet) | 2026-10-15 | P1.B, 1.7, 1.8, 1.9, Phase 9 |
 
 ---
 
@@ -171,9 +173,9 @@ Verification for each task: document reviewed against the requirement list + cro
 Goal: running skeleton — backend (config, logging, health, Postgres, Redis, migrations, Firebase auth, session/profile endpoints), Flutter app (age gate, guest + Google/Apple/email sign-in, upgrade, TR/EN), Docker Compose, CI. Every task ends with its tests green.
 
 **Owner prerequisites (external accounts — cannot be done from code):**
-- [ ] P1.A Create Firebase project `brainvolt`; add Android + iOS apps `com.brainvolt.app`; enable Anonymous, Google, Apple, Email/Password providers (D-013, D-014)
-- [ ] P1.B Apple Developer Program membership (required for iOS builds and Sign in with Apple; annual fee) and Google Play Console account
-- [ ] P1.C GitHub repository `burakkuru5534/brainvolt` with Actions enabled (D-008, D-010)
+- [x] P1.A Create Firebase project `brainvolt`; add Android + iOS apps `com.brainvolt.app`; enable Anonymous, Google, Apple, Email/Password providers (D-013, D-014) — owner confirmed 2026-10-15
+- [~] P1.B Apple Developer Program membership (required for iOS builds and Sign in with Apple; annual fee) and Google Play Console account — Google Play ready (2026-10-15); Apple deferred (D-057)
+- [~] P1.C GitHub repository `burakkuru5534/brainvolt` with Actions enabled (D-008, D-010) — repository exists; Actions only needs to be allowed under *Settings → Actions → General* ("Allow all actions", default for new repos); confirmed when the first CI run starts in 1.9
 
 ### 1.1 Repository & tooling  `[x]`
 - [x] 1.1.1 `.gitattributes` (LF; `*.bat`/`*.ps1` CRLF) and `.editorconfig`
@@ -192,7 +194,7 @@ Goal: running skeleton — backend (config, logging, health, Postgres, Redis, mi
 - [x] 1.3.3 `.golangci.yml` (v2) + `go vet` clean
 - [x] 1.3.4 Architecture test enforcing `backend-modules.md` §2 import rules
 
-### 1.4 Platform packages (each with unit tests)  `[~]`
+### 1.4 Platform packages (each with unit tests)  `[x]`
 - [x] 1.4.1 `platform/config` — env v11 parsing + validation
 - [x] 1.4.2 `platform/logging` — slog JSON/text, request/user/match ids from context
 - [x] 1.4.3 `platform/clock` — real + fake clock
@@ -201,9 +203,9 @@ Goal: running skeleton — backend (config, logging, health, Postgres, Redis, mi
 - [x] 1.4.6 Health checks: `/healthz`, `/readyz` (Postgres, Redis, migrations)
 - [x] 1.4.7 `platform/postgres` — pgxpool, tx helper, statement timeout, health (integration test)
 - [x] 1.4.8 `platform/redis` — go-redis client, health (integration test)
-- [ ] 1.4.9 `platform` rate limiter (fixed windows, limits.md §1 general + session limits)
-- [ ] 1.4.10 Idempotency middleware (`Idempotency-Key`, 24 h)
-- [ ] 1.4.11 `platform/firebase` — ID-token verification incl. emulator (unit + emulator test)
+- [x] 1.4.9 `platform` rate limiter (fixed windows, limits.md §1 general + session limits)
+- [x] 1.4.10 Idempotency middleware (`Idempotency-Key`, 24 h)
+- [x] 1.4.11 `platform/firebase` — ID-token verification incl. emulator (unit + emulator test)
 
 ### 1.5 PostgreSQL migration setup
 - [ ] 1.5.1 goose embedded migrations + `cmd/migrate` (up/down/status) — also adds the `migrations` check to `/readyz` (the check list from 1.4.6)
@@ -235,7 +237,7 @@ Goal: running skeleton — backend (config, logging, health, Postgres, Redis, mi
 - [ ] 1.8.1 FlutterFire configuration (needs P1.A)
 - [ ] 1.8.2 Age gate screen (D-020) + test
 - [ ] 1.8.3 Anonymous sign-in + `POST /v1/session` bootstrap
-- [ ] 1.8.4 Google, Apple, Email/Password sign-in & email verification flow
+- [ ] 1.8.4 Google, Apple, Email/Password sign-in & email verification flow — Apple implemented, tested once the Apple account exists (D-057)
 - [ ] 1.8.5 Guest upgrade via account linking (D-013a) + link-conflict flow (D-015) + tests with mocked auth
 - [ ] 1.8.6 Profile & settings screens wired to the API
 
@@ -407,3 +409,4 @@ Goal: running skeleton — backend (config, logging, health, Postgres, Redis, mi
 - 2026-10-15 — 1.4.1–1.4.4 done: `platform/config` (env v11 → typed `Config`; defaults from limits.md §3; validation of env, addresses, URLs and durations, prod forbids the Firebase emulator and `demo-` projects; every error names its variable and never contains a password; `LogValue` redacts URL passwords); `platform/logging` (slog JSON/text, `request_id` / `user_id` / `match_id` from context); `platform/clock` (`Real` + deterministic `Fake` with timers, tickers, AfterFunc, Go 1.23 stop/reset semantics); `platform/ids` (UUIDv7 via google/uuid v1.6.0, canonical-form parsing, embedded timestamp). `app.Main` now loads config and builds the logger before wiring; invalid config exits 1 with one message per problem. Optional timeout overrides added to `.env.example`.
 - 2026-10-15 — 1.4.5 done (delegated D-055): `platform/httpserver` (ServeMux, chain security headers → request id → access log + panic recovery → locale → route with body limit 64 KB default / per-route override, handler deadline and error rendering; 404/405 envelopes; `DecodeJSON` / `WriteJSON` / `WriteError`; graceful shutdown) wired into `cmd/api`; `platform/apierror` (all errors.md codes, HTTP statuses, TR/EN messages, `VALIDATION_FAILED` field details); `platform/i18n` (Accept-Language negotiation). Verified with unit tests (envelope, TR/EN, request ids, 404/405, panics, body limits, deadline, access log, graceful shutdown with an in-flight request) and a curl smoke test against the real binary.
 - 2026-10-15 — 1.4.6–1.4.8 done: `platform/postgres` (pgxpool; per-connection `statement_timeout` 3 s API / 60 s worker, `application_name`, `TimeZone=UTC`; start-up ping; `InTx` with rollback on error/panic and savepoints when nested); `platform/redis` (go-redis client, start-up ping, client name, `Key` helper); `platform/health` (`/healthz` liveness, `/readyz` running checks concurrently with a 2 s bound, `503 UNAVAILABLE` + `Retry-After: 5` listing failed checks without error text). API and worker connect at start-up and fail fast with password-free messages; connections close after components stop. The `migrations` readiness check is added with goose in 1.5.1. Integration tests read `BRAINVOLT_TEST_POSTGRES_URL` / `BRAINVOLT_TEST_REDIS_URL` (`platform/testenv`; skipped with a hint when unset) and verified PG 18 session settings, statement timeout, transactions, Redis 8.10 server config (noeviction, AOF everysec). Smoke test: `/readyz` turns 503 when Redis is stopped and recovers when it restarts.
+- 2026-10-15 — 1.4.9–1.4.11 done; **section 1.4 complete.** `platform/ratelimit` (fixed windows on `rl:` keys, limits.md general limits, middleware + `Check` for handlers, per-IP limit wired into the API; burst test: 300 of 305 requests pass, 5 get 429); `platform/idempotency` (`Idempotency-Key` per D-056, replay with `Idempotent-Replayed: true`); `platform/firebase` (ID-token verification incl. emulator, `TOKEN_EXPIRED` vs `UNAUTHENTICATED`, revocation-checking variant, Bearer parsing; tested against the Auth emulator with real anonymous and email users). Token verifier and idempotency are attached to routes with the identity module in 1.6. Owner updates: commit/merge rule changed, P1.A done, Google Play ready, iOS deferred (D-057).

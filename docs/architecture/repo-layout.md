@@ -49,6 +49,8 @@ backend/
 │   │   ├── httpserver/                 router setup, middleware, error envelope
 │   │   ├── apierror/                   error-code registry + TR/EN messages, shared by REST and WebSocket
 │   │   ├── health/                     /healthz and /readyz
+│   │   ├── ratelimit/                  fixed-window limits on Redis (limits.md §1)
+│   │   ├── idempotency/                Idempotency-Key handling (conventions.md §9)
 │   │   ├── testenv/                    integration-test service addresses (BRAINVOLT_TEST_*)
 │   │   ├── wsserver/                   WebSocket hub, connection lifecycle, envelope codec
 │   │   ├── firebase/                   ID-token verification, FCM client

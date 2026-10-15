@@ -16,6 +16,7 @@ const (
 	Forbidden             Code = "FORBIDDEN"
 	RateLimited           Code = "RATE_LIMITED"
 	IdempotencyKeyReused  Code = "IDEMPOTENCY_KEY_REUSED"
+	IdempotencyInProgress Code = "IDEMPOTENT_REQUEST_IN_PROGRESS"
 	VersionConflict       Code = "VERSION_CONFLICT"
 	AppVersionUnsupported Code = "APP_VERSION_UNSUPPORTED"
 	Internal              Code = "INTERNAL"
@@ -123,6 +124,7 @@ var statuses = map[Code]int{
 	Forbidden:             http.StatusForbidden,
 	RateLimited:           http.StatusTooManyRequests,
 	IdempotencyKeyReused:  http.StatusConflict,
+	IdempotencyInProgress: http.StatusConflict,
 	VersionConflict:       http.StatusConflict,
 	AppVersionUnsupported: http.StatusUpgradeRequired,
 	Internal:              http.StatusInternalServerError,

@@ -1,5 +1,5 @@
-// Package testenv gives integration tests the addresses of real Postgres
-// and Redis instances (ADR-0002: real services, no mocks).
+// Package testenv gives integration tests the addresses of real Postgres,
+// Redis and Firebase Auth emulator instances (ADR-0002: real services, no mocks).
 //
 // Tests read dedicated BRAINVOLT_TEST_* variables, never the application's
 // own URLs, so a test can never touch a database by accident. `make test`
@@ -18,6 +18,8 @@ const (
 	PostgresVar = "BRAINVOLT_TEST_POSTGRES_URL"
 	// RedisVar names the Redis URL used by integration tests.
 	RedisVar = "BRAINVOLT_TEST_REDIS_URL"
+	// FirebaseEmulatorVar names the Firebase Auth emulator host:port.
+	FirebaseEmulatorVar = "BRAINVOLT_TEST_FIREBASE_AUTH_EMULATOR_HOST"
 )
 
 // PostgresURL returns the test Postgres URL or skips the test.
@@ -30,6 +32,12 @@ func PostgresURL(t testing.TB) string {
 func RedisURL(t testing.TB) string {
 	t.Helper()
 	return lookup(t, RedisVar)
+}
+
+// FirebaseEmulatorHost returns the Auth emulator host:port or skips the test.
+func FirebaseEmulatorHost(t testing.TB) string {
+	t.Helper()
+	return lookup(t, FirebaseEmulatorVar)
 }
 
 func lookup(t testing.TB, name string) string {

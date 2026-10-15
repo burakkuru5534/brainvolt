@@ -17,11 +17,13 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/config"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/health"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/logging"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/postgres"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ratelimit"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
@@ -57,7 +59,8 @@ func New(role Role, logger *slog.Logger, components ...Component) *App {
 }
 
 // NewAPI builds the composition for cmd/api: Postgres and Redis
-// connections, the HTTP server with /healthz and /readyz. The WebSocket
+// connections, the HTTP server with the per-IP rate limit, /healthz and
+// /readyz. The WebSocket
 // gateway (Phase 4) and matchmaking loops (Phase 5) join it later.
 func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, error) {
 	db, err := postgres.Connect(ctx, postgres.Options{
@@ -75,6 +78,8 @@ func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, 
 	}
 
 	srv := httpserver.New(cfg.HTTP, cfg.Env, logger)
+	limiter := ratelimit.New(rdb, clock.Real{}, logger)
+	srv.Use(limiter.Middleware(ratelimit.APIPerIP, ratelimit.ClientIP))
 	health.Register(srv, logger,
 		health.Check{Name: "postgres", Fn: db.Ping},
 		health.Check{Name: "redis", Fn: func(ctx context.Context) error { return redis.Ping(ctx, rdb) }},
