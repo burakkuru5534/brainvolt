@@ -98,6 +98,7 @@ Initial event catalogue (expanded in 0.2 / 0.3):
 | `identity.AccountTierChanged` | identity | ranking, social, team, notification |
 | `identity.GuestAbandoned` | identity | matchmaking, lobby, realtime |
 | `identity.UserDeleted` | identity | all modules holding personal data |
+| `identity.SessionStarted` | identity | moderation |
 | `content.QuestionVerified` / `QuestionRejected` | content | creator, moderation |
 | `social.FriendshipCreated` / `Removed` | social | ranking (friends boards), notification |
 | `team.MemberJoined` / `MemberLeft` / `TeamDisbanded` | team | chat, ranking, notification |
@@ -106,6 +107,7 @@ Initial event catalogue (expanded in 0.2 / 0.3):
 | `game.MatchStarted` | game | realtime (presence), notification |
 | `game.MatchCompleted` | game | ranking, progression, tournament, moderation (anti-cheat), notification |
 | `game.MatchCancelled` | game | ranking (no change, audit), tournament, matchmaking |
+| `game.MatchVoided` | game | ranking, progression, tournament |
 | `moderation.ReportFiled` / `SanctionApplied` | moderation | identity (status), notification |
 | `ranking.SeasonEnded` / `LeagueChanged` | ranking | progression, notification, commerce (season rewards) |
 | `progression.BadgeEarned` / `QuestCompleted` / `LevelUp` | progression | notification |

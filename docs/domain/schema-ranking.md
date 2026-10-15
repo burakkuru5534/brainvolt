@@ -1,7 +1,7 @@
 # Schema — ranking & progression (rating, seasons, SP, leagues, leaderboards, XP, streaks, badges, quests)
 
 - **Roadmap task:** 0.2.6
-- **Status:** Draft for review (2026-10-15)
+- **Status:** Accepted (2026-10-15)
 - **Modules / Postgres schemas:** `ranking`, `progression`
 - **Decisions applied:** D-003 (Glicko-2), D-004 (casual unrated), D-016 / D-017 (restricted accounts off public boards), D-023 (unverified creator quizzes earn nothing), D-026 (rating changes kept forever), D-028 (temporary sides off team boards)
 - **Formulas are NOT fixed here** (Glicko-2 parameters, SP per result, league thresholds, XP curve, reset policy): they belong to 0.3.10. This document fixes *what is stored and where*.
@@ -34,7 +34,7 @@ Ratings, SP and leaderboard entries belong to an **entity**:
 
 Temporary sides (`match_sides.team_id IS NULL`) are **not** entities: only their members' `user` records change (D-028).
 
-**Rating buckets** keep skill in different formats apart. Proposed list (final in 0.3.10): `solo` (1v1), `team` (2v2/3v3/4v4 — each user's team-play rating, and each persistent team's own rating), `couple` (Couple Contest). Stored as text so the list can change without a schema change.
+**Rating buckets** keep skill in different formats apart. Confirmed list (D-029): `solo` (1v1), `team` (2v2/3v3/4v4 — each user's team-play rating, and each persistent team's own rating), `couple` (Couple Contest). Stored as text so the list can change without a schema change.
 
 ---
 
@@ -180,9 +180,9 @@ CREATE INDEX leaderboard_snapshots_entity_idx ON ranking.leaderboard_snapshots (
 - **Live boards are Redis sorted sets**, one per (period instance, entity, scope ∈ {global, country:XX}, category or all). Updated incrementally when a ledger row is written (same River job). Exact key names & TTLs: `redis-keys.md` (0.2.9).
 - **Friends scope** is computed on read: the user's friend IDs (`social`) + `ZMSCORE` on the matching global board → sorted in memory (≤ 301 entries, D-027).
 - **Restricted accounts** (`public = false`) are never added to global or country boards; on `identity.AccountTierChanged → full` their ledger rows for the current periods are replayed into the boards (D-016, D-017).
-- **Team / couple boards** include only persistent teams/couples (D-028); team country = country of the captain at match time (proposal).
-- **Daily / weekly / monthly** periods use **Europe/Istanbul** boundaries (weeks start Monday), consistent with the Daily Challenge day (proposal).
-- At each period end, a worker job writes the top **1 000** of every board to `leaderboard_snapshots` (P) and lets Redis keys expire. Boards can always be rebuilt from `points_ledger`.
+- **Team / couple boards** include only persistent teams/couples (D-028); team country = country of the captain at match time (D-029).
+- **Daily / weekly / monthly** periods use **Europe/Istanbul** boundaries (weeks start Monday), consistent with the Daily Challenge day (D-029).
+- At each period end, a worker job writes the top **1 000** of every board to `leaderboard_snapshots` (D-029) and lets Redis keys expire. Boards can always be rebuilt from `points_ledger`.
 
 ### 4.3 Category boards
 A match touching several categories writes one ledger row per category (in addition to the overall row) with that category's share of the points. How the share is computed is fixed in 0.3.10.
@@ -289,8 +289,8 @@ CREATE INDEX quest_assignments_open_idx ON progression.quest_assignments (user_i
 
 Rules:
 - Quest progress applies to restricted accounts too, except quests with `requires_full_account`.
-- Daily quests: **3** assigned per user per day, weekly: **3** per week (P); assignment job runs at period start or lazily on first app open.
-- Rewards are **claimed** (button) rather than auto-granted, so the player sees them (P).
+- Daily quests: **3** assigned per user per day, weekly: **3** per week (D-029); assignment job runs at period start or lazily on first app open.
+- Rewards are **claimed** (button) rather than auto-granted, so the player sees them (D-029).
 
 ---
 
@@ -311,7 +311,7 @@ Rules:
 | `ranking.SeasonEnded` / `SeasonStarted` | ranking | progression, commerce, notification |
 | `progression.LevelUp` / `BadgeEarned` / `QuestCompleted` | progression | notification |
 
-## 8. Proposals to confirm
+## 8. Confirmed proposals (D-029)
 1. Rating buckets `solo`, `team`, `couple` (final in 0.3.10).
 2. Leaderboard periods on **Europe/Istanbul** time, week starts Monday.
 3. Team country = captain's country at match time.

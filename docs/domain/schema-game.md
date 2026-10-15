@@ -63,6 +63,10 @@ CREATE TABLE game.matches (
   -- outcome
   winner_side_no     smallint    CHECK (winner_side_no IN (1,2)),
   is_draw            boolean     NOT NULL DEFAULT false,
+  -- integrity (schema-moderation §4): result voided by admin after cheating confirmed
+  voided_at          timestamptz,
+  void_reason        text,
+  voided_by          uuid        REFERENCES identity.users(id),
   updated_at         timestamptz NOT NULL,
 
   CHECK ((format = '1v1') = (team_answer_mode IS NULL)),                       -- team modes only for >1 per side
@@ -210,6 +214,7 @@ What is **not** stored in `game`: rating changes, SP, XP, badges (owned by `rank
 | `game.MatchStarted` | match id, config summary, participant user ids |
 | `game.MatchCompleted` | match id, config (type, format, modes, rated, rating_bucket, season_id, category info), per side: score, result, team/couple id; per participant: user id, side, tier at start, correct/answered counts, contribution, disconnect stats; duration; question ids + locales (for stats) |
 | `game.MatchCancelled` | match id, reason, participant ids, origin |
+| `game.MatchVoided` | match id, reason, admin id, affected participant & side ids (schema-moderation §4) |
 
 Payload is final and immutable; consumers never query `game` tables to reconstruct it.
 
