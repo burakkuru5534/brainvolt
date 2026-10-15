@@ -198,3 +198,17 @@ func TestEnvExampleIsValid(t *testing.T) {
 		t.Errorf("expanded postgres URL = %q", cfg.Postgres.URL)
 	}
 }
+
+func TestLoadPostgresNeedsOnlyPostgres(t *testing.T) {
+	t.Setenv("BRAINVOLT_REDIS_URL", "")
+	t.Setenv("BRAINVOLT_FIREBASE_PROJECT_ID", "")
+	t.Setenv("BRAINVOLT_POSTGRES_URL", "postgres://u:secret@db:5432/x")
+	pg, err := LoadPostgres()
+	if err != nil || pg.URL != "postgres://u:secret@db:5432/x" || pg.StatementTimeout != 3*time.Second {
+		t.Fatalf("LoadPostgres = %+v, %v", pg, err)
+	}
+	t.Setenv("BRAINVOLT_POSTGRES_URL", "mysql://u:secret@db/x")
+	if _, err := LoadPostgres(); err == nil || strings.Contains(err.Error(), "secret") {
+		t.Fatalf("bad scheme: %v", err)
+	}
+}

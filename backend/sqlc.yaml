@@ -1,0 +1,66 @@
+# sqlc configuration (ADR-0002, roadmap 1.5.4): one block per module.
+# Each module keeps its hand-written SQL in internal/modules/<m>/internal/store/queries.sql
+# and gets type-safe Go in .../store/sqlc. A module's queries touch only its
+# own Postgres schema (backend-modules.md §4). Regenerate: `make gen`;
+# CI fails if the committed code is stale (`sqlc diff`).
+version: "2"
+overrides:
+  go:
+    overrides:
+      - db_type: "uuid"
+        go_type: "github.com/google/uuid.UUID"
+      - db_type: "uuid"
+        nullable: true
+        go_type:
+          import: "github.com/google/uuid"
+          type: "UUID"
+          pointer: true
+      - db_type: "timestamptz"
+        go_type: "time.Time"
+      - db_type: "timestamptz"
+        nullable: true
+        go_type:
+          import: "time"
+          type: "Time"
+          pointer: true
+      - db_type: "citext"
+        go_type: "string"
+      - db_type: "citext"
+        nullable: true
+        go_type:
+          type: "string"
+          pointer: true
+sql:
+  - name: identity
+    engine: postgresql
+    schema: migrations
+    queries: internal/modules/identity/internal/store/queries.sql
+    gen:
+      go:
+        package: sqlc
+        out: internal/modules/identity/internal/store/sqlc
+        sql_package: pgx/v5
+        emit_pointers_for_null_types: true
+        emit_empty_slices: true
+  - name: profile
+    engine: postgresql
+    schema: migrations
+    queries: internal/modules/profile/internal/store/queries.sql
+    gen:
+      go:
+        package: sqlc
+        out: internal/modules/profile/internal/store/sqlc
+        sql_package: pgx/v5
+        emit_pointers_for_null_types: true
+        emit_empty_slices: true
+  - name: notification
+    engine: postgresql
+    schema: migrations
+    queries: internal/modules/notification/internal/store/queries.sql
+    gen:
+      go:
+        package: sqlc
+        out: internal/modules/notification/internal/store/sqlc
+        sql_package: pgx/v5
+        emit_pointers_for_null_types: true
+        emit_empty_slices: true

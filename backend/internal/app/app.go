@@ -17,6 +17,8 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/jackc/pgx/v5/stdlib"
+
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/config"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/health"
@@ -25,6 +27,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/postgres"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ratelimit"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
+	"github.com/burakkuru5534/brainvolt/backend/migrations"
 )
 
 // Role names the process a composition is built for (backend-modules.md §5).
@@ -60,7 +63,7 @@ func New(role Role, logger *slog.Logger, components ...Component) *App {
 
 // NewAPI builds the composition for cmd/api: Postgres and Redis
 // connections, the HTTP server with the per-IP rate limit, /healthz and
-// /readyz. The WebSocket
+// /readyz (Postgres, Redis, migrations applied). The WebSocket
 // gateway (Phase 4) and matchmaking loops (Phase 5) join it later.
 func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, error) {
 	db, err := postgres.Connect(ctx, postgres.Options{
@@ -77,16 +80,26 @@ func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, 
 		return nil, err
 	}
 
+	sqlDB := stdlib.OpenDBFromPool(db)
+	schema, err := migrations.NewProvider(sqlDB)
+	if err != nil {
+		_ = sqlDB.Close()
+		db.Close()
+		_ = rdb.Close()
+		return nil, err
+	}
+
 	srv := httpserver.New(cfg.HTTP, cfg.Env, logger)
 	limiter := ratelimit.New(rdb, clock.Real{}, logger)
 	srv.Use(limiter.Middleware(ratelimit.APIPerIP, ratelimit.ClientIP))
 	health.Register(srv, logger,
 		health.Check{Name: "postgres", Fn: db.Ping},
 		health.Check{Name: "redis", Fn: func(ctx context.Context) error { return redis.Ping(ctx, rdb) }},
+		health.Check{Name: "migrations", Fn: func(ctx context.Context) error { return migrations.Check(ctx, schema) }},
 	)
 
 	a := New(RoleAPI, logger, srv)
-	a.closers = append(a.closers, db.Close, func() { _ = rdb.Close() })
+	a.closers = append(a.closers, db.Close, func() { _ = sqlDB.Close() }, func() { _ = rdb.Close() })
 	return a, nil
 }
 

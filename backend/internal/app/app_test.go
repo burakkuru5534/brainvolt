@@ -17,9 +17,14 @@ import (
 	"testing/synctest"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
+
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/config"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/testdb"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/testenv"
+	"github.com/burakkuru5534/brainvolt/backend/migrations"
 )
 
 var discard = slog.New(slog.NewTextHandler(io.Discard, nil))
@@ -129,7 +134,7 @@ var devEnv = map[string]string{
 func integrationEnv(t *testing.T) map[string]string {
 	t.Helper()
 	env := maps.Clone(devEnv)
-	env["BRAINVOLT_POSTGRES_URL"] = testenv.PostgresURL(t)
+	env["BRAINVOLT_POSTGRES_URL"] = testdb.NewURL(t) // migrated throw-away database
 	env["BRAINVOLT_REDIS_URL"] = testenv.RedisURL(t)
 	return env
 }
@@ -237,7 +242,7 @@ func TestAPIReadiness(t *testing.T) {
 
 	for path, want := range map[string]string{
 		"/healthz": `{"status":"ok"}`,
-		"/readyz":  `{"checks":{"postgres":"ok","redis":"ok"},"status":"ready"}`,
+		"/readyz":  `{"checks":{"migrations":"ok","postgres":"ok","redis":"ok"},"status":"ready"}`,
 	} {
 		rec := httptest.NewRecorder()
 		srv.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, path, http.NoBody))
@@ -245,6 +250,27 @@ func TestAPIReadiness(t *testing.T) {
 			t.Errorf("GET %s = %d %s, want 200 %s", path, rec.Code, rec.Body.String(), want)
 		}
 	}
+
+	// One migration behind: not ready, and the response names the check.
+	probe, err := pgxpool.New(t.Context(), cfg.Postgres.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer probe.Close()
+	sqlDB := stdlib.OpenDBFromPool(probe)
+	p, err := migrations.NewProvider(sqlDB)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := p.Down(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+	rec := httptest.NewRecorder()
+	srv.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/readyz", http.NoBody))
+	if rec.Code != http.StatusServiceUnavailable || !strings.Contains(rec.Body.String(), `"migrations":"failed"`) {
+		t.Errorf("/readyz with a pending migration = %d %s", rec.Code, rec.Body.String())
+	}
+	_ = sqlDB.Close()
 
 	w, err := NewWorker(t.Context(), cfg, discard)
 	if err != nil {

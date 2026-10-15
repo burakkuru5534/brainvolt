@@ -82,6 +82,19 @@ func Load() (Config, error) {
 	return parse(env.Options{})
 }
 
+// LoadPostgres reads only the Postgres settings, for tools such as
+// cmd/migrate that need nothing else.
+func LoadPostgres() (Postgres, error) {
+	pg, err := env.ParseAs[Postgres]()
+	if err != nil {
+		return Postgres{}, fmt.Errorf("config: %w", nameVariables(err))
+	}
+	if err := checkURL(pg.URL, "postgres", "postgresql"); err != nil {
+		return Postgres{}, fmt.Errorf("config: BRAINVOLT_POSTGRES_URL: %w", err)
+	}
+	return pg, nil
+}
+
 // LoadFrom reads the given variables instead of the process environment.
 func LoadFrom(vars map[string]string) (Config, error) {
 	return parse(env.Options{Environment: vars})

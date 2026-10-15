@@ -52,6 +52,7 @@ backend/
 │   │   ├── ratelimit/                  fixed-window limits on Redis (limits.md §1)
 │   │   ├── idempotency/                Idempotency-Key handling (conventions.md §9)
 │   │   ├── testenv/                    integration-test service addresses (BRAINVOLT_TEST_*)
+│   │   ├── testdb/                     per-test migrated Postgres databases cloned from a template
 │   │   ├── wsserver/                   WebSocket hub, connection lifecycle, envelope codec
 │   │   ├── firebase/                   ID-token verification, FCM client
 │   │   ├── clock/                      injectable server clock (all timers use this; tests use a fake)
@@ -66,7 +67,9 @@ backend/
 │           │   ├── store/              Postgres / Redis implementations
 │           │   └── transport/          REST handlers, WS message handlers
 │           └── *_test.go               tests live next to the code they test
-├── migrations/                         numbered SQL migrations, one global sequence for all modules
+├── migrations/                         numbered goose migrations (embedded), one global sequence for all modules;
+│                                       000001 = River job tables (Go migration); importable by every package
+├── sqlc.yaml                           one sqlc block per module → internal/modules/<m>/internal/store/sqlc
 ├── testdata/                           fixtures shared by integration tests
 └── Dockerfile                          (Phase 1)
 ```
@@ -149,7 +152,7 @@ docs/
 | Go packages | short, lowercase, no underscores | `matchmaking`, `wsserver` |
 | Go files | lowercase, underscores allowed | `match_state.go`, `match_state_test.go` |
 | Dart files & folders | `snake_case` | `match_screen.dart` |
-| Migrations | `NNNNNN_<module>_<change>.(up|down).sql` (exact format set by ADR-0002 tool) | `000003_content_create_questions.up.sql` |
+| Migrations | `NNNNNN_<module>_<change>.sql`, one goose file with `-- +goose Up` / `-- +goose Down` sections (D-058); `<module>` is a catalogued module or `platform` | `000002_identity_create_schema.sql` |
 | Docs | `kebab-case.md`; ADRs `NNNN-title.md` | `redis-keys.md`, `0002-backend-libraries.md` |
 | Env vars | `BRAINVOLT_` prefix, upper snake case | `BRAINVOLT_POSTGRES_URL` |
 

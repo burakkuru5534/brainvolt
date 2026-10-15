@@ -94,6 +94,8 @@ func TestCheck(t *testing.T) {
 		{"internal/app", "internal/platform/config"},
 		{"cmd/api", "internal/app"},
 		{"cmd/api", m + "identity/internal/domain"},
+		{"internal/platform/testdb", "migrations"},
+		{m + "profile/internal/store", "migrations"},
 	}
 	if v := rules.Check(allowed); len(v) != 0 {
 		t.Fatalf("allowed imports reported as violations:\n%s", strings.Join(v, "\n"))
@@ -111,6 +113,7 @@ func TestCheck(t *testing.T) {
 		"anything imports cmd":         {"internal/app", "cmd/api"},
 		"uncatalogued source module":   {m + "ghost", "internal/platform/clock"},
 		"uncatalogued target module":   {"internal/app", m + "ghost"},
+		"migrations imports internal":  {"migrations", "internal/platform/ids"},
 	}
 	for name, imp := range forbidden {
 		t.Run(name, func(t *testing.T) {

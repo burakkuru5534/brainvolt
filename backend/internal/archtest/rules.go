@@ -140,6 +140,9 @@ type Import struct {
 }
 
 const (
+	// migrationsPkg is the schema package: importable by everyone, imports
+	// no internal package itself.
+	migrationsPkg  = "migrations"
 	platformPrefix = "internal/platform"
 	modulesPrefix  = "internal/modules/"
 	appPkg         = "internal/app"
@@ -150,6 +153,8 @@ const (
 //   - module packages import platform, their own module, and the public
 //     package (exactly internal/modules/<m>) of modules allowed by §2;
 //   - nothing below internal/ imports cmd/, and only cmd/ imports internal/app;
+//   - anyone may import the schema package migrations, which itself imports
+//     no internal package;
 //   - every folder under internal/modules/ is a catalogued module.
 func (r Rules) Check(imports []Import) []string {
 	var violations []string
@@ -157,6 +162,13 @@ func (r Rules) Check(imports []Import) []string {
 		violations = append(violations, fmt.Sprintf("%s imports %s: %s", imp.From, imp.To, why))
 	}
 	for _, imp := range imports {
+		if isUnder(imp.From, migrationsPkg) {
+			add(imp, "the migrations package must not import internal packages")
+			continue
+		}
+		if imp.To == migrationsPkg {
+			continue
+		}
 		fromModule, fromIsModule := moduleOf(imp.From)
 		toModule, toIsModule := moduleOf(imp.To)
 

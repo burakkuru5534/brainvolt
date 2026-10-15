@@ -15,6 +15,7 @@ Real-time, social, competitive quiz platform — Flutter app (Android + iOS), Go
 | Go | **1.27.x** | `backend/go.mod` pins `toolchain go1.27.2`; an older 1.27 downloads it automatically (ADR-0001) |
 | Flutter | **3.47.1** (Dart 3.13) | Exact version in `mobile/.flutter-version` once the app exists |
 | golangci-lint | **v2.14.0**, built with Go 1.27 | `go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0` — a binary built with an older Go refuses to lint Go 1.27 code |
+| sqlc | **v1.31.1** | Only to regenerate DB code (`make gen`). Linux/macOS: `go install github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1` (needs a C compiler); Windows: download `sqlc_1.31.1_windows_amd64.zip` from the sqlc GitHub releases and put `sqlc.exe` on PATH |
 | make | GNU make | Optional — every target is also a plain command (see below) |
 
 Exact versions and the reasons for them are in [ADR-0001](docs/adr/0001-tech-stack-and-versions.md).
@@ -73,9 +74,19 @@ set -a; . ./.env; set +a
 
 Targets that need `mobile/` print a message until the app is created (roadmap 1.7).
 
+## Database migrations
+
+```bash
+make migrate                    # apply pending migrations   (cd backend && go run ./cmd/migrate up)
+make migrate MIGRATE=status     # list applied / pending
+make migrate MIGRATE=down       # roll back the latest one
+```
+
+Migrations live in `backend/migrations/` as `NNNNNN_<module>_<change>.sql` with `-- +goose Up` / `-- +goose Down` sections; `000001` installs River's job tables. `/readyz` reports `migrations: failed` until the database is up to date. After changing SQL queries or migrations run `make gen` (sqlc) and commit the generated code; `make check-gen` fails if it is stale.
+
 ## Tests
 
-`make test` runs unit **and** integration tests. Integration tests use the Compose services through `BRAINVOLT_TEST_POSTGRES_URL` and `BRAINVOLT_TEST_REDIS_URL` (defined in `.env.example`; Redis tests use logical database 15). Without those variables, e.g. a bare `go test ./...` with no Docker, integration tests are skipped with a hint and unit tests still run. If your `.env` predates these variables, copy the two lines from `.env.example`.
+`make test` runs unit **and** integration tests. Integration tests use the Compose services through `BRAINVOLT_TEST_POSTGRES_URL`, `BRAINVOLT_TEST_REDIS_URL` and `BRAINVOLT_TEST_FIREBASE_AUTH_EMULATOR_HOST` (defined in `.env.example`; Redis tests use logical database 15). Every database test gets its own freshly migrated database (cloned from a cached template, dropped afterwards), so tests never touch your development data. Without those variables, e.g. a bare `go test ./...` with no Docker, integration tests are skipped with a hint and unit tests still run. If your `.env` predates these variables, copy the two lines from `.env.example`.
 
 ## Backend layout rules
 

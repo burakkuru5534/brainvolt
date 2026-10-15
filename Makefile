@@ -24,7 +24,7 @@ MIGRATE ?= up
 require_backend = @test -f $(BACKEND)/go.mod || { echo "backend/ is not set up yet (roadmap 1.3)"; exit 1; }
 has_mobile = test -f $(MOBILE)/pubspec.yaml
 
-.PHONY: help env up down reset ps logs psql redis-cli run test lint migrate gen
+.PHONY: help env up down reset ps logs psql redis-cli run test lint migrate gen check-gen
 
 help: ## List targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-10s %s\n", $$1, $$2}'
@@ -75,3 +75,7 @@ gen: ## Regenerate code   (cd backend && sqlc generate ; cd mobile && flutter ge
 	$(require_backend)
 	cd $(BACKEND) && sqlc generate
 	@if $(has_mobile); then cd $(MOBILE) && flutter gen-l10n && dart run build_runner build --delete-conflicting-outputs; else echo "mobile/ not set up yet (roadmap 1.7), skipping mobile codegen"; fi
+
+check-gen: ## Fail if committed sqlc code is stale   (cd backend && sqlc diff)
+	$(require_backend)
+	cd $(BACKEND) && sqlc diff

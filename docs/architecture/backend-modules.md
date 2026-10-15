@@ -74,6 +74,7 @@ Layer 5  ranking   progression   moderation   notification   (event consumers)
 2. **Public package only.** Importing `modules/X/internal/...` from outside X is impossible (Go internal rule).
 3. **Not in the table = forbidden.** The architecture test `backend/internal/archtest` reads the §1 catalogue and this table **from this file** and fails CI on any import edge not listed here, on imports of a module's non-public packages, and on module folders missing from §1. Adding an edge therefore means updating this document — keep the table's two-column format (`—` for none, `*` for interface-wired reads that are not imports, `(…)` for comments).
 4. **platform never imports modules.**
+5. **`backend/migrations` (the schema) may be imported by any package** — `cmd/migrate`, readiness checks, test databases; it imports no internal package itself.
 
 ---
 
