@@ -1,7 +1,7 @@
 # Category mode rules — Blind Challenge, Category Master, Mixed Battle, Daily Challenge, Creator Quiz, Revenge Match
 
 - **Roadmap task:** 0.3.7 (engine rules; full features in Phase 8)
-- **Status:** Accepted (2026-10-15) — decisions D-040 … D-045
+- **Status:** Accepted (2026-10-15) — decisions D-040 … D-046
 - **Owner module:** `game` (`domain/categorymode`: one selector + optional pre-round hook per mode; `domain/dailyrun` for the Daily Challenge solo engine); question sets from `content`, quizzes from `creator`, revenge offers from `lobby`
 - **Builds on:** D-023 / D-031 (creator quizzes), D-024 (no TF in daily), D-027 (revenge by losing side, 24 h), D-029 (Istanbul days), D-031 (one counted daily attempt), D-032 (2 min resume), D-036 (10 s pick), D-038 (match types, selection defaults), D-039 (team modes)
 - **Related:** match-types.md §2 (default selection that a category mode replaces), round-lifecycle.md (`pre_round`), schema-content (question sets, daily sets), schema-platform §6 (daily run tables), schema-ranking §4.4 (daily board), redis-keys §2a / §6.4, combinations 0.5
@@ -44,7 +44,7 @@ Scoring (ruleset 1), team modes and end rules of the match type are **never** ch
 ## 4. Mixed Battle (`mixed_battle`)  (D-043)
 - **Before the match:** **3 categories are pre-selected** and shown in the lobby: chosen by the host / challenger in rooms and challenges; chosen randomly by the server (3 different top-level categories with enough eligible questions) in matchmaking.
 - **PreRound (every round):** the **picking side alternates** each round (first picker by coin toss shown in the lobby). The picking side chooses **one of the 3 match categories** for that round; pick time **10 s** (D-036); no pick → server picks randomly among the 3. The same category may be picked again, but **never more than 3 rounds in a row** (diversity cap, same as D-045).
-- **Teams:** the picking side's **designated turn holder** (seat rotation per question, D-035/D-039) makes the pick. In **Individual Turns** the same turn holder also answers; in Shared Answer / Fast Team Round the answer follows that team mode as usual.
+- **Teams:** the picking side's **designated turn holder** (seat rotation per question, D-035/D-039) makes the pick. The **answer phase follows the configured team answer mode** (D-046): in Individual Turns the same turn holder answers; in Shared Answer and Fast Team Round the side answers per that mode. All three team modes are compatible with Mixed Battle.
 - **Select:** one question from the picked category at the round's curve difficulty.
 - **Eligibility:** any match type except Ranked; works with Sudden Death (each round still decided by right vs. wrong).
 - **Awards:** normal casual awards; category leaderboard rows per picked category.
@@ -72,7 +72,7 @@ Boards: global, country, friends (friends computed at read time); restricted acc
 | | Official completed | Practice | Not consumed (§5.4) |
 |---|:-:|:-:|:-:|
 | Daily Challenge leaderboard entry | ✓ | ✗ | ✗ |
-| XP (amount in 0.3.10) | ✓ | ✗ (P) | ✗ |
+| XP (amount in 0.3.10) | ✓ | ✗ (D-046) | ✗ |
 | Quest progress (`daily_challenge` objective) & play streak | ✓ | ✗ | ✗ |
 | Shareable result card & "beat my score" link | ✓ | ✗ | ✗ |
 
@@ -112,7 +112,7 @@ Boards: global, country, friends (friends computed at read time); restricted acc
 - **Config:** copies the parent match's configuration (format, team answer mode, match type, answer window). If the parent was **Ranked**, the revenge uses Quick Duel rules with Ranked's length (10 questions, MC only) and is **unrated** — rating changes only through a fresh **matchmade** Ranked game (D-038).
 - **Home category:** the challenger picks one category; **50 % of the questions** come from it, **rounded down** for odd counts (e.g. 7 → 3 home questions); the rest use default mixed selection.
 - **Diversity cap:** **at most 3 consecutive questions from the same category** (home questions are interleaved accordingly).
-- **Chain:** the loser of a revenge may issue another revenge (new `parent_match_id`), up to **3 revenge matches per chain** (P); results screen shows the series score ("Rövanş serisi: 2–1").
+- **Chain:** the loser of a revenge may issue another revenge (new `parent_match_id`), up to **3 revenge matches per chain** (D-046); results screen shows the series score ("Rövanş serisi: 2–1").
 - **Awards:** never rated; casual SP/XP per 0.3.10; revenge wins count toward revenge badges/quests.
 
 ---

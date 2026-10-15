@@ -91,6 +91,7 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 | D-043 | Mixed Battle | 3 categories pre-selected before the match (host/challenger, or server in matchmaking); picking side alternates per round, 10 s pick from those 3; max 3 consecutive same category; in teams the designated turn holder (seat rotation) picks, and also answers in Individual Turns | 2026-10-15 | 0.3.7, Phase 8 |
 | D-044 | Creator Quiz | 10/15/20 s timers; author defines order, content, options, category; rooms & direct challenges; author earns zero XP on own quiz; validation required before public discovery; never in Ranked pool, never affects rating | 2026-10-15 | 0.3.7, Phase 8 |
 | D-045 | Revenge Match | Offered instantly on results screen (valid 24 h) against the preceding opponent, copies the configuration; 50 % home category (rounded down); max 3 consecutive same-category questions; never rated (Ranked only via fresh matchmade game); max 3 revenges per chain | 2026-10-15 | 0.3.7, Phase 8 |
+| D-046 | 0.3.7 confirmations | One daily set identical in TR and EN → single unified Daily leaderboard (no per-language split); Mixed Battle: turn holder picks the category, answering follows the configured team answer mode (all three compatible); practice daily runs give zero XP and zero quest progress; max 3 consecutive revenge matches per chain | 2026-10-15 | 0.3.7, Phase 8 |
 
 ---
 
@@ -126,7 +127,7 @@ Verification for each task: document reviewed against the requirement list + cro
 - [x] 0.3.5 Match type rules: Quick Duel, Ranked, Sudden Death, Marathon
 - [x] 0.3.6 Team answer mode rules: Shared Answer, Individual Turns, Fast Team Round
 - [x] 0.3.7 Category mode rules: Blind Challenge, Category Master, Mixed Battle, Daily Challenge, Creator Quiz, Revenge Match
-- [ ] 0.3.8 Couple Contest rules
+- [~] 0.3.8 Couple Contest rules
 - [ ] 0.3.9 Ties, tie-breakers, forfeit, abandonment, disconnect/reconnect windows, cancellation conditions
 - [ ] 0.3.10 MMR, Season Points and XP formulas; league thresholds; seasonal reset rule
 - [ ] 0.3.11 State-machine & scoring test-case catalog (drives Phase 3 tests)
@@ -313,3 +314,5 @@ Verification for each task: document reviewed against the requirement list + cro
 - 2026-10-15 — D-039 recorded; 0.3.6 done (turn passes on disconnect too; Average correctness over active members, points still divided by full side size).
 - 2026-10-15 — 0.3.7 drafted: `docs/game/category-modes.md` (plug-in hooks, rules for all six category modes, summary matrix; owner choice needed: Daily Challenge solo score race vs matchmade 1v1). round-lifecycle §2 updated for D-039.
 - 2026-10-15 — D-040…D-045 recorded; 0.3.7 done. Daily Challenge redesigned as isolated solo score race (category-modes.md rewritten; schema-game, schema-platform §6, schema-ranking §4.4, redis-keys §2a/§6.4, match-lifecycle, glossary, backend-modules updated). Phase 8 Daily Challenge broken into sub-tasks incl. required tests.
+- 2026-10-15 — D-046 recorded (0.3.7 confirmations).
+- 2026-10-15 — 0.3.8 drafted: `docs/game/couple-contest.md` (couple-vs-couple 2v2, allowed combinations, Sync Bonus, couple + personal couple ratings, boards, lifecycle & anti-abuse); `team.couples.last_dissolved_at` added. Waiting on owner for 5 proposals.

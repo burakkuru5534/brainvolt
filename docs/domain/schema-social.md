@@ -228,6 +228,7 @@ CREATE TABLE team.couples (
   created_at    timestamptz NOT NULL,
   activated_at  timestamptz,
   dissolved_at  timestamptz,
+  last_dissolved_at timestamptz,                          -- kept when the same pair reactivates the profile (couple-contest.md §6)
   CHECK (user_low_id < user_high_id),
   CHECK (requested_by IN (user_low_id, user_high_id))
 );
