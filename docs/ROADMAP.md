@@ -59,6 +59,9 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 | D-013 | Sign-in methods | Firebase Auth: Anonymous (guest), Google, Apple, Email/Password. Sign in with Apple offered alongside Google (App Store rule) | 2026-10-15 | 0.2.2, 0.4.1, Phase 1 |
 | D-013a | Guest upgrade | Guests play immediately; later link Google / Apple / Email to the same account with no loss of progress (Firebase account linking keeps the same UID) | 2026-10-15 | 0.2.2, Phase 1 |
 | D-014 | Firebase projects | Single Firebase project `brainvolt` | 2026-10-15 | ADR-0003, Phase 1 |
+| D-015 | Guest link conflict | If the credential a guest tries to link already belongs to another BrainVolt user: warn that guest progress will be lost, then switch to the existing account. No automatic merge | 2026-10-15 | 0.2.2, 0.4.2, Phase 1 |
+| D-016 | Guest limits | Guests may play casual and ranked; they do **not** appear on public leaderboards and cannot add friends or create teams until they upgrade | 2026-10-15 | 0.2.2, 0.2.5, 0.2.6, Phase 5, Phase 7 |
+| D-017 | Email verification | Email/password users must verify their email; unverified accounts have the same limits as guests (D-016) | 2026-10-15 | 0.2.2, Phase 1 |
 
 ---
 
@@ -75,7 +78,7 @@ Verification for each task: document reviewed against the requirement list + cro
 - [x] 0.1.6 Write `docs/adr/0003-mobile-architecture.md` — state management, routing, networking/WS client, DI, folder structure
 
 ### 0.2 Data models & database schema
-- [ ] 0.2.1 `docs/domain/glossary.md` — canonical terms (match, round, question slot, participant, side, team, couple, MMR, SP, XP, league…)
+- [x] 0.2.1 `docs/domain/glossary.md` — canonical terms (match, round, question slot, participant, side, team, couple, MMR, SP, XP, league…)
 - [ ] 0.2.2 Schema: identity — users, firebase identity link, profiles, devices/FCM tokens, settings, country
 - [ ] 0.2.3 Schema: content — categories, sub-categories, questions, answer options, difficulty, locale, source & license
 - [ ] 0.2.4 Schema: game — matches, match_configs, sides/teams in match, participants, rounds, match_questions, answers, results
@@ -238,3 +241,5 @@ Verification for each task: document reviewed against the requirement list + cro
 - 2026-10-15 — 0.1.5 done: ADR-0002 — stdlib net/http + slog, coder/websocket, pgx v5 + sqlc, goose, River (transactional outbox + scheduled jobs), go-redis v9, Firebase Admin v4, env v11, UUIDv7, in-house Glicko-2, real PG/Redis integration tests, golangci-lint v2.
 - 2026-10-15 — 0.1.6 done: ADR-0003 — Riverpod 3 (state + DI), go_router, dio, web_socket_channel + own RealtimeClient, freezed/json_serializable, gen-l10n (TR template + EN), feature-first data/domain/presentation, client-side server-authority rules, dev/prod flavors. Pending decisions D-011…D-014 logged. Section 0.1 complete.
 - 2026-10-15 — Decisions D-011…D-014 recorded (Android + iOS, com.brainvolt.app, guest/Google/Apple/email sign-in with guest upgrade, single Firebase project).
+- 2026-10-15 — Decisions D-015…D-017 recorded (link conflict, guest limits, email verification).
+- 2026-10-15 — 0.2.1 done: glossary with code names and Turkish UI labels; side vs team, score vs SP vs XP vs rating, answer vs play streak disambiguated; working definitions for modes flagged for 0.3.x.
