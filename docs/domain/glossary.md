@@ -1,7 +1,7 @@
 # Glossary — canonical domain terms
 
 - **Roadmap task:** 0.2.1
-- **Status:** Accepted (2026-10-15)
+- **Status:** Accepted (2026-10-15; revised same day per D-016a, D-018, D-019)
 - **Purpose:** one meaning per word, used identically in docs, database names, Go/Dart code, API fields and UI text.
 
 **How to read this**
@@ -22,7 +22,7 @@
 | Guest | `account_tier = guest` | Misafir | User signed in only anonymously (D-013). |
 | Unverified | `account_tier = unverified` | Doğrulanmamış | User whose only non-anonymous method is email/password and the email is not yet verified (D-017). |
 | Full account | `account_tier = full` | Tam hesap | User with a verified email, Google or Apple method linked. |
-| Restricted account | (derived: `guest` or `unverified`) | Kısıtlı hesap | Can play casual and ranked; **not** on public leaderboards; cannot add friends or create teams (D-016, D-017). |
+| Restricted account | (derived: `guest` or `unverified`) | Kısıtlı hesap | Can play casual and ranked, including random-queue 2v2/3v3/4v4 on temporary sides; **not** on public leaderboards; cannot add friends, nor create or lead teams. Post-match "add friend" / "form team" actions prompt an account upgrade (D-016, D-016a, D-017). |
 | Account upgrade | `account_link` | Hesap yükseltme | Linking a Google / Apple / email credential to a guest's Firebase user. Same UID, same `user_id`, no progress lost (D-013a). |
 | Link conflict | `link_conflict` | — | The credential already belongs to another user. App warns that guest progress will be lost, then signs into the existing account; no merge (D-015). |
 | Account status | `account_status` | Hesap durumu | `active`, `suspended`, `deleted`. Independent of tier. |
@@ -59,10 +59,11 @@
 | Match | `match` | Maç | One complete game from creation to `completed` or `cancelled`. |
 | Match configuration | `match_config` | Maç ayarları | Immutable settings of a match: type, format, team answer mode, category mode, rated flag, question count, timers. Validated against the mode matrix (0.5). |
 | Match type | `match_type` | Maç türü | `quick_duel`, `ranked`, `sudden_death`, `marathon` — see §4. |
-| Format | `format` | Biçim | `1v1`, `2v2`, `3v3`, `4v4`, `couple` — how many players per side. |
+| Format | `format` | Biçim | Player format: `1v1`, `2v2`, `3v3`, `4v4`, `couple` — see §4a. |
 | Side | `side` | Taraf | One competing unit **inside a match**. In 1v1 a side has one participant; in 3v3 a side has three. Sides are what win, lose or draw. |
 | Participant | `participant` | Oyuncu | A user's seat in a specific match, on exactly one side. |
-| Team | `team` | Takım | A **persistent** group profile (2–4 users) that exists outside matches (module `team`). A team *plays as* a side; a side is not necessarily a team (matchmaking may form a side from strangers). *Never use "team" for an in-match side.* |
+| Team | `team` | Takım | A **persistent** group profile (2–4 users) that exists outside matches (module `team`). A team *plays as* a side; a side is not necessarily a team (matchmaking may form a side from strangers). *Never use "team" for an in-match side.* Restricted accounts cannot create or lead a team (D-016, D-016a). |
+| Temporary side | `side.team_id = null` | Geçici takım | A side formed by matchmaking from individual queue entries (possibly strangers, possibly guests). Exists only for one match. In UI it may be called "takım"; in data and code it is a side with no team profile (D-016a). |
 | Couple | `couple` | Çift | A persistent two-user profile used for Couple Contest. |
 | Party | `party` | Grup | Users queueing together for matchmaking (Phase 5). Temporary. |
 | Rated match | `is_rated = true` | Dereceli | Changes rating (Glicko-2). Only match type `ranked` is rated. |
@@ -96,13 +97,21 @@
 | Sudden Death | `sudden_death` | Ani Ölüm | Continues until a side answers wrong (or slower) while the other is right (working definition). |
 | Marathon | `marathon` | Maraton | Long match with many questions; endurance format (working definition). |
 
+## 4a. Player formats  *(D-018)*
+
+| Term | Code name | TR | Definition |
+|---|---|---|---|
+| 1v1 | `1v1` | 1'e 1 | One participant per side. |
+| 2v2 / 3v3 / 4v4 | `2v2`, `3v3`, `4v4` | 2'ye 2 / 3'e 3 / 4'e 4 | Two, three or four participants per side. A side is either a persistent team or a temporary side formed by matchmaking (D-016a). |
+| Couple Contest | `couple` | Çiftler Yarışması | Specialised **2v2** format in which each side is a **couple profile** (two paired users). Not a category mode. Specific rules: 0.3.8. |
+
 ## 5. Team answer modes  *(rules: 0.3.6; apply when a side has >1 participant)*
 
-| Term | Code name | TR | Definition (working) |
+| Term | Code name | TR | Definition (confirmed D-019) |
 |---|---|---|---|
-| Shared Answer | `shared_answer` | Ortak Cevap | The side submits one answer per round, agreed among members. |
-| Individual Turns | `individual_turns` | Sırayla | Members take turns; one member answers each round for the side. |
-| Fast Team Round | `fast_team_round` | Hızlı Takım Turu | Every member answers; side score aggregates members' results with speed weighting. |
+| Shared Answer | `shared_answer` | Ortak Cevap | The side submits **one collective decision** per question (D-019). How the decision is reached and submitted: 0.3.6. |
+| Individual Turns | `individual_turns` | Sırayla | Questions **cycle through the side's members in order**; the member whose turn it is answers for the side (D-019). |
+| Fast Team Round | `fast_team_round` | Hızlı Takım Turu | **All members answer simultaneously**; the side's round score comes from a predefined **aggregation rule** — e.g. fastest correct, majority, or total correct (D-019). Which rule(s) and whether it is configurable: 0.3.6. |
 
 ## 6. Category modes  *(rules: 0.3.7; full features: Phase 8)*
 
@@ -114,7 +123,6 @@
 | Daily Challenge | `daily_challenge` | Günlük Meydan Okuma | Everyone plays the same daily set. |
 | Creator Quiz | `creator_quiz` | Kullanıcı Yarışması | Match played on a published creator quiz. |
 | Revenge Match | `revenge_match` | Rövanş | Challenge issued by the losing side to the same opponent(s) after a match, with its own rules (vs. a plain rematch). |
-| Couple Contest | `couple_contest` | Çiftler Yarışması | Couples compete against couples with couple-specific rules (0.3.8). |
 
 ## 7. Ranking & progression  *(modules: ranking, progression; formulas: 0.3.10)*
 
@@ -196,6 +204,6 @@
 | "rematch" for Revenge Match | keep them separate | Different flows and rules. |
 
 ## Open points (to settle in the referenced tasks)
-- Working definitions in §4–§6 are confirmed or corrected in 0.3.5–0.3.8.
-- Whether restricted accounts may be placed into team-format matches by matchmaking (D-016 forbids *creating* teams) — settled in 0.2.5 / 0.5.
+- Working definitions in §4 and §6 are confirmed or corrected in 0.3.5 and 0.3.7. §4a and §5 confirmed by D-018 / D-019; detailed rules in 0.3.6 and 0.3.8.
+- Fast Team Round aggregation rule(s) — 0.3.6.
 - League list (Bronze → Diamond, any tiers or divisions in between) — 0.3.10.

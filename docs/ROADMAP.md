@@ -62,6 +62,9 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 | D-015 | Guest link conflict | If the credential a guest tries to link already belongs to another BrainVolt user: warn that guest progress will be lost, then switch to the existing account. No automatic merge | 2026-10-15 | 0.2.2, 0.4.2, Phase 1 |
 | D-016 | Guest limits | Guests may play casual and ranked; they do **not** appear on public leaderboards and cannot add friends or create teams until they upgrade | 2026-10-15 | 0.2.2, 0.2.5, 0.2.6, Phase 5, Phase 7 |
 | D-017 | Email verification | Email/password users must verify their email; unverified accounts have the same limits as guests (D-016) | 2026-10-15 | 0.2.2, Phase 1 |
+| D-016a | Guests in team formats | Guests cannot create or lead persistent teams, but **can** join random matchmaking for 2v2/3v3/4v4 and be placed on temporary sides with strangers. Post-match "add friend" / "form team" prompts an account upgrade | 2026-10-15 | 0.2.5, 0.5, Phase 5, Phase 6 |
+| D-018 | Couple Contest classification | Couple Contest is a **player format** (specialised 2v2 of couple profiles), not a category mode | 2026-10-15 | glossary, 0.3.8, 0.5.1 |
+| D-019 | Team answer modes | Shared Answer = one collective decision per question; Individual Turns = questions cycle through members in order; Fast Team Round = all answer simultaneously, side score by predefined aggregation rule (e.g. fastest correct, majority, total correct) | 2026-10-15 | glossary, 0.3.6, Phase 6 |
 
 ---
 
@@ -243,3 +246,4 @@ Verification for each task: document reviewed against the requirement list + cro
 - 2026-10-15 — Decisions D-011…D-014 recorded (Android + iOS, com.brainvolt.app, guest/Google/Apple/email sign-in with guest upgrade, single Firebase project).
 - 2026-10-15 — Decisions D-015…D-017 recorded (link conflict, guest limits, email verification).
 - 2026-10-15 — 0.2.1 done: glossary with code names and Turkish UI labels; side vs team, score vs SP vs XP vs rating, answer vs play streak disambiguated; working definitions for modes flagged for 0.3.x.
+- 2026-10-15 — Decisions D-016a, D-018, D-019 recorded; glossary revised (player formats section with Couple Contest, confirmed team answer modes, temporary side term).
