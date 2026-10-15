@@ -1,11 +1,11 @@
 # Base scoring formula
 
 - **Roadmap task:** 0.3.4
-- **Status:** Draft for review (2026-10-15)
+- **Status:** Accepted (2026-10-15)
 - **Owner module:** `game` (`game/internal/domain/scoring` — pure function, no I/O)
 - **Related:** timing.md (`response_ms`), round-lifecycle.md (evaluate step), match types 0.3.5, team aggregation 0.3.6, tie-breakers 0.3.9, SP/XP 0.3.10, content calibrated difficulty (schema-content §5)
 - **Ruleset version:** this document defines **ruleset 1** (`game.matches.ruleset_version = 1`). Any later change to numbers or formulas creates ruleset 2; old matches stay reproducible.
-- Values marked **(P)** are proposals (§8).
+- Values marked **(P)** were proposed and accepted (D-037, §8).
 
 ---
 
@@ -109,7 +109,7 @@ type AnswerPoints struct { Base, Speed, Streak, Total int; StreakAfter int }
 
 ---
 
-## 8. Proposals to confirm
+## 8. Accepted proposals (D-037)
 1. **No negative points** for wrong answers (Sudden Death has its own elimination rule in 0.3.5).
 2. **Base 100 × difficulty multiplier** 0.8 / 0.9 / 1.0 / 1.1 / 1.2 for difficulty 1–5.
 3. **Speed bonus up to 100**, linear from show time to deadline.
