@@ -1,7 +1,7 @@
 # Schema — game (matches, sides, participants, rounds, answers, results)
 
 - **Roadmap task:** 0.2.4
-- **Status:** Draft for review (2026-10-15)
+- **Status:** Accepted (2026-10-15)
 - **Module / Postgres schema:** `game`
 - **Decisions applied:** D-004 (casual unrated), D-007 / D-023 / D-024 (content eligibility), D-016a (temporary sides), D-018 (Couple Contest = format), D-019 (team answer modes)
 - **Depends on:** `glossary.md`, `schema-identity.md`, `schema-content.md`. State machine & timing rules: 0.3.1–0.3.3. Scoring: 0.3.4. Redis live-state keys: 0.2.9.
@@ -217,7 +217,7 @@ Payload is final and immutable; consumers never query `game` tables to reconstru
 
 ## 5. Volume & retention (detailed in 0.2.10)
 - `answers` is the largest table (≈ rounds × participants). Partitioning by month on match creation time is planned for when volume requires it; PKs above allow adding a time column without changing app logic.
-- Proposed: keep full round/answer detail for **12 months**; keep `matches`, `match_sides`, `match_participants` (history, results) indefinitely. To be confirmed in 0.2.10.
+- **D-026:** `match_rounds`, `answers`, `round_results` kept **12 months**, then purged/archived by a worker job. `matches`, `match_sides`, `match_participants` (results, scores, history) and rating changes (in `ranking`) kept **forever**. Aggregated `content.question_stats` are unaffected by the purge.
 
 ## 6. Open points
 1. **Draw handling & tie-breakers** (e.g. equal score → faster total correct response time?) — 0.3.9; `is_draw` exists for when no tie-breaker applies.
