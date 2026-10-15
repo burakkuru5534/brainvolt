@@ -66,7 +66,7 @@ Verification for each task: document reviewed against the requirement list + cro
 - [x] 0.1.2 Write `docs/adr/0001-tech-stack-and-versions.md` — pin Go, Flutter/Dart, Postgres, Redis versions; Firebase products used
 - [x] 0.1.3 Write `docs/architecture/repo-layout.md` — monorepo folder layout (backend/, mobile/, docs/, deploy/, scripts/)
 - [x] 0.1.4 Write `docs/architecture/backend-modules.md` — Go module boundaries & allowed dependencies (auth, user, content, game, realtime, matchmaking, social, team, ranking, progression, moderation, notification, chat, tournament, monetization)
-- [ ] 0.1.5 Write `docs/adr/0002-backend-libraries.md` — HTTP router, WebSocket lib, DB driver/query layer, migration tool, logging, config, test tooling
+- [x] 0.1.5 Write `docs/adr/0002-backend-libraries.md` — HTTP router, WebSocket lib, DB driver/query layer, migration tool, logging, config, test tooling
 - [ ] 0.1.6 Write `docs/adr/0003-mobile-architecture.md` — state management, routing, networking/WS client, DI, folder structure
 
 ### 0.2 Data models & database schema
@@ -230,3 +230,4 @@ Verification for each task: document reviewed against the requirement list + cro
 - 2026-10-15 — 0.1.3 done: repo layout fixed (backend cmd/internal/modules with compiler-enforced boundaries, mobile feature folders, content/ for traceable seed data, docs tree). ADR-0001 notes owner machine versions (Go 1.27.0, Flutter 3.47.1).
 - 2026-10-15 — Decisions D-008…D-010 recorded (monorepo, Go module path, GitHub Actions CI); Phase 1 gains CI, .gitattributes/.editorconfig and architecture-test tasks.
 - 2026-10-15 — 0.1.4 done: 17 backend modules, allowed dependency table, outbox-based domain events, realtime push/route pattern, schema-per-module data ownership.
+- 2026-10-15 — 0.1.5 done: ADR-0002 — stdlib net/http + slog, coder/websocket, pgx v5 + sqlc, goose, River (transactional outbox + scheduled jobs), go-redis v9, Firebase Admin v4, env v11, UUIDv7, in-house Glicko-2, real PG/Redis integration tests, golangci-lint v2.
