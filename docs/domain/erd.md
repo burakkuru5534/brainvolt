@@ -1,7 +1,7 @@
 # Data model overview, ERD & review
 
 - **Roadmap task:** 0.2.10
-- **Status:** Draft for review (2026-10-15)
+- **Status:** Accepted (2026-10-15)
 - **Covers:** `schema-identity.md`, `schema-content.md`, `schema-game.md`, `schema-social.md`, `schema-ranking.md`, `schema-moderation.md`, `schema-platform.md`, `redis-keys.md`
 - Diagrams use Mermaid (renders on GitHub). They show **keys and relationships only**; column details live in the schema documents.
 
@@ -271,7 +271,7 @@ Checked and fine: every table has a primary key; every enum is a CHECK; every us
 | Data | Kept | Source |
 |---|---|---|
 | Users (anonymised after deletion), match results, sides, participants, rating changes, standings, leaderboard snapshots, verification history, question revisions, XP ledger, badges | **forever** | D-022, D-026 |
-| Round, answer, round-result detail; match transitions | **12 months** | D-026 (transitions added here as match detail) |
+| Round, answer, round-result detail; match transitions & round event logs | **12 months** | D-026, D-033 |
 | Abandoned guest (0 matches) / link-conflict guest / inactive guest | 7 days / 7 days / 90 days | D-022 |
 | Account deletion | 14-day cooling-off, then purge | D-022 |
 | Moderation cases, actions, sanctions, appeals | **3 years** (permanent bans while active) | D-030 |
@@ -279,9 +279,9 @@ Checked and fine: every table has a primary key; every enum is a CHECK; every us
 | Chat messages | **6 months** | D-031 |
 | Notification inbox; push delivery log | **30 days**; **30 days** | D-031 |
 | Expired invite codes | deleted **30 days** after expiry | schema-social |
-| Closed friend requests, challenges, rooms, team invites (non-pending) | **90 days** (P) | this review |
-| Quest assignments | **12 months** after period end (P) | this review |
-| Commerce subscriptions & store events | **10 years** (P) — likely legal bookkeeping requirement; confirm with an accountant | this review |
+| Closed friend requests, challenges, rooms, team invites (non-pending) | **90 days** | D-033 |
+| Quest assignments | **12 months** after period end | D-033 |
+| Commerce subscriptions & store events | **10 years** (TTK / VUK bookkeeping rules) | D-033 |
 | Redis keys | per TTLs in `redis-keys.md` | D-032 |
 
 All purges run as idempotent River jobs in `cmd/worker`, in small batches, outside peak hours (03:00–06:00 Europe/Istanbul).
@@ -308,7 +308,7 @@ No birth dates (D-020), no photos (D-021), no hardware identifiers, no precise l
 
 ---
 
-## 7. Proposals to confirm
+## 7. Accepted proposals (D-033)
 1. Closed friend requests, challenges, rooms and team invites deleted after **90 days**.
 2. Quest assignments deleted **12 months** after their period ends.
 3. Commerce records kept **10 years** (to be confirmed with an accountant for Turkish bookkeeping rules).
