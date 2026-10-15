@@ -198,15 +198,15 @@ Goal: running skeleton — backend (config, logging, health, Postgres, Redis, mi
 - [x] 1.4.3 `platform/clock` — real + fake clock
 - [x] 1.4.4 `platform/ids` — UUIDv7
 - [x] 1.4.5 `platform/httpserver` — ServeMux, middleware (request id, recover, logging, timeouts, body limits), error envelope + codes (errors.md, TR/EN messages)
-- [ ] 1.4.6 Health checks: `/healthz`, `/readyz` (Postgres, Redis, migrations)
-- [ ] 1.4.7 `platform/postgres` — pgxpool, tx helper, statement timeout, health (integration test)
-- [ ] 1.4.8 `platform/redis` — go-redis client, health (integration test)
+- [x] 1.4.6 Health checks: `/healthz`, `/readyz` (Postgres, Redis, migrations)
+- [x] 1.4.7 `platform/postgres` — pgxpool, tx helper, statement timeout, health (integration test)
+- [x] 1.4.8 `platform/redis` — go-redis client, health (integration test)
 - [ ] 1.4.9 `platform` rate limiter (fixed windows, limits.md §1 general + session limits)
 - [ ] 1.4.10 Idempotency middleware (`Idempotency-Key`, 24 h)
 - [ ] 1.4.11 `platform/firebase` — ID-token verification incl. emulator (unit + emulator test)
 
 ### 1.5 PostgreSQL migration setup
-- [ ] 1.5.1 goose embedded migrations + `cmd/migrate` (up/down/status)
+- [ ] 1.5.1 goose embedded migrations + `cmd/migrate` (up/down/status) — also adds the `migrations` check to `/readyz` (the check list from 1.4.6)
 - [ ] 1.5.2 Migration: River tables
 - [ ] 1.5.3 Migrations: `identity`, `profile`, `notification.devices` schemas (schema-identity.md)
 - [ ] 1.5.4 sqlc config per module + generated code committed + `sqlc diff` check
@@ -406,3 +406,4 @@ Goal: running skeleton — backend (config, logging, health, Postgres, Redis, mi
 - 2026-10-15 — 1.3 done: `backend/go.mod` (`go 1.27`, `toolchain go1.27.2`, deps `golang.org/x/tools` v0.52.0, `go-cmp` v0.7.0); `cmd/api` + `cmd/worker` call `internal/app` (composition root: `Component` interface, `App.Run` stops all components together, `Main` handles SIGINT/SIGTERM and exit codes); `backend/.golangci.yml` (v2, golangci-lint v2.14.0 built with Go 1.27; misspell without locale because docs use British spelling); architecture test `internal/archtest` reads the §1 catalogue and §2 import table straight from `backend-modules.md`. Verified: `go vet`, `go test -race` (incl. real binaries stopping cleanly on SIGTERM), `golangci-lint run` 0 issues; the architecture test was shown to fail on a forbidden edge (identity → profile) and on an uncatalogued module folder.
 - 2026-10-15 — 1.4.1–1.4.4 done: `platform/config` (env v11 → typed `Config`; defaults from limits.md §3; validation of env, addresses, URLs and durations, prod forbids the Firebase emulator and `demo-` projects; every error names its variable and never contains a password; `LogValue` redacts URL passwords); `platform/logging` (slog JSON/text, `request_id` / `user_id` / `match_id` from context); `platform/clock` (`Real` + deterministic `Fake` with timers, tickers, AfterFunc, Go 1.23 stop/reset semantics); `platform/ids` (UUIDv7 via google/uuid v1.6.0, canonical-form parsing, embedded timestamp). `app.Main` now loads config and builds the logger before wiring; invalid config exits 1 with one message per problem. Optional timeout overrides added to `.env.example`.
 - 2026-10-15 — 1.4.5 done (delegated D-055): `platform/httpserver` (ServeMux, chain security headers → request id → access log + panic recovery → locale → route with body limit 64 KB default / per-route override, handler deadline and error rendering; 404/405 envelopes; `DecodeJSON` / `WriteJSON` / `WriteError`; graceful shutdown) wired into `cmd/api`; `platform/apierror` (all errors.md codes, HTTP statuses, TR/EN messages, `VALIDATION_FAILED` field details); `platform/i18n` (Accept-Language negotiation). Verified with unit tests (envelope, TR/EN, request ids, 404/405, panics, body limits, deadline, access log, graceful shutdown with an in-flight request) and a curl smoke test against the real binary.
+- 2026-10-15 — 1.4.6–1.4.8 done: `platform/postgres` (pgxpool; per-connection `statement_timeout` 3 s API / 60 s worker, `application_name`, `TimeZone=UTC`; start-up ping; `InTx` with rollback on error/panic and savepoints when nested); `platform/redis` (go-redis client, start-up ping, client name, `Key` helper); `platform/health` (`/healthz` liveness, `/readyz` running checks concurrently with a 2 s bound, `503 UNAVAILABLE` + `Retry-After: 5` listing failed checks without error text). API and worker connect at start-up and fail fast with password-free messages; connections close after components stop. The `migrations` readiness check is added with goose in 1.5.1. Integration tests read `BRAINVOLT_TEST_POSTGRES_URL` / `BRAINVOLT_TEST_REDIS_URL` (`platform/testenv`; skipped with a hint when unset) and verified PG 18 session settings, statement timeout, transactions, Redis 8.10 server config (noeviction, AOF everysec). Smoke test: `/readyz` turns 503 when Redis is stopped and recovers when it restarts.

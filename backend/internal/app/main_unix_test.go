@@ -22,6 +22,7 @@ func TestBinariesStopCleanlyOnSIGTERM(t *testing.T) {
 	if testing.Short() {
 		t.Skip("builds binaries; skipped with -short")
 	}
+	env := integrationEnv(t)
 	for _, cmd := range []string{"api", "worker"} {
 		t.Run(cmd, func(t *testing.T) {
 			t.Parallel()
@@ -33,7 +34,7 @@ func TestBinariesStopCleanlyOnSIGTERM(t *testing.T) {
 
 			proc := exec.CommandContext(t.Context(), bin)
 			proc.Env = os.Environ()
-			for k, v := range devEnv {
+			for k, v := range env {
 				proc.Env = append(proc.Env, k+"="+v)
 			}
 			stderr, err := proc.StderrPipe()

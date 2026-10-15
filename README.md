@@ -73,6 +73,10 @@ set -a; . ./.env; set +a
 
 Targets that need `mobile/` print a message until the app is created (roadmap 1.7).
 
+## Tests
+
+`make test` runs unit **and** integration tests. Integration tests use the Compose services through `BRAINVOLT_TEST_POSTGRES_URL` and `BRAINVOLT_TEST_REDIS_URL` (defined in `.env.example`; Redis tests use logical database 15). Without those variables, e.g. a bare `go test ./...` with no Docker, integration tests are skipped with a hint and unit tests still run. If your `.env` predates these variables, copy the two lines from `.env.example`.
+
 ## Backend layout rules
 
 Module boundaries from [`backend-modules.md`](docs/architecture/backend-modules.md) are checked by a test: `go test ./internal/archtest/` reads the allowed-import table from that document and fails on any edge not listed there. To add a dependency between modules, edit the table first.

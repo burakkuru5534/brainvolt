@@ -5,12 +5,21 @@ import (
 	"errors"
 	"io"
 	"log/slog"
+	"maps"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"slices"
+	"strconv"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"testing/synctest"
 	"time"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/config"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/testenv"
 )
 
 var discard = slog.New(slog.NewTextHandler(io.Discard, nil))
@@ -106,14 +115,32 @@ func TestRunComponentFailureStopsOthers(t *testing.T) {
 	})
 }
 
-// devEnv is a valid local configuration (see .env.example).
+// devEnv is a valid local configuration (see .env.example) whose Postgres
+// and Redis cannot be reached; integrationEnv points them at the test services.
 var devEnv = map[string]string{
 	"BRAINVOLT_LOG_FORMAT":          "text",
 	"BRAINVOLT_HTTP_ADDR":           "127.0.0.1:0",
-	"BRAINVOLT_POSTGRES_URL":        "postgres://brainvolt:pw@localhost:5432/brainvolt?sslmode=disable",
-	"BRAINVOLT_REDIS_URL":           "redis://:pw@localhost:6379/0",
+	"BRAINVOLT_POSTGRES_URL":        "postgres://brainvolt:pw@127.0.0.1:1/brainvolt?sslmode=disable",
+	"BRAINVOLT_REDIS_URL":           "redis://:pw@127.0.0.1:1/0",
 	"BRAINVOLT_FIREBASE_PROJECT_ID": "demo-brainvolt",
 	"FIREBASE_AUTH_EMULATOR_HOST":   "localhost:9099",
+}
+
+func integrationEnv(t *testing.T) map[string]string {
+	t.Helper()
+	env := maps.Clone(devEnv)
+	env["BRAINVOLT_POSTGRES_URL"] = testenv.PostgresURL(t)
+	env["BRAINVOLT_REDIS_URL"] = testenv.RedisURL(t)
+	return env
+}
+
+func loadConfig(t *testing.T, env map[string]string) config.Config {
+	t.Helper()
+	cfg, err := config.LoadFrom(env)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return cfg
 }
 
 func TestMainReturnsOneWhenBuildFails(t *testing.T) {
@@ -121,7 +148,7 @@ func TestMainReturnsOneWhenBuildFails(t *testing.T) {
 		t.Setenv(k, v)
 	}
 	built := false
-	build := func(config.Config, *slog.Logger) (*App, error) {
+	build := func(context.Context, config.Config, *slog.Logger) (*App, error) {
 		built = true
 		return nil, errors.New("wiring failed")
 	}
@@ -135,7 +162,7 @@ func TestMainReturnsOneOnInvalidConfig(t *testing.T) {
 		t.Setenv(k, v)
 	}
 	t.Setenv("BRAINVOLT_POSTGRES_URL", "")
-	build := func(config.Config, *slog.Logger) (*App, error) {
+	build := func(context.Context, config.Config, *slog.Logger) (*App, error) {
 		t.Fatal("build called with invalid configuration")
 		return nil, nil
 	}
@@ -144,20 +171,86 @@ func TestMainReturnsOneOnInvalidConfig(t *testing.T) {
 	}
 }
 
-func TestConstructorsSetRole(t *testing.T) {
-	api, err := NewAPI(config.Config{}, discard)
+func TestBuildFailsFastWhenDependenciesUnreachable(t *testing.T) {
+	cfg := loadConfig(t, devEnv)
+	for name, build := range map[string]func(context.Context, config.Config, *slog.Logger) (*App, error){
+		"api": NewAPI, "worker": NewWorker,
+	} {
+		_, err := build(t.Context(), cfg, discard)
+		if err == nil || !strings.Contains(err.Error(), "postgres: cannot reach 127.0.0.1:1") {
+			t.Errorf("%s: error = %v, want unreachable postgres", name, err)
+		}
+		if err != nil && strings.Contains(err.Error(), "pw@") {
+			t.Errorf("%s: error leaks the password: %v", name, err)
+		}
+	}
+
+	// Postgres reachable, Redis not: the API must still fail (and close the pool).
+	if pg := os.Getenv(testenv.PostgresVar); pg != "" {
+		env := maps.Clone(devEnv)
+		env["BRAINVOLT_POSTGRES_URL"] = pg
+		_, err := NewAPI(t.Context(), loadConfig(t, env), discard)
+		if err == nil || !strings.Contains(err.Error(), "redis: cannot reach 127.0.0.1:1") {
+			t.Errorf("api with unreachable redis: error = %v", err)
+		}
+	}
+}
+
+func TestClosersRunAfterComponentsInReverseOrder(t *testing.T) {
+	var order []string
+	b := &blocker{name: "server"}
+	a := New(RoleAPI, discard, b)
+	a.closers = append(a.closers,
+		func() { order = append(order, "postgres:"+strconv.FormatBool(b.stopped.Load())) },
+		func() { order = append(order, "redis") },
+	)
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	if err := a.Run(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if want := []string{"redis", "postgres:true"}; !slices.Equal(order, want) {
+		t.Fatalf("close order = %v, want %v", order, want)
+	}
+}
+
+// TestAPIReadiness builds the real API composition against the test
+// services and checks /healthz and /readyz through the HTTP handler.
+func TestAPIReadiness(t *testing.T) {
+	cfg := loadConfig(t, integrationEnv(t))
+	a, err := NewAPI(t.Context(), cfg, discard)
 	if err != nil {
 		t.Fatalf("NewAPI: %v", err)
 	}
-	if api.Role() != RoleAPI {
-		t.Fatalf("NewAPI role = %q, want %q", api.Role(), RoleAPI)
+	defer func() {
+		for _, c := range a.closers {
+			c()
+		}
+	}()
+	if a.Role() != RoleAPI {
+		t.Fatalf("role = %q", a.Role())
+	}
+	srv, ok := a.components[0].(*httpserver.Server)
+	if !ok {
+		t.Fatalf("first component is %T, want *httpserver.Server", a.components[0])
 	}
 
-	worker, err := NewWorker(config.Config{}, discard)
+	for path, want := range map[string]string{
+		"/healthz": `{"status":"ok"}`,
+		"/readyz":  `{"checks":{"postgres":"ok","redis":"ok"},"status":"ready"}`,
+	} {
+		rec := httptest.NewRecorder()
+		srv.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, path, http.NoBody))
+		if rec.Code != http.StatusOK || strings.TrimSpace(rec.Body.String()) != want {
+			t.Errorf("GET %s = %d %s, want 200 %s", path, rec.Code, rec.Body.String(), want)
+		}
+	}
+
+	w, err := NewWorker(t.Context(), cfg, discard)
 	if err != nil {
 		t.Fatalf("NewWorker: %v", err)
 	}
-	if worker.Role() != RoleWorker {
-		t.Fatalf("NewWorker role = %q, want %q", worker.Role(), RoleWorker)
+	for _, c := range w.closers {
+		c()
 	}
 }

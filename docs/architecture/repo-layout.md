@@ -48,6 +48,8 @@ backend/
 │   │   ├── redis/                      client, health check, key helpers
 │   │   ├── httpserver/                 router setup, middleware, error envelope
 │   │   ├── apierror/                   error-code registry + TR/EN messages, shared by REST and WebSocket
+│   │   ├── health/                     /healthz and /readyz
+│   │   ├── testenv/                    integration-test service addresses (BRAINVOLT_TEST_*)
 │   │   ├── wsserver/                   WebSocket hub, connection lifecycle, envelope codec
 │   │   ├── firebase/                   ID-token verification, FCM client
 │   │   ├── clock/                      injectable server clock (all timers use this; tests use a fake)
