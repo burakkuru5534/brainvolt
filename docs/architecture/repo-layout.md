@@ -4,7 +4,7 @@
 - **Status:** Accepted (2026-10-15)
 - **Related:** ADR-0001 (versions), `backend-modules.md` (0.1.4, module list & dependency rules), ADR-0002 / ADR-0003 (libraries)
 
-BrainVolt is a **single Git monorepo** holding the Go backend, the Flutter app, question content, deployment files and all documentation. One repo keeps API/WebSocket contract changes, backend and mobile changes in the same commit.
+BrainVolt is a **single Git monorepo** (https://github.com/burakkuru5534/brainvolt, D-008) holding the Go backend, the Flutter app, question content, deployment files and all documentation. One repo keeps API/WebSocket contract changes, backend and mobile changes in the same commit.
 
 This document fixes **where things go**. It creates nothing by itself: folders appear when the phase that needs them starts. Paths marked *(reserved)* are agreed now but filled later.
 
@@ -12,6 +12,7 @@ This document fixes **where things go**. It creates nothing by itself: folders a
 
 ```
 brainvolt/
+├── .github/workflows/    CI — ci.yml: Go + Flutter tests (D-010, Phase 1)
 ├── backend/              Go modular monolith (one Go module)
 ├── mobile/               Flutter app (Android + iOS)
 ├── content/              Question seed data + source/license records (D-005, D-006)
@@ -30,7 +31,7 @@ brainvolt/
 
 ```
 backend/
-├── go.mod / go.sum                     module path: github.com/<owner>/brainvolt/backend (final path set in Phase 1)
+├── go.mod / go.sum                     module path: github.com/burakkuru5534/brainvolt/backend (D-009)
 ├── cmd/                                one folder per executable; each main.go only wires & starts
 │   ├── api/                            HTTP REST + WebSocket server (the game server)
 │   ├── worker/                         scheduled/background jobs: season reset, daily challenge rotation,
@@ -151,4 +152,3 @@ docs/
 - The list of business modules and who may call whom → `backend-modules.md` (0.1.4).
 - Router, WebSocket library, DB access style, migration tool → ADR-0002 (0.1.5).
 - State management, routing, DI on mobile → ADR-0003 (0.1.6).
-- CI pipeline location/provider → open decision, raised at 0.6.1.

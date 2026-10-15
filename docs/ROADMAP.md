@@ -51,6 +51,9 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 | D-005 | Seed questions | OpenTDB after license/suitability check + our own question pool | 2026-10-15 | 0.2.3, Phase 2 |
 | D-006 | Question source tracking | Mandatory for every question (source + license) | 2026-10-15 | 0.2.3, Phase 2, Phase 8 |
 | D-007 | Content in ranked matches | Verified questions only | 2026-10-15 | 0.2.3, 0.3.5, 0.5.3, Phase 8 moderation |
+| D-008 | Repository | Single monorepo at https://github.com/burakkuru5534/brainvolt | 2026-10-15 | 0.1.3, Phase 1 |
+| D-009 | Go module path | `github.com/burakkuru5534/brainvolt/backend` | 2026-10-15 | 0.1.3, Phase 1 |
+| D-010 | CI | GitHub Actions in Phase 1 — `.github/workflows/ci.yml` runs Go and Flutter tests | 2026-10-15 | 0.1.3, Phase 1 |
 
 ---
 
@@ -62,7 +65,7 @@ Verification for each task: document reviewed against the requirement list + cro
 - [x] 0.1.1 Inventory repository, record baseline (section above)
 - [x] 0.1.2 Write `docs/adr/0001-tech-stack-and-versions.md` — pin Go, Flutter/Dart, Postgres, Redis versions; Firebase products used
 - [x] 0.1.3 Write `docs/architecture/repo-layout.md` — monorepo folder layout (backend/, mobile/, docs/, deploy/, scripts/)
-- [ ] 0.1.4 Write `docs/architecture/backend-modules.md` — Go module boundaries & allowed dependencies (auth, user, content, game, realtime, matchmaking, social, team, ranking, progression, moderation, notification, chat, tournament, monetization)
+- [x] 0.1.4 Write `docs/architecture/backend-modules.md` — Go module boundaries & allowed dependencies (auth, user, content, game, realtime, matchmaking, social, team, ranking, progression, moderation, notification, chat, tournament, monetization)
 - [ ] 0.1.5 Write `docs/adr/0002-backend-libraries.md` — HTTP router, WebSocket lib, DB driver/query layer, migration tool, logging, config, test tooling
 - [ ] 0.1.6 Write `docs/adr/0003-mobile-architecture.md` — state management, routing, networking/WS client, DI, folder structure
 
@@ -123,6 +126,9 @@ Verification for each task: document reviewed against the requirement list + cro
 - [ ] Firebase Auth integration (mobile sign-in + backend token verification)
 - [ ] Docker Compose local dev environment (volumes, healthchecks, env file, backend service)
 - [ ] Makefile targets (run, test, migrate, lint)
+- [ ] `.gitattributes` (LF line endings) and `.editorconfig`
+- [ ] Module-boundary architecture test (allowed dependency graph from `backend-modules.md`)
+- [ ] GitHub Actions CI — `.github/workflows/ci.yml`: Go vet/lint/test (with Postgres & Redis services) + Flutter analyze/test (D-010)
 
 ## Phase 2 — Question & Category System  `[ ]`
 - [ ] Category & sub-category models
@@ -222,3 +228,5 @@ Verification for each task: document reviewed against the requirement list + cro
 - 2026-10-15 — Decisions D-001…D-007 recorded (language, i18n, Glicko-2, casual unrated, seed sources, source tracking, verified-only ranked content).
 - 2026-10-15 — 0.1.2 done: ADR-0001 pins Go 1.27, Flutter 3.47 / Dart 3.13, PostgreSQL 18, Redis 8.10, Compose v2; Firebase scoped to Auth + FCM.
 - 2026-10-15 — 0.1.3 done: repo layout fixed (backend cmd/internal/modules with compiler-enforced boundaries, mobile feature folders, content/ for traceable seed data, docs tree). ADR-0001 notes owner machine versions (Go 1.27.0, Flutter 3.47.1).
+- 2026-10-15 — Decisions D-008…D-010 recorded (monorepo, Go module path, GitHub Actions CI); Phase 1 gains CI, .gitattributes/.editorconfig and architecture-test tasks.
+- 2026-10-15 — 0.1.4 done: 17 backend modules, allowed dependency table, outbox-based domain events, realtime push/route pattern, schema-per-module data ownership.
