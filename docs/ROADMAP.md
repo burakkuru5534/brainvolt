@@ -41,6 +41,19 @@ Stack: **Flutter** (mobile) · **Go modular monolith** (backend) · **PostgreSQL
 
 ---
 
+## Decision log
+| # | Topic | Decision | Date | Affects |
+|---|-------|----------|------|---------|
+| D-001 | Initial content language | Turkish | 2026-10-15 | 0.2.3, Phase 2 seed |
+| D-002 | Multi-language infrastructure | Turkish + English supported (locale-aware content & UI from day one) | 2026-10-15 | 0.2.2, 0.2.3, 0.4.1, mobile i18n |
+| D-003 | Ranked rating algorithm | Glicko-2 | 2026-10-15 | 0.3.10, Phase 7 |
+| D-004 | Casual (unranked) matches | Do not affect rating | 2026-10-15 | 0.3.5, 0.3.10, 0.5.1 |
+| D-005 | Seed questions | OpenTDB after license/suitability check + our own question pool | 2026-10-15 | 0.2.3, Phase 2 |
+| D-006 | Question source tracking | Mandatory for every question (source + license) | 2026-10-15 | 0.2.3, Phase 2, Phase 8 |
+| D-007 | Content in ranked matches | Verified questions only | 2026-10-15 | 0.2.3, 0.3.5, 0.5.3, Phase 8 moderation |
+
+---
+
 ## Phase 0 — Planning & Architecture  `[~]`
 Output: design documents under `docs/` only. No production code.
 Verification for each task: document reviewed against the requirement list + cross-references consistent.
@@ -95,7 +108,7 @@ Verification for each task: document reviewed against the requirement list + cro
 - [ ] 0.5.4 Matrix test-case table (valid + invalid combos)
 
 ### 0.6 Review & sign-off
-- [ ] 0.6.1 Open-decisions list resolved with owner
+- [~] 0.6.1 Open-decisions list resolved with owner (D-001…D-007 recorded; further decisions added as they arise)
 - [ ] 0.6.2 Cross-document consistency check; Phase 0 marked done
 
 ---
@@ -206,3 +219,4 @@ Verification for each task: document reviewed against the requirement list + cro
 
 ## Change log
 - 2026-10-15 — Roadmap created; Phase 0 broken into atomic tasks; task 0.1.1 completed.
+- 2026-10-15 — Decisions D-001…D-007 recorded (language, i18n, Glicko-2, casual unrated, seed sources, source tracking, verified-only ranked content).
