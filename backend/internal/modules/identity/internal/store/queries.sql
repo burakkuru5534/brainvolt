@@ -6,9 +6,15 @@ SELECT * FROM identity.users WHERE firebase_uid = $1;
 -- name: GetUserByID :one
 SELECT * FROM identity.users WHERE id = $1;
 
--- name: InsertUser :exec
+-- name: GetUserByFirebaseUIDForUpdate :one
+-- Serialises concurrent session syncs of the same user.
+SELECT * FROM identity.users WHERE firebase_uid = $1 FOR UPDATE;
+
+-- name: InsertUser :execrows
+-- 0 rows: a concurrent first session created the user already.
 INSERT INTO identity.users (id, firebase_uid, account_tier, age_verified_at, last_seen_at, created_at, updated_at)
-VALUES (@id, @firebase_uid, @account_tier, @now, @now, @now, @now);
+VALUES (@id, @firebase_uid, @account_tier, @now, @now, @now, @now)
+ON CONFLICT (firebase_uid) DO NOTHING;
 
 -- name: UpdateUserTier :exec
 -- upgraded_at is set the first time the tier becomes 'full' and never cleared.
@@ -21,7 +27,7 @@ WHERE id = @id;
 -- name: TouchUser :exec
 UPDATE identity.users SET last_seen_at = @now WHERE id = @id;
 
--- name: MarkGuestAbandoned :exec
+-- name: MarkGuestAbandoned :execrows
 UPDATE identity.users SET abandoned_at = @now::timestamptz, updated_at = @now::timestamptz
 WHERE id = @id AND account_tier = 'guest' AND abandoned_at IS NULL;
 
@@ -40,6 +46,10 @@ SET provider_uid    = EXCLUDED.provider_uid,
     email           = EXCLUDED.email,
     email_verified  = EXCLUDED.email_verified,
     last_sign_in_at = EXCLUDED.last_sign_in_at;
+
+-- name: DeleteAuthIdentitiesExcept :exec
+-- Drops sign-in methods no longer linked in Firebase (the mirror follows Firebase).
+DELETE FROM identity.auth_identities WHERE user_id = @user_id AND NOT (provider = ANY(@providers::text[]));
 
 -- name: ListUserRoles :many
 SELECT role FROM identity.user_roles WHERE user_id = $1 ORDER BY role;

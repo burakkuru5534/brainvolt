@@ -34,6 +34,28 @@ func (q *Queries) GetProfile(ctx context.Context, userID uuid.UUID) (ProfileProf
 	return i, err
 }
 
+const getProfileForUpdate = `-- name: GetProfileForUpdate :one
+SELECT user_id, username, display_name, avatar_id, country_code, locale, username_changed_at, country_changed_at, created_at, updated_at FROM profile.profiles WHERE user_id = $1 FOR UPDATE
+`
+
+func (q *Queries) GetProfileForUpdate(ctx context.Context, userID uuid.UUID) (ProfileProfile, error) {
+	row := q.db.QueryRow(ctx, getProfileForUpdate, userID)
+	var i ProfileProfile
+	err := row.Scan(
+		&i.UserID,
+		&i.Username,
+		&i.DisplayName,
+		&i.AvatarID,
+		&i.CountryCode,
+		&i.Locale,
+		&i.UsernameChangedAt,
+		&i.CountryChangedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getSettings = `-- name: GetSettings :one
 SELECT user_id, challenges_from, show_online_status, allow_friend_requests, sound_enabled, music_enabled, haptics_enabled, updated_at FROM profile.settings WHERE user_id = $1
 `
@@ -54,10 +76,11 @@ func (q *Queries) GetSettings(ctx context.Context, userID uuid.UUID) (ProfileSet
 	return i, err
 }
 
-const insertProfile = `-- name: InsertProfile :exec
+const insertProfile = `-- name: InsertProfile :execrows
 
 INSERT INTO profile.profiles (user_id, username, display_name, avatar_id, country_code, locale, created_at, updated_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $7)
+ON CONFLICT (username) DO NOTHING
 `
 
 type InsertProfileParams struct {
@@ -71,8 +94,9 @@ type InsertProfileParams struct {
 }
 
 // profile queries (schema-identity.md §3). Only the profile schema.
-func (q *Queries) InsertProfile(ctx context.Context, arg InsertProfileParams) error {
-	_, err := q.db.Exec(ctx, insertProfile,
+// 0 rows: the generated username is taken; the caller retries with another.
+func (q *Queries) InsertProfile(ctx context.Context, arg InsertProfileParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertProfile,
 		arg.UserID,
 		arg.Username,
 		arg.DisplayName,
@@ -81,7 +105,10 @@ func (q *Queries) InsertProfile(ctx context.Context, arg InsertProfileParams) er
 		arg.Locale,
 		arg.Now,
 	)
-	return err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const insertSettings = `-- name: InsertSettings :exec
@@ -95,6 +122,75 @@ type InsertSettingsParams struct {
 
 func (q *Queries) InsertSettings(ctx context.Context, arg InsertSettingsParams) error {
 	_, err := q.db.Exec(ctx, insertSettings, arg.UserID, arg.Now)
+	return err
+}
+
+const updateProfile = `-- name: UpdateProfile :exec
+UPDATE profile.profiles
+SET username = $1, display_name = $2, avatar_id = $3,
+    country_code = $4, locale = $5,
+    username_changed_at = $6, country_changed_at = $7,
+    updated_at = $8
+WHERE user_id = $9
+`
+
+type UpdateProfileParams struct {
+	Username          string
+	DisplayName       string
+	AvatarID          string
+	CountryCode       *string
+	Locale            string
+	UsernameChangedAt *time.Time
+	CountryChangedAt  *time.Time
+	Now               time.Time
+	UserID            uuid.UUID
+}
+
+func (q *Queries) UpdateProfile(ctx context.Context, arg UpdateProfileParams) error {
+	_, err := q.db.Exec(ctx, updateProfile,
+		arg.Username,
+		arg.DisplayName,
+		arg.AvatarID,
+		arg.CountryCode,
+		arg.Locale,
+		arg.UsernameChangedAt,
+		arg.CountryChangedAt,
+		arg.Now,
+		arg.UserID,
+	)
+	return err
+}
+
+const updateSettings = `-- name: UpdateSettings :exec
+UPDATE profile.settings
+SET challenges_from = $1, show_online_status = $2,
+    allow_friend_requests = $3, sound_enabled = $4,
+    music_enabled = $5, haptics_enabled = $6, updated_at = $7
+WHERE user_id = $8
+`
+
+type UpdateSettingsParams struct {
+	ChallengesFrom      string
+	ShowOnlineStatus    bool
+	AllowFriendRequests bool
+	SoundEnabled        bool
+	MusicEnabled        bool
+	HapticsEnabled      bool
+	Now                 time.Time
+	UserID              uuid.UUID
+}
+
+func (q *Queries) UpdateSettings(ctx context.Context, arg UpdateSettingsParams) error {
+	_, err := q.db.Exec(ctx, updateSettings,
+		arg.ChallengesFrom,
+		arg.ShowOnlineStatus,
+		arg.AllowFriendRequests,
+		arg.SoundEnabled,
+		arg.MusicEnabled,
+		arg.HapticsEnabled,
+		arg.Now,
+		arg.UserID,
+	)
 	return err
 }
 

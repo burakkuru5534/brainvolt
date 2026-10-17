@@ -97,6 +97,17 @@ func TestVerifyAnonymousAndPasswordUsers(t *testing.T) {
 	if got := tok.Identities["email"]; len(got) != 1 || got[0] != email {
 		t.Fatalf("identities = %v", tok.Identities)
 	}
+
+	acc, err := v.Account(ctx, tok.UID)
+	if err != nil {
+		t.Fatalf("Account: %v", err)
+	}
+	if acc.Email != email || acc.EmailVerified || len(acc.Providers) != 1 || acc.Providers[0].ProviderID != "password" {
+		t.Fatalf("account = %+v", acc)
+	}
+	if _, err := v.Account(ctx, "no-such-user"); code(err) != apierror.Unauthenticated {
+		t.Fatalf("missing account: %v", err)
+	}
 }
 
 func TestVerifyRejects(t *testing.T) {

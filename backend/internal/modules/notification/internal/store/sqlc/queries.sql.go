@@ -12,6 +12,23 @@ import (
 	"github.com/google/uuid"
 )
 
+const clearFcmTokenElsewhere = `-- name: ClearFcmTokenElsewhere :exec
+UPDATE notification.devices SET fcm_token = NULL
+WHERE fcm_token = $1 AND installation_id <> $2
+`
+
+type ClearFcmTokenElsewhereParams struct {
+	FcmToken       *string
+	InstallationID string
+}
+
+// An FCM token is unique: after a reinstall the same token may arrive with a
+// new installation id, so it is removed from any other row first.
+func (q *Queries) ClearFcmTokenElsewhere(ctx context.Context, arg ClearFcmTokenElsewhereParams) error {
+	_, err := q.db.Exec(ctx, clearFcmTokenElsewhere, arg.FcmToken, arg.InstallationID)
+	return err
+}
+
 const listActiveDevices = `-- name: ListActiveDevices :many
 SELECT id, user_id, installation_id, platform, fcm_token, app_version, locale, last_seen_at, created_at, revoked_at FROM notification.devices WHERE user_id = $1 AND revoked_at IS NULL ORDER BY last_seen_at DESC
 `

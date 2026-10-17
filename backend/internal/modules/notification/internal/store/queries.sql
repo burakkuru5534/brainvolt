@@ -20,3 +20,9 @@ WHERE user_id = @user_id AND installation_id = @installation_id AND revoked_at I
 
 -- name: ListActiveDevices :many
 SELECT * FROM notification.devices WHERE user_id = $1 AND revoked_at IS NULL ORDER BY last_seen_at DESC;
+
+-- name: ClearFcmTokenElsewhere :exec
+-- An FCM token is unique: after a reinstall the same token may arrive with a
+-- new installation id, so it is removed from any other row first.
+UPDATE notification.devices SET fcm_token = NULL
+WHERE fcm_token = @fcm_token AND installation_id <> @installation_id;

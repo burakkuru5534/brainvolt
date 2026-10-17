@@ -14,8 +14,10 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"slices"
 	"time"
 
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/config"
 )
 
@@ -35,6 +37,31 @@ type Server struct {
 	// request id, logging and locale, so its errors are logged and localized.
 	dispatch http.Handler
 	uses     []func(http.Handler) http.Handler
+	routes   []Route
+}
+
+// Doc describes a route for the OpenAPI document (roadmap 1.6.7).
+type Doc struct {
+	Summary string
+	Tag     string // module name
+	// Auth: "public", "any" (signed-in), "full", "mod", "adm" (rest.md legend).
+	Auth string
+	// Idempotency marks routes that require Idempotency-Key.
+	Idempotency bool
+	// Request is a zero value of the JSON body type, or nil.
+	Request any
+	// Response is a zero value of the success body type, or nil for no body.
+	Response any
+	// Status is the success status (default 200, or 204 when Response is nil).
+	Status int
+	// Errors lists the route-specific error codes (general ones are implied).
+	Errors []apierror.Code
+}
+
+// Route is one registered route.
+type Route struct {
+	Pattern string // e.g. "POST /v1/session"
+	Doc     *Doc
 }
 
 // New builds a server. HSTS is sent only in prod (deployed over HTTPS).
@@ -67,7 +94,16 @@ type RouteOption func(*routeOptions)
 
 type routeOptions struct {
 	bodyLimit int64
+	doc       *Doc
 }
+
+// WithDoc attaches API documentation to a route.
+func WithDoc(d Doc) RouteOption {
+	return func(o *routeOptions) { o.doc = &d }
+}
+
+// Routes lists every registered route in registration order.
+func (s *Server) Routes() []Route { return slices.Clone(s.routes) }
 
 // WithBodyLimit overrides DefaultBodyLimit for one route
 // (e.g. 256 KB for creator quiz saves, limits.md §2).
@@ -82,6 +118,7 @@ func (s *Server) Handle(pattern string, h HandlerFunc, opts ...RouteOption) {
 		opt(&o)
 	}
 	s.mux.Handle(pattern, route(pattern, h, o.bodyLimit, s.cfg.HandlerTimeout, s.logger))
+	s.routes = append(s.routes, Route{Pattern: pattern, Doc: o.doc})
 }
 
 // Handler returns the complete handler chain (used by tests and Run).

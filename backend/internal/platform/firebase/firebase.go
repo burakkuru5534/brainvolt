@@ -92,6 +92,46 @@ func (v *Verifier) VerifyAndCheckRevoked(ctx context.Context, raw string) (Token
 	return convert(t), nil
 }
 
+// Account is the Firebase user record reduced to the linked sign-in methods.
+type Account struct {
+	UID           string
+	Email         string
+	EmailVerified bool
+	Disabled      bool
+	Providers     []ProviderInfo
+}
+
+// ProviderInfo is one linked sign-in method (ProviderID: "password",
+// "google.com", "apple.com", …). Anonymous users have none.
+type ProviderInfo struct {
+	ProviderID string
+	UID        string
+	Email      string
+}
+
+// Account reads the user's record from Firebase Auth. Unlike the ID token
+// it says exactly which providers are linked (a Google token also carries an
+// "email" identity). Needs credentials in prod, like VerifyAndCheckRevoked.
+func (v *Verifier) Account(ctx context.Context, uid string) (Account, error) {
+	u, err := v.client.GetUser(ctx, uid)
+	if err != nil {
+		if auth.IsUserNotFound(err) {
+			return Account{}, apierror.Wrap(apierror.Unauthenticated, err)
+		}
+		return Account{}, apierror.Wrap(apierror.Unavailable, err).WithRetryAfter(5 * time.Second)
+	}
+	a := Account{UID: u.UID, EmailVerified: u.EmailVerified, Disabled: u.Disabled}
+	if u.UserInfo != nil {
+		a.Email = u.Email
+	}
+	for _, p := range u.ProviderUserInfo {
+		if p != nil {
+			a.Providers = append(a.Providers, ProviderInfo{ProviderID: p.ProviderID, UID: p.UID, Email: p.Email})
+		}
+	}
+	return a, nil
+}
+
 func classify(err error) error {
 	switch {
 	case auth.IsIDTokenExpired(err):

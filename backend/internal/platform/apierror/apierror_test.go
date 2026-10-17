@@ -173,3 +173,21 @@ func TestValidationDetails(t *testing.T) {
 		t.Fatal("VALIDATION_FAILED must be 400")
 	}
 }
+
+func TestFields(t *testing.T) {
+	var f Fields
+	if f.Err() != nil {
+		t.Fatal("empty Fields must give nil")
+	}
+	f.Add("locale", "enum", "allowed", []string{"tr", "en"})
+	f.Add("app_version", "required")
+	e := From(f.Err())
+	if e == nil || e.Code != ValidationFailed {
+		t.Fatalf("Err = %v", f.Err())
+	}
+	b, _ := json.Marshal(e.Details)
+	want := `{"fields":[{"allowed":["tr","en"],"field":"locale","rule":"enum"},{"field":"app_version","rule":"required"}]}`
+	if string(b) != want {
+		t.Fatalf("details = %s", b)
+	}
+}

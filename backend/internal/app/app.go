@@ -16,13 +16,24 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/riverqueue/river"
+	"github.com/riverqueue/river/riverdriver/riverpgxv5"
+
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/notification"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/config"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/firebase"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/health"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/idempotency"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/logging"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/postgres"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ratelimit"
@@ -62,9 +73,10 @@ func New(role Role, logger *slog.Logger, components ...Component) *App {
 }
 
 // NewAPI builds the composition for cmd/api: Postgres and Redis
-// connections, the HTTP server with the per-IP rate limit, /healthz and
-// /readyz (Postgres, Redis, migrations applied). The WebSocket
-// gateway (Phase 4) and matchmaking loops (Phase 5) join it later.
+// connections, Firebase token verification, the event bus, the HTTP server
+// with the per-IP rate limit, /healthz, /readyz and the identity, profile
+// and notification routes. The WebSocket gateway (Phase 4) and matchmaking
+// loops (Phase 5) join it later.
 func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, error) {
 	db, err := postgres.Connect(ctx, postgres.Options{
 		URL:              cfg.Postgres.URL,
@@ -89,22 +101,77 @@ func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, 
 		return nil, err
 	}
 
+	verifier, err := firebase.New(ctx, cfg.Firebase.ProjectID, cfg.Firebase.AuthEmulatorHost)
+	if err != nil {
+		_ = sqlDB.Close()
+		db.Close()
+		_ = rdb.Close()
+		return nil, err
+	}
+	// Insert-only River client: the API queues event deliveries, the worker runs them.
+	bus := newBus()
+	inserter, err := river.NewClient(riverpgxv5.New(db), &river.Config{Logger: logger})
+	if err != nil {
+		_ = sqlDB.Close()
+		db.Close()
+		_ = rdb.Close()
+		return nil, err
+	}
+	bus.Attach(inserter)
+
+	clk := clock.Real{}
 	srv := httpserver.New(cfg.HTTP, cfg.Env, logger)
-	limiter := ratelimit.New(rdb, clock.Real{}, logger)
+	limiter := ratelimit.New(rdb, clk, logger)
 	srv.Use(limiter.Middleware(ratelimit.APIPerIP, ratelimit.ClientIP))
 	health.Register(srv, logger,
 		health.Check{Name: "postgres", Fn: db.Ping},
 		health.Check{Name: "redis", Fn: func(ctx context.Context) error { return redis.Ping(ctx, rdb) }},
 		health.Check{Name: "migrations", Fn: func(ctx context.Context) error { return migrations.Check(ctx, schema) }},
 	)
+	registerModules(srv, moduleDeps{db: db, rdb: rdb, verifier: verifier, bus: bus, limiter: limiter,
+		idem: idempotency.New(rdb, logger), clock: clk, logger: logger})
 
 	a := New(RoleAPI, logger, srv)
 	a.closers = append(a.closers, db.Close, func() { _ = sqlDB.Close() }, func() { _ = rdb.Close() })
 	return a, nil
 }
 
+// moduleDeps are the shared collaborators of the business modules.
+type moduleDeps struct {
+	db       *pgxpool.Pool
+	rdb      *redis.Client
+	verifier identity.Verifier
+	bus      *events.Bus
+	limiter  *ratelimit.Limiter
+	idem     *idempotency.Store
+	clock    clock.Clock
+	logger   *slog.Logger
+}
+
+// registerModules builds the modules and their routes. The wiring follows
+// backend-modules.md §2: profile implements identity's ProfileProvisioner.
+func registerModules(srv *httpserver.Server, d moduleDeps) {
+	prof := profile.New(d.db, d.clock)
+	ident := identity.New(identity.Deps{
+		DB: d.db, Redis: d.rdb, Verifier: d.verifier, Profiles: prof.Provisioner(), Events: d.bus,
+		Limiter: d.limiter, Idempotency: d.idem, Clock: d.clock, Logger: d.logger,
+	})
+	ident.Register(srv)
+	prof.Register(srv, ident, d.limiter)
+	notification.New(d.db, d.clock).Register(srv, ident)
+}
+
+// newBus returns the event bus with every subscription. The API and the
+// worker build it the same way: the API to address deliveries, the worker
+// to run them. Consumers subscribe here as their phases arrive
+// (backend-modules.md §3.2 event catalogue).
+func newBus() *events.Bus {
+	return events.NewBus()
+}
+
 // NewWorker builds the composition for cmd/worker: a Postgres pool with the
-// longer worker statement timeout. The River job runner joins it in 1.5.2.
+// longer worker statement timeout and the River job runner (event
+// deliveries now, scheduled jobs in later phases).
 func NewWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, error) {
 	db, err := postgres.Connect(ctx, postgres.Options{
 		URL:              cfg.Postgres.URL,
@@ -114,7 +181,20 @@ func NewWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) (*Ap
 	if err != nil {
 		return nil, err
 	}
-	a := New(RoleWorker, logger)
+	bus := newBus()
+	workers := river.NewWorkers()
+	bus.AddWorker(workers)
+	client, err := river.NewClient(riverpgxv5.New(db), &river.Config{
+		Queues:  map[string]river.QueueConfig{river.QueueDefault: {MaxWorkers: 10}},
+		Workers: workers,
+		Logger:  logger,
+	})
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+	bus.Attach(client)
+	a := New(RoleWorker, logger, events.Runner{Client: client, StopTimeout: 30 * time.Second})
 	a.closers = append(a.closers, db.Close)
 	return a, nil
 }

@@ -105,3 +105,28 @@ func (f FieldError) MarshalJSON() ([]byte, error) {
 func Validation(fields ...FieldError) *Error {
 	return New(ValidationFailed).With("fields", fields)
 }
+
+// Fields collects field errors while validating a request.
+type Fields []FieldError
+
+// Add records a failed rule; params are key/value pairs such as "min", 2.
+func (f *Fields) Add(field, rule string, params ...any) {
+	fe := FieldError{Field: field, Rule: rule}
+	if len(params) > 0 {
+		fe.Params = map[string]any{}
+		for i := 0; i+1 < len(params); i += 2 {
+			if k, ok := params[i].(string); ok {
+				fe.Params[k] = params[i+1]
+			}
+		}
+	}
+	*f = append(*f, fe)
+}
+
+// Err returns VALIDATION_FAILED with every recorded field, or nil.
+func (f Fields) Err() error {
+	if len(f) == 0 {
+		return nil
+	}
+	return Validation(f...)
+}

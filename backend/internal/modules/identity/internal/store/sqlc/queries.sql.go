@@ -12,6 +12,21 @@ import (
 	"github.com/google/uuid"
 )
 
+const deleteAuthIdentitiesExcept = `-- name: DeleteAuthIdentitiesExcept :exec
+DELETE FROM identity.auth_identities WHERE user_id = $1 AND NOT (provider = ANY($2::text[]))
+`
+
+type DeleteAuthIdentitiesExceptParams struct {
+	UserID    uuid.UUID
+	Providers []string
+}
+
+// Drops sign-in methods no longer linked in Firebase (the mirror follows Firebase).
+func (q *Queries) DeleteAuthIdentitiesExcept(ctx context.Context, arg DeleteAuthIdentitiesExceptParams) error {
+	_, err := q.db.Exec(ctx, deleteAuthIdentitiesExcept, arg.UserID, arg.Providers)
+	return err
+}
+
 const getUserByFirebaseUID = `-- name: GetUserByFirebaseUID :one
 
 SELECT id, firebase_uid, account_tier, status, age_verified_at, upgraded_at, abandoned_at, deletion_requested_at, deleted_at, last_seen_at, created_at, updated_at FROM identity.users WHERE firebase_uid = $1
@@ -20,6 +35,31 @@ SELECT id, firebase_uid, account_tier, status, age_verified_at, upgraded_at, aba
 // identity queries (schema-identity.md §2, §5). Only the identity schema.
 func (q *Queries) GetUserByFirebaseUID(ctx context.Context, firebaseUid string) (IdentityUser, error) {
 	row := q.db.QueryRow(ctx, getUserByFirebaseUID, firebaseUid)
+	var i IdentityUser
+	err := row.Scan(
+		&i.ID,
+		&i.FirebaseUid,
+		&i.AccountTier,
+		&i.Status,
+		&i.AgeVerifiedAt,
+		&i.UpgradedAt,
+		&i.AbandonedAt,
+		&i.DeletionRequestedAt,
+		&i.DeletedAt,
+		&i.LastSeenAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getUserByFirebaseUIDForUpdate = `-- name: GetUserByFirebaseUIDForUpdate :one
+SELECT id, firebase_uid, account_tier, status, age_verified_at, upgraded_at, abandoned_at, deletion_requested_at, deleted_at, last_seen_at, created_at, updated_at FROM identity.users WHERE firebase_uid = $1 FOR UPDATE
+`
+
+// Serialises concurrent session syncs of the same user.
+func (q *Queries) GetUserByFirebaseUIDForUpdate(ctx context.Context, firebaseUid string) (IdentityUser, error) {
+	row := q.db.QueryRow(ctx, getUserByFirebaseUIDForUpdate, firebaseUid)
 	var i IdentityUser
 	err := row.Scan(
 		&i.ID,
@@ -62,9 +102,10 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (IdentityUser, 
 	return i, err
 }
 
-const insertUser = `-- name: InsertUser :exec
+const insertUser = `-- name: InsertUser :execrows
 INSERT INTO identity.users (id, firebase_uid, account_tier, age_verified_at, last_seen_at, created_at, updated_at)
 VALUES ($1, $2, $3, $4, $4, $4, $4)
+ON CONFLICT (firebase_uid) DO NOTHING
 `
 
 type InsertUserParams struct {
@@ -74,14 +115,18 @@ type InsertUserParams struct {
 	Now         time.Time
 }
 
-func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) error {
-	_, err := q.db.Exec(ctx, insertUser,
+// 0 rows: a concurrent first session created the user already.
+func (q *Queries) InsertUser(ctx context.Context, arg InsertUserParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertUser,
 		arg.ID,
 		arg.FirebaseUid,
 		arg.AccountTier,
 		arg.Now,
 	)
-	return err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const listAuthIdentities = `-- name: ListAuthIdentities :many
@@ -140,7 +185,7 @@ func (q *Queries) ListUserRoles(ctx context.Context, userID uuid.UUID) ([]string
 	return items, nil
 }
 
-const markGuestAbandoned = `-- name: MarkGuestAbandoned :exec
+const markGuestAbandoned = `-- name: MarkGuestAbandoned :execrows
 UPDATE identity.users SET abandoned_at = $1::timestamptz, updated_at = $1::timestamptz
 WHERE id = $2 AND account_tier = 'guest' AND abandoned_at IS NULL
 `
@@ -150,9 +195,12 @@ type MarkGuestAbandonedParams struct {
 	ID  uuid.UUID
 }
 
-func (q *Queries) MarkGuestAbandoned(ctx context.Context, arg MarkGuestAbandonedParams) error {
-	_, err := q.db.Exec(ctx, markGuestAbandoned, arg.Now, arg.ID)
-	return err
+func (q *Queries) MarkGuestAbandoned(ctx context.Context, arg MarkGuestAbandonedParams) (int64, error) {
+	result, err := q.db.Exec(ctx, markGuestAbandoned, arg.Now, arg.ID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const setDeletionRequested = `-- name: SetDeletionRequested :exec

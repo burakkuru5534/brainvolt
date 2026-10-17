@@ -24,8 +24,11 @@ func TestQueries(t *testing.T) {
 	if _, err := q.GetUserByFirebaseUID(ctx, "fb-1"); !errors.Is(err, pgx.ErrNoRows) {
 		t.Fatalf("missing user: %v, want ErrNoRows", err)
 	}
-	if err := q.InsertUser(ctx, sqlc.InsertUserParams{ID: id, FirebaseUid: "fb-1", AccountTier: "guest", Now: t0}); err != nil {
-		t.Fatal(err)
+	if n, err := q.InsertUser(ctx, sqlc.InsertUserParams{ID: id, FirebaseUid: "fb-1", AccountTier: "guest", Now: t0}); err != nil || n != 1 {
+		t.Fatalf("InsertUser = %d, %v", n, err)
+	}
+	if n, err := q.InsertUser(ctx, sqlc.InsertUserParams{ID: ids.New(), FirebaseUid: "fb-1", AccountTier: "guest", Now: t0}); err != nil || n != 0 {
+		t.Fatalf("second InsertUser for the same firebase_uid = %d, %v; want 0 rows", n, err)
 	}
 	u, err := q.GetUserByFirebaseUID(ctx, "fb-1")
 	if err != nil || u.ID != id || u.AccountTier != "guest" || u.Status != "active" || !u.AgeVerifiedAt.Equal(t0) || u.UpgradedAt != nil {
@@ -63,9 +66,17 @@ func TestQueries(t *testing.T) {
 		t.Fatalf("identities = %+v, %v", list, err)
 	}
 
-	// Only guests can be marked abandoned.
-	if err := q.MarkGuestAbandoned(ctx, sqlc.MarkGuestAbandonedParams{ID: id, Now: t2}); err != nil {
+	// The mirror drops providers no longer linked in Firebase.
+	if err := q.DeleteAuthIdentitiesExcept(ctx, sqlc.DeleteAuthIdentitiesExceptParams{UserID: id, Providers: []string{"password"}}); err != nil {
 		t.Fatal(err)
+	}
+	if list, _ := q.ListAuthIdentities(ctx, id); len(list) != 1 || list[0].Provider != "password" {
+		t.Fatalf("after DeleteAuthIdentitiesExcept: %+v", list)
+	}
+
+	// Only guests can be marked abandoned.
+	if n, err := q.MarkGuestAbandoned(ctx, sqlc.MarkGuestAbandonedParams{ID: id, Now: t2}); err != nil || n != 0 {
+		t.Fatalf("MarkGuestAbandoned on a full account = %d, %v", n, err)
 	}
 	if u, _ = q.GetUserByID(ctx, id); u.AbandonedAt != nil {
 		t.Fatal("a full account was marked abandoned")
@@ -83,6 +94,9 @@ func TestQueries(t *testing.T) {
 	}
 
 	if err := q.TouchUser(ctx, sqlc.TouchUserParams{ID: id, Now: t2}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := q.GetUserByFirebaseUIDForUpdate(ctx, "fb-1"); err != nil {
 		t.Fatal(err)
 	}
 	if roles, err := q.ListUserRoles(ctx, id); err != nil || len(roles) != 0 {
