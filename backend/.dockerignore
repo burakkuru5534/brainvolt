@@ -1,0 +1,5 @@
+# Keep the build context small and free of local state.
+bin/
+*.test
+*.out
+.env

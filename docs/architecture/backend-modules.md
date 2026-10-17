@@ -129,7 +129,7 @@ Inbound WebSocket messages are routed by type prefix (`match.*`, `lobby.*`, `cha
 ## 4. Data ownership rules
 1. **One PostgreSQL database, one schema per module** (`identity.users`, `content.questions`, `game.matches`, …). A module reads and writes **only its own schema**.
 2. **Foreign keys only along allowed import edges** (e.g. `game` → `content.questions`, any module → `identity.users`). Other cross-module references are stored as plain IDs.
-3. **Transactions never span modules.** Cross-module consistency goes through outbox events.
+3. **Transactions never span modules.** Cross-module consistency goes through outbox events. Single exception (D-059): identity's first-session transaction calls `identity.ProfileProvisioner.CreateTx` (implemented by profile) so a user never exists without a profile (schema-identity §5.1).
 4. **Redis keys are prefixed by module** (`game:`, `mm:`, `rt:`, `rank:` …); key catalogue in `docs/domain/redis-keys.md` (0.2.9).
 5. Migrations live in one sequence (`backend/migrations/`) with the module name in each file name.
 

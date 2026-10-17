@@ -19,6 +19,17 @@ import (
 // even when a dependency hangs.
 const checkTimeout = 2 * time.Second
 
+// Liveness is the body of GET /healthz.
+type Liveness struct {
+	Status string `json:"status"`
+}
+
+// Readiness is the body of GET /readyz; Checks maps a check name to "ok".
+type Readiness struct {
+	Checks map[string]string `json:"checks"`
+	Status string            `json:"status"`
+}
+
 // Check is one readiness dependency.
 type Check struct {
 	Name string
@@ -28,16 +39,19 @@ type Check struct {
 // Register adds /healthz and /readyz to the server.
 func Register(s *httpserver.Server, logger *slog.Logger, checks ...Check) {
 	s.Handle("GET /healthz", func(w http.ResponseWriter, _ *http.Request) error {
-		return httpserver.WriteJSON(w, http.StatusOK, map[string]string{"status": "ok"})
-	})
+		return httpserver.WriteJSON(w, http.StatusOK, Liveness{Status: "ok"})
+	}, httpserver.WithDoc(httpserver.Doc{Tag: "health", Auth: "public", Summary: "Liveness: the process is up", Response: Liveness{}}))
 	s.Handle("GET /readyz", func(w http.ResponseWriter, r *http.Request) error {
 		results, ok := run(r.Context(), logger, checks)
 		if !ok {
 			// Only check names and ok/failed go out; causes are logged.
 			return apierror.New(apierror.Unavailable).With("checks", results).WithRetryAfter(5 * time.Second)
 		}
-		return httpserver.WriteJSON(w, http.StatusOK, map[string]any{"status": "ready", "checks": results})
-	})
+		return httpserver.WriteJSON(w, http.StatusOK, Readiness{Status: "ready", Checks: results})
+	}, httpserver.WithDoc(httpserver.Doc{
+		Tag: "health", Auth: "public", Summary: "Readiness: Postgres, Redis and migrations; 503 lists the failed checks",
+		Response: Readiness{}, Errors: []apierror.Code{apierror.Unavailable},
+	}))
 }
 
 // run executes all checks concurrently.

@@ -34,7 +34,7 @@ require_backend = $(if $(wildcard $(BACKEND)/go.mod),,$(error backend/ is not se
 # $(call mobile,<command>,<what is skipped>) runs <command> in mobile/ if it exists.
 mobile = $(if $(wildcard $(MOBILE)/pubspec.yaml),cd $(MOBILE) && $(1),@echo mobile/ not set up yet - roadmap 1.7 - skipping $(2))
 
-.PHONY: help env up down reset ps logs psql redis-cli run test lint migrate gen check-gen
+.PHONY: help env up up-app down reset ps logs psql redis-cli run test lint migrate gen check-gen
 
 help: ## List targets
 	$(HELP)
@@ -48,17 +48,20 @@ endif
 up: env ## Start Postgres, Redis, Firebase Auth emulator and wait until healthy   (docker compose up -d --build --wait)
 	$(COMPOSE) up -d --build --wait
 
-down: ## Stop services, keep data volumes   (docker compose down)
-	$(COMPOSE) down
+up-app: env ## Also build and run migrate, api and worker containers   (docker compose --profile app up -d --build --wait)
+	$(COMPOSE) --profile app up -d --build --wait
 
-reset: ## Stop services and DELETE local data volumes   (docker compose down -v)
-	$(COMPOSE) down -v
+down: ## Stop all services, keep data volumes   (docker compose --profile app down)
+	$(COMPOSE) --profile app down
 
-ps: ## Show service status   (docker compose ps)
-	$(COMPOSE) ps
+reset: ## Stop all services and DELETE local data volumes   (docker compose --profile app down -v)
+	$(COMPOSE) --profile app down -v
 
-logs: ## Follow service logs   (docker compose logs -f)
-	$(COMPOSE) logs -f
+ps: ## Show service status   (docker compose --profile app ps)
+	$(COMPOSE) --profile app ps
+
+logs: ## Follow service logs   (docker compose --profile app logs -f)
+	$(COMPOSE) --profile app logs -f
 
 psql: ## Open psql in the postgres container   (docker compose exec postgres psql -U brainvolt -d brainvolt)
 	$(COMPOSE) exec postgres psql -U "$(BRAINVOLT_POSTGRES_USER)" -d "$(BRAINVOLT_POSTGRES_DB)"
@@ -84,11 +87,13 @@ migrate: ## Apply DB migrations; MIGRATE=down|status|version for others   (cd ba
 	$(require_backend)
 	cd $(BACKEND) && go run ./cmd/migrate $(MIGRATE)
 
-gen: ## Regenerate code   (cd backend && sqlc generate ; cd mobile && flutter gen-l10n && dart run build_runner build -d)
+gen: ## Regenerate code and docs/api/openapi.yaml   (cd backend && sqlc generate && go test ./internal/app -run TestOpenAPIUpToDate -update ; mobile codegen)
 	$(require_backend)
 	cd $(BACKEND) && sqlc generate
+	cd $(BACKEND) && go test ./internal/app -run TestOpenAPIUpToDate -update
 	$(call mobile,flutter gen-l10n && dart run build_runner build --delete-conflicting-outputs,mobile codegen)
 
-check-gen: ## Fail if committed sqlc code is stale   (cd backend && sqlc diff)
+check-gen: ## Fail if committed sqlc code or openapi.yaml is stale   (cd backend && sqlc diff && go test ./internal/app -run TestOpenAPIUpToDate)
 	$(require_backend)
 	cd $(BACKEND) && sqlc diff
+	cd $(BACKEND) && go test -count=1 ./internal/app -run TestOpenAPIUpToDate

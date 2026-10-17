@@ -159,3 +159,9 @@ func (p Principal) HasRole(role string) bool { return slices.Contains(p.Roles, r
 // DeletionGracePeriod is the cooling-off window before a requested deletion
 // is executed (D-022).
 const DeletionGracePeriod = 14 * 24 * time.Hour
+
+// EnumValues lists the tiers (used by the OpenAPI generator).
+func (Tier) EnumValues() []string { return []string{"guest", "unverified", "full"} }
+
+// EnumValues lists the statuses (used by the OpenAPI generator).
+func (Status) EnumValues() []string { return []string{"active", "suspended", "deleted"} }

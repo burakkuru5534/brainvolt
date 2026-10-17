@@ -53,6 +53,7 @@ backend/
 │   │   ├── idempotency/                Idempotency-Key handling (conventions.md §9)
 │   │   ├── testenv/                    integration-test service addresses (BRAINVOLT_TEST_*)
 │   │   ├── testdb/                     per-test migrated Postgres databases cloned from a template
+│   │   ├── events/                     transactional outbox on River (domain events between modules)
 │   │   ├── wsserver/                   WebSocket hub, connection lifecycle, envelope codec
 │   │   ├── firebase/                   ID-token verification, FCM client
 │   │   ├── clock/                      injectable server clock (all timers use this; tests use a fake)

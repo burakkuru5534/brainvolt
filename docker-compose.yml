@@ -8,6 +8,25 @@
 
 name: brainvolt
 
+# Settings shared by the backend containers (profile "app"). Inside the
+# Compose network the services are reached by name, not via localhost.
+x-backend-env: &backend-env
+  BRAINVOLT_ENV: dev
+  BRAINVOLT_LOG_LEVEL: ${BRAINVOLT_LOG_LEVEL:-info}
+  BRAINVOLT_LOG_FORMAT: json
+  BRAINVOLT_POSTGRES_URL: postgres://${BRAINVOLT_POSTGRES_USER}:${BRAINVOLT_POSTGRES_PASSWORD}@postgres:5432/${BRAINVOLT_POSTGRES_DB}?sslmode=disable
+  BRAINVOLT_REDIS_URL: redis://:${BRAINVOLT_REDIS_PASSWORD}@redis:6379/0
+  BRAINVOLT_FIREBASE_PROJECT_ID: ${BRAINVOLT_FIREBASE_PROJECT_ID}
+  FIREBASE_AUTH_EMULATOR_HOST: firebase-auth:9099
+
+x-backend: &backend
+  build:
+    context: ./backend
+  image: brainvolt/backend:local
+  profiles: ["app"]
+  restart: unless-stopped
+  environment: *backend-env
+
 services:
   postgres:
     image: postgres:18.6-alpine
@@ -83,6 +102,46 @@ services:
       timeout: 3s
       retries: 20
       start_period: 15s
+
+  # --- Backend (profile "app": `make up-app`) ------------------------------
+  # Day-to-day development runs the API with `make run`; these containers run
+  # the same image that is deployed (roadmap 1.6.8).
+  migrate:
+    <<: *backend
+    container_name: brainvolt_migrate
+    restart: "no"
+    command: ["/app/migrate", "up"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    <<: *backend
+    container_name: brainvolt_api
+    command: ["/app/api"]
+    ports:
+      - "127.0.0.1:${BRAINVOLT_API_PORT:-8080}:8080"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      firebase-auth:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/readyz"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+
+  worker:
+    <<: *backend
+    container_name: brainvolt_worker
+    command: ["/app/worker"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
 
 volumes:
   postgres_data:

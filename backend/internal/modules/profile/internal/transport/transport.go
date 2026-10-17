@@ -68,18 +68,21 @@ func (t *Transport) Register(s *httpserver.Server) {
 	s.Handle("PATCH /v1/me/profile", a(t.patchProfile), httpserver.WithDoc(httpserver.Doc{
 		Tag: "profile", Auth: "any", Summary: "Edit own profile (username: full accounts, once per 30 days; country: once per 30 days)",
 		Request: ProfileRequest{}, Response: service.OwnProfile{},
-		Errors: []apierror.Code{apierror.ValidationFailed, apierror.TextRejected, apierror.AccountUpgradeRequired, apierror.ChangeTooSoon, apierror.UsernameTaken, apierror.RateLimited},
+		Errors: []apierror.Code{apierror.ValidationFailed, apierror.TextRejected, apierror.AccountUpgradeRequired, apierror.ChangeTooSoon,
+			apierror.UsernameTaken, apierror.AccountSuspended, apierror.AccountDeletionPending},
 	}))
 	s.Handle("GET /v1/me/settings", a(t.getSettings, identity.AllowSuspended()), httpserver.WithDoc(httpserver.Doc{
 		Tag: "profile", Auth: "any", Summary: "Own privacy and app settings", Response: service.Settings{},
+		Errors: []apierror.Code{apierror.AccountDeletionPending},
 	}))
 	s.Handle("PATCH /v1/me/settings", a(t.patchSettings), httpserver.WithDoc(httpserver.Doc{
 		Tag: "profile", Auth: "any", Summary: "Edit own privacy and app settings",
-		Request: SettingsRequest{}, Response: service.Settings{}, Errors: []apierror.Code{apierror.ValidationFailed},
+		Request: SettingsRequest{}, Response: service.Settings{},
+		Errors: []apierror.Code{apierror.ValidationFailed, apierror.AccountSuspended, apierror.AccountDeletionPending},
 	}))
 	s.Handle("GET /v1/profiles/{user_id}", a(t.publicProfile), httpserver.WithDoc(httpserver.Doc{
 		Tag: "profile", Auth: "any", Summary: "Public profile of a user (no email)", Response: service.PublicProfile{},
-		Errors: []apierror.Code{apierror.NotFound},
+		Errors: []apierror.Code{apierror.NotFound, apierror.AccountSuspended, apierror.AccountDeletionPending},
 	}))
 }
 

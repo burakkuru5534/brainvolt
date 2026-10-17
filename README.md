@@ -74,6 +74,21 @@ set -a; . ./.env; set +a
 
 Targets that need `mobile/` print a message until the app is created (roadmap 1.7).
 
+## Backend in containers
+
+`make up` starts only the infrastructure; run the API locally with `make run`. To run the same image that is deployed:
+
+```bash
+make up-app        # docker compose --profile app up -d --build --wait  → migrate, api (localhost:8080), worker
+make down          # stops everything, including the app containers
+```
+
+Stop the `api` container before `make run` (both use port 8080, see `BRAINVOLT_API_PORT`).
+
+## API contract
+
+`docs/api/openapi.yaml` (OpenAPI 3.1) is generated from the route registry and Go types. `make gen` rewrites it; `make check-gen` (and the test suite) fails when it is stale.
+
 ## Database migrations
 
 ```bash
@@ -82,7 +97,7 @@ make migrate MIGRATE=status     # list applied / pending
 make migrate MIGRATE=down       # roll back the latest one
 ```
 
-Migrations live in `backend/migrations/` as `NNNNNN_<module>_<change>.sql` with `-- +goose Up` / `-- +goose Down` sections; `000001` installs River's job tables. `/readyz` reports `migrations: failed` until the database is up to date. After changing SQL queries or migrations run `make gen` (sqlc) and commit the generated code; `make check-gen` fails if it is stale.
+Migrations live in `backend/migrations/` as `NNNNNN_<module>_<change>.sql` with `-- +goose Up` / `-- +goose Down` sections; `000001` installs River's job tables. `/readyz` reports `migrations: failed` until the database is up to date. After changing SQL queries, migrations or API types run `make gen` (sqlc + OpenAPI) and commit the generated files; `make check-gen` fails if they are stale.
 
 ## Tests
 

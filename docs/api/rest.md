@@ -12,7 +12,7 @@
 ## 1. identity & session
 | Method | Path | Auth | Idem | Ph | Purpose |
 |---|---|---|---|---|---|
-| POST | `/v1/session` | any | — | 1 | Sync after sign-in/link/verify. Body `{age_confirmed, installation_id, platform, app_version, locale, country_hint?}` → `{user, profile, tier, status, flags}`. Creates user on first call (schema-identity §5.1). `AGE_CONFIRMATION_REQUIRED` if missing. |
+| POST | `/v1/session` | any | — | 1 | Sync after sign-in/link/verify. Body `{age_confirmed, installation_id, platform, app_version, locale, country_hint?}` → `{user, profile, tier, status, flags}` (`flags`: `created`, `restricted`, `email_verification_required`, `deletion_pending`, `suspended` — D-059). Creates user on first call (schema-identity §5.1). `AGE_CONFIRMATION_REQUIRED` if missing. |
 | POST | `/v1/session/abandon-guest` | any (guest) | ✓ | 1 | Link-conflict path (D-015): mark this guest abandoned. |
 | GET | `/v1/me` | any | — | 1 | Own user, profile, settings, tier, sanctions summary, entitlements. |
 | POST | `/v1/me/deletion` | any | ✓ | 1 | Request account deletion (14-day cooling-off, D-022). |

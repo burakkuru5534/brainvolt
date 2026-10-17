@@ -117,17 +117,18 @@ func (t *Transport) Register(s *httpserver.Server) {
 		Tag: "identity", Auth: "any",
 		Summary: "Sync the account after sign-in, link or email verification; creates it on the first call",
 		Request: SessionRequest{}, Response: SessionResponse{}, Status: http.StatusOK,
-		Errors: []apierror.Code{apierror.AgeConfirmationRequired, apierror.ValidationFailed, apierror.Unauthenticated, apierror.TokenExpired, apierror.RateLimited},
+		Errors: []apierror.Code{apierror.AgeConfirmationRequired, apierror.ValidationFailed},
 	}))
 	s.Handle("POST /v1/session/abandon-guest", t.Auth(t.idem.Wrap(idempotency.Required, t.abandonGuest)), httpserver.WithDoc(httpserver.Doc{
 		Tag: "identity", Auth: "any", Idempotency: true,
 		Summary: "Link conflict (D-015): give up this guest account before switching to the existing one",
-		Errors:  []apierror.Code{apierror.Forbidden},
+		Errors:  []apierror.Code{apierror.Forbidden, apierror.ValidationFailed, apierror.AccountSuspended, apierror.AccountDeletionPending, apierror.IdempotencyKeyReused, apierror.IdempotencyInProgress},
 	}))
 	s.Handle("POST /v1/me/deletion", t.Auth(t.idem.Wrap(idempotency.Required, t.requestDeletion), AllowSuspended(), AllowDeletionPending()), httpserver.WithDoc(httpserver.Doc{
 		Tag: "identity", Auth: "any", Idempotency: true,
 		Summary:  "Request account deletion (14-day cooling-off, D-022)",
 		Response: service.Deletion{},
+		Errors:   []apierror.Code{apierror.ValidationFailed, apierror.IdempotencyKeyReused, apierror.IdempotencyInProgress},
 	}))
 	s.Handle("DELETE /v1/me/deletion", t.Auth(t.cancelDeletion, AllowSuspended(), AllowDeletionPending()), httpserver.WithDoc(httpserver.Doc{
 		Tag: "identity", Auth: "any",
