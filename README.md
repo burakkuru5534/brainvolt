@@ -92,10 +92,11 @@ Migrations live in `backend/migrations/` as `NNNNNN_<module>_<change>.sql` with 
 
 Module boundaries from [`backend-modules.md`](docs/architecture/backend-modules.md) are checked by a test: `go test ./internal/archtest/` reads the allowed-import table from that document and fails on any edge not listed there. To add a dependency between modules, edit the table first.
 
-## Windows notes (Git Bash)
+## Windows notes
 
-- Run all commands from **Git Bash**, not `cmd.exe` / PowerShell — the Makefile and scripts use bash.
-- `make` is not bundled with Windows. Install it with `winget install ezwinports.make` or `scoop install make`, or simply type the plain commands from the table above.
+- `make` targets work from **PowerShell**, `cmd.exe` and **Git Bash** alike. Scripts under `scripts/` (when added) need Git Bash.
+- `make` is not bundled with Windows. Install it with `winget install ezwinports.make` or `scoop install make`. Without `make`, the plain commands need the `.env` variables loaded first, which is easiest in Git Bash (`set -a; . ./.env; set +a`); `make` loads `.env` for you in every shell.
+- Tools that `make` calls (`go`, `docker`, `golangci-lint`, `sqlc`) must be on `PATH`. Simplest for `sqlc.exe`: move it into `%USERPROFILE%\go\bin` (already on PATH after installing Go) and check with `sqlc version` in a new terminal.
 - Line endings: the repository forces **LF** through `.gitattributes` (only `*.bat` / `*.cmd` / `*.ps1` use CRLF), so SQL, shell and YAML files keep working inside Linux containers. Recommended once per machine:
   ```bash
   git config --global core.autocrlf false
