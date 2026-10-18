@@ -31,6 +31,8 @@ MIGRATE ?= up
 # Stop with a clear message when a project part does not exist yet
 # (backend arrives in roadmap 1.3, mobile in 1.7).
 require_backend = $(if $(wildcard $(BACKEND)/go.mod),,$(error backend/ is not set up yet (roadmap 1.3)))
+# Mobile code generation: error texts from the backend registry, ARB → Dart, build_runner.
+MOBILE_GEN = dart run tool/gen_error_l10n.dart && flutter gen-l10n && dart run build_runner build --delete-conflicting-outputs
 # $(call mobile,<command>,<what is skipped>) runs <command> in mobile/ if it exists.
 mobile = $(if $(wildcard $(MOBILE)/pubspec.yaml),cd $(MOBILE) && $(1),@echo mobile/ not set up yet - roadmap 1.7 - skipping $(2))
 
@@ -81,22 +83,23 @@ test: check-env ## Run backend and mobile tests   (cd backend && go test ./... ;
 	cd $(BACKEND) && go test ./...
 	$(call mobile,flutter test,flutter test)
 
-lint: ## Run linters   (cd backend && go vet ./... && golangci-lint run ; cd mobile && flutter analyze)
+lint: ## Run linters   (cd backend && go vet ./... && golangci-lint run ; cd mobile && dart analyze --fatal-infos)
 	$(require_backend)
 	cd $(BACKEND) && go vet ./... && golangci-lint run
-	$(call mobile,flutter analyze,flutter analyze)
+	$(call mobile,dart analyze --fatal-infos,dart analyze)
 
 migrate: check-env ## Apply DB migrations; MIGRATE=down|status|version for others   (cd backend && go run ./cmd/migrate up)
 	$(require_backend)
 	cd $(BACKEND) && go run ./cmd/migrate $(MIGRATE)
 
-gen: ## Regenerate code and docs/api/openapi.yaml   (cd backend && sqlc generate && go test ./internal/app -run TestOpenAPIUpToDate -update ; mobile codegen)
+gen: ## Regenerate code and docs/api/openapi.yaml   (backend: sqlc + OpenAPI ; mobile: error texts, gen-l10n, build_runner)
 	$(require_backend)
 	cd $(BACKEND) && sqlc generate
 	cd $(BACKEND) && go test ./internal/app -run TestOpenAPIUpToDate -update
-	$(call mobile,flutter gen-l10n && dart run build_runner build --delete-conflicting-outputs,mobile codegen)
+	$(call mobile,$(MOBILE_GEN),mobile codegen)
 
-check-gen: ## Fail if committed sqlc code or openapi.yaml is stale   (cd backend && sqlc diff && go test ./internal/app -run TestOpenAPIUpToDate)
+check-gen: ## Fail if committed generated files are stale   (sqlc diff ; OpenAPI drift test ; mobile codegen + git diff --exit-code)
 	$(require_backend)
 	cd $(BACKEND) && sqlc diff
 	cd $(BACKEND) && go test -count=1 ./internal/app -run TestOpenAPIUpToDate
+	$(call mobile,$(MOBILE_GEN) && git diff --exit-code -- lib,mobile codegen check)

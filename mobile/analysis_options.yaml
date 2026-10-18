@@ -1,0 +1,54 @@
+# Static analysis for the BrainVolt app (roadmap 1.7.2, ADR-0003).
+# CI runs `flutter analyze --fatal-infos`: zero warnings and zero infos.
+include: package:flutter_lints/flutter.yaml
+
+plugins:
+  # Riverpod-specific rules (missing dependencies, unused refs, …), run by
+  # `flutter analyze` through the analysis server plugin system.
+  riverpod_lint: ^3.1.9
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  exclude:
+    # Generated code is checked by its generator, not the linter.
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "lib/core/l10n/generated/**"
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
+  errors:
+    # A missing await or an ignored Future hides failures in network code.
+    unawaited_futures: error
+    discarded_futures: error
+
+linter:
+  rules:
+    - always_declare_return_types
+    - avoid_dynamic_calls
+    - avoid_print
+    - avoid_type_to_string
+    - cancel_subscriptions
+    - close_sinks
+    - directives_ordering
+    - discarded_futures
+    - prefer_const_constructors
+    - prefer_const_declarations
+    - prefer_final_fields
+    - prefer_final_locals
+    - prefer_single_quotes
+    - require_trailing_commas
+    - sort_constructors_first
+    - test_types_in_equals
+    - throw_in_finally
+    - unawaited_futures
+    - unnecessary_lambdas
+    - unnecessary_statements
+    - use_super_parameters

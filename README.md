@@ -125,6 +125,10 @@ Module boundaries from [`backend-modules.md`](docs/architecture/backend-modules.
 - Docker Desktop must be running with the WSL 2 backend. If a port is already taken (for example a locally installed PostgreSQL on 5432), change `BRAINVOLT_POSTGRES_PORT` in `.env` — the connection URL picks it up automatically.
 - `go test -race` needs a C compiler (cgo); on Windows plain `go test` is the default and CI runs the race detector.
 
+## Mobile app
+
+See [`mobile/README.md`](mobile/README.md): `cd mobile && flutter run --dart-define-from-file=env/dev.json` with the backend running. `make test`, `make lint` and `make gen` cover the app too (lint uses `dart analyze`, which also runs riverpod_lint).
+
 ## Repository layout
 
 See [`docs/architecture/repo-layout.md`](docs/architecture/repo-layout.md). In short: `backend/` (Go), `mobile/` (Flutter), `content/` (question data), `scripts/` (dev helpers), `docs/` (design and contracts).

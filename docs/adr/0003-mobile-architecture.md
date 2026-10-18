@@ -21,9 +21,10 @@ The app is a **thin, real-time client**: the backend owns game state, timers, an
 | Firebase | **`firebase_core`**, **`firebase_auth`**; **`firebase_messaging`** (Phase 9); configured with the FlutterFire CLI | latest compatible | Sign-in and FCM only (ADR-0001). |
 | Localization | **`flutter_localizations`** + **`gen-l10n`** (ARB files `app_tr.arb` = template, `app_en.arb`) | SDK | Official, type-safe generated strings. Turkish is the template language (D-001). Device locale picks TR/EN; user can override in settings; chosen locale sent to backend (`Accept-Language`, profile). |
 | Small local storage | **`shared_preferences`** | latest | Locale override, onboarding flags, sound settings. No game data is stored locally (server is the source of truth). |
+| App version | **`package_info_plus`** | 10.x | Reads `version+build` for the `X-App-Version` header (forced-update check, conventions.md §2). Added in Phase 1 (D-060). |
 | Logging | **`logging`** (tools.dart.dev) | latest | Levelled logs, silenced in release builds. |
 | Testing | **`flutter_test`**, **`mocktail`**, **`integration_test`** (Phase 9 E2E) | SDK / latest | Unit, widget and on-device tests; provider overrides replace real clients. |
-| Lint | **`flutter_lints`** + `riverpod_lint` + stricter rules in `analysis_options.yaml` | latest | Run in CI as `flutter analyze` with zero warnings allowed. |
+| Lint | **`flutter_lints`** + `riverpod_lint` + stricter rules in `analysis_options.yaml` | latest | Run in CI as `dart analyze --fatal-infos` with zero warnings allowed (riverpod_lint 3 is an analysis-server plugin that `flutter analyze` does not run — D-060). |
 
 \* Exact versions pinned in `pubspec.lock` in Phase 1 (ADR-0001 policy).
 

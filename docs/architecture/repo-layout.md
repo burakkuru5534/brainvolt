@@ -85,6 +85,8 @@ Created with `flutter create` in Phase 1; Flutter's own generated files (`androi
 mobile/
 ├── pubspec.yaml / pubspec.lock
 ├── .flutter-version                    3.47.1 (ADR-0001)
+├── env/                                dev.json / prod.json for --dart-define-from-file (D-060)
+├── tool/gen_error_l10n.dart            error_<CODE> texts from the backend error registry
 ├── l10n.yaml                           localization config
 ├── lib/
 │   ├── main.dart                       entry point only

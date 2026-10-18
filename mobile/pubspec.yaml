@@ -1,0 +1,42 @@
+name: brainvolt
+description: "BrainVolt — real-time competitive quiz (Android + iOS)."
+publish_to: 'none'
+
+# Sent to the backend as X-App-Version (conventions.md §2); bump the build
+# number (+N) for every store upload.
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.1
+  flutter: ">=3.47.0 <4.0.0"   # exact version: .flutter-version (ADR-0001)
+
+# Libraries: ADR-0003. Exact versions are pinned in pubspec.lock.
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  dio: ^5.11.1
+  flutter_riverpod: ^3.4.3
+  freezed_annotation: ^3.1.0
+  go_router: ^18.1.0
+  intl: any # version is fixed by flutter_localizations
+  json_annotation: ^4.12.0
+  logging: ^1.3.0
+  package_info_plus: ^10.2.2
+  riverpod_annotation: ^4.0.7
+  shared_preferences: ^2.5.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.16.2
+  flutter_lints: ^6.0.0
+  freezed: ^4.0.3
+  json_serializable: ^6.14.1
+  mocktail: ^1.0.5
+  riverpod_generator: ^4.0.9
+
+flutter:
+  uses-material-design: true
+  generate: true # gen-l10n (l10n.yaml)

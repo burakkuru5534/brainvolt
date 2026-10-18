@@ -1,0 +1,8 @@
+# gen-l10n (roadmap 1.7.5, ADR-0003): Turkish is the template language (D-001).
+arb-dir: lib/core/l10n/arb
+template-arb-file: app_tr.arb
+output-dir: lib/core/l10n/generated
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+nullable-getter: false
+untranslated-messages-file: build/untranslated.json
