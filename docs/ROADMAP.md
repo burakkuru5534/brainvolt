@@ -325,7 +325,7 @@ Goal: two players finish a live 1v1 match on their phones: the WebSocket gateway
 - [x] 4.2.1 Owner per match: mailbox goroutine, Redis lease (10 s, renewed 3 s), `game:live`, timers from absolute deadlines, engine state saved in Redis after each command
 - [x] 4.2.2 Intents `match.join` / `ready` / `answer` / `leave`; events to `game:{m}:events` and to participants, rendered per recipient (locale texts, own answer); persistence through `Apply`
 - [x] 4.2.3 Disconnect / reconnect (windows, limits), `match.snapshot`, resume replay
-- [ ] 4.2.4 Owner loss: sweeper takeover with open-round voiding (`match.resumed`), `server_error` after 30 s
+- [x] 4.2.4 Owner loss: sweeper takeover with open-round voiding (`match.resumed`), `server_error` after 30 s
 
 ### 4.3 Getting into a match & results
 - [ ] 4.3.1 Minimal Quick Duel queue (`POST/GET/DELETE /v1/matchmaking/tickets`, first-come pairing, `mm.status` / `mm.match_found`); real matchmaking replaces the pairing in Phase 5

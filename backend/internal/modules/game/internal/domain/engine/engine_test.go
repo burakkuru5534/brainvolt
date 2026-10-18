@@ -654,3 +654,45 @@ func TestSnapshotRestore(t *testing.T) {
 		t.Fatalf("diverged: %+v vs %+v", r1, r2)
 	}
 }
+
+// Edge-cases §4: a takeover during an open round voids it; a fresh round
+// with a new question takes its number and the match still plays every
+// configured round.
+func TestTakeoverVoidsOpenRound(t *testing.T) {
+	h := newHarness(t, duel(domain.QuickDuel), 7)
+	h.start()
+	_, _ = h.answer(h.a(), h.correct(), 2_000)
+	_, _ = h.answer(h.b(), h.wrong(), 1_000)
+	h.reveal()
+	_, _ = h.answer(h.a(), h.correct(), 2_000) // round 2 open, half answered
+	voidedQ := h.m.Round.Question.ID
+	data, _ := h.m.Snapshot()
+	m, err := Restore(data, firstRandom{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	spare := question(h.cats[0], domain.MultipleChoice, 2)
+	h.m = m
+	h.at(h.now + 12_000)
+	o := h.record(m.Takeover([]Question{spare}, h.now))
+	if got := types(o); len(got) < 2 || got[0] != "match.resumed" || got[1] != "round.started" {
+		t.Fatalf("takeover events %v", got)
+	}
+	if o.Events[0].Payload["voided_round_no"] != 2 || m.Round.No != 2 || m.Round.Question.ID == voidedQ || m.Round.ShowAtMS <= h.now {
+		t.Fatalf("voided round not replaced: %+v", m.Round)
+	}
+	if len(o.Transitions) != 1 || o.Transitions[0].Reason != "round_voided_takeover" {
+		t.Fatalf("transitions %+v", o.Transitions)
+	}
+	if _, ok := m.AnswerOf(h.a()); ok {
+		t.Fatal("answer of the voided round kept")
+	}
+	for m.Status == domain.StatusInProgress {
+		_, _ = h.answer(h.a(), h.correct(), 1_000)
+		_, _ = h.answer(h.b(), h.correct(), 1_000)
+		h.reveal()
+	}
+	if r := m.Result(); r == nil || r.RoundsPlayed != 7 {
+		t.Fatalf("result %+v", r)
+	}
+}

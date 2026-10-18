@@ -11,6 +11,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"maps"
 	"strconv"
 	"strings"
 	"sync"
@@ -20,6 +21,7 @@ import (
 	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/content"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/domain"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/domain/engine"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
@@ -34,6 +36,10 @@ const (
 	LeaseRenew  = 3 * time.Second
 	FinishedTTL = time.Hour
 	maxEvents   = 1000
+	// SweepEvery is how often each instance looks for matches whose owner
+	// lease expired; TakeoverGiveUp cancels a match nobody resumed in time.
+	SweepEvery     = 2 * time.Second
+	TakeoverGiveUp = 30 * time.Second
 )
 
 var liveKey = redis.Key("game", "live")
@@ -46,9 +52,12 @@ func userLiveKey(u uuid.UUID) string {
 }
 func instChannel(instance string) string { return redis.Key("game", "ch", "inst", instance) }
 
-// Persister writes engine outputs to Postgres (service.Apply).
+// Persister is the game service: it writes engine outputs to Postgres,
+// picks replacement questions and cancels matches whose live state is gone.
 type Persister interface {
 	Apply(ctx context.Context, m *engine.Match, out engine.Output) error
+	Spare(ctx context.Context, m *engine.Match) ([]engine.Question, error)
+	CancelOrphan(ctx context.Context, id uuid.UUID) error
 }
 
 // Realtime is what the owner needs from the gateway.
@@ -241,10 +250,14 @@ func (m *Manager) Run(ctx context.Context) error {
 		return fmt.Errorf("game: subscribe: %w", err)
 	}
 	ch := sub.Channel()
+	sweep := m.d.Clock.NewTicker(SweepEvery)
+	defer sweep.Stop()
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
+		case <-sweep.C():
+			m.sweep(ctx)
 		case msg, ok := <-ch:
 			if !ok {
 				return nil
@@ -387,4 +400,130 @@ func (m *Manager) Resume(ctx context.Context, c realtime.Client, stream string, 
 		}
 	}
 	return m.d.RT.Send(ctx, t, mt.snapshot(match, r, m.d.Clock.Now().UnixMilli()))
+}
+
+// ---------- Owner loss & takeover (edge-cases §4) ----------
+
+// sweep takes over matches whose owner stopped renewing its lease.
+func (m *Manager) sweep(ctx context.Context) {
+	now := m.d.Clock.Now()
+	stale, err := m.d.Redis.ZRangeByScoreWithScores(ctx, liveKey, &goredis.ZRangeBy{
+		Min: "-inf", Max: strconv.FormatInt(now.Add(-LeaseTTL).UnixMilli(), 10),
+	}).Result()
+	if err != nil {
+		m.d.Logger.WarnContext(ctx, "game: sweeping live matches failed", "error", err)
+		return
+	}
+	for _, z := range stale {
+		id, err := uuid.Parse(fmt.Sprint(z.Member))
+		if err != nil || m.local(id) != nil {
+			continue
+		}
+		ok, err := m.d.Redis.SetNX(ctx, ownerKey(id), m.d.Instance, LeaseTTL).Result()
+		if err != nil || !ok {
+			continue // another instance owns or is taking it
+		}
+		lost := now.Sub(time.UnixMilli(int64(z.Score)))
+		if err := m.takeover(ctx, id, lost); err != nil {
+			m.d.Logger.ErrorContext(ctx, "game: taking over a match failed", "match_id", id, "error", err)
+			m.releaseLease(ctx, id)
+		}
+	}
+}
+
+// takeover resumes a match from its Redis state on this instance.
+func (m *Manager) takeover(ctx context.Context, id uuid.UUID, lost time.Duration) error {
+	vals, err := m.d.Redis.HMGet(ctx, stateKey(id), "engine", "meta", "seats").Result()
+	if err != nil {
+		return err
+	}
+	engineJSON, _ := vals[0].(string)
+	metaJSON, _ := vals[1].(string)
+	seatsJSON, _ := vals[2].(string)
+	if engineJSON == "" || metaJSON == "" {
+		// Redis lost the live state: Postgres decides (edge-cases §4).
+		if err := m.d.Persister.CancelOrphan(ctx, id); err != nil {
+			return err
+		}
+		m.d.Redis.ZRem(ctx, liveKey, id.String())
+		m.releaseLease(ctx, id)
+		return nil
+	}
+	match, err := engine.Restore([]byte(engineJSON), m.d.Random)
+	if err != nil {
+		return err
+	}
+	if match.Status.Terminal() {
+		m.d.Redis.ZRem(ctx, liveKey, id.String())
+		m.releaseLease(ctx, id)
+		return nil
+	}
+	var mt meta
+	if err := json.Unmarshal([]byte(metaJSON), &mt); err != nil {
+		return err
+	}
+	seats := map[uuid.UUID]uuid.UUID{}
+	if seatsJSON != "" {
+		if err := json.Unmarshal([]byte(seatsJSON), &seats); err != nil {
+			return err
+		}
+	}
+	now := m.d.Clock.Now().UnixMilli()
+	var out engine.Output
+	if lost > TakeoverGiveUp+LeaseTTL {
+		out = match.Cancel(domain.CancelServerError, uuid.Nil, now)
+	} else {
+		spare, err := m.d.Persister.Spare(ctx, match)
+		if err != nil {
+			m.d.Logger.WarnContext(ctx, "game: no replacement question for a voided round", "match_id", id, "error", err)
+		}
+		if err := m.addTexts(ctx, &mt, match, spare); err != nil {
+			return err
+		}
+		out = match.Takeover(spare, now)
+	}
+	m.d.Redis.ZAdd(ctx, liveKey, goredis.Z{Score: float64(now), Member: id.String()})
+	o := m.newOwner(match, &mt, seats)
+	m.d.Logger.InfoContext(ctx, "game: match taken over", "match_id", id, "lost_ms", lost.Milliseconds())
+	if err := o.commit(m.ctx, out, now); err != nil { //nolint:contextcheck // the owner runs on the manager's context
+		return err
+	}
+	if match.Status.Terminal() {
+		o.finish(m.ctx) //nolint:contextcheck // as above
+		return nil
+	}
+	go o.run(m.ctx) //nolint:contextcheck // as above
+	return nil
+}
+
+// addTexts loads the wording of replacement questions into meta.
+func (m *Manager) addTexts(ctx context.Context, mt *meta, match *engine.Match, qs []engine.Question) error {
+	if len(qs) == 0 {
+		return nil
+	}
+	locales := map[string]bool{}
+	for _, p := range match.Participants {
+		locales[p.Locale] = true
+	}
+	ls := make([]string, 0, len(locales))
+	for l := range locales {
+		ls = append(ls, l)
+	}
+	ids := make([]uuid.UUID, len(qs))
+	for i, q := range qs {
+		ids[i] = q.ID
+	}
+	texts, err := m.d.Texts.Texts(ctx, ids, ls)
+	if err != nil {
+		return err
+	}
+	if mt.Texts == nil {
+		mt.Texts = map[uuid.UUID]map[string]content.QuestionText{}
+	}
+	maps.Copy(mt.Texts, texts)
+	b, err := json.Marshal(mt)
+	if err != nil {
+		return err
+	}
+	return m.d.Redis.HSet(ctx, stateKey(match.ID), "meta", b).Err()
 }

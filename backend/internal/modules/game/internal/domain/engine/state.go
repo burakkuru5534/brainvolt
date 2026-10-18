@@ -120,3 +120,55 @@ func (m *Match) AnswerOf(user uuid.UUID) (uuid.UUID, bool) {
 
 // Participant returns a participant's state, or nil.
 func (m *Match) Participant(user uuid.UUID) *Participant { return m.participant(user) }
+
+// Takeover resumes the match on a new owner after the previous one was
+// lost (edge-cases §4). An open question round is voided — not scored, its
+// question never reused — and a fresh round with new show_at and deadline
+// takes its number; spare is the replacement question for fixed-length
+// matches. Every pending timer is returned again from the stored
+// deadlines, and participants get match.resumed.
+func (m *Match) Takeover(spare []Question, now int64) Output {
+	var o Output
+	m.questions = append(m.questions, spare...)
+	switch m.Status {
+	case domain.StatusWaiting:
+		o.Timers = append(o.Timers, Timer{Kind: TimerReadyDeadline, AtMS: m.ReadyDeadMS})
+		return o
+	case domain.StatusReady:
+		o.Timers = append(o.Timers, Timer{Kind: TimerStart, AtMS: m.StartsAtMS})
+		return o
+	case domain.StatusInProgress:
+	default:
+		return o
+	}
+	payload := map[string]any{"reason": "takeover"}
+	voided := 0
+	switch m.Phase {
+	case PhaseQuestion:
+		voided = m.Round.No
+		m.RoundNo, m.Round = voided-1, nil
+		payload["voided_round_no"] = voided
+		m.transition(&o, domain.StatusInProgress, domain.StatusInProgress, "round_voided_takeover", "system", uuid.Nil, now)
+	case PhaseReveal:
+		at := now
+		if m.lastRound != nil {
+			at = max(m.lastRound.RevealedMS+RevealMS, now)
+		}
+		o.Timers = append(o.Timers, Timer{Kind: TimerReveal, Round: m.Round.No, AtMS: at})
+	case PhasePreRound:
+		o.Timers = append(o.Timers, Timer{Kind: TimerPick, Round: m.Round.No, AtMS: max(m.Round.PickDeadMS, now)})
+	case PhaseHalftime:
+		o.Timers = append(o.Timers, Timer{Kind: TimerHalftime, AtMS: now + int64(m.Type.HalfTimeMS)})
+	case PhaseLobby, PhaseNeedsMore, PhaseOver:
+	}
+	m.emit(&o, "match.resumed", everyone, payload)
+	for _, p := range m.Participants {
+		if p.Status == domain.PDisconnected {
+			o.Timers = append(o.Timers, Timer{Kind: TimerReconnect, User: p.UserID, AtMS: p.DisconnectedAt + int64(m.Type.ReconnectWindowMS)})
+		}
+	}
+	if voided > 0 {
+		m.nextRound(&o, now)
+	}
+	return o
+}

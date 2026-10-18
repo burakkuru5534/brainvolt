@@ -156,6 +156,9 @@ type moduleDeps struct {
 
 // modules are the built modules a process runs besides the HTTP server.
 type modules struct {
+	identity *identity.Module
+	profile  *profile.Module
+	content  *content.Module
 	realtime *realtime.Module
 	game     *game.Module
 }
@@ -181,7 +184,7 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 		DB: d.db, Redis: d.rdb, Content: cont, Identity: ident, Profiles: prof, Realtime: rt,
 		Events: d.bus, Clock: d.clock, Logger: d.logger, Instance: d.instance,
 	})
-	return modules{realtime: rt, game: g}
+	return modules{identity: ident, profile: prof, content: cont, realtime: rt, game: g}
 }
 
 // newBus returns the event bus with every subscription. The API and the

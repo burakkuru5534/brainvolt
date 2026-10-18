@@ -103,6 +103,9 @@ func (s *Service) Apply(ctx context.Context, m *engine.Match, out engine.Output)
 		for _, t := range out.Transitions {
 			switch t.To {
 			case domain.StatusReady, domain.StatusInProgress:
+				if t.From == t.To {
+					continue // a round voided on takeover: logged, no status change
+				}
 				if err := q.SetMatchStatus(ctx, sqlc.SetMatchStatusParams{ID: m.ID, Status: string(t.To), At: at(t.AtMS)}); err != nil {
 					return err
 				}
@@ -305,4 +308,90 @@ func (s *Service) Abandon(ctx context.Context, m *engine.Match) {
 	if err := s.Apply(ctx, m, out); err != nil {
 		s.d.Logger.ErrorContext(ctx, "game: abandoning a match failed", "match_id", m.ID, "error", err)
 	}
+}
+
+// CancelOrphan cancels a live match whose Redis state is gone (edge-cases
+// §4: server_error from the Postgres row) and releases its live locks.
+func (s *Service) CancelOrphan(ctx context.Context, id uuid.UUID) error {
+	now := s.d.Clock.Now().UTC()
+	var users []uuid.UUID
+	var origin domain.Origin
+	err := postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error {
+		q := sqlc.New(tx)
+		match, err := q.GetMatch(ctx, id)
+		if err != nil {
+			return err
+		}
+		origin = domain.Origin(match.Origin)
+		n, err := q.CancelMatch(ctx, sqlc.CancelMatchParams{ID: id, At: &now, CancelReason: optional(domain.CancelServerError)})
+		if err != nil || n == 0 {
+			return err
+		}
+		ps, err := q.ListParticipants(ctx, id)
+		if err != nil {
+			return err
+		}
+		for i := range ps {
+			users = append(users, ps[i].UserID)
+		}
+		return s.d.Events.PublishTx(ctx, tx, EventMatchCancelled, now, MatchCancelled{
+			MatchID: id, Reason: domain.CancelServerError, Origin: origin, ParticipantIDs: users, ReadyIDs: []uuid.UUID{},
+		})
+	})
+	if err != nil {
+		return err
+	}
+	seats := make([]engine.Seat, len(users))
+	for i, u := range users {
+		seats[i] = engine.Seat{UserID: u}
+	}
+	s.unlockUsers(context.WithoutCancel(ctx), id, seats)
+	return nil
+}
+
+// Spare selects the replacement question for a round voided on takeover
+// (edge-cases §4). Open-ended and Mixed Battle matches draw from their
+// pools instead.
+func (s *Service) Spare(ctx context.Context, m *engine.Match) ([]engine.Question, error) {
+	if m.Status != domain.StatusInProgress || m.Phase != engine.PhaseQuestion || m.Round == nil ||
+		m.Derived.QuestionCount == 0 || m.Config.CategoryMode == domain.MixedBattle {
+		return nil, nil
+	}
+	users := make([]uuid.UUID, 0, len(m.Participants))
+	locales := map[string]bool{}
+	for _, p := range m.Participants {
+		users = append(users, p.UserID)
+		locales[p.Locale] = true
+	}
+	exclude, err := sqlc.New(s.d.DB).RecentQuestionIDs(ctx, sqlc.RecentQuestionIDsParams{UserIds: users, Since: s.d.Clock.Now().Add(-NoRepeatWindow)})
+	if err != nil {
+		return nil, err
+	}
+	exclude = append(exclude, m.Round.Question.ID)
+	for _, q := range m.Questions() {
+		exclude = append(exclude, q.ID)
+	}
+	ls := make([]string, 0, len(locales))
+	for l := range locales {
+		ls = append(ls, l)
+	}
+	req := content.SelectRequest{
+		Locales: ls, MultipleChoiceOnly: m.Derived.QuestionRules.MultipleChoiceOnly, Exclude: exclude,
+		Rules: content.SelectRules{Difficulties: []int{m.Round.Question.Difficulty}, MaxTrueFalsePercent: m.Derived.QuestionRules.MaxTrueFalsePercent},
+	}
+	if m.Config.CategoryMode == domain.CategoryMaster {
+		req.CategoryIDs, req.SubcategoryID = m.Config.CategoryIDs, m.Config.SubcategoryID
+	}
+	picked, err := s.d.Questions.Select(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]engine.Question, len(picked))
+	for i, q := range picked {
+		out[i] = engine.Question{
+			ID: q.ID, Revision: q.Revision, Type: domain.QuestionType(q.Type), Difficulty: q.Difficulty,
+			CategoryID: q.CategoryID, SubcategoryID: q.SubcategoryID, Options: q.Options, Correct: q.Correct,
+		}
+	}
+	return out, nil
 }

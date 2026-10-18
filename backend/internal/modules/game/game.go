@@ -137,6 +137,10 @@ func (m *Module) Apply(ctx context.Context, match *engine.Match, out engine.Outp
 	return m.svc.Apply(ctx, match, out)
 }
 
+// Close stops this instance's live owners without releasing their leases,
+// as a crashed process would (tests); Run's end does the same.
+func (m *Module) Close() { m.live.Close() }
+
 // Name implements the app component interface.
 func (m *Module) Name() string { return "game" }
 

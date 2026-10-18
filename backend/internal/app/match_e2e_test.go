@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"io"
 	"path/filepath"
 	"testing"
@@ -163,5 +164,101 @@ func TestLiveQuickDuel(t *testing.T) {
 	}
 	if v, _ := x.rdb.Exists(t.Context(), "game:user:"+a.String()+":live").Result(); v != 0 {
 		t.Fatal("live lock not released")
+	}
+}
+
+// findWithin is find with a longer wait (takeover needs the lease to expire).
+func (w *wsClient) findWithin(d time.Duration, typ string) map[string]any {
+	w.t.Helper()
+	deadline := time.After(d)
+	for {
+		for i, f := range w.held {
+			if f["t"] == typ {
+				w.held = append(w.held[:i], w.held[i+1:]...)
+				return f
+			}
+		}
+		select {
+		case f, ok := <-w.frames:
+			if !ok {
+				w.t.Fatalf("connection closed while waiting for %s", typ)
+			}
+			w.held = append(w.held, f)
+		case <-deadline:
+			w.t.Fatalf("no %s within %s", typ, d)
+		}
+	}
+}
+
+// Edge-cases §4: the owning instance dies during an open round; another
+// instance takes the match over after the lease expires, voids the round,
+// replays it with a new question and the match completes.
+func TestLiveTakeover(t *testing.T) {
+	x := newE2E(t)
+	tokA, a := x.signedIn()
+	tokB, b := x.signedIn()
+	x.seedQuestions(a)
+	wa, _ := x.auth(tokA, "inst-a", nil)
+	wb, _ := x.auth(tokB, "inst-b", nil)
+	c, err := x.mods.game.Start(t.Context(), game.CreateRequest{
+		Config: game.Config{MatchType: "quick_duel", Format: "1v1", Origin: "challenge"},
+		Sides:  [2][]game.Member{{{UserID: a, Locale: "tr"}}, {{UserID: b, Locale: "tr"}}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	id := c.Match.ID.String()
+	for _, w := range []*wsClient{wa, wb} {
+		w.answer(w.send("match.join", map[string]any{"match_id": id}))
+		w.answer(w.send("match.ready", map[string]any{"match_id": id}))
+	}
+	first := data(wa.findWithin(10*time.Second, "round.started"))
+	q1 := first["question"].(map[string]any)["id"]
+
+	// The owner instance dies (lease kept, as after a crash).
+	x.mods.game.Close()
+	second := game.New(game.Deps{
+		DB: x.db, Redis: x.rdb, Content: x.mods.content, Identity: x.mods.identity, Profiles: x.mods.profile,
+		Realtime: x.mods.realtime, Events: newBus(x.db), Clock: clock.Real{}, Logger: discard, Instance: "test-second-" + id,
+	})
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	go func() { _ = second.Run(ctx) }()
+
+	resumed := data(wa.findWithin(20*time.Second, "match.resumed"))
+	if resumed["reason"] != "takeover" || resumed["voided_round_no"] != float64(1) {
+		t.Fatalf("resumed %v", resumed)
+	}
+	again := data(wa.findWithin(5*time.Second, "round.started"))
+	if again["round_no"] != float64(1) || again["question"].(map[string]any)["id"] == q1 {
+		t.Fatalf("replacement round %v", again)
+	}
+	for round := 1; ; round++ {
+		var started map[string]any
+		if round == 1 {
+			started = again
+		} else {
+			f := wa.findWithin(10*time.Second, "round.started")
+			started = data(f)
+		}
+		if wait := time.Until(time.UnixMilli(int64(started["show_at"].(float64)))); wait > 0 {
+			time.Sleep(wait)
+		}
+		opt := started["options"].([]any)[0].(map[string]any)["id"]
+		wa.send("match.answer", map[string]any{"match_id": id, "round_no": round, "option_id": opt})
+		wb.send("match.answer", map[string]any{"match_id": id, "round_no": round, "option_id": opt})
+		if round == 7 {
+			break
+		}
+	}
+	done := data(wa.findWithin(10*time.Second, "match.completed"))
+	if done["end_reason"] != "all_rounds_played" {
+		t.Fatalf("completed %v", done)
+	}
+	var rounds, voided int
+	_ = x.db.QueryRow(t.Context(), `SELECT count(*) FROM game.match_rounds WHERE match_id = $1`, c.Match.ID).Scan(&rounds)
+	_ = x.db.QueryRow(t.Context(), `SELECT count(*) FROM game.match_transitions WHERE match_id = $1 AND reason = 'round_voided_takeover'`, c.Match.ID).Scan(&voided)
+	if rounds != 7 || voided != 1 {
+		t.Fatalf("rounds %d, voided transitions %d", rounds, voided)
 	}
 }
