@@ -109,6 +109,15 @@ make admin ADMIN="grant-role <user-id|firebase-uid> admin"   # or moderator; the
 
 Moderators review questions through the `/v1/questions` endpoints (`docs/api/openapi.yaml`); only verified questions with a verified translation in the player's language reach matches (D-007). Find your user id with `make psql` → `SELECT id, created_at FROM identity.users ORDER BY created_at DESC;` (dev builds sign in against the Auth emulator, so users are not in the Firebase console). For local play without reviewing, import with dev approval: `make seed SEED_ARGS="-approve-as <your-user-id>"` (refused unless `BRAINVOLT_ENV=dev`). File format, OpenTDB workflow and licenses: [`content/README.md`](content/README.md).
 
+## Playing a match locally (Phase 4)
+
+1. `make up`, `make migrate`, `make run` (the API serves REST and the WebSocket `ws://<host>:8080/v1/ws`).
+2. Sign in once in the app, then import the questions approved for local play: `make seed SEED_ARGS="-approve-as <your-user-id>"`.
+3. **One device:** Home → *Bota karşı pratik* (dev builds only) plays a Quick Duel against a server bot that readies and answers by itself.
+4. **Two devices** (e.g. a phone and an emulator, each signed in as its own guest): both tap *Hızlı Düello*; the queue pairs the first two players, both tap *Hazırım*.
+
+If the app shows *Bağlantı yeniden kuruluyor…*, check that `env/dev.json`'s `WS_URL` points at the machine running the API (`10.0.2.2` is the Android emulator's address for the host; a phone needs the computer's LAN IP in `API_BASE_URL`, `WS_URL` and `AUTH_EMULATOR_HOST`).
+
 ## When something does not start
 
 `make check-env` compares your `.env` with `.env.example`. It lists missing variables and `${VAR}` references that expand to nothing — e.g. a missing `BRAINVOLT_FIREBASE_AUTH_EMULATOR_PORT` turns the emulator address into `localhost:` and tests fail with `dial tcp 127.0.0.1:80: connection refused`. `make up`, `run`, `migrate` and `test` run it first. A variable must be defined **above** the lines that use it. Changing a port (e.g. `BRAINVOLT_POSTGRES_PORT=5433` when 5432 is taken) needs only that one line: the URLs are built from it.

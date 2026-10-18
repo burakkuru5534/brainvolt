@@ -177,6 +177,8 @@ No pong for **3 consecutive pings** (in match: 6 s; outside: 60 s) → server tr
 
 Events are idempotent on the client by `(s, seq)`: duplicates are dropped, a gap triggers `sys.subscribe {stream, from_seq}` to fetch the missing range (or a snapshot).
 
+**Audience (D-066):** every participant receives every event of a match stream, so sequences stay gap-free; an event meant for another audience (e.g. `round.proposals` of the other side) arrives as `{match_id, round_no, redacted: true}`. Own details are added per recipient: question and option texts in the participant's language, `option_id` in `round.answer_received` for the sender only.
+
 ## 7. Fan-out across server instances
 `realtime` keeps `rt:presence:<user>` → instance ids; events for a user/stream are published to `rt:ch:inst:<instance>` for each instance holding a relevant socket (redis-keys §4). Match owners publish once per stream; `realtime` handles routing.
 

@@ -34,6 +34,9 @@
 | `game:{m:<match_id>}:rejects` | HASH | `user_id` → count of rejected submissions (cheat-signal threshold, D-030) | same |
 | `game:user:<user_id>:live` | STRING | the user's current live match id; `SET NX` enforces **one live match per user** | **3 h** safety TTL; deleted at match end |
 | `game:live` | ZSET | match_id → last owner heartbeat ms; sweeper finds orphaned matches whose owner lease expired | none (members removed at end) |
+| pub/sub `game:ch:inst:<instance_id>` | channel | match intents forwarded to the instance owning the match (D-066) | — |
+
+**As built (D-066):** the owner keeps the complete engine state as one JSON value in `:state` (fields `engine`, `meta` — question texts and player cards —, `seats` — user → session holding the seat — and `status`), written after every step; `:participants`, `:scores`, `:round`, `:answers:<n>` and `:rejects` are covered by it and not written separately. The correct option therefore stays in Redis on the server side only, as before.
 
 ---
 
