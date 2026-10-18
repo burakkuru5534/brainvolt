@@ -34,7 +34,7 @@ require_backend = $(if $(wildcard $(BACKEND)/go.mod),,$(error backend/ is not se
 # $(call mobile,<command>,<what is skipped>) runs <command> in mobile/ if it exists.
 mobile = $(if $(wildcard $(MOBILE)/pubspec.yaml),cd $(MOBILE) && $(1),@echo mobile/ not set up yet - roadmap 1.7 - skipping $(2))
 
-.PHONY: help env up up-app down reset ps logs psql redis-cli run test lint migrate gen check-gen
+.PHONY: help env check-env up up-app down reset ps logs psql redis-cli run test lint migrate gen check-gen
 
 help: ## List targets
 	$(HELP)
@@ -45,10 +45,13 @@ ifeq ($(wildcard .env),)
 	@echo created .env from .env.example
 endif
 
-up: env ## Start Postgres, Redis, Firebase Auth emulator and wait until healthy   (docker compose up -d --build --wait)
+check-env: env ## Compare .env with .env.example: missing variables, ${VAR}s that expand to nothing   (cd backend && go run ./cmd/envcheck ../.env.example ../.env)
+	cd $(BACKEND) && go run ./cmd/envcheck ../.env.example ../.env
+
+up: check-env ## Start Postgres, Redis, Firebase Auth emulator and wait until healthy   (docker compose up -d --build --wait)
 	$(COMPOSE) up -d --build --wait
 
-up-app: env ## Also build and run migrate, api and worker containers   (docker compose --profile app up -d --build --wait)
+up-app: check-env ## Also build and run migrate, api and worker containers   (docker compose --profile app up -d --build --wait)
 	$(COMPOSE) --profile app up -d --build --wait
 
 down: ## Stop all services, keep data volumes   (docker compose --profile app down)
@@ -69,11 +72,11 @@ psql: ## Open psql in the postgres container   (docker compose exec postgres psq
 redis-cli: ## Open redis-cli in the redis container   (docker compose exec redis redis-cli)
 	$(COMPOSE) exec redis redis-cli
 
-run: ## Run the API server   (cd backend && go run ./cmd/api)
+run: check-env ## Run the API server   (cd backend && go run ./cmd/api)
 	$(require_backend)
 	cd $(BACKEND) && go run ./cmd/api
 
-test: ## Run backend and mobile tests   (cd backend && go test ./... ; cd mobile && flutter test)
+test: check-env ## Run backend and mobile tests   (cd backend && go test ./... ; cd mobile && flutter test)
 	$(require_backend)
 	cd $(BACKEND) && go test ./...
 	$(call mobile,flutter test,flutter test)
@@ -83,7 +86,7 @@ lint: ## Run linters   (cd backend && go vet ./... && golangci-lint run ; cd mob
 	cd $(BACKEND) && go vet ./... && golangci-lint run
 	$(call mobile,flutter analyze,flutter analyze)
 
-migrate: ## Apply DB migrations; MIGRATE=down|status|version for others   (cd backend && go run ./cmd/migrate up)
+migrate: check-env ## Apply DB migrations; MIGRATE=down|status|version for others   (cd backend && go run ./cmd/migrate up)
 	$(require_backend)
 	cd $(BACKEND) && go run ./cmd/migrate $(MIGRATE)
 

@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"maps"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -174,28 +175,74 @@ func TestLoadReadsProcessEnvironment(t *testing.T) {
 // TestEnvExampleIsValid keeps .env.example and Config in step: the file,
 // expanded the way Compose and the Makefile expand it, must load cleanly.
 func TestEnvExampleIsValid(t *testing.T) {
-	data, err := os.ReadFile("../../../../.env.example")
+	f, err := ReadEnvFile("../../../../.env.example")
 	if err != nil {
 		t.Fatal(err)
 	}
-	vars := map[string]string{}
-	for line := range strings.Lines(string(data)) {
-		line = strings.TrimSpace(line)
-		if line == "" || strings.HasPrefix(line, "#") {
-			continue
-		}
-		k, v, ok := strings.Cut(line, "=")
-		if !ok {
-			t.Fatalf("malformed line %q", line)
-		}
-		vars[k] = os.Expand(v, func(name string) string { return vars[name] })
-	}
-	cfg, err := LoadFrom(vars)
+	noEnv := func(string) (string, bool) { return "", false }
+	cfg, err := LoadFrom(f.Expand(noEnv))
 	if err != nil {
 		t.Fatalf(".env.example does not load: %v", err)
 	}
 	if cfg.Postgres.URL != "postgres://brainvolt:brainvolt_dev_password@localhost:5432/brainvolt?sslmode=disable" {
 		t.Errorf("expanded postgres URL = %q", cfg.Postgres.URL)
+	}
+	if problems := CheckEnvFile(f, f, noEnv); len(problems) != 0 {
+		t.Errorf(".env.example must pass its own check:\n%s", strings.Join(problems, "\n"))
+	}
+}
+
+func writeEnv(t *testing.T, content string) EnvFile {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), ".env")
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	f, err := ReadEnvFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return f
+}
+
+func TestCheckEnvFile(t *testing.T) {
+	example := writeEnv(t, "# comment\nPORT=9099\nHOST=localhost:${PORT}\nPG_PORT=5432\n")
+	noEnv := func(string) (string, bool) { return "", false }
+
+	// The owner's case: PORT missing, so HOST becomes "localhost:".
+	actual := writeEnv(t, "HOST=localhost:${PORT}\nPG_PORT=5433\n")
+	problems := CheckEnvFile(example, actual, noEnv)
+	if len(problems) != 2 ||
+		!strings.Contains(problems[0], "PORT is missing from .env (copy it from .env.example: PORT=9099)") ||
+		!strings.Contains(problems[1], "HOST uses ${PORT}") || !strings.Contains(problems[1], "add PORT=9099") {
+		t.Fatalf("problems = %q", problems)
+	}
+	if got := actual.Expand(noEnv)["HOST"]; got != "localhost:" {
+		t.Fatalf("expanded HOST = %q (documents the failure mode)", got)
+	}
+
+	// Defined below its use: still empty when expanded in order.
+	actual = writeEnv(t, "HOST=localhost:${PORT}\nPORT=9099\nPG_PORT=5433\n")
+	if problems := CheckEnvFile(example, actual, noEnv); len(problems) != 1 || !strings.Contains(problems[0], "move its definition above") {
+		t.Fatalf("problems = %q", problems)
+	}
+
+	// A value from the process environment counts as defined; changed values are fine.
+	actual = writeEnv(t, "PORT=9100\nHOST=localhost:${PORT}\nPG_PORT=5433\nEXTRA=${HOME}\n")
+	env := func(k string) (string, bool) { return "/home/x", k == "HOME" }
+	if problems := CheckEnvFile(example, actual, env); len(problems) != 0 {
+		t.Fatalf("problems = %q", problems)
+	}
+	if got := actual.Expand(env); got["HOST"] != "localhost:9100" || got["EXTRA"] != "/home/x" {
+		t.Fatalf("Expand = %v", got)
+	}
+}
+
+func TestReadEnvFileRejectsMalformedLines(t *testing.T) {
+	path := filepath.Join(t.TempDir(), ".env")
+	_ = os.WriteFile(path, []byte("GOOD=1\nthis is not an assignment\n"), 0o600)
+	if _, err := ReadEnvFile(path); err == nil || !strings.Contains(err.Error(), ":2:") {
+		t.Fatalf("err = %v, want line number", err)
 	}
 }
 

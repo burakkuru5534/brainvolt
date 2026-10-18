@@ -99,6 +99,10 @@ make migrate MIGRATE=down       # roll back the latest one
 
 Migrations live in `backend/migrations/` as `NNNNNN_<module>_<change>.sql` with `-- +goose Up` / `-- +goose Down` sections; `000001` installs River's job tables. `/readyz` reports `migrations: failed` until the database is up to date. After changing SQL queries, migrations or API types run `make gen` (sqlc + OpenAPI) and commit the generated files; `make check-gen` fails if they are stale.
 
+## When something does not start
+
+`make check-env` compares your `.env` with `.env.example`. It lists missing variables and `${VAR}` references that expand to nothing — e.g. a missing `BRAINVOLT_FIREBASE_AUTH_EMULATOR_PORT` turns the emulator address into `localhost:` and tests fail with `dial tcp 127.0.0.1:80: connection refused`. `make up`, `run`, `migrate` and `test` run it first. A variable must be defined **above** the lines that use it. Changing a port (e.g. `BRAINVOLT_POSTGRES_PORT=5433` when 5432 is taken) needs only that one line: the URLs are built from it.
+
 ## Tests
 
 `make test` runs unit **and** integration tests. Integration tests use the Compose services through `BRAINVOLT_TEST_POSTGRES_URL`, `BRAINVOLT_TEST_REDIS_URL` and `BRAINVOLT_TEST_FIREBASE_AUTH_EMULATOR_HOST` (defined in `.env.example`; Redis tests use logical database 15). Every database test gets its own freshly migrated database (cloned from a cached template, dropped afterwards), so tests never touch your development data. Without those variables, e.g. a bare `go test ./...` with no Docker, integration tests are skipped with a hint and unit tests still run. If your `.env` predates these variables, copy the two lines from `.env.example`.
