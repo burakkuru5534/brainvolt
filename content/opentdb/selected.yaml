@@ -79,7 +79,7 @@ questions:
     - 1915 - 1918
     origin: machine_translation
 - ref: otdb-346f83f3ba63
-  subcategory: history/turkish-history
+  subcategory: history/ancient-civilizations
   tr:
     prompt: Antik çağda Frigya olarak bilinen bölge bugün hangi ülkenin topraklarındadır?
     options:
@@ -89,7 +89,7 @@ questions:
     - Mısır
     origin: machine_translation
 - ref: otdb-f87a3a9f5fe6
-  subcategory: history/turkish-history
+  subcategory: history/world-history
   tr:
     prompt: Ayasofya'yı hangi Bizans imparatoru yaptırmıştır?
     options:
@@ -99,7 +99,7 @@ questions:
     - Büyük Theodosius
     origin: machine_translation
 - ref: otdb-1634e49fe65b
-  subcategory: history/turkish-history
+  subcategory: history/world-history
   tr:
     prompt: Bizans İmparatorluğu'nda yaşayanların çoğu kendilerini "Romalı" olarak adlandırırdı.
     origin: machine_translation
@@ -412,7 +412,7 @@ questions:
 - ref: otdb-90b6de199b88
   subcategory: history/world-history
   tr:
-    prompt: Süveyş Kanalı projesinin baş geliştiricisi kimdir?
+    prompt: Süveyş Kanalı projesini hayata geçiren kişi kimdir?
     options:
     - Ferdinand de Lesseps
     - Louis-Eugène Cavaignac
@@ -507,7 +507,7 @@ questions:
 - ref: otdb-e572cc1611f6
   subcategory: history/world-history
   tr:
-    prompt: Josef Stalin hangi ülkede doğmuştur?
+    prompt: Josef Stalin, bugün hangi ülkenin sınırları içinde kalan bir kentte doğmuştur?
     options:
     - Gürcistan
     - Rusya
@@ -774,7 +774,7 @@ questions:
 - ref: otdb-a8bc0f0d9339
   subcategory: geography/countries-capitals
   tr:
-    prompt: Terracotta Ordusu hangi şehirde bulunur?
+    prompt: Terakota Ordusu hangi şehirde bulunur?
     options:
     - Xi'an
     - Pekin
@@ -1134,7 +1134,7 @@ questions:
 - ref: otdb-c6b6f053734c
   subcategory: science/physics
   tr:
-    prompt: Atomun büyük ölçüde boşluktan oluştuğunu gösteren altın levha deneyini hangi bilim insanı yapmıştır?
+    prompt: Atomun büyük ölçüde boşluktan oluştuğunu gösteren altın varak (folyo) deneyini hangi bilim insanı yapmıştır?
     options:
     - Ernest Rutherford
     - Joseph John Thomson
@@ -1625,7 +1625,7 @@ questions:
     - Frankenstein
     - Drakula
     - Dr. Jekyll ile Bay Hyde
-    - Uykulu Oyuk Efsanesi
+    - Sleepy Hollow Efsanesi
     origin: machine_translation
 - ref: otdb-d49368f92507
   subcategory: arts-literature/world-literature
@@ -1734,7 +1734,7 @@ questions:
     options:
     - Et tu, Brute?
     - Iacta alea est!
-    - Vidi, vini, vici.
+    - Veni, vidi, vici.
     - Aegri somnia vana.
     origin: machine_translation
 - ref: otdb-3f8d649765fb
@@ -2016,7 +2016,7 @@ questions:
 - ref: otdb-55f0ae5bcdea
   subcategory: arts-literature/music
   tr:
-    prompt: 1976-2018 döneminde tüm zamanların en çok satan albümü hangisiydi?
+    prompt: Dünya genelinde tüm zamanların en çok satan albümü hangisidir?
     options:
     - Thriller
     - Back in Black
@@ -2486,7 +2486,7 @@ questions:
 - ref: otdb-047a8793f89c
   subcategory: sports/other-sports
   tr:
-    prompt: Martina Navratilova, Wimbledon tek kadınlar şampiyonluğunu kaç kez kazandı?
+    prompt: Martina Navratilova, Wimbledon'da kadınlar tekler şampiyonluğunu kaç kez kazandı?
     options:
     - Dokuz
     - 'On'
@@ -2556,7 +2556,7 @@ questions:
 - ref: otdb-8e1aef634af4
   subcategory: entertainment/cinema
   tr:
-    prompt: En eski Disney filmi hangisidir?
+    prompt: Disney'in ilk uzun metrajlı animasyon filmi hangisidir?
     options:
     - Pamuk Prenses ve Yedi Cüceler
     - Pinokyo
@@ -2580,7 +2580,7 @@ questions:
     options:
     - Dr. No
     - Goldfinger
-    - From Russia with Love
+    - Rusya'dan Sevgilerle
     - Thunderball
     origin: machine_translation
 - ref: otdb-04fa41a59597
@@ -2835,7 +2835,7 @@ questions:
     - Hank Schrader
     origin: machine_translation
 - ref: otdb-fdabff0e6453
-  subcategory: entertainment/tv
+  subcategory: entertainment/cinema
   tr:
     prompt: '"Ruhların Kaçışı" (2001) animasyon filminin senaristi ve yönetmeni kimdir?'
     options:
@@ -2913,7 +2913,7 @@ questions:
 - ref: otdb-5ec378f96964
   subcategory: entertainment/video-games
   tr:
-    prompt: Tetris'te kaç farklı şekilde parça vardır?
+    prompt: Tetris'te kaç farklı şekilli parça vardır?
     options:
     - '7'
     - '5'
@@ -3039,16 +3039,6 @@ questions:
     - Super Mario Bros.
     - Super Mario Land
     - Mario Bros.
-    origin: machine_translation
-- ref: otdb-8e29eac1b991
-  subcategory: entertainment/video-games
-  tr:
-    prompt: Minecraft oyunu hangi programlama diliyle geliştirilmiştir?
-    options:
-    - Java
-    - HTML5
-    - C++
-    - Python
     origin: machine_translation
 - ref: otdb-b61f0f6b4eda
   subcategory: entertainment/video-games
@@ -3294,7 +3284,7 @@ questions:
 - ref: otdb-63b89c858f03
   subcategory: technology/computers-internet
   tr:
-    prompt: Ticari olarak satışa sunulan ilk bilgisayar işlemcisi hangisidir?
+    prompt: Ticari olarak satışa sunulan ilk mikroişlemci hangisidir?
     options:
     - Intel 4004
     - Intel 486SX
@@ -3347,7 +3337,7 @@ questions:
     - '1962'
     origin: machine_translation
 - ref: otdb-16dab5822c0d
-  subcategory: technology/inventions
+  subcategory: general-knowledge/mixed
   tr:
     prompt: İtalyan otomobil üreticisi Lamborghini'nin logosunda hangi hayvan yer alır?
     options:
@@ -3357,7 +3347,7 @@ questions:
     - Yılan
     origin: machine_translation
 - ref: otdb-f54f251253cc
-  subcategory: technology/inventions
+  subcategory: general-knowledge/mixed
   tr:
     prompt: Trabant 601 otomobili hangi ülkede üretildi?
     options:
@@ -3382,7 +3372,7 @@ questions:
     prompt: Yapılmış ilk gerçek otomobil, 1886 tarihli Benz Patent-Motorwagen'dir.
     origin: machine_translation
 - ref: otdb-caa5788ee33e
-  subcategory: technology/inventions
+  subcategory: general-knowledge/mixed
   tr:
     prompt: '"Geleceğe Dönüş" filminde kullanılan otomobili hangi üretici yaptı?'
     options:
@@ -3402,7 +3392,7 @@ questions:
     - Hiçbiri
     origin: machine_translation
 - ref: otdb-436a05dfbbca
-  subcategory: technology/inventions
+  subcategory: general-knowledge/mixed
   difficulty: 4
   tr:
     prompt: 1983'te yakıtı bittikten sonra süzülerek güvenle iniş yapan Air Canada'nın 143 sefer sayılı uçağına hangi lakap verildi?
@@ -3413,7 +3403,7 @@ questions:
     - Gimli Superb
     origin: machine_translation
 - ref: otdb-b4fc37af928c
-  subcategory: technology/inventions
+  subcategory: general-knowledge/mixed
   tr:
     prompt: Enzo Ferrari, kendi otomobil şirketini kurmadan önce hangi marka için yarış pilotluğu yaptı?
     options:
@@ -3423,7 +3413,7 @@ questions:
     - Bentley
     origin: machine_translation
 - ref: otdb-29f1756833e5
-  subcategory: technology/inventions
+  subcategory: general-knowledge/mixed
   tr:
     prompt: Audi logosundaki dört halka neyi temsil eder?
     options:
@@ -3433,7 +3423,7 @@ questions:
     - Audi'nin en çok satış yaptığı ülkeleri
     origin: machine_translation
 - ref: otdb-c624b8d949a6
-  subcategory: technology/inventions
+  subcategory: general-knowledge/mixed
   tr:
     prompt: BMW 1916'da kurulduğunda otomobil üretiyordu.
     origin: machine_translation
@@ -3458,7 +3448,7 @@ questions:
     - Peugeot 308 R HYbrid
     origin: machine_translation
 - ref: otdb-43ed55125d8a
-  subcategory: technology/inventions
+  subcategory: general-knowledge/mixed
   tr:
     prompt: 1965'te Fransız hükümetinin Yuri Gagarin'e hediye ettiği spor otomobilin modeli neydi?
     options:
@@ -3468,7 +3458,7 @@ questions:
     - AC Cobra
     origin: machine_translation
 - ref: otdb-b4cfecaa9d2b
-  subcategory: technology/inventions
+  subcategory: general-knowledge/mixed
   tr:
     prompt: 2014'te 6 milyondan fazla General Motors aracı hangi kritik kusur nedeniyle geri çağrıldı?
     options:
@@ -3483,7 +3473,7 @@ questions:
     prompt: İsveçli otomobil üreticisi Saab, 1993'te bir Saab 9000'de direksiyon simidi yerine joystick kullanmayı denedi.
     origin: machine_translation
 - ref: otdb-839ba6a6f8e4
-  subcategory: technology/inventions
+  subcategory: general-knowledge/mixed
   tr:
     prompt: Datsun'un (bugünkü Nissan) ürettiği ilk önden çekişli otomobilin adı neydi?
     options:
@@ -3746,7 +3736,7 @@ questions:
 - ref: otdb-38f9b270a5b3
   subcategory: general-knowledge/mixed
   tr:
-    prompt: Avrupa'nın en yüksek zirvesi hangi dağdadır?
+    prompt: Kafkasya Avrupa'ya dahil sayıldığında, Avrupa'nın en yüksek zirvesi hangi dağdadır?
     options:
     - Elbruz Dağı, Rusya
     - Şhara Dağı, Gürcistan
@@ -3906,7 +3896,7 @@ questions:
 - ref: otdb-1e6c943f6152
   subcategory: general-knowledge/mixed
   tr:
-    prompt: 2061 yılına kadar yeniden görünmeyecek olan Halley Kuyrukluyıldızı, Dünya'ya en son hangi yıl yaklaşmıştır?
+    prompt: 2061 yılına kadar yeniden görünmeyecek olan Halley Kuyruklu Yıldızı, Dünya'ya en son hangi yıl yaklaşmıştır?
     options:
     - '1986'
     - '2001'
