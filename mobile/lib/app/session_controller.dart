@@ -1,6 +1,7 @@
 import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../core/network/api_exception.dart';
 import '../features/auth/data/auth_providers.dart';
 import '../features/auth/domain/auth_repository.dart';
 import '../features/auth/domain/session.dart';
@@ -13,6 +14,9 @@ final _log = Logger('auth');
 /// Preferences key of the age gate answer (D-020). Only the fact is kept on
 /// the device; the backend stores `age_verified_at`.
 const ageConfirmedKey = 'age_confirmed';
+
+/// Server code for a token whose user the server cannot accept.
+const unauthenticatedCode = 'UNAUTHENTICATED';
 
 /// Where the app stands before showing game screens.
 sealed class AppSession {
@@ -79,7 +83,24 @@ class SessionController extends _$SessionController {
       await _auth.idToken(forceRefresh: true);
     }
     final sessions = ref.read(sessionRepositoryProvider);
-    final session = await sessions.sync();
+    Session session;
+    try {
+      session = await sessions.sync();
+    } on ApiException catch (e) {
+      if (e.code != unauthenticatedCode) {
+        rethrow;
+      }
+      // The server no longer knows this Firebase user (deleted account, or
+      // a restarted Auth emulator in development): start over as a new
+      // guest instead of failing on every launch. TOKEN_EXPIRED never gets
+      // here; the API client refreshes and retries it.
+      _log.warning(
+        'Firebase user unknown to the server; continuing as a new guest',
+      );
+      await _auth.signOut();
+      await _auth.signInAnonymously();
+      session = await sessions.sync();
+    }
     // Not needed to play; a failure is retried on the next sync.
     sessions.registerDevice().catchError((Object e) {
       _log.warning('device registration failed', e);

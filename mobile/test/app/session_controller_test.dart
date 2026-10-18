@@ -48,6 +48,20 @@ void main() {
     expect(session(t).user.id, 'user-u1');
   });
 
+  test('a user the server does not know starts over as a new guest', () async {
+    final t = await TestApp.create(
+      user: const AuthUser(uid: 'gone', isAnonymous: true),
+    );
+    t.sessions.syncError = const ApiException(
+      code: unauthenticatedCode,
+      status: 401,
+    );
+    expect(await start(t), isA<SignedIn>());
+    expect(t.auth.calls, ['signOut', 'signInAnonymously']);
+    expect(t.sessions.calls, ['sync', 'sync', 'registerDevice']);
+    expect(session(t).user.id, 'user-guest-1');
+  });
+
   test('a failed sync is an error state; invalidating retries', () async {
     final t = await TestApp.create();
     t.sessions.syncError = const ApiException(code: ApiException.networkCode);
