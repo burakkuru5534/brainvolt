@@ -153,3 +153,62 @@ func nonNil(ids []uuid.UUID) []uuid.UUID {
 	}
 	return ids
 }
+
+// QuestionText is a question's wording in one locale as a match shows it.
+type QuestionText struct {
+	Prompt      string               `json:"prompt"`
+	Explanation string               `json:"explanation,omitempty"`
+	Options     map[uuid.UUID]string `json:"options"`
+	Category    string               `json:"category"`
+}
+
+// Texts returns the wording of questions per question and locale, with
+// the name of each question's category (the match screens, websocket.md
+// round.started / round.revealed).
+func (s *Service) Texts(ctx context.Context, ids []uuid.UUID, locales []string) (map[uuid.UUID]map[string]QuestionText, error) {
+	q := sqlc.New(s.db)
+	qs, err := q.QuestionTexts(ctx, sqlc.QuestionTextsParams{Ids: nonNil(ids), Locales: locales})
+	if err != nil {
+		return nil, err
+	}
+	opts, err := q.OptionTexts(ctx, sqlc.OptionTextsParams{Ids: nonNil(ids), Locales: locales})
+	if err != nil {
+		return nil, err
+	}
+	catIDs := map[uuid.UUID]bool{}
+	for _, r := range qs {
+		catIDs[r.CategoryID] = true
+	}
+	cats := make([]uuid.UUID, 0, len(catIDs))
+	for id := range catIDs {
+		cats = append(cats, id)
+	}
+	names, err := q.CategoryNames(ctx, sqlc.CategoryNamesParams{Ids: cats, Locales: locales})
+	if err != nil {
+		return nil, err
+	}
+	catName := map[uuid.UUID]map[string]string{}
+	for _, n := range names {
+		if catName[n.CategoryID] == nil {
+			catName[n.CategoryID] = map[string]string{}
+		}
+		catName[n.CategoryID][n.Locale] = n.Name
+	}
+	out := map[uuid.UUID]map[string]QuestionText{}
+	for _, r := range qs {
+		if out[r.QuestionID] == nil {
+			out[r.QuestionID] = map[string]QuestionText{}
+		}
+		t := QuestionText{Prompt: r.Prompt, Options: map[uuid.UUID]string{}, Category: catName[r.CategoryID][r.Locale]}
+		if r.Explanation != nil {
+			t.Explanation = *r.Explanation
+		}
+		out[r.QuestionID][r.Locale] = t
+	}
+	for _, o := range opts {
+		if t, ok := out[o.QuestionID][o.Locale]; ok {
+			t.Options[o.OptionID] = o.Text
+		}
+	}
+	return out, nil
+}

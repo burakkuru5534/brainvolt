@@ -135,7 +135,7 @@ func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, 
 	mods := registerModules(srv, moduleDeps{db: db, rdb: rdb, verifier: verifier, bus: bus, limiter: limiter,
 		idem: idempotency.New(rdb, logger), clock: clk, logger: logger, instance: ids.New().String()})
 
-	a := New(RoleAPI, logger, srv, mods.realtime)
+	a := New(RoleAPI, logger, srv, mods.realtime, mods.game)
 	a.closers = append(a.closers, db.Close, func() { _ = sqlDB.Close() }, func() { _ = rdb.Close() })
 	return a, nil
 }
@@ -157,11 +157,13 @@ type moduleDeps struct {
 // modules are the built modules a process runs besides the HTTP server.
 type modules struct {
 	realtime *realtime.Module
+	game     *game.Module
 }
 
 // registerModules builds the modules and their routes. The wiring follows
 // backend-modules.md §2: profile implements identity's ProfileProvisioner;
-// identity authenticates WebSocket sessions for realtime.
+// identity authenticates WebSocket sessions for realtime; game runs live
+// matches on the gateway with content texts and profile cards.
 func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	prof := profile.New(d.db, d.clock)
 	ident := identity.New(identity.Deps{
@@ -171,10 +173,15 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	ident.Register(srv)
 	prof.Register(srv, ident, d.limiter)
 	notification.New(d.db, d.clock).Register(srv, ident)
-	content.New(d.db, d.clock, d.bus).Register(srv, ident, d.idem)
+	cont := content.New(d.db, d.clock, d.bus)
+	cont.Register(srv, ident, d.idem)
 	rt := realtime.New(realtime.Deps{Redis: d.rdb, Auth: ident, Clock: d.clock, Logger: d.logger, Instance: d.instance})
 	rt.Register(srv)
-	return modules{realtime: rt}
+	g := game.New(game.Deps{
+		DB: d.db, Redis: d.rdb, Content: cont, Identity: ident, Profiles: prof, Realtime: rt,
+		Events: d.bus, Clock: d.clock, Logger: d.logger, Instance: d.instance,
+	})
+	return modules{realtime: rt, game: g}
 }
 
 // newBus returns the event bus with every subscription. The API and the

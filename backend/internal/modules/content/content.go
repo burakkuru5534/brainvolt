@@ -65,6 +65,9 @@ type SelectedQuestion = service.SelectedQuestion
 // AnswerStat is one (question, locale) statistics line of a match.
 type AnswerStat = service.AnswerStat
 
+// QuestionText is a question's wording in one locale.
+type QuestionText = service.QuestionText
+
 // Constants.
 const (
 	MultipleChoice = domain.MultipleChoice

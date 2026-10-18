@@ -119,7 +119,7 @@ type Service struct{ d Deps }
 // New returns a service.
 func New(d Deps) *Service {
 	if d.Random == nil {
-		d.Random = cryptoRandom{}
+		d.Random = CryptoRandom{}
 	}
 	if d.Seasons == nil {
 		d.Seasons = Preseason{}
@@ -130,10 +130,11 @@ func New(d Deps) *Service {
 	return &Service{d: d}
 }
 
-// cryptoRandom shuffles options with crypto/rand (round-lifecycle §5).
-type cryptoRandom struct{}
+// CryptoRandom shuffles options with crypto/rand (round-lifecycle §5).
+type CryptoRandom struct{}
 
-func (cryptoRandom) Intn(n int) int {
+// Intn implements engine.Random.
+func (CryptoRandom) Intn(n int) int {
 	v, err := crand.Int(crand.Reader, big.NewInt(int64(n)))
 	if err != nil {
 		panic(fmt.Sprintf("crypto/rand: %v", err))

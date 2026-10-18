@@ -291,7 +291,7 @@ func (h *Hub) dispatch(ctx context.Context, s *Session, m wsserver.Inbound) {
 			s.enqueue(h.frame("sys.connection", "", map[string]any{"rtt_ms": median, "quality": quality}))
 		}
 		for _, fn := range h.onPong {
-			fn(s.client, rtt)
+			fn(s.client, median)
 		}
 	case "sys.reauth":
 		var p struct {
@@ -350,25 +350,29 @@ func (h *Hub) resume(ctx context.Context, s *Session, stream string, lastSeq int
 	}
 }
 
-// reply answers an intent with sys.ack or sys.error (websocket.md §3).
+// reply answers an intent with sys.ack or sys.error (websocket.md §3);
+// ErrDeferred leaves the answer to the handler.
 func (h *Hub) reply(ctx context.Context, s *Session, re string, err error) {
-	if re == "" {
+	if re == "" || errors.Is(err, ErrDeferred) {
 		return
 	}
+	s.enqueue(h.replyFrame(ctx, s.client.Locale, re, err))
+}
+
+func (h *Hub) replyFrame(ctx context.Context, locale i18n.Locale, re string, err error) wsserver.Outbound {
 	if err == nil {
-		s.enqueue(h.frame("sys.ack", re, nil))
-		return
+		return h.frame("sys.ack", re, nil)
 	}
 	e := apierror.From(err)
 	if e == nil || !e.Code.Known() {
 		h.d.Logger.ErrorContext(ctx, "realtime: handler failed", "error", err)
 		e = apierror.Wrap(apierror.Internal, err)
 	}
-	d := map[string]any{"code": e.Code, "message": e.Message(s.client.Locale)}
+	d := map[string]any{"code": e.Code, "message": e.Message(locale)}
 	if len(e.Details) > 0 {
 		d["details"] = e.Details
 	}
-	s.enqueue(h.frame("sys.error", re, d))
+	return h.frame("sys.error", re, d)
 }
 
 func (h *Hub) frame(t, re string, d any) wsserver.Outbound {

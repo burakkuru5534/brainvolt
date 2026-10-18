@@ -66,7 +66,8 @@ type Handler func(ctx context.Context, c Client, m Message) error
 type (
 	// DisconnectFunc runs when a session's socket closes.
 	DisconnectFunc func(ctx context.Context, c Client)
-	// PongFunc receives every RTT sample of a session (timing.md §3).
+	// PongFunc receives a session's RTT estimate (median of its last 10
+	// samples) after every pong (timing.md §3).
 	PongFunc func(c Client, rttMS int)
 	// LiveFunc adds what the user is part of to sys.welcome.live.
 	LiveFunc func(ctx context.Context, user uuid.UUID) (map[string]any, error)
@@ -137,11 +138,16 @@ func (h *Hub) OnLive(fn LiveFunc) { h.live = append(h.live, fn) }
 
 // ---------- Delivery ----------
 
+// ErrDeferred is returned by a handler that answers the intent itself
+// later with Reply (e.g. after the match owner processed it).
+var ErrDeferred = errors.New("realtime: reply deferred")
+
 // remote is a pub/sub message between instances.
 type remote struct {
-	Kind   string             `json:"kind"` // deliver | replace
-	Target Target             `json:"target"`
-	Frame  *wsserver.Outbound `json:"frame,omitempty"`
+	Kind    string             `json:"kind"` // deliver | replace | playing
+	Playing bool               `json:"playing,omitempty"`
+	Target  Target             `json:"target"`
+	Frame   *wsserver.Outbound `json:"frame,omitempty"`
 }
 
 func instChannel(instance string) string { return redis.Key("rt", "ch", "inst", instance) }
@@ -252,11 +258,12 @@ func (h *Hub) Run(ctx context.Context) error {
 					h.deliverLocal(r.Target, *r.Frame)
 				}
 			case "replace":
-				h.mu.Lock()
-				s := h.sessions[r.Target.Session]
-				h.mu.Unlock()
-				if s != nil {
+				if s := h.session(r.Target.Session); s != nil {
 					s.close(wsserver.CloseReplaced, "replaced by a newer session")
+				}
+			case "playing":
+				if s := h.session(r.Target.Session); s != nil {
+					s.setPlaying(r.Playing)
 				}
 			}
 		}
@@ -390,11 +397,29 @@ func (h *Hub) session(id uuid.UUID) *Session {
 }
 
 // SetPlaying switches a session's heartbeat between 2 s (in a match) and
-// 20 s (websocket.md §4).
-func (h *Hub) SetPlaying(session uuid.UUID, playing bool) {
-	if s := h.session(session); s != nil {
+// 20 s (websocket.md §4), on whichever instance holds it.
+func (h *Hub) SetPlaying(ctx context.Context, t Target, playing bool) error {
+	if s := h.session(t.Session); s != nil {
 		s.setPlaying(playing)
+		return nil
 	}
+	instances, err := h.instancesOf(ctx, t)
+	if err != nil || len(instances) == 0 {
+		return err
+	}
+	msg, err := json.Marshal(remote{Kind: "playing", Target: t, Playing: playing})
+	if err != nil {
+		return err
+	}
+	return h.d.Redis.Publish(ctx, instChannel(instances[0]), msg).Err()
+}
+
+// Reply answers an intent later (after ErrDeferred) on the client's session.
+func (h *Hub) Reply(ctx context.Context, c Client, re string, err error) error {
+	if re == "" {
+		return nil
+	}
+	return h.Send(ctx, Target{User: c.UserID, Session: c.SessionID}, h.replyFrame(ctx, c.Locale, re, err))
 }
 
 // Online reports whether the user has a session on this instance.

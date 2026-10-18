@@ -322,9 +322,9 @@ Goal: two players finish a live 1v1 match on their phones: the WebSocket gateway
 - [x] 4.1.4 Sessions & resume (2 min token, replay or snapshot per stream)
 
 ### 4.2 Live match owner (`game`)
-- [ ] 4.2.1 Owner per match: mailbox goroutine, Redis lease (10 s, renewed 3 s), `game:live`, timers from absolute deadlines, engine state saved in Redis after each command
-- [ ] 4.2.2 Intents `match.join` / `ready` / `answer` / `leave`; events to `game:{m}:events` and to participants, rendered per recipient (locale texts, own answer); persistence through `Apply`
-- [ ] 4.2.3 Disconnect / reconnect (windows, limits), `match.snapshot`, resume replay
+- [x] 4.2.1 Owner per match: mailbox goroutine, Redis lease (10 s, renewed 3 s), `game:live`, timers from absolute deadlines, engine state saved in Redis after each command
+- [x] 4.2.2 Intents `match.join` / `ready` / `answer` / `leave`; events to `game:{m}:events` and to participants, rendered per recipient (locale texts, own answer); persistence through `Apply`
+- [x] 4.2.3 Disconnect / reconnect (windows, limits), `match.snapshot`, resume replay
 - [ ] 4.2.4 Owner loss: sweeper takeover with open-round voiding (`match.resumed`), `server_error` after 30 s
 
 ### 4.3 Getting into a match & results

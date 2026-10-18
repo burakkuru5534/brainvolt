@@ -255,3 +255,20 @@ SET times_asked = content.question_stats.times_asked + EXCLUDED.times_asked,
     times_timed_out = content.question_stats.times_timed_out + EXCLUDED.times_timed_out,
     sum_response_ms = content.question_stats.sum_response_ms + EXCLUDED.sum_response_ms,
     last_asked_at = greatest(content.question_stats.last_asked_at, EXCLUDED.last_asked_at);
+
+-- name: QuestionTexts :many
+SELECT t.question_id, t.locale, t.prompt, t.explanation, s.category_id
+FROM content.question_translations t
+JOIN content.questions q ON q.id = t.question_id
+JOIN content.subcategories s ON s.id = q.subcategory_id
+WHERE t.question_id = ANY(@ids::uuid[]) AND t.locale = ANY(@locales::text[]);
+
+-- name: OptionTexts :many
+SELECT o.question_id, ot.option_id, ot.locale, ot.text
+FROM content.option_translations ot
+JOIN content.options o ON o.id = ot.option_id
+WHERE o.question_id = ANY(@ids::uuid[]) AND ot.locale = ANY(@locales::text[]);
+
+-- name: CategoryNames :many
+SELECT category_id, locale, name FROM content.category_translations
+WHERE category_id = ANY(@ids::uuid[]) AND locale = ANY(@locales::text[]);

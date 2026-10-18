@@ -611,3 +611,46 @@ func TestCM03MixedBattlePicks(t *testing.T) {
 		t.Fatalf("no pick → server picks another category: %v", types(o))
 	}
 }
+
+// A match restored from its snapshot continues exactly like the original
+// (takeover and reconnect snapshots rely on it).
+func TestSnapshotRestore(t *testing.T) {
+	h := newHarness(t, duel(domain.QuickDuel), 7)
+	h.start()
+	for range 3 {
+		_, _ = h.answer(h.a(), h.correct(), 2_000)
+		_, _ = h.answer(h.b(), h.wrong(), 1_000)
+		h.reveal()
+	}
+	_, _ = h.answer(h.a(), h.correct(), 3_000) // open round with one answer
+	data, err := h.m.Snapshot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	m2, err := Restore(data, firstRandom{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if opt, ok := m2.AnswerOf(h.a()); !ok || opt != h.correct() || m2.Seq() != h.m.Seq() {
+		t.Fatalf("restored round answer %v %v, seq %d vs %d", opt, ok, m2.Seq(), h.m.Seq())
+	}
+	play := func(m *Match) *Result {
+		for m.Status == domain.StatusInProgress {
+			r := m.Round
+			if _, ok := m.AnswerOf(h.a()); !ok {
+				if _, err := m.Answer(h.a(), r.No, r.Question.Correct, r.ShowAtMS+1_000); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if _, err := m.Answer(h.b(), r.No, r.Question.Options[1], r.ShowAtMS+1_500); err != nil {
+				t.Fatal(err)
+			}
+			m.Fire(Timer{Kind: TimerReveal, Round: r.No}, r.ShowAtMS+1_500+RevealMS)
+		}
+		return m.Result()
+	}
+	r1, r2 := play(h.m), play(m2)
+	if r1 == nil || r2 == nil || r1.Sides != r2.Sides || r1.WinnerSide != r2.WinnerSide || h.m.Seq() != m2.Seq() {
+		t.Fatalf("diverged: %+v vs %+v", r1, r2)
+	}
+}

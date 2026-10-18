@@ -3,9 +3,11 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http/httptest"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -26,6 +28,9 @@ type wsClient struct {
 	// pong answers sys.ping automatically.
 	pong bool
 	n    int
+	held []map[string]any
+	// lastSeq is the highest stream sequence number received.
+	lastSeq atomic.Int64
 }
 
 func (x *e2e) url() string {
@@ -68,6 +73,9 @@ func (w *wsClient) readLoop() {
 		}
 		var f map[string]any
 		_ = json.Unmarshal(data, &f)
+		if seq, ok := f["seq"].(float64); ok && int64(seq) > w.lastSeq.Load() {
+			w.lastSeq.Store(int64(seq))
+		}
 		if f["t"] == "sys.ping" && w.pong {
 			d, _ := f["d"].(map[string]any)
 			w.send("sys.pong", map[string]any{"ts": d["ts"], "client_ts": time.Now().UnixMilli()})
@@ -79,27 +87,48 @@ func (w *wsClient) readLoop() {
 
 func (w *wsClient) send(t string, d any) string {
 	w.n++
-	id := "c-" + string(rune('a'+w.n%26)) + ids.NewString()[:8]
+	id := fmt.Sprintf("c-%d-%s", w.n, ids.NewString())
 	b, _ := json.Marshal(map[string]any{"t": t, "id": id, "d": d})
 	_ = w.c.Write(context.Background(), websocket.MessageText, b)
 	return id
 }
 
-// next returns the next frame of type typ (others are skipped).
+// next returns the oldest unread frame of type typ; frames of other types
+// stay queued for later calls.
 func (w *wsClient) next(typ string) map[string]any {
 	w.t.Helper()
+	return w.find(typ, func(f map[string]any) bool { return f["t"] == typ })
+}
+
+// answer returns the sys.ack or sys.error answering the intent re.
+func (w *wsClient) answer(re string) map[string]any {
+	w.t.Helper()
+	return w.find("answer to "+re, func(f map[string]any) bool {
+		return (f["t"] == "sys.ack" || f["t"] == "sys.error") && f["re"] == re
+	})
+}
+
+func (w *wsClient) find(what string, match func(map[string]any) bool) map[string]any {
+	w.t.Helper()
+	for i, f := range w.held {
+		if match(f) {
+			w.held = append(w.held[:i], w.held[i+1:]...)
+			return f
+		}
+	}
 	timeout := time.After(5 * time.Second)
 	for {
 		select {
 		case f, ok := <-w.frames:
 			if !ok {
-				w.t.Fatalf("connection closed while waiting for %s", typ)
+				w.t.Fatalf("connection closed while waiting for %s", what)
 			}
-			if f["t"] == typ {
+			if match(f) {
 				return f
 			}
+			w.held = append(w.held, f)
 		case <-timeout:
-			w.t.Fatalf("no %s within 5 s", typ)
+			w.t.Fatalf("no %s within 5 s (held: %d)", what, len(w.held))
 		}
 	}
 }
@@ -212,12 +241,12 @@ func TestWebSocketRoutingDeliveryAndResume(t *testing.T) {
 
 	w, welcome := x.auth(token, "inst-a", nil)
 	id := w.send("test.ok", nil)
-	if f := w.next("sys.ack"); f["re"] != id {
+	if f := w.answer(id); f["t"] != "sys.ack" {
 		t.Fatalf("ack %v", f)
 	}
 	id = w.send("test.fail", nil)
-	f := w.next("sys.error")
-	if f["re"] != id || data(f)["code"] != string(apierror.MatchStateInvalid) || data(f)["message"] == "" {
+	f := w.answer(id)
+	if f["t"] != "sys.error" || data(f)["code"] != string(apierror.MatchStateInvalid) || data(f)["message"] == "" {
 		t.Fatalf("error %v", f)
 	}
 
@@ -235,7 +264,9 @@ func TestWebSocketRoutingDeliveryAndResume(t *testing.T) {
 	w.next("test.one")
 
 	// In play the heartbeat runs every 2 s; pongs reach the listeners.
-	x.mods.realtime.SetPlaying(sid, true)
+	if err := x.mods.realtime.SetPlaying(t.Context(), realtime.Target{User: user, Session: sid}, true); err != nil {
+		t.Fatal(err)
+	}
 	time.Sleep(2500 * time.Millisecond)
 	mu.Lock()
 	gotPong := pongs > 0

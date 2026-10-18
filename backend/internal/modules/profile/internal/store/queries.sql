@@ -35,3 +35,6 @@ SET challenges_from = @challenges_from, show_online_status = @show_online_status
     allow_friend_requests = @allow_friend_requests, sound_enabled = @sound_enabled,
     music_enabled = @music_enabled, haptics_enabled = @haptics_enabled, updated_at = @now
 WHERE user_id = @user_id;
+
+-- name: PublicCards :many
+SELECT user_id, username, display_name, avatar_id, country_code FROM profile.profiles WHERE user_id = ANY(@ids::uuid[]);

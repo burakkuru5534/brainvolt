@@ -125,6 +125,44 @@ func (q *Queries) InsertSettings(ctx context.Context, arg InsertSettingsParams) 
 	return err
 }
 
+const publicCards = `-- name: PublicCards :many
+SELECT user_id, username, display_name, avatar_id, country_code FROM profile.profiles WHERE user_id = ANY($1::uuid[])
+`
+
+type PublicCardsRow struct {
+	UserID      uuid.UUID
+	Username    string
+	DisplayName string
+	AvatarID    string
+	CountryCode *string
+}
+
+func (q *Queries) PublicCards(ctx context.Context, ids []uuid.UUID) ([]PublicCardsRow, error) {
+	rows, err := q.db.Query(ctx, publicCards, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []PublicCardsRow{}
+	for rows.Next() {
+		var i PublicCardsRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Username,
+			&i.DisplayName,
+			&i.AvatarID,
+			&i.CountryCode,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateProfile = `-- name: UpdateProfile :exec
 UPDATE profile.profiles
 SET username = $1, display_name = $2, avatar_id = $3,

@@ -735,7 +735,9 @@ func (m *Match) Answer(user uuid.UUID, round int, option uuid.UUID, now int64) (
 		return o, apierror.New(apierror.AnswerDuplicate)
 	}
 	m.Round.answers[user] = answer{option: option, receivedMS: now, responseMS: timing.ResponseMS(now, m.Round.ShowAtMS, p.RTTMS)}
-	m.emit(&o, "round.answer_received", everyone, map[string]any{"round_no": round, "user_id": user})
+	// option_id is shown to the sender only; the delivery layer removes it
+	// for everyone else (round-lifecycle §4).
+	m.emit(&o, "round.answer_received", everyone, map[string]any{"round_no": round, "user_id": user, "option_id": option})
 	if m.allAnswered() {
 		m.lock(&o, now) // early lock (D-035)
 	}
@@ -936,7 +938,7 @@ func (m *Match) lock(o *Output, now int64) {
 	}
 	o.Round, m.lastRound = rec, rec
 	m.emit(o, "round.revealed", everyone, map[string]any{
-		"round_no": r.No, "correct_option_id": q.Correct, "category_id": q.CategoryID,
+		"round_no": r.No, "question_id": q.ID, "correct_option_id": q.Correct, "category_id": q.CategoryID,
 		"answers": answersOut, "sides": sidesOut,
 	})
 	o.Timers = append(o.Timers, Timer{Kind: TimerReveal, Round: r.No, AtMS: now + RevealMS})

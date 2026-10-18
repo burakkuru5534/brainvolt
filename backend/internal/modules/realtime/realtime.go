@@ -9,8 +9,6 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/google/uuid"
-
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime/internal/service"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime/internal/transport"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
@@ -37,7 +35,7 @@ type Frame = wsserver.Outbound
 // DisconnectFunc runs when a session's socket closes.
 type DisconnectFunc = service.DisconnectFunc
 
-// PongFunc receives every RTT sample of a session.
+// PongFunc receives a session's RTT estimate after every pong.
 type PongFunc = service.PongFunc
 
 // LiveFunc contributes to sys.welcome.live.
@@ -91,8 +89,18 @@ func (m *Module) OnLive(fn LiveFunc) { m.hub.OnLive(fn) }
 // Send delivers a frame to a user's sessions (or one session) on any instance.
 func (m *Module) Send(ctx context.Context, t Target, f Frame) error { return m.hub.Send(ctx, t, f) }
 
-// SetPlaying switches a local session's heartbeat to the in-match rate.
-func (m *Module) SetPlaying(session uuid.UUID, playing bool) { m.hub.SetPlaying(session, playing) }
+// SetPlaying switches a session's heartbeat to the in-match rate (2 s).
+func (m *Module) SetPlaying(ctx context.Context, t Target, playing bool) error {
+	return m.hub.SetPlaying(ctx, t, playing)
+}
+
+// ErrDeferred is returned by a handler that answers later with Reply.
+var ErrDeferred = service.ErrDeferred
+
+// Reply answers an intent after ErrDeferred: sys.ack for nil, else sys.error.
+func (m *Module) Reply(ctx context.Context, c Client, re string, err error) error {
+	return m.hub.Reply(ctx, c, re, err)
+}
 
 // Name implements the app component interface.
 func (m *Module) Name() string { return "realtime" }

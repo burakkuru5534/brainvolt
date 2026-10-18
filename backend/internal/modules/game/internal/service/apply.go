@@ -297,3 +297,12 @@ func (s *Service) participantsTx(ctx context.Context, q *sqlc.Queries, match uui
 	}
 	return nil
 }
+
+// Abandon cancels a just-created match that could not be handed to a live
+// owner (T7 server_error) and releases its live locks.
+func (s *Service) Abandon(ctx context.Context, m *engine.Match) {
+	out := m.Cancel(domain.CancelServerError, uuid.Nil, s.d.Clock.Now().UnixMilli())
+	if err := s.Apply(ctx, m, out); err != nil {
+		s.d.Logger.ErrorContext(ctx, "game: abandoning a match failed", "match_id", m.ID, "error", err)
+	}
+}

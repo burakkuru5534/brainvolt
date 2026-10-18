@@ -4,6 +4,9 @@
 package profile
 
 import (
+	"context"
+
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
@@ -25,6 +28,14 @@ func New(db *pgxpool.Pool, c clock.Clock) *Module { return &Module{svc: service.
 // Provisioner creates and summarises profiles for identity's session flow
 // (wired in internal/app, schema-identity §5.1).
 func (m *Module) Provisioner() identity.ProfileProvisioner { return m.svc }
+
+// Card is a player's public face (display name, avatar, country).
+type Card = service.Card
+
+// Cards returns the public cards of users (missing users are left out).
+func (m *Module) Cards(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]Card, error) {
+	return m.svc.Cards(ctx, ids)
+}
 
 // Register adds profile's routes; ident authenticates them.
 func (m *Module) Register(s *httpserver.Server, ident *identity.Module, limiter *ratelimit.Limiter) {

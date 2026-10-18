@@ -59,6 +59,42 @@ func (q *Queries) CategoryIsTopLevel(ctx context.Context, id uuid.UUID) (bool, e
 	return exists, err
 }
 
+const categoryNames = `-- name: CategoryNames :many
+SELECT category_id, locale, name FROM content.category_translations
+WHERE category_id = ANY($1::uuid[]) AND locale = ANY($2::text[])
+`
+
+type CategoryNamesParams struct {
+	Ids     []uuid.UUID
+	Locales []string
+}
+
+type CategoryNamesRow struct {
+	CategoryID uuid.UUID
+	Locale     string
+	Name       string
+}
+
+func (q *Queries) CategoryNames(ctx context.Context, arg CategoryNamesParams) ([]CategoryNamesRow, error) {
+	rows, err := q.db.Query(ctx, categoryNames, arg.Ids, arg.Locales)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CategoryNamesRow{}
+	for rows.Next() {
+		var i CategoryNamesRow
+		if err := rows.Scan(&i.CategoryID, &i.Locale, &i.Name); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const clearOptionCorrect = `-- name: ClearOptionCorrect :exec
 UPDATE content.options SET is_correct = false WHERE question_id = $1
 `
@@ -784,6 +820,50 @@ func (q *Queries) MarkStatsApplied(ctx context.Context, arg MarkStatsAppliedPara
 	return result.RowsAffected(), nil
 }
 
+const optionTexts = `-- name: OptionTexts :many
+SELECT o.question_id, ot.option_id, ot.locale, ot.text
+FROM content.option_translations ot
+JOIN content.options o ON o.id = ot.option_id
+WHERE o.question_id = ANY($1::uuid[]) AND ot.locale = ANY($2::text[])
+`
+
+type OptionTextsParams struct {
+	Ids     []uuid.UUID
+	Locales []string
+}
+
+type OptionTextsRow struct {
+	QuestionID uuid.UUID
+	OptionID   uuid.UUID
+	Locale     string
+	Text       string
+}
+
+func (q *Queries) OptionTexts(ctx context.Context, arg OptionTextsParams) ([]OptionTextsRow, error) {
+	rows, err := q.db.Query(ctx, optionTexts, arg.Ids, arg.Locales)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []OptionTextsRow{}
+	for rows.Next() {
+		var i OptionTextsRow
+		if err := rows.Scan(
+			&i.QuestionID,
+			&i.OptionID,
+			&i.Locale,
+			&i.Text,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const optionsOf = `-- name: OptionsOf :many
 SELECT question_id, id, position, is_correct FROM content.options
 WHERE question_id = ANY($1::uuid[])
@@ -831,6 +911,53 @@ func (q *Queries) QuestionIDByFingerprint(ctx context.Context, fingerprint strin
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const questionTexts = `-- name: QuestionTexts :many
+SELECT t.question_id, t.locale, t.prompt, t.explanation, s.category_id
+FROM content.question_translations t
+JOIN content.questions q ON q.id = t.question_id
+JOIN content.subcategories s ON s.id = q.subcategory_id
+WHERE t.question_id = ANY($1::uuid[]) AND t.locale = ANY($2::text[])
+`
+
+type QuestionTextsParams struct {
+	Ids     []uuid.UUID
+	Locales []string
+}
+
+type QuestionTextsRow struct {
+	QuestionID  uuid.UUID
+	Locale      string
+	Prompt      string
+	Explanation *string
+	CategoryID  uuid.UUID
+}
+
+func (q *Queries) QuestionTexts(ctx context.Context, arg QuestionTextsParams) ([]QuestionTextsRow, error) {
+	rows, err := q.db.Query(ctx, questionTexts, arg.Ids, arg.Locales)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []QuestionTextsRow{}
+	for rows.Next() {
+		var i QuestionTextsRow
+		if err := rows.Scan(
+			&i.QuestionID,
+			&i.Locale,
+			&i.Prompt,
+			&i.Explanation,
+			&i.CategoryID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const questionUsed = `-- name: QuestionUsed :one

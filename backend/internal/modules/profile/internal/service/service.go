@@ -245,3 +245,25 @@ func (s *Service) Public(ctx context.Context, userID uuid.UUID) (PublicProfile, 
 	}
 	return PublicProfile{UserID: p.UserID, Username: p.Username, DisplayName: p.DisplayName, AvatarID: p.AvatarID, CountryCode: p.CountryCode}, nil
 }
+
+// Card is the public face of a player in matches and lists.
+type Card struct {
+	UserID      uuid.UUID `json:"user_id"`
+	Username    string    `json:"username"`
+	DisplayName string    `json:"display_name"`
+	AvatarID    string    `json:"avatar_id"`
+	CountryCode *string   `json:"country_code"`
+}
+
+// Cards returns the public cards of users (missing users are left out).
+func (s *Service) Cards(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]Card, error) {
+	rows, err := sqlc.New(s.db).PublicCards(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[uuid.UUID]Card, len(rows))
+	for _, r := range rows {
+		out[r.UserID] = Card{UserID: r.UserID, Username: r.Username, DisplayName: r.DisplayName, AvatarID: r.AvatarID, CountryCode: r.CountryCode}
+	}
+	return out, nil
+}
