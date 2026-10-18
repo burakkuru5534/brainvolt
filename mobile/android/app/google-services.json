@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "684037840139",
+    "project_id": "brainvolt-a9caa",
+    "storage_bucket": "brainvolt-a9caa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:684037840139:android:507b8a662792b90e83960e",
+        "android_client_info": {
+          "package_name": "com.brainvolt.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "684037840139-0movk1cnhr1l2pvid07c2ehaj0tpg6qd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhw8CO8v8ne6xiUfe0-sW2QJunn08sjqE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "684037840139-0movk1cnhr1l2pvid07c2ehaj0tpg6qd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
