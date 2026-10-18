@@ -281,15 +281,34 @@ Goal: the `content` module of schema-content.md — taxonomy, questions with TR/
 ### 2.6 Tests & docs
 - [x] 2.6.1 Unit + integration + e2e tests, docs, decision log
 
-## Phase 3 — Game Engine  `[ ]`
-- [ ] Match & player models
-- [ ] Match configuration model + validator (per 0.5)
-- [ ] Match types: Quick Duel, Ranked, Sudden Death, Marathon
-- [ ] Team answer modes: Shared Answer, Individual Turns, Fast Team Round
-- [ ] Category modes (engine rules): Blind Challenge, Category Master, Mixed Battle, Daily Challenge, Creator Quiz, Revenge Match
-- [ ] Server-side time management
-- [ ] Server-side score management
-- [ ] State machine (waiting, ready, in_progress, completed, cancelled) + tests
+## Phase 3 — Game Engine  `[~]`
+Goal: the `game` module's rules as a deterministic engine without network (backend-modules §7: "engine, no network"): configuration validation (mode matrix), scoring, match types, team answer modes, category-mode selection rules, timing rules, the match and round state machines, question selection from `content`, and persistence of matches, rounds and results. The live match owner (Redis lease, timers, WebSocket) is Phase 4. Tests follow test-catalog.md IDs (LC, RD, TM, SC, MT, TA, EC unit tests).
+
+### 3.1 Schema & models
+- [ ] 3.1.1 Migration `game` schema (schema-game §2, incl. `all_sides_absent`) + sqlc block
+- [ ] 3.1.2 Match, side, participant, round models (`game/internal/domain`)
+
+### 3.2 Configuration (mode matrix, 0.5)
+- [ ] 3.2.1 Config model, rules R01–R11 as data, transformations T01–T06, derived values; matrix property test (11 520 → 1 178 valid, 5 ranked) + MX cases
+- [ ] 3.2.2 Context rules usable now (R12, R13, R18, R19) behind interfaces; R14–R17, R20, R21 as hooks for their phases
+
+### 3.3 Rules
+- [ ] 3.3.1 Ruleset 1 + scoring (SC01–SC05)
+- [ ] 3.3.2 Match types: lengths, windows, curves, end checks (MT01–MT03, MT05, MT07–MT09)
+- [ ] 3.3.3 Team answer modes: Shared Answer, Individual Turns, Fast Team Round (average / fastest_correct / majority) (TA01–TA06, TA08, TA09)
+- [ ] 3.3.4 Timing rules: show_at buffer, grace, response_ms, RTT median & caps (TM01–TM04, TM07)
+- [ ] 3.3.5 Tie-breakers, disconnect windows & limits, forfeits (EC01, EC03–EC07, EC11 rules part)
+
+### 3.4 Engine
+- [ ] 3.4.1 Match state machine (LC01, LC02, LC04, LC05, LC07, LC10) and round sub-machine (RD01–RD05, RD09) as a pure engine: commands in, events + timers out, fake clock
+- [ ] 3.4.2 Category modes (engine rules): Blind Challenge presentation, Category Master, Mixed Battle pre-round pick, Revenge home category, Creator Quiz set order; Daily Challenge rejected as a match (R11, solo engine in Phase 8)
+
+### 3.5 Questions & persistence
+- [ ] 3.5.1 `content` selection API (match-types §2: eligibility per locale, caps, no consecutive sub-category, TF share, difficulty curve with fallback, exclusions) (MT04, MT06)
+- [ ] 3.5.2 `game` service: CreateMatch guards (config, sides, participants, one live match, enough questions, season & sanction hooks), round/result persistence, completion & cancellation with outbox events (LC06, LC12)
+
+### 3.6 Tests & docs
+- [ ] 3.6.1 Unit + integration tests, docs, decision log
 
 ## Phase 4 — Real-time 1v1  `[ ]`
 - [ ] WebSocket connection
