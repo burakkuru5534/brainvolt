@@ -348,8 +348,8 @@ func TestPracticeAgainstBot(t *testing.T) {
 			}
 		}
 	}
-	// The bot answers round 1 by itself.
-	w.find("bot answer", func(f map[string]any) bool {
+	// The bot answers round 1 by itself, 1.5–6 s after show_at.
+	w.findIn(10*time.Second, "bot answer", func(f map[string]any) bool {
 		return f["t"] == "round.answer_received" && data(f)["user_id"] == bot
 	})
 	if wait := time.Until(time.UnixMilli(int64(started["show_at"].(float64)))); wait > 0 {

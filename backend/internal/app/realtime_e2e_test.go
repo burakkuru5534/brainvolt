@@ -110,13 +110,19 @@ func (w *wsClient) answer(re string) map[string]any {
 
 func (w *wsClient) find(what string, match func(map[string]any) bool) map[string]any {
 	w.t.Helper()
+	return w.findIn(5*time.Second, what, match)
+}
+
+// findIn is find with its own wait.
+func (w *wsClient) findIn(d time.Duration, what string, match func(map[string]any) bool) map[string]any {
+	w.t.Helper()
 	for i, f := range w.held {
 		if match(f) {
 			w.held = append(w.held[:i], w.held[i+1:]...)
 			return f
 		}
 	}
-	timeout := time.After(5 * time.Second)
+	timeout := time.After(d)
 	for {
 		select {
 		case f, ok := <-w.frames:
@@ -128,7 +134,7 @@ func (w *wsClient) find(what string, match func(map[string]any) bool) map[string
 			}
 			w.held = append(w.held, f)
 		case <-timeout:
-			w.t.Fatalf("no %s within 5 s (held: %d)", what, len(w.held))
+			w.t.Fatalf("no %s within %s (held: %d)", what, d, len(w.held))
 		}
 	}
 }
