@@ -7,6 +7,7 @@ toolchain go1.27.2
 require (
 	firebase.google.com/go/v4 v4.22.0
 	github.com/caarlos0/env/v11 v11.4.1
+	github.com/coder/websocket v1.8.15
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.11.0

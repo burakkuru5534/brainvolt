@@ -2267,6 +2267,16 @@ paths:
             tags:
                 - identity
             x-auth: any
+    /v1/ws:
+        get:
+            operationId: getV1Ws
+            responses:
+                "101":
+                    description: Switching Protocols
+            summary: WebSocket upgrade; the first message must be sys.auth within 5 s (docs/api/websocket.md)
+            tags:
+                - realtime
+            x-auth: public
 servers:
     - description: local development
       url: http://localhost:8080

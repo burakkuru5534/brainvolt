@@ -85,11 +85,14 @@ func (e emulator) signIn(email string) string {
 // e2e is the API's module wiring on a throw-away database, with a test
 // subscriber on every identity event so published events can be counted.
 type e2e struct {
-	t   *testing.T
-	srv *httpserver.Server
-	db  *pgxpool.Pool
-	rdb *redis.Client
-	emu emulator
+	t    *testing.T
+	srv  *httpserver.Server
+	db   *pgxpool.Pool
+	rdb  *redis.Client
+	emu  emulator
+	mods modules
+	// httpURL is the live test server started by url() for WebSocket tests.
+	httpURL string
 }
 
 func newE2E(t *testing.T) *e2e {
@@ -119,10 +122,10 @@ func newE2E(t *testing.T) *e2e {
 	cfg := config.HTTP{ReadTimeout: 10 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: time.Minute,
 		HandlerTimeout: 10 * time.Second, ShutdownTimeout: time.Second}
 	srv := httpserver.New(cfg, config.EnvDev, discard)
-	registerModules(srv, moduleDeps{db: db, rdb: rdb, verifier: verifier, bus: bus,
+	mods := registerModules(srv, moduleDeps{db: db, rdb: rdb, verifier: verifier, bus: bus,
 		limiter: ratelimit.New(rdb, clock.Real{}, discard), idem: idempotency.New(rdb, discard),
-		clock: clock.Real{}, logger: discard})
-	return &e2e{t: t, srv: srv, db: db, rdb: rdb, emu: emulator{t: t, host: host}}
+		clock: clock.Real{}, logger: discard, instance: "test-" + ids.NewString()})
+	return &e2e{t: t, srv: srv, db: db, rdb: rdb, emu: emulator{t: t, host: host}, mods: mods}
 }
 
 type response struct {

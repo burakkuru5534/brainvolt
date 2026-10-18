@@ -62,9 +62,9 @@
 
 | Key | Type | Content | TTL |
 |---|---|---|---|
-| `rt:presence:<user_id>` | HASH | `status` (online / in_match / in_room), `instance` ids, `conns`, `last_hb_ms` | **60 s**, refreshed by heartbeat every 20 s |
-| `rt:inst:<instance_id>:users` | SET | users connected to that instance (cleanup when an instance dies) | **60 s**, refreshed |
-| `rt:sess:<session_id>` | HASH | user_id, last acked `seq` per subscribed stream (match/room), resume token hash | **2 min** after disconnect (P) |
+| `rt:presence:<user_id>` | HASH | instance id → last heartbeat ms of that instance's sessions (deliveries go to instances seen in the last 60 s); online/in-match status joins in Phase 5 | **60 s**, refreshed by heartbeat |
+| `rt:sess:<session_id>` | HASH | user_id, resume token hash, installation_id, instance (the client sends its last `seq` per stream when resuming) | **2 min** after disconnect (P) |
+| `rt:installation:<installation_id>` | STRING | the installation's current session id — a new `sys.auth` replaces the previous session on any instance (close 4009) | **2 min**, refreshed by heartbeat |
 | pub/sub `rt:ch:inst:<instance_id>` | channel | messages to deliver to sockets on that instance (routing via `rt:presence`) | — |
 
 Online status is hidden from others when `profile.settings.show_online_status = false` (filtered when read, not when stored).

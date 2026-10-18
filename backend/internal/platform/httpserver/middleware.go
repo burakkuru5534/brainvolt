@@ -174,7 +174,8 @@ func (p *headerProbe) Write(b []byte) (int, error) { return len(b), nil }
 func (p *headerProbe) WriteHeader(code int)        { p.status = code }
 
 // route wraps one registered handler: records the pattern, applies the
-// body limit and the handler deadline, and renders returned errors.
+// body limit and the handler deadline (none when timeout is 0), and
+// renders returned errors.
 func route(pattern string, h HandlerFunc, bodyLimit int64, timeout time.Duration, logger *slog.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if ri := routeFrom(r.Context()); ri != nil {
@@ -186,9 +187,13 @@ func route(pattern string, h HandlerFunc, bodyLimit int64, timeout time.Duration
 		}
 		r.Body = http.MaxBytesReader(w, r.Body, bodyLimit)
 
-		ctx, cancel := context.WithTimeout(r.Context(), timeout)
-		defer cancel()
-		r = r.WithContext(ctx)
+		ctx := r.Context()
+		if timeout > 0 {
+			var cancel context.CancelFunc
+			ctx, cancel = context.WithTimeout(ctx, timeout)
+			defer cancel()
+			r = r.WithContext(ctx)
+		}
 
 		if err := h(w, r); err != nil {
 			if rec, ok := w.(*recorder); ok && rec.started() {

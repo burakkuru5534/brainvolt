@@ -107,6 +107,7 @@ type RouteOption func(*routeOptions)
 type routeOptions struct {
 	bodyLimit int64
 	doc       *Doc
+	longLived bool
 }
 
 // WithDoc attaches API documentation to a route.
@@ -123,13 +124,24 @@ func WithBodyLimit(n int64) RouteOption {
 	return func(o *routeOptions) { o.bodyLimit = n }
 }
 
+// LongLived drops the handler deadline for a route that keeps the
+// connection open (the WebSocket upgrade, websocket.md); the handler owns
+// its own timeouts.
+func LongLived() RouteOption {
+	return func(o *routeOptions) { o.longLived = true }
+}
+
 // Handle registers h for a ServeMux pattern such as "GET /v1/me".
 func (s *Server) Handle(pattern string, h HandlerFunc, opts ...RouteOption) {
 	o := routeOptions{bodyLimit: DefaultBodyLimit}
 	for _, opt := range opts {
 		opt(&o)
 	}
-	s.mux.Handle(pattern, route(pattern, h, o.bodyLimit, s.cfg.HandlerTimeout, s.logger))
+	timeout := s.cfg.HandlerTimeout
+	if o.longLived {
+		timeout = 0
+	}
+	s.mux.Handle(pattern, route(pattern, h, o.bodyLimit, timeout, s.logger))
 	s.routes = append(s.routes, Route{Pattern: pattern, Doc: o.doc})
 }
 

@@ -9,6 +9,7 @@ package identity
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -101,8 +102,9 @@ type Deps struct {
 
 // Module is the identity module.
 type Module struct {
-	svc *service.Service
-	tr  *transport.Transport
+	svc      *service.Service
+	tr       *transport.Transport
+	verifier Verifier
 }
 
 // New builds the module.
@@ -111,7 +113,7 @@ func New(d Deps) *Module {
 		DB: d.DB, Redis: d.Redis, Verifier: d.Verifier, Profiles: d.Profiles,
 		Events: d.Events, Clock: d.Clock, Logger: d.Logger,
 	})
-	return &Module{svc: svc, tr: transport.New(svc, d.Verifier, d.Limiter, d.Idempotency, d.Logger)}
+	return &Module{svc: svc, tr: transport.New(svc, d.Verifier, d.Limiter, d.Idempotency, d.Logger), verifier: d.Verifier}
 }
 
 // Register adds identity's routes to the server.
@@ -120,6 +122,22 @@ func (m *Module) Register(s *httpserver.Server) { m.tr.Register(s) }
 // Auth wraps a handler of any module with authentication (see transport.Auth).
 func (m *Module) Auth(h httpserver.HandlerFunc, opts ...AuthOption) httpserver.HandlerFunc {
 	return m.tr.Auth(h, opts...)
+}
+
+// Authenticate verifies a raw Firebase ID token outside an HTTP request
+// (the WebSocket handshake, websocket.md §2) and returns the principal and
+// the token's expiry. Errors are those of Auth: TOKEN_EXPIRED,
+// UNAUTHENTICATED (also for deleted accounts), UNAVAILABLE.
+func (m *Module) Authenticate(ctx context.Context, raw string) (Principal, time.Time, error) {
+	tok, err := m.verifier.Verify(ctx, raw)
+	if err != nil {
+		return Principal{}, time.Time{}, err
+	}
+	p, err := m.svc.Principal(ctx, tok)
+	if err != nil {
+		return Principal{}, time.Time{}, err
+	}
+	return p, tok.Expires, nil
 }
 
 // PrincipalFrom returns the caller of a request wrapped by Auth.

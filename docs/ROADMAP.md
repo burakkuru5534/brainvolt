@@ -26,7 +26,7 @@ Standard game rules, retention periods, default limits and small details are dec
 | 1 | Core Infrastructure | [x] |
 | 2 | Question & Category System | [x] |
 | 3 | Game Engine | [x] |
-| 4 | Real-time 1v1 | [ ] |
+| 4 | Real-time 1v1 | [~] |
 | 5 | Matchmaking & Social System | [ ] |
 | 6 | Team Matches & Couple Contest | [ ] |
 | 7 | Ranked Seasons & Leaderboards | [ ] |
@@ -312,18 +312,34 @@ Goal: the `game` module's rules as a deterministic engine without network (backe
 ### 3.6 Tests & docs
 - [x] 3.6.1 Unit + integration tests, docs, decision log
 
-## Phase 4 — Real-time 1v1  `[ ]`
-- [ ] WebSocket connection
-- [ ] WebSocket auth
-- [ ] Lobby / ready flow
-- [ ] Question dispatch
-- [ ] Answer ingestion
-- [ ] Live score updates
-- [ ] Live timer updates
-- [ ] Match completion
-- [ ] Results screen
-- [ ] Disconnect / reconnect handling
-- [ ] Tests
+## Phase 4 — Real-time 1v1  `[~]`
+Goal: two players finish a live 1v1 match on their phones: the WebSocket gateway of websocket.md, the live match owner around the Phase 3 engine (Redis state, lease, timers), a minimal way into a match, and the mobile match screens. Owner sign-off on the original list: WebSocket connection & auth, lobby/ready flow, question dispatch, answer ingestion, live score & timer updates, match completion, results screen, disconnect/reconnect, tests.
+
+### 4.1 Gateway (`platform/wsserver`, `realtime`)
+- [x] 4.1.1 `GET /v1/ws`: upgrade, `sys.auth` within 5 s (Firebase token, account status), `sys.welcome`, `sys.reauth`, close codes, 4 KB limit, 20 msg/s, one session per installation (4009)
+- [x] 4.1.2 Envelope, `sys.ack` / `sys.error`, handler registry by type prefix, `Publisher` to users/sessions across instances (Redis pub/sub), presence keys
+- [x] 4.1.3 Heartbeat (2 s in play / 20 s idle, dead after 3 missed pongs), RTT median per connection fed to the match owner, disconnect notifications
+- [x] 4.1.4 Sessions & resume (2 min token, replay or snapshot per stream)
+
+### 4.2 Live match owner (`game`)
+- [ ] 4.2.1 Owner per match: mailbox goroutine, Redis lease (10 s, renewed 3 s), `game:live`, timers from absolute deadlines, engine state saved in Redis after each command
+- [ ] 4.2.2 Intents `match.join` / `ready` / `answer` / `leave`; events to `game:{m}:events` and to participants, rendered per recipient (locale texts, own answer); persistence through `Apply`
+- [ ] 4.2.3 Disconnect / reconnect (windows, limits), `match.snapshot`, resume replay
+- [ ] 4.2.4 Owner loss: sweeper takeover with open-round voiding (`match.resumed`), `server_error` after 30 s
+
+### 4.3 Getting into a match & results
+- [ ] 4.3.1 Minimal Quick Duel queue (`POST/GET/DELETE /v1/matchmaking/tickets`, first-come pairing, `mm.status` / `mm.match_found`); real matchmaking replaces the pairing in Phase 5
+- [ ] 4.3.2 `GET /v1/matches/current`, `GET /v1/matches/{id}` (result screen data)
+- [ ] 4.3.3 Development practice opponent (bot) so one device can test
+
+### 4.4 Mobile
+- [ ] 4.4.1 `RealtimeClient` (auth, heartbeat & clock offset, seq/ack, reconnect with backoff, resume)
+- [ ] 4.4.2 Play entry & searching screen, match found / ready
+- [ ] 4.4.3 Match screen: countdown, question at `show_at`, options, timer, answer state, reveal, live scores, opponent status
+- [ ] 4.4.4 Results screen, reconnect banner, leave confirmation
+
+### 4.5 Tests & docs
+- [ ] 4.5.1 Backend WebSocket end-to-end (two clients play a match; reconnect; takeover), mobile unit/widget tests with a fake socket, docs and decision log
 
 ## Phase 5 — Matchmaking & Social System  `[ ]`
 - [ ] MMR-based matchmaking queue

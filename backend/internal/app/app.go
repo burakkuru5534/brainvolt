@@ -28,6 +28,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/notification"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/config"
@@ -36,6 +37,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/health"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/idempotency"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ids"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/logging"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/postgres"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ratelimit"
@@ -77,8 +79,8 @@ func New(role Role, logger *slog.Logger, components ...Component) *App {
 // NewAPI builds the composition for cmd/api: Postgres and Redis
 // connections, Firebase token verification, the event bus, the HTTP server
 // with the per-IP rate limit, /healthz, /readyz and the identity, profile
-// and notification routes. The WebSocket gateway (Phase 4) and matchmaking
-// loops (Phase 5) join it later.
+// and notification routes and the WebSocket gateway. Matchmaking loops
+// (Phase 5) join it later.
 func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, error) {
 	db, err := postgres.Connect(ctx, postgres.Options{
 		URL:              cfg.Postgres.URL,
@@ -130,10 +132,10 @@ func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, 
 		health.Check{Name: "redis", Fn: func(ctx context.Context) error { return redis.Ping(ctx, rdb) }},
 		health.Check{Name: "migrations", Fn: func(ctx context.Context) error { return migrations.Check(ctx, schema) }},
 	)
-	registerModules(srv, moduleDeps{db: db, rdb: rdb, verifier: verifier, bus: bus, limiter: limiter,
-		idem: idempotency.New(rdb, logger), clock: clk, logger: logger})
+	mods := registerModules(srv, moduleDeps{db: db, rdb: rdb, verifier: verifier, bus: bus, limiter: limiter,
+		idem: idempotency.New(rdb, logger), clock: clk, logger: logger, instance: ids.New().String()})
 
-	a := New(RoleAPI, logger, srv)
+	a := New(RoleAPI, logger, srv, mods.realtime)
 	a.closers = append(a.closers, db.Close, func() { _ = sqlDB.Close() }, func() { _ = rdb.Close() })
 	return a, nil
 }
@@ -148,11 +150,19 @@ type moduleDeps struct {
 	idem     *idempotency.Store
 	clock    clock.Clock
 	logger   *slog.Logger
+	// instance identifies this API process (realtime delivery, match owners).
+	instance string
+}
+
+// modules are the built modules a process runs besides the HTTP server.
+type modules struct {
+	realtime *realtime.Module
 }
 
 // registerModules builds the modules and their routes. The wiring follows
-// backend-modules.md §2: profile implements identity's ProfileProvisioner.
-func registerModules(srv *httpserver.Server, d moduleDeps) {
+// backend-modules.md §2: profile implements identity's ProfileProvisioner;
+// identity authenticates WebSocket sessions for realtime.
+func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	prof := profile.New(d.db, d.clock)
 	ident := identity.New(identity.Deps{
 		DB: d.db, Redis: d.rdb, Verifier: d.verifier, Profiles: prof.Provisioner(), Events: d.bus,
@@ -162,6 +172,9 @@ func registerModules(srv *httpserver.Server, d moduleDeps) {
 	prof.Register(srv, ident, d.limiter)
 	notification.New(d.db, d.clock).Register(srv, ident)
 	content.New(d.db, d.clock, d.bus).Register(srv, ident, d.idem)
+	rt := realtime.New(realtime.Deps{Redis: d.rdb, Auth: ident, Clock: d.clock, Logger: d.logger, Instance: d.instance})
+	rt.Register(srv)
+	return modules{realtime: rt}
 }
 
 // newBus returns the event bus with every subscription. The API and the
