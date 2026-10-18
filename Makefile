@@ -38,7 +38,7 @@ MOBILE_GEN = dart run tool/gen_error_l10n.dart && flutter gen-l10n && dart run b
 # $(call mobile,<command>,<what is skipped>) runs <command> in mobile/ if it exists.
 mobile = $(if $(wildcard $(MOBILE)/pubspec.yaml),cd $(MOBILE) && $(1),@echo mobile/ not set up yet - roadmap 1.7 - skipping $(2))
 
-.PHONY: help env check-env up up-app down reset ps logs psql redis-cli run test lint migrate seed gen check-gen
+.PHONY: help env check-env up up-app down reset ps logs psql redis-cli run test lint migrate seed admin gen check-gen
 
 help: ## List targets
 	$(HELP)
@@ -97,6 +97,11 @@ migrate: check-env ## Apply DB migrations; MIGRATE=down|status|version for other
 seed: check-env ## Import content/ questions (new ones start in review); SEED=validate to only check files, SEED_ARGS="-approve-as <user-id>" (dev)   (cd backend && go run ./cmd/seed import)
 	$(require_backend)
 	cd $(BACKEND) && go run ./cmd/seed $(SEED) $(SEED_ARGS)
+
+admin: check-env ## Operator tasks, e.g. ADMIN="grant-role <user-id|firebase-uid> admin"   (cd backend && go run ./cmd/admin grant-role <user> <role>)
+	$(require_backend)
+	$(if $(ADMIN),,$(error set ADMIN, e.g. make admin ADMIN="grant-role <user-id> admin"))
+	cd $(BACKEND) && go run ./cmd/admin $(ADMIN)
 
 gen: ## Regenerate code and docs/api/openapi.yaml   (backend: sqlc + OpenAPI ; mobile: error texts, gen-l10n, build_runner)
 	$(require_backend)

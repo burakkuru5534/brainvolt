@@ -104,10 +104,10 @@ Migrations live in `backend/migrations/` as `NNNNNN_<module>_<change>.sql` with 
 ```bash
 make seed                        # import content/ questions; new ones start in review   (cd backend && go run ./cmd/seed import)
 make seed SEED=validate          # only check the files (CI does this too)
-cd backend && go run ./cmd/admin grant-role <firebase-uid|user-id> moderator   # or admin; the user must have signed in once
+make admin ADMIN="grant-role <user-id|firebase-uid> admin"   # or moderator; the user must have signed in once   (cd backend && go run ./cmd/admin …)
 ```
 
-Moderators review questions through the `/v1/questions` endpoints (`docs/api/openapi.yaml`); only verified questions with a verified translation in the player's language reach matches (D-007). For local play without reviewing, import with dev approval: `make seed SEED_ARGS="-approve-as <your-user-id>"` (refused unless `BRAINVOLT_ENV=dev`). File format, OpenTDB workflow and licenses: [`content/README.md`](content/README.md).
+Moderators review questions through the `/v1/questions` endpoints (`docs/api/openapi.yaml`); only verified questions with a verified translation in the player's language reach matches (D-007). Find your user id with `make psql` → `SELECT id, created_at FROM identity.users ORDER BY created_at DESC;` (dev builds sign in against the Auth emulator, so users are not in the Firebase console). For local play without reviewing, import with dev approval: `make seed SEED_ARGS="-approve-as <your-user-id>"` (refused unless `BRAINVOLT_ENV=dev`). File format, OpenTDB workflow and licenses: [`content/README.md`](content/README.md).
 
 ## When something does not start
 
