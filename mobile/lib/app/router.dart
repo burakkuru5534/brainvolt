@@ -9,6 +9,7 @@ import '../features/auth/presentation/age_gate_screen.dart';
 import '../features/auth/presentation/email_auth_screen.dart';
 import '../features/auth/presentation/splash_screen.dart';
 import '../features/auth/presentation/verify_email_screen.dart';
+import '../features/content/presentation/credits_screen.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/settings_screen.dart';
@@ -28,6 +29,7 @@ abstract final class Routes {
   static const emailSignUp = '/account/email-sign-up';
   static const emailSignIn = '/account/email-sign-in';
   static const verifyEmail = '/account/verify-email';
+  static const credits = '/credits';
 }
 
 /// The sign-in guard (roadmap 1.8.3): where [location] must go for the
@@ -102,6 +104,10 @@ GoRouter router(Ref ref) {
       GoRoute(
         path: Routes.verifyEmail,
         builder: (context, state) => const VerifyEmailScreen(),
+      ),
+      GoRoute(
+        path: Routes.credits,
+        builder: (context, state) => const CreditsScreen(),
       ),
     ],
   );

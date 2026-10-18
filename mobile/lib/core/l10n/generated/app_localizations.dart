@@ -572,6 +572,42 @@ abstract class AppLocalizations {
   /// **'Kimseden'**
   String get challengesNobody;
 
+  /// Credits screen title.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaynaklar ve Lisanslar'**
+  String get creditsTitle;
+
+  /// Credits: section of question sources (D-006).
+  ///
+  /// In tr, this message translates to:
+  /// **'Soruların kaynakları'**
+  String get creditsQuestions;
+
+  /// Credits: license code of a source.
+  ///
+  /// In tr, this message translates to:
+  /// **'Lisans: {license}'**
+  String creditsLicense(String license);
+
+  /// Credits: CC BY-SA share-alike note.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kaynaktan alınan sorular ve çevirileri aynı lisansla paylaşılır.'**
+  String get creditsShareAlike;
+
+  /// Snackbar after copying a link.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantı kopyalandı.'**
+  String get creditsLinkCopied;
+
+  /// Credits: opens the licenses of the app's packages.
+  ///
+  /// In tr, this message translates to:
+  /// **'Açık kaynak lisansları'**
+  String get creditsOpenSource;
+
   /// Client-side: the server could not be reached.
   ///
   /// In tr, this message translates to:
@@ -860,6 +896,12 @@ abstract class AppLocalizations {
   /// **'Satın alma doğrulanamadı.'**
   String get error_PURCHASE_INVALID;
 
+  /// Server error code QUESTION_DUPLICATE (docs/api/errors.md).
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu soru zaten var.'**
+  String get error_QUESTION_DUPLICATE;
+
   /// Server error code QUESTION_IN_USE (docs/api/errors.md).
   ///
   /// In tr, this message translates to:
@@ -871,6 +913,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Sorunun kaynağı ve lisansı belirtilmeli.'**
   String get error_QUESTION_SOURCE_REQUIRED;
+
+  /// Server error code QUESTION_STATE_INVALID (docs/api/errors.md).
+  ///
+  /// In tr, this message translates to:
+  /// **'Sorunun şu anki durumunda bu işlem yapılamaz.'**
+  String get error_QUESTION_STATE_INVALID;
 
   /// Server error code QUEUE_COOLDOWN (docs/api/errors.md).
   ///

@@ -8,7 +8,153 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type ContentCategory struct {
+	ID        uuid.UUID
+	Slug      string
+	IconKey   string
+	SortOrder int32
+	IsActive  bool
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type ContentCategoryTranslation struct {
+	CategoryID  uuid.UUID
+	Locale      string
+	Name        string
+	Description *string
+}
+
+type ContentDailySet struct {
+	Day         pgtype.Date
+	SetID       uuid.UUID
+	PublishedAt time.Time
+}
+
+type ContentOption struct {
+	ID         uuid.UUID
+	QuestionID uuid.UUID
+	Position   int16
+	IsCorrect  bool
+}
+
+type ContentOptionTranslation struct {
+	OptionID uuid.UUID
+	Locale   string
+	Text     string
+}
+
+type ContentQuestion struct {
+	ID                   uuid.UUID
+	SubcategoryID        uuid.UUID
+	QuestionType         string
+	Difficulty           int16
+	DifficultyCalibrated pgtype.Numeric
+	OriginalLocale       string
+	SourceID             uuid.UUID
+	SourceRef            *string
+	AuthorUserID         *uuid.UUID
+	Pool                 string
+	Fingerprint          string
+	VerificationStatus   string
+	VerifiedBy           *uuid.UUID
+	VerifiedAt           *time.Time
+	RejectionReason      *string
+	RetiredAt            *time.Time
+	Revision             int32
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
+}
+
+type ContentQuestionRevision struct {
+	QuestionID uuid.UUID
+	Revision   int32
+	Snapshot   []byte
+	CreatedBy  *uuid.UUID
+	CreatedAt  time.Time
+}
+
+type ContentQuestionSet struct {
+	ID        uuid.UUID
+	Kind      string
+	CreatedBy *uuid.UUID
+	CreatedAt time.Time
+}
+
+type ContentQuestionSetItem struct {
+	SetID      uuid.UUID
+	Position   int16
+	QuestionID uuid.UUID
+}
+
+type ContentQuestionStat struct {
+	QuestionID    uuid.UUID
+	Locale        string
+	TimesAsked    int64
+	TimesCorrect  int64
+	TimesTimedOut int64
+	SumResponseMs int64
+	LastAskedAt   *time.Time
+}
+
+type ContentQuestionTranslation struct {
+	QuestionID         uuid.UUID
+	Locale             string
+	Prompt             string
+	Explanation        *string
+	Origin             string
+	VerificationStatus string
+	VerifiedBy         *uuid.UUID
+	VerifiedAt         *time.Time
+	RejectionReason    *string
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+}
+
+type ContentSource struct {
+	ID              uuid.UUID
+	Kind            string
+	Name            string
+	Url             *string
+	LicenseCode     string
+	LicenseUrl      *string
+	AttributionText string
+	ShareAlike      bool
+	Notes           *string
+	CreatedAt       time.Time
+}
+
+type ContentSubcategory struct {
+	ID         uuid.UUID
+	CategoryID uuid.UUID
+	Slug       string
+	SortOrder  int32
+	IsActive   bool
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
+type ContentSubcategoryTranslation struct {
+	SubcategoryID uuid.UUID
+	Locale        string
+	Name          string
+	Description   *string
+}
+
+type ContentVerificationEvent struct {
+	ID         uuid.UUID
+	QuestionID uuid.UUID
+	Locale     *string
+	FromStatus string
+	ToStatus   string
+	ActorID    *uuid.UUID
+	Reason     *string
+	Revision   int32
+	CreatedAt  time.Time
+}
 
 type IdentityAuthIdentity struct {
 	UserID        uuid.UUID

@@ -122,6 +122,20 @@ func (g *schemaGen) operation(method, path string, d httpserver.Doc) (map[string
 	for _, m := range pathParam.FindAllStringSubmatch(path, -1) {
 		params = append(params, map[string]any{"name": m[1], "in": "path", "required": true, "schema": map[string]any{"type": "string"}})
 	}
+	for _, qp := range d.Query {
+		schema := map[string]any{"type": qp.Type}
+		if qp.Format != "" {
+			schema["format"] = qp.Format
+		}
+		if len(qp.Enum) > 0 {
+			schema["enum"] = qp.Enum
+		}
+		p := map[string]any{"name": qp.Name, "in": "query", "required": false, "schema": schema}
+		if qp.Description != "" {
+			p["description"] = qp.Description
+		}
+		params = append(params, p)
+	}
 	if d.Auth != "public" {
 		op["security"] = []any{map[string]any{"firebase": []string{}}}
 		params = append(params, map[string]any{
@@ -251,7 +265,7 @@ func (g *schemaGen) inline(t reflect.Type) (map[string]any, error) {
 		return map[string]any{"type": "string"}, nil
 	case reflect.Bool:
 		return map[string]any{"type": "boolean"}, nil
-	case reflect.Int, reflect.Int32, reflect.Int64:
+	case reflect.Int, reflect.Int16, reflect.Int32, reflect.Int64:
 		return map[string]any{"type": "integer"}, nil
 	case reflect.Float64:
 		return map[string]any{"type": "number"}, nil

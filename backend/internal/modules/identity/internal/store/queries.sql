@@ -53,3 +53,11 @@ DELETE FROM identity.auth_identities WHERE user_id = @user_id AND NOT (provider 
 
 -- name: ListUserRoles :many
 SELECT role FROM identity.user_roles WHERE user_id = $1 ORDER BY role;
+
+-- name: GrantRole :exec
+INSERT INTO identity.user_roles (user_id, role, granted_by, granted_at)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (user_id, role) DO NOTHING;
+
+-- name: RevokeRole :exec
+DELETE FROM identity.user_roles WHERE user_id = $1 AND role = $2;

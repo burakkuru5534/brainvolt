@@ -343,6 +343,35 @@
   "@challengesNobody": {
     "description": "challenges_from value."
   },
+  "creditsTitle": "Kaynaklar ve Lisanslar",
+  "@creditsTitle": {
+    "description": "Credits screen title."
+  },
+  "creditsQuestions": "Soruların kaynakları",
+  "@creditsQuestions": {
+    "description": "Credits: section of question sources (D-006)."
+  },
+  "creditsLicense": "Lisans: {license}",
+  "@creditsLicense": {
+    "description": "Credits: license code of a source.",
+    "placeholders": {
+      "license": {
+        "type": "String"
+      }
+    }
+  },
+  "creditsShareAlike": "Bu kaynaktan alınan sorular ve çevirileri aynı lisansla paylaşılır.",
+  "@creditsShareAlike": {
+    "description": "Credits: CC BY-SA share-alike note."
+  },
+  "creditsLinkCopied": "Bağlantı kopyalandı.",
+  "@creditsLinkCopied": {
+    "description": "Snackbar after copying a link."
+  },
+  "creditsOpenSource": "Açık kaynak lisansları",
+  "@creditsOpenSource": {
+    "description": "Credits: opens the licenses of the app's packages."
+  },
   "errorNetwork": "Bağlantı kurulamadı. İnternet bağlantını kontrol et.",
   "@errorNetwork": {
     "description": "Client-side: the server could not be reached."
@@ -535,6 +564,10 @@
   "@error_PURCHASE_INVALID": {
     "description": "Server error code PURCHASE_INVALID (docs/api/errors.md)."
   },
+  "error_QUESTION_DUPLICATE": "Bu soru zaten var.",
+  "@error_QUESTION_DUPLICATE": {
+    "description": "Server error code QUESTION_DUPLICATE (docs/api/errors.md)."
+  },
   "error_QUESTION_IN_USE": "Bu soru maçlarda kullanıldığı için bu şekilde değiştirilemez.",
   "@error_QUESTION_IN_USE": {
     "description": "Server error code QUESTION_IN_USE (docs/api/errors.md)."
@@ -542,6 +575,10 @@
   "error_QUESTION_SOURCE_REQUIRED": "Sorunun kaynağı ve lisansı belirtilmeli.",
   "@error_QUESTION_SOURCE_REQUIRED": {
     "description": "Server error code QUESTION_SOURCE_REQUIRED (docs/api/errors.md)."
+  },
+  "error_QUESTION_STATE_INVALID": "Sorunun şu anki durumunda bu işlem yapılamaz.",
+  "@error_QUESTION_STATE_INVALID": {
+    "description": "Server error code QUESTION_STATE_INVALID (docs/api/errors.md)."
   },
   "error_QUEUE_COOLDOWN": "Bir süre eşleşme sırasına giremezsin.",
   "@error_QUEUE_COOLDOWN": {

@@ -1,0 +1,72 @@
+# BrainVolt team pool — General Knowledge. Format: content/README.md.
+source: brainvolt-team
+questions:
+  - ref: bv-general-001
+    subcategory: general-knowledge/language
+    difficulty: 1
+    tr:
+      prompt: Türk alfabesinde kaç harf vardır?
+      options: ["29", "28", "26", "30"]
+    en:
+      prompt: How many letters are there in the Turkish alphabet?
+      options: ["29", "28", "26", "30"]
+
+  - ref: bv-general-002
+    subcategory: general-knowledge/language
+    difficulty: 2
+    tr:
+      prompt: Dünyada ana dili olarak en çok konuşulan dil hangisidir?
+      options: [Çince (Mandarin), İngilizce, İspanyolca, Hintçe]
+    en:
+      prompt: Which language has the most native speakers in the world?
+      options: [Chinese (Mandarin), English, Spanish, Hindi]
+
+  - ref: bv-general-003
+    subcategory: general-knowledge/food-drink
+    difficulty: 2
+    tr:
+      prompt: Dünyanın en pahalı baharatı olarak bilinen baharat hangisidir?
+      options: [Safran, Vanilya, Kakule, Tarçın]
+    en:
+      prompt: Which spice is known as the most expensive in the world?
+      options: [Saffron, Vanilla, Cardamom, Cinnamon]
+
+  - ref: bv-general-004
+    subcategory: general-knowledge/food-drink
+    difficulty: 1
+    tr:
+      prompt: Suşi hangi ülkenin mutfağına aittir?
+      options: [Japonya, Çin, Güney Kore, Tayland]
+    en:
+      prompt: Sushi comes from the cuisine of which country?
+      options: [Japan, China, South Korea, Thailand]
+
+  - ref: bv-general-005
+    subcategory: general-knowledge/mixed
+    difficulty: 1
+    tr:
+      prompt: Satrançta oyunun başında her oyuncunun kaç piyonu vardır?
+      options: ["8", "6", "10", "16"]
+    en:
+      prompt: In chess, how many pawns does each player have at the start of the game?
+      options: ["8", "6", "10", "16"]
+
+  - ref: bv-general-006
+    subcategory: general-knowledge/mixed
+    difficulty: 1
+    tr:
+      prompt: Bir yılda kaç tam hafta vardır?
+      options: ["52", "48", "50", "54"]
+    en:
+      prompt: How many full weeks are there in a year?
+      options: ["52", "48", "50", "54"]
+
+  - ref: bv-general-007
+    subcategory: general-knowledge/mixed
+    difficulty: 1
+    type: true_false
+    answer: true
+    tr:
+      prompt: Jokerler hariç bir deste iskambil kâğıdında 52 kart bulunur.
+    en:
+      prompt: Excluding jokers, a standard deck of playing cards has 52 cards.

@@ -23,6 +23,7 @@ import (
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/content"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/notification"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
@@ -159,6 +160,7 @@ func registerModules(srv *httpserver.Server, d moduleDeps) {
 	ident.Register(srv)
 	prof.Register(srv, ident, d.limiter)
 	notification.New(d.db, d.clock).Register(srv, ident)
+	content.New(d.db, d.clock, d.bus).Register(srv, ident, d.idem)
 }
 
 // newBus returns the event bus with every subscription. The API and the

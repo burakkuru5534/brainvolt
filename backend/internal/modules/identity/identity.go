@@ -73,6 +73,9 @@ const (
 	EventUserRegistered     = domain.EventUserRegistered
 	EventAccountTierChanged = domain.EventAccountTierChanged
 	EventGuestAbandoned     = domain.EventGuestAbandoned
+
+	RoleModerator = domain.RoleModerator
+	RoleAdmin     = domain.RoleAdmin
 )
 
 // Auth options for routes of any module.
@@ -80,6 +83,7 @@ var (
 	AllowSuspended       = transport.AllowSuspended
 	AllowDeletionPending = transport.AllowDeletionPending
 	RequireFull          = transport.RequireFull
+	RequireRole          = transport.RequireRole
 )
 
 // Deps are the module's collaborators, built in internal/app.
@@ -120,6 +124,12 @@ func (m *Module) Auth(h httpserver.HandlerFunc, opts ...AuthOption) httpserver.H
 
 // PrincipalFrom returns the caller of a request wrapped by Auth.
 func PrincipalFrom(ctx context.Context) (Principal, bool) { return transport.PrincipalFrom(ctx) }
+
+// SetRole grants or revokes a staff role (cmd/admin); user is a BrainVolt
+// user id or a Firebase UID.
+func (m *Module) SetRole(ctx context.Context, user, role string, grant bool) (uuid.UUID, error) {
+	return m.svc.SetRole(ctx, user, role, grant)
+}
 
 // User returns the identity view of a user (NOT_FOUND if missing).
 func (m *Module) User(ctx context.Context, id uuid.UUID) (User, error) { return m.svc.User(ctx, id) }

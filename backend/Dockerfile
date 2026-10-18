@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 # Static binaries (no cgo); -trimpath keeps local paths out of the binary;
 # timetzdata embeds the time-zone database (Europe/Istanbul periods, D-029).
-RUN CGO_ENABLED=0 go build -trimpath -tags timetzdata -ldflags="-s -w" -o /out/ ./cmd/api ./cmd/worker ./cmd/migrate
+RUN CGO_ENABLED=0 go build -trimpath -tags timetzdata -ldflags="-s -w" -o /out/ ./cmd/api ./cmd/worker ./cmd/migrate ./cmd/seed ./cmd/admin
 
 # The runtime stage downloads nothing: CA certificates come from the build
 # stage, the user is created with busybox. busybox wget serves the

@@ -4,7 +4,7 @@
 - **Status:** Accepted (2026-10-15)
 - **Related:** `repo-layout.md` (folder structure), ADR-0002 (libraries, 0.1.5), `docs/domain/*` (schemas, 0.2), `docs/game/*` (rules, 0.3/0.5)
 
-The backend is **one Go binary family** (`cmd/api`, `cmd/worker`, `cmd/migrate`, `cmd/seed`) built from **one Go module**, split internally into business modules under `backend/internal/modules/`. Each module owns its data, its rules and its endpoints. This document fixes **which modules exist, what each owns, and who may depend on whom**.
+The backend is **one Go binary family** (`cmd/api`, `cmd/worker`, `cmd/migrate`, `cmd/seed`, `cmd/admin`) built from **one Go module**, split internally into business modules under `backend/internal/modules/`. Each module owns its data, its rules and its endpoints. This document fixes **which modules exist, what each owns, and who may depend on whom**.
 
 ---
 
@@ -141,7 +141,8 @@ Inbound WebSocket messages are routed by type prefix (`match.*`, `lobby.*`, `cha
 | `cmd/api` | REST + WebSocket for all modules; live match owners (`game`); matchmaking loops (`matchmaking`) |
 | `cmd/worker` | Outbox dispatcher; scheduled jobs: daily challenge rotation (`content`), leaderboard snapshots & season resets (`ranking`), quest resets (`progression`), tournament scheduling, notification fan-out, stale-match cleanup (`game`) |
 | `cmd/migrate` | Schema migrations |
-| `cmd/seed` | Question import from `content/` (`content`) |
+| `cmd/seed` | Question import from `content/` (`content`): `validate`, `import`, `opentdb-fetch`, `opentdb-list` |
+| `cmd/admin` | Operator tasks without an API: `grant-role` / `revoke-role` for staff roles (`identity`), added in Phase 2 (D-063) |
 
 Both `api` and `worker` are built from the same modules; only the wiring in `internal/app` differs.
 

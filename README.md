@@ -99,6 +99,16 @@ make migrate MIGRATE=down       # roll back the latest one
 
 Migrations live in `backend/migrations/` as `NNNNNN_<module>_<change>.sql` with `-- +goose Up` / `-- +goose Down` sections; `000001` installs River's job tables. `/readyz` reports `migrations: failed` until the database is up to date. After changing SQL queries, migrations or API types run `make gen` (sqlc + OpenAPI) and commit the generated files; `make check-gen` fails if they are stale.
 
+## Questions and staff roles
+
+```bash
+make seed                        # import content/ questions; new ones start in review   (cd backend && go run ./cmd/seed import)
+make seed SEED=validate          # only check the files (CI does this too)
+cd backend && go run ./cmd/admin grant-role <firebase-uid|user-id> moderator   # or admin; the user must have signed in once
+```
+
+Moderators review questions through the `/v1/questions` endpoints (`docs/api/openapi.yaml`); only verified questions with a verified translation in the player's language reach matches (D-007). For local play without reviewing, import with dev approval: `make seed SEED_ARGS="-approve-as <your-user-id>"` (refused unless `BRAINVOLT_ENV=dev`). File format, OpenTDB workflow and licenses: [`content/README.md`](content/README.md).
+
 ## When something does not start
 
 `make check-env` compares your `.env` with `.env.example`. It lists missing variables and `${VAR}` references that expand to nothing — e.g. a missing `BRAINVOLT_FIREBASE_AUTH_EMULATOR_PORT` turns the emulator address into `localhost:` and tests fail with `dial tcp 127.0.0.1:80: connection refused`. `make up`, `run`, `migrate` and `test` run it first. A variable must be defined **above** the lines that use it. Changing a port (e.g. `BRAINVOLT_POSTGRES_PORT=5433` when 5432 is taken) needs only that one line: the URLs are built from it.

@@ -38,9 +38,11 @@ backend/
 │   ├── worker/                         scheduled/background jobs: season reset, daily challenge rotation,
 │   │                                   leaderboard snapshots, notification fan-out
 │   ├── migrate/                        applies database migrations
-│   └── seed/                           imports questions from content/ (Phase 2)
+│   ├── seed/                           validates and imports questions from content/ (Phase 2)
+│   └── admin/                          operator tasks without an API, e.g. staff roles (Phase 2)
 ├── internal/                           nothing here is importable from outside backend/
 │   ├── app/                            composition root: builds config, infra and modules, registers routes/jobs
+│   ├── contentfiles/                   reads and checks the content/ files for cmd/seed (Phase 2)
 │   ├── platform/                       technical building blocks shared by all modules (no business rules)
 │   │   ├── config/                     env loading + validation
 │   │   ├── logging/                    structured logger
@@ -124,7 +126,7 @@ content/
 └── brainvolt/                          our own question pool (tr, optional en)
 ```
 
-The import tool (`backend/cmd/seed`) refuses any question with no source or license. Verified status (D-007) is set in the database by review, not by the files.
+The import tool (`backend/cmd/seed`, file reader in `backend/internal/contentfiles`) refuses any question with no source or license. Verified status (D-007) is set in the database by review, not by the files. File format and commands: `content/README.md`.
 
 ## `docs/`
 

@@ -304,6 +304,39 @@ func (s *Service) forget(ctx context.Context, firebaseUID string) {
 	}
 }
 
+// SetRole grants (grant = true) or revokes a staff role. user is a
+// BrainVolt user id or a Firebase UID. Used by cmd/admin; the principal
+// cache is cleared so the change applies to the next request.
+func (s *Service) SetRole(ctx context.Context, user, role string, grant bool) (uuid.UUID, error) {
+	if !domain.ValidRole(role) {
+		return uuid.Nil, fmt.Errorf("unknown role %q (want %s or %s)", role, domain.RoleModerator, domain.RoleAdmin)
+	}
+	q := sqlc.New(s.d.DB)
+	var u sqlc.IdentityUser
+	var err error
+	if id, perr := uuid.Parse(user); perr == nil {
+		u, err = q.GetUserByID(ctx, id)
+	} else {
+		u, err = q.GetUserByFirebaseUID(ctx, user)
+	}
+	if errors.Is(err, pgx.ErrNoRows) {
+		return uuid.Nil, fmt.Errorf("no BrainVolt user %q (sign in with the app once first)", user)
+	}
+	if err != nil {
+		return uuid.Nil, err
+	}
+	if grant {
+		err = q.GrantRole(ctx, sqlc.GrantRoleParams{UserID: u.ID, Role: role, GrantedAt: s.d.Clock.Now().UTC()})
+	} else {
+		err = q.RevokeRole(ctx, sqlc.RevokeRoleParams{UserID: u.ID, Role: role})
+	}
+	if err != nil {
+		return uuid.Nil, err
+	}
+	s.forget(ctx, u.FirebaseUid)
+	return u.ID, nil
+}
+
 // AbandonGuest records that a guest gave up its account in a link conflict
 // (D-015). Repeating it is harmless.
 func (s *Service) AbandonGuest(ctx context.Context, p domain.Principal) error {

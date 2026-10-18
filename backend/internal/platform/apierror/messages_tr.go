@@ -71,6 +71,8 @@ var messagesTR = map[Code]string{
 
 	QuestionSourceRequired: "Sorunun kaynağı ve lisansı belirtilmeli.",
 	QuestionInUse:          "Bu soru maçlarda kullanıldığı için bu şekilde değiştirilemez.",
+	QuestionStateInvalid:   "Sorunun şu anki durumunda bu işlem yapılamaz.",
+	QuestionDuplicate:      "Bu soru zaten var.",
 	QuizLimitReached:       "Quiz sınırına ulaştın.",
 	QuizSizeInvalid:        "Quiz soru sayısı izin verilen aralıkta değil.",
 	ReportLimitReached:     "Bugün için bildirim sınırına ulaştın.",

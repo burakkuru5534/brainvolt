@@ -255,6 +255,24 @@ void main() {
     });
   });
 
+  testWidgets('credits list the question sources (D-006, CC BY-SA)', (
+    tester,
+  ) async {
+    await launch(tester);
+    await tapKey(tester, 'open-settings');
+    await tapKey(tester, 'open-credits');
+    expect(find.text('Kaynaklar ve Lisanslar'), findsOneWidget);
+    expect(find.text('Open Trivia Database'), findsOneWidget);
+    expect(find.text('Lisans: CC-BY-SA-4.0'), findsOneWidget);
+    expect(
+      find.text(
+        'Bu kaynaktan alınan sorular ve çevirileri aynı lisansla paylaşılır.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('open-source-licenses')), findsOneWidget);
+  });
+
   test('a stored language override is read on start', () async {
     final t = await TestApp.create(prefs: {'locale_override': 'en'});
     expect(t.container.read(localeOverrideProvider), const Locale('en'));

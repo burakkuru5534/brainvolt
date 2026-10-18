@@ -3,10 +3,14 @@ package app
 import (
 	"bytes"
 	"errors"
+	"fmt"
+	"io/fs"
+	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/testdb"
+	"github.com/burakkuru5534/brainvolt/backend/migrations"
 )
 
 func TestRunMigrate(t *testing.T) {
@@ -21,16 +25,22 @@ func TestRunMigrate(t *testing.T) {
 		return out.String()
 	}
 
-	if v := strings.TrimSpace(run("version")); v != "4" {
-		t.Fatalf("version = %q, want 4", v)
+	// Migration 1 is River's (Go); the others are the embedded SQL files.
+	sqlFiles, err := fs.Glob(migrations.SQLFiles(), "*.sql")
+	if err != nil {
+		t.Fatal(err)
+	}
+	latest := strconv.Itoa(len(sqlFiles) + 1)
+	if v := strings.TrimSpace(run("version")); v != latest {
+		t.Fatalf("version = %q, want %s", v, latest)
 	}
 	run("down")
 	status := run("status")
-	if !strings.Contains(status, "000004  pending") || !strings.Contains(status, "river job tables") {
+	if !strings.Contains(status, fmt.Sprintf("%06d  pending", len(sqlFiles)+1)) || !strings.Contains(status, "river job tables") {
 		t.Fatalf("status after down:\n%s", status)
 	}
 	run("up")
-	if v := strings.TrimSpace(run("version")); v != "4" {
+	if v := strings.TrimSpace(run("version")); v != latest {
 		t.Fatalf("version after up = %q", v)
 	}
 	if err := runMigrate(ctx, url, "drop-everything", &bytes.Buffer{}, discard); !errors.Is(err, errUsage) {

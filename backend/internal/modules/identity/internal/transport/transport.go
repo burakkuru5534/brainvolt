@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity/internal/domain"
@@ -50,6 +51,7 @@ type authOptions struct {
 	allowSuspended       bool
 	allowDeletionPending bool
 	fullAction           string
+	roles                []string
 }
 
 // AllowSuspended lets suspended accounts through (own profile, sanction
@@ -63,6 +65,10 @@ func AllowDeletionPending() AuthOption { return func(o *authOptions) { o.allowDe
 // RequireFull rejects guest and unverified accounts with
 // ACCOUNT_UPGRADE_REQUIRED, details.action = action (D-016, D-017).
 func RequireFull(action string) AuthOption { return func(o *authOptions) { o.fullAction = action } }
+
+// RequireRole rejects callers holding none of roles with FORBIDDEN
+// (staff routes: rest.md `mod` = moderator or admin, `adm` = admin).
+func RequireRole(roles ...string) AuthOption { return func(o *authOptions) { o.roles = roles } }
 
 // Auth verifies the Bearer token, resolves the BrainVolt account, applies
 // the status/tier rules and the per-user rate limit, then calls h with the
@@ -107,6 +113,9 @@ func checkAccess(p domain.Principal, o authOptions) error {
 	}
 	if o.fullAction != "" && p.Tier.Restricted() {
 		return apierror.New(apierror.AccountUpgradeRequired).With("action", o.fullAction)
+	}
+	if len(o.roles) > 0 && !slices.ContainsFunc(o.roles, p.HasRole) {
+		return apierror.New(apierror.Forbidden).With("reason", "role_required")
 	}
 	return nil
 }

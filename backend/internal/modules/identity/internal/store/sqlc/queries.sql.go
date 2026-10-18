@@ -102,6 +102,29 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (IdentityUser, 
 	return i, err
 }
 
+const grantRole = `-- name: GrantRole :exec
+INSERT INTO identity.user_roles (user_id, role, granted_by, granted_at)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (user_id, role) DO NOTHING
+`
+
+type GrantRoleParams struct {
+	UserID    uuid.UUID
+	Role      string
+	GrantedBy *uuid.UUID
+	GrantedAt time.Time
+}
+
+func (q *Queries) GrantRole(ctx context.Context, arg GrantRoleParams) error {
+	_, err := q.db.Exec(ctx, grantRole,
+		arg.UserID,
+		arg.Role,
+		arg.GrantedBy,
+		arg.GrantedAt,
+	)
+	return err
+}
+
 const insertUser = `-- name: InsertUser :execrows
 INSERT INTO identity.users (id, firebase_uid, account_tier, age_verified_at, last_seen_at, created_at, updated_at)
 VALUES ($1, $2, $3, $4, $4, $4, $4)
@@ -201,6 +224,20 @@ func (q *Queries) MarkGuestAbandoned(ctx context.Context, arg MarkGuestAbandoned
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const revokeRole = `-- name: RevokeRole :exec
+DELETE FROM identity.user_roles WHERE user_id = $1 AND role = $2
+`
+
+type RevokeRoleParams struct {
+	UserID uuid.UUID
+	Role   string
+}
+
+func (q *Queries) RevokeRole(ctx context.Context, arg RevokeRoleParams) error {
+	_, err := q.db.Exec(ctx, revokeRole, arg.UserID, arg.Role)
+	return err
 }
 
 const setDeletionRequested = `-- name: SetDeletionRequested :exec

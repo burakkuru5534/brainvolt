@@ -156,6 +156,15 @@ type Principal struct {
 // HasRole reports whether the principal has a staff role.
 func (p Principal) HasRole(role string) bool { return slices.Contains(p.Roles, role) }
 
+// Staff roles (schema-identity §2, identity.user_roles); players have none.
+const (
+	RoleModerator = "moderator"
+	RoleAdmin     = "admin"
+)
+
+// ValidRole reports whether r is a staff role.
+func ValidRole(r string) bool { return r == RoleModerator || r == RoleAdmin }
+
 // DeletionGracePeriod is the cooling-off window before a requested deletion
 // is executed (D-022).
 const DeletionGracePeriod = 14 * 24 * time.Hour

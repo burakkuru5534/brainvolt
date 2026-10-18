@@ -67,6 +67,8 @@ var messagesEN = map[Code]string{
 
 	QuestionSourceRequired: "The question's source and license are required.",
 	QuestionInUse:          "This question has been used in matches and can't be changed this way.",
+	QuestionStateInvalid:   "This isn't possible in the question's current status.",
+	QuestionDuplicate:      "This question already exists.",
 	QuizLimitReached:       "You've reached the quiz limit.",
 	QuizSizeInvalid:        "The number of quiz questions is outside the allowed range.",
 	ReportLimitReached:     "You've reached today's report limit.",

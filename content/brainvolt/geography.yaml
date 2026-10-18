@@ -1,0 +1,82 @@
+# BrainVolt team pool — Geography. Format: content/README.md.
+source: brainvolt-team
+questions:
+  - ref: bv-geography-001
+    subcategory: geography/countries-capitals
+    difficulty: 2
+    tr:
+      prompt: Avustralya'nın başkenti neresidir?
+      options: [Kanberra, Sidney, Melbourne, Perth]
+    en:
+      prompt: What is the capital of Australia?
+      options: [Canberra, Sydney, Melbourne, Perth]
+
+  - ref: bv-geography-002
+    subcategory: geography/countries-capitals
+    difficulty: 2
+    tr:
+      prompt: Kanada'nın başkenti neresidir?
+      options: [Ottava, Toronto, Montreal, Vancouver]
+    en:
+      prompt: What is the capital of Canada?
+      options: [Ottawa, Toronto, Montreal, Vancouver]
+
+  - ref: bv-geography-003
+    subcategory: geography/countries-capitals
+    difficulty: 3
+    tr:
+      prompt: Başkenti Nairobi olan ülke hangisidir?
+      options: [Kenya, Tanzanya, Uganda, Etiyopya]
+    en:
+      prompt: Nairobi is the capital of which country?
+      options: [Kenya, Tanzania, Uganda, Ethiopia]
+
+  - ref: bv-geography-004
+    subcategory: geography/turkey
+    difficulty: 1
+    tr:
+      prompt: Türkiye'nin en yüksek dağı hangisidir?
+      options: [Ağrı Dağı, Erciyes Dağı, Uludağ, Süphan Dağı]
+    en:
+      prompt: What is the highest mountain in Turkey?
+      options: [Mount Ararat (Ağrı), Mount Erciyes, Uludağ, Mount Süphan]
+
+  - ref: bv-geography-005
+    subcategory: geography/turkey
+    difficulty: 1
+    tr:
+      prompt: Türkiye'nin yüzölçümü en büyük gölü hangisidir?
+      options: [Van Gölü, Tuz Gölü, Beyşehir Gölü, Eğirdir Gölü]
+    en:
+      prompt: What is the largest lake in Turkey by area?
+      options: [Lake Van, Lake Tuz, Lake Beyşehir, Lake Eğirdir]
+
+  - ref: bv-geography-006
+    subcategory: geography/turkey
+    difficulty: 2
+    type: true_false
+    answer: true
+    tr:
+      prompt: Kızılırmak, tamamı Türkiye sınırları içinde kalan en uzun nehirdir.
+    en:
+      prompt: The Kızılırmak is the longest river that lies entirely within Turkey.
+
+  - ref: bv-geography-007
+    subcategory: geography/physical-geography
+    difficulty: 1
+    tr:
+      prompt: Dünyanın en büyük okyanusu hangisidir?
+      options: [Büyük Okyanus (Pasifik), Atlas Okyanusu, Hint Okyanusu, Arktik Okyanusu]
+    en:
+      prompt: What is the largest ocean on Earth?
+      options: [Pacific Ocean, Atlantic Ocean, Indian Ocean, Arctic Ocean]
+
+  - ref: bv-geography-008
+    subcategory: geography/physical-geography
+    difficulty: 1
+    tr:
+      prompt: Deniz seviyesinden yüksekliğe göre dünyanın en yüksek dağı hangisidir?
+      options: [Everest, K2, Kangchenjunga, Kilimanjaro]
+    en:
+      prompt: Measured from sea level, what is the highest mountain in the world?
+      options: [Mount Everest, K2, Kangchenjunga, Kilimanjaro]

@@ -88,6 +88,8 @@ const (
 const (
 	QuestionSourceRequired Code = "QUESTION_SOURCE_REQUIRED"
 	QuestionInUse          Code = "QUESTION_IN_USE"
+	QuestionStateInvalid   Code = "QUESTION_STATE_INVALID"
+	QuestionDuplicate      Code = "QUESTION_DUPLICATE"
 	QuizLimitReached       Code = "QUIZ_LIMIT_REACHED"
 	QuizSizeInvalid        Code = "QUIZ_SIZE_INVALID"
 	ReportLimitReached     Code = "REPORT_LIMIT_REACHED"
@@ -181,6 +183,8 @@ var statuses = map[Code]int{
 
 	QuestionSourceRequired: http.StatusUnprocessableEntity,
 	QuestionInUse:          http.StatusConflict,
+	QuestionStateInvalid:   http.StatusConflict,
+	QuestionDuplicate:      http.StatusConflict,
 	QuizLimitReached:       http.StatusConflict,
 	QuizSizeInvalid:        http.StatusUnprocessableEntity,
 	ReportLimitReached:     http.StatusTooManyRequests,

@@ -34,13 +34,13 @@
 | Method | Path | Auth | Idem | Ph | Purpose |
 |---|---|---|---|---|---|
 | GET | `/v1/categories` | any | — | 2 | Categories + sub-categories (localized), eligible-question counts per mode for UI hints. ETag. |
-| GET | `/v1/questions?subcategory_id=&status=&locale=&cursor=` | mod | — | 2 | Question listing for review tools (never exposes correct answers to players). |
+| GET | `/v1/questions?subcategory_id=&status=&locale=&translation_status=&include_retired=&limit=&cursor=` | mod | — | 2 | Question listing for review tools, newest first (never exposes correct answers to players). `locale` limits to questions with that translation and shows its prompt; `translation_status` needs `locale` (D-063). |
 | GET | `/v1/questions/{id}` | mod | — | 2 | Full question incl. translations, options, correct option, revisions, stats. |
 | POST | `/v1/questions` | mod | ✓ | 2 | Create draft question (with source/license, D-006). |
 | PATCH | `/v1/questions/{id}` | mod | — | 2 | Edit (bumps revision; used questions: options immutable, schema-content §4.3). |
 | POST | `/v1/questions/{id}/submit` | mod | — | 2 | draft → in_review. |
 | POST | `/v1/questions/{id}/review` | mod | — | 2 | `{decision: approve|reject, locale?, reason?}` question- or translation-level (D-007). |
-| POST | `/v1/questions/{id}/retire` | adm | — | 2 | Retire. |
+| POST | `/v1/questions/{id}/retire` | adm | — | 2 | Retire (repeating it is harmless). Every mutating question endpoint answers with the full question (D-063). |
 | GET | `/v1/credits` | pub | — | 2 | Sources & attribution text for the Credits screen (CC BY-SA, D-005/D-006). |
 
 ## 4. game (matches & daily)

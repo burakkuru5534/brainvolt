@@ -64,3 +64,14 @@ sql:
         sql_package: pgx/v5
         emit_pointers_for_null_types: true
         emit_empty_slices: true
+  - name: content
+    engine: postgresql
+    schema: migrations
+    queries: internal/modules/content/internal/store/queries.sql
+    gen:
+      go:
+        package: sqlc
+        out: internal/modules/content/internal/store/sqlc
+        sql_package: pgx/v5
+        emit_pointers_for_null_types: true
+        emit_empty_slices: true

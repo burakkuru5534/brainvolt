@@ -274,6 +274,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get challengesNobody => 'Nobody';
 
   @override
+  String get creditsTitle => 'Credits and Licenses';
+
+  @override
+  String get creditsQuestions => 'Question sources';
+
+  @override
+  String creditsLicense(String license) {
+    return 'License: $license';
+  }
+
+  @override
+  String get creditsShareAlike =>
+      'Questions from this source and their translations are shared under the same license.';
+
+  @override
+  String get creditsLinkCopied => 'Link copied.';
+
+  @override
+  String get creditsOpenSource => 'Open-source licenses';
+
+  @override
   String get errorNetwork =>
       'Couldn\'t connect. Check your internet connection.';
 
@@ -440,12 +461,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get error_PURCHASE_INVALID => 'The purchase could not be verified.';
 
   @override
+  String get error_QUESTION_DUPLICATE => 'This question already exists.';
+
+  @override
   String get error_QUESTION_IN_USE =>
       'This question has been used in matches and can\'t be changed this way.';
 
   @override
   String get error_QUESTION_SOURCE_REQUIRED =>
       'The question\'s source and license are required.';
+
+  @override
+  String get error_QUESTION_STATE_INVALID =>
+      'This isn\'t possible in the question\'s current status.';
 
   @override
   String get error_QUEUE_COOLDOWN => 'You can\'t join the queue for a while.';

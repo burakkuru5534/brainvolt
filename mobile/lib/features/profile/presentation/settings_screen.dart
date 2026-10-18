@@ -41,6 +41,13 @@ class SettingsScreen extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push(Routes.account),
           ),
+          ListTile(
+            key: const Key('open-credits'),
+            leading: const Icon(Icons.info_outline),
+            title: Text(l10n.creditsTitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(Routes.credits),
+          ),
           const Divider(),
           const _LanguageSection(),
           const Divider(),

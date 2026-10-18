@@ -56,6 +56,18 @@ type Doc struct {
 	Status int
 	// Errors lists the route-specific error codes (general ones are implied).
 	Errors []apierror.Code
+	// Query lists the optional query parameters.
+	Query []QueryParam
+}
+
+// QueryParam documents one query parameter; Type is a JSON schema type
+// ("string", "integer", "boolean") and Format an optional format ("uuid").
+type QueryParam struct {
+	Name        string
+	Type        string
+	Format      string
+	Enum        []string
+	Description string
 }
 
 // Route is one registered route.

@@ -1,0 +1,104 @@
+# BrainVolt team pool — Science. Format: content/README.md.
+source: brainvolt-team
+questions:
+  - ref: bv-science-001
+    subcategory: science/chemistry
+    difficulty: 1
+    tr:
+      prompt: Suyun kimyasal formülü nedir?
+      options: [H₂O, CO₂, H₂O₂, NaCl]
+    en:
+      prompt: What is the chemical formula of water?
+      options: [H₂O, CO₂, H₂O₂, NaCl]
+
+  - ref: bv-science-002
+    subcategory: science/chemistry
+    difficulty: 2
+    tr:
+      prompt: Periyodik tabloda simgesi "Fe" olan element hangisidir?
+      options: [Demir, Flor, Fosfor, Fermiyum]
+    en:
+      prompt: Which element has the symbol "Fe" in the periodic table?
+      options: [Iron, Fluorine, Phosphorus, Fermium]
+
+  - ref: bv-science-003
+    subcategory: science/physics
+    difficulty: 2
+    tr:
+      prompt: Işığın boşluktaki hızı yaklaşık kaç km/s'dir?
+      options: [300.000 km/s, 150.000 km/s, 30.000 km/s, 3.000.000 km/s]
+    en:
+      prompt: Approximately how fast does light travel in a vacuum?
+      options: ["300,000 km/s", "150,000 km/s", "30,000 km/s", "3,000,000 km/s"]
+
+  - ref: bv-science-004
+    subcategory: science/physics
+    difficulty: 2
+    tr:
+      prompt: Elektrik direncinin birimi nedir?
+      options: [Ohm, Volt, Amper, Watt]
+    en:
+      prompt: What is the unit of electrical resistance?
+      options: [Ohm, Volt, Ampere, Watt]
+
+  - ref: bv-science-005
+    subcategory: science/biology
+    difficulty: 2
+    tr:
+      prompt: İnsan vücudunun en büyük organı hangisidir?
+      options: [Deri, Karaciğer, Akciğer, Beyin]
+    en:
+      prompt: What is the largest organ of the human body?
+      options: [Skin, Liver, Lungs, Brain]
+
+  - ref: bv-science-006
+    subcategory: science/biology
+    difficulty: 2
+    type: true_false
+    answer: false
+    tr:
+      prompt: Örümcekler böcekler (insektler) sınıfındandır.
+      explanation: Örümcekler örümceğimsiler (Arachnida) sınıfındandır; sekiz bacakları vardır.
+    en:
+      prompt: Spiders are insects.
+      explanation: Spiders are arachnids, with eight legs.
+
+  - ref: bv-science-007
+    subcategory: science/space
+    difficulty: 1
+    tr:
+      prompt: Güneş Sistemi'nin en büyük gezegeni hangisidir?
+      options: [Jüpiter, Satürn, Neptün, Dünya]
+    en:
+      prompt: What is the largest planet in the Solar System?
+      options: [Jupiter, Saturn, Neptune, Earth]
+
+  - ref: bv-science-008
+    subcategory: science/space
+    difficulty: 1
+    tr:
+      prompt: '"Kızıl Gezegen" olarak bilinen gezegen hangisidir?'
+      options: [Mars, Venüs, Merkür, Jüpiter]
+    en:
+      prompt: Which planet is known as the "Red Planet"?
+      options: [Mars, Venus, Mercury, Jupiter]
+
+  - ref: bv-science-009
+    subcategory: science/mathematics
+    difficulty: 1
+    tr:
+      prompt: Bir üçgenin iç açılarının toplamı kaç derecedir?
+      options: ["180", "90", "270", "360"]
+    en:
+      prompt: What is the sum of the interior angles of a triangle, in degrees?
+      options: ["180", "90", "270", "360"]
+
+  - ref: bv-science-010
+    subcategory: science/mathematics
+    difficulty: 1
+    tr:
+      prompt: Pi (π) sayısının virgülden sonraki ilk iki basamağıyla değeri nedir?
+      options: ["3,14", "3,41", "3,12", "3,16"]
+    en:
+      prompt: What is the value of pi (π) to two decimal places?
+      options: ["3.14", "3.41", "3.12", "3.16"]

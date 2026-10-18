@@ -4,6 +4,9 @@ import 'package:brainvolt/features/auth/data/auth_providers.dart';
 import 'package:brainvolt/features/auth/domain/auth_repository.dart';
 import 'package:brainvolt/features/auth/domain/session.dart';
 import 'package:brainvolt/features/auth/domain/session_repository.dart';
+import 'package:brainvolt/features/content/data/content_providers.dart';
+import 'package:brainvolt/features/content/domain/content_repository.dart';
+import 'package:brainvolt/features/content/domain/credit.dart';
 import 'package:brainvolt/features/profile/data/profile_providers.dart';
 import 'package:brainvolt/features/profile/domain/me.dart';
 import 'package:brainvolt/features/profile/domain/profile_repository.dart';
@@ -274,6 +277,28 @@ class FakeProfileRepository implements ProfileRepository {
   }
 }
 
+/// The content endpoints in memory.
+class FakeContentRepository implements ContentRepository {
+  List<Credit> sources = const [
+    Credit(
+      name: 'BrainVolt',
+      licenseCode: 'LicenseRef-BrainVolt',
+      attributionText: 'BrainVolt team',
+      shareAlike: false,
+    ),
+    Credit(
+      name: 'Open Trivia Database',
+      licenseCode: 'CC-BY-SA-4.0',
+      attributionText: 'Open Trivia Database (opentdb.com), CC BY-SA 4.0',
+      shareAlike: true,
+      url: 'https://opentdb.com',
+    ),
+  ];
+
+  @override
+  Future<List<Credit>> credits() async => sources;
+}
+
 /// Everything a test app needs, with fakes behind the repositories.
 class TestApp {
   TestApp._(
@@ -312,6 +337,7 @@ class TestApp {
         authRepositoryProvider.overrideWithValue(auth),
         sessionRepositoryProvider.overrideWithValue(sessions),
         profileRepositoryProvider.overrideWithValue(profiles),
+        contentRepositoryProvider.overrideWithValue(FakeContentRepository()),
       ],
     );
     addTearDown(container.dispose);

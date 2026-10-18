@@ -27,6 +27,8 @@ BACKEND := backend
 MOBILE  := mobile
 # Goose sub-command for `make migrate`: up | down | status | version
 MIGRATE ?= up
+# Seed sub-command for `make seed`: import | validate | opentdb-fetch
+SEED ?= import
 
 # Stop with a clear message when a project part does not exist yet
 # (backend arrives in roadmap 1.3, mobile in 1.7).
@@ -36,7 +38,7 @@ MOBILE_GEN = dart run tool/gen_error_l10n.dart && flutter gen-l10n && dart run b
 # $(call mobile,<command>,<what is skipped>) runs <command> in mobile/ if it exists.
 mobile = $(if $(wildcard $(MOBILE)/pubspec.yaml),cd $(MOBILE) && $(1),@echo mobile/ not set up yet - roadmap 1.7 - skipping $(2))
 
-.PHONY: help env check-env up up-app down reset ps logs psql redis-cli run test lint migrate gen check-gen
+.PHONY: help env check-env up up-app down reset ps logs psql redis-cli run test lint migrate seed gen check-gen
 
 help: ## List targets
 	$(HELP)
@@ -91,6 +93,10 @@ lint: ## Run linters   (cd backend && go vet ./... && golangci-lint run ; cd mob
 migrate: check-env ## Apply DB migrations; MIGRATE=down|status|version for others   (cd backend && go run ./cmd/migrate up)
 	$(require_backend)
 	cd $(BACKEND) && go run ./cmd/migrate $(MIGRATE)
+
+seed: check-env ## Import content/ questions (new ones start in review); SEED=validate to only check files, SEED_ARGS="-approve-as <user-id>" (dev)   (cd backend && go run ./cmd/seed import)
+	$(require_backend)
+	cd $(BACKEND) && go run ./cmd/seed $(SEED) $(SEED_ARGS)
 
 gen: ## Regenerate code and docs/api/openapi.yaml   (backend: sqlc + OpenAPI ; mobile: error texts, gen-l10n, build_runner)
 	$(require_backend)

@@ -1,5 +1,92 @@
 components:
     schemas:
+        Catalog:
+            properties:
+                categories:
+                    items:
+                        $ref: '#/components/schemas/Category'
+                    type: array
+                locale:
+                    type: string
+            required:
+                - categories
+                - locale
+            type: object
+        Category:
+            properties:
+                description:
+                    type:
+                        - string
+                        - "null"
+                eligible:
+                    $ref: '#/components/schemas/Counts'
+                icon_key:
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                name:
+                    type: string
+                slug:
+                    type: string
+                subcategories:
+                    items:
+                        $ref: '#/components/schemas/Subcategory'
+                    type: array
+            required:
+                - description
+                - eligible
+                - icon_key
+                - id
+                - name
+                - slug
+                - subcategories
+            type: object
+        Counts:
+            properties:
+                casual:
+                    type: integer
+                ranked:
+                    type: integer
+            required:
+                - casual
+                - ranked
+            type: object
+        Credit:
+            properties:
+                attribution_text:
+                    type: string
+                license_code:
+                    type: string
+                license_url:
+                    type:
+                        - string
+                        - "null"
+                name:
+                    type: string
+                share_alike:
+                    type: boolean
+                url:
+                    type:
+                        - string
+                        - "null"
+            required:
+                - attribution_text
+                - license_code
+                - license_url
+                - name
+                - share_alike
+                - url
+            type: object
+        Credits:
+            properties:
+                sources:
+                    items:
+                        $ref: '#/components/schemas/Credit'
+                    type: array
+            required:
+                - sources
+            type: object
         Deletion:
             properties:
                 purge_after:
@@ -98,6 +185,20 @@ components:
                 - profile
                 - settings
                 - user
+            type: object
+        Option:
+            properties:
+                id:
+                    format: uuid
+                    type: string
+                is_correct:
+                    type: boolean
+                position:
+                    type: integer
+            required:
+                - id
+                - is_correct
+                - position
             type: object
         OwnProfile:
             properties:
@@ -198,6 +299,229 @@ components:
                 - user_id
                 - username
             type: object
+        Question:
+            properties:
+                author_user_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                created_at:
+                    format: date-time
+                    type: string
+                difficulty:
+                    type: integer
+                difficulty_calibrated:
+                    type:
+                        - number
+                        - "null"
+                events:
+                    items:
+                        $ref: '#/components/schemas/VerificationEvent'
+                    type: array
+                id:
+                    format: uuid
+                    type: string
+                options:
+                    items:
+                        $ref: '#/components/schemas/Option'
+                    type: array
+                original_locale:
+                    type: string
+                pool:
+                    type: string
+                question_type:
+                    type: string
+                rejection_reason:
+                    type:
+                        - string
+                        - "null"
+                retired_at:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+                revision:
+                    type: integer
+                revisions:
+                    items:
+                        $ref: '#/components/schemas/Revision'
+                    type: array
+                source_id:
+                    format: uuid
+                    type: string
+                source_ref:
+                    type:
+                        - string
+                        - "null"
+                stats:
+                    additionalProperties:
+                        $ref: '#/components/schemas/Stats'
+                    type: object
+                status:
+                    type: string
+                subcategory_id:
+                    format: uuid
+                    type: string
+                translations:
+                    additionalProperties:
+                        $ref: '#/components/schemas/Translation'
+                    type: object
+                updated_at:
+                    format: date-time
+                    type: string
+                used:
+                    type: boolean
+                verified_at:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+                verified_by:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+            required:
+                - author_user_id
+                - created_at
+                - difficulty
+                - difficulty_calibrated
+                - events
+                - id
+                - options
+                - original_locale
+                - pool
+                - question_type
+                - rejection_reason
+                - retired_at
+                - revision
+                - revisions
+                - source_id
+                - source_ref
+                - stats
+                - status
+                - subcategory_id
+                - translations
+                - updated_at
+                - used
+                - verified_at
+                - verified_by
+            type: object
+        QuestionPage:
+            properties:
+                items:
+                    items:
+                        $ref: '#/components/schemas/QuestionSummary'
+                    type: array
+                next_cursor:
+                    type:
+                        - string
+                        - "null"
+            required:
+                - items
+                - next_cursor
+            type: object
+        QuestionPatch:
+            properties:
+                correct_position:
+                    type:
+                        - integer
+                        - "null"
+                difficulty:
+                    type:
+                        - integer
+                        - "null"
+                subcategory_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                translations:
+                    additionalProperties:
+                        $ref: '#/components/schemas/TextBody'
+                    type: object
+            type: object
+        QuestionRequest:
+            properties:
+                correct_position:
+                    type: integer
+                difficulty:
+                    type: integer
+                original_locale:
+                    type: string
+                question_type:
+                    type: string
+                source_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                source_ref:
+                    type:
+                        - string
+                        - "null"
+                subcategory_id:
+                    format: uuid
+                    type: string
+                translations:
+                    additionalProperties:
+                        $ref: '#/components/schemas/TextBody'
+                    type: object
+            required:
+                - correct_position
+                - difficulty
+                - original_locale
+                - question_type
+                - source_id
+                - subcategory_id
+                - translations
+            type: object
+        QuestionSummary:
+            properties:
+                created_at:
+                    format: date-time
+                    type: string
+                difficulty:
+                    type: integer
+                id:
+                    format: uuid
+                    type: string
+                original_locale:
+                    type: string
+                prompt:
+                    type: string
+                question_type:
+                    type: string
+                retired_at:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+                revision:
+                    type: integer
+                status:
+                    type: string
+                subcategory_id:
+                    format: uuid
+                    type: string
+                translations:
+                    additionalProperties:
+                        type: string
+                    type: object
+            required:
+                - created_at
+                - difficulty
+                - id
+                - original_locale
+                - prompt
+                - question_type
+                - retired_at
+                - revision
+                - status
+                - subcategory_id
+                - translations
+            type: object
         Readiness:
             properties:
                 checks:
@@ -209,6 +533,38 @@ components:
             required:
                 - checks
                 - status
+            type: object
+        ReviewRequest:
+            properties:
+                decision:
+                    type: string
+                locale:
+                    type:
+                        - string
+                        - "null"
+                reason:
+                    type:
+                        - string
+                        - "null"
+            required:
+                - decision
+            type: object
+        Revision:
+            properties:
+                created_at:
+                    format: date-time
+                    type: string
+                created_by:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                revision:
+                    type: integer
+            required:
+                - created_at
+                - created_by
+                - revision
             type: object
         SessionFlags:
             properties:
@@ -330,6 +686,103 @@ components:
                         - boolean
                         - "null"
             type: object
+        Stats:
+            properties:
+                sum_response_ms:
+                    type: integer
+                times_asked:
+                    type: integer
+                times_correct:
+                    type: integer
+                times_timed_out:
+                    type: integer
+            required:
+                - sum_response_ms
+                - times_asked
+                - times_correct
+                - times_timed_out
+            type: object
+        Subcategory:
+            properties:
+                description:
+                    type:
+                        - string
+                        - "null"
+                eligible:
+                    $ref: '#/components/schemas/Counts'
+                id:
+                    format: uuid
+                    type: string
+                name:
+                    type: string
+                slug:
+                    type: string
+            required:
+                - description
+                - eligible
+                - id
+                - name
+                - slug
+            type: object
+        TextBody:
+            properties:
+                explanation:
+                    type:
+                        - string
+                        - "null"
+                options:
+                    items:
+                        type: string
+                    type: array
+                origin:
+                    type: string
+                prompt:
+                    type: string
+            required:
+                - options
+                - origin
+                - prompt
+            type: object
+        Translation:
+            properties:
+                explanation:
+                    type:
+                        - string
+                        - "null"
+                options:
+                    items:
+                        type: string
+                    type: array
+                origin:
+                    type: string
+                prompt:
+                    type: string
+                rejection_reason:
+                    type:
+                        - string
+                        - "null"
+                status:
+                    type: string
+                verified_at:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+                verified_by:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+            required:
+                - explanation
+                - options
+                - origin
+                - prompt
+                - rejection_reason
+                - status
+                - verified_at
+                - verified_by
+            type: object
         User:
             properties:
                 created_at:
@@ -372,6 +825,39 @@ components:
                 - status
                 - tier
                 - upgraded_at
+            type: object
+        VerificationEvent:
+            properties:
+                actor_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                created_at:
+                    format: date-time
+                    type: string
+                from_status:
+                    type: string
+                locale:
+                    type:
+                        - string
+                        - "null"
+                reason:
+                    type:
+                        - string
+                        - "null"
+                revision:
+                    type: integer
+                to_status:
+                    type: string
+            required:
+                - actor_id
+                - created_at
+                - from_status
+                - locale
+                - reason
+                - revision
+                - to_status
             type: object
     securitySchemes:
         firebase:
@@ -417,6 +903,81 @@ paths:
             summary: 'Readiness: Postgres, Redis and migrations; 503 lists the failed checks'
             tags:
                 - health
+            x-auth: public
+    /v1/categories:
+        get:
+            operationId: getV1Categories
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Catalog'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_DELETION_PENDING, ACCOUNT_SUSPENDED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Categories and sub-categories in the caller's language with eligible question counts (ranked / casual); ETag + If-None-Match
+            tags:
+                - content
+            x-auth: any
+    /v1/credits:
+        get:
+            operationId: getV1Credits
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Credits'
+                    description: OK
+            summary: Content sources and attribution for the Credits screen (D-006, CC BY-SA)
+            tags:
+                - content
             x-auth: public
     /v1/me:
         get:
@@ -986,6 +1547,595 @@ paths:
             tags:
                 - profile
             x-auth: any
+    /v1/questions:
+        get:
+            operationId: getV1Questions
+            parameters:
+                - description: question status
+                  in: query
+                  name: status
+                  required: false
+                  schema:
+                    enum:
+                        - draft
+                        - in_review
+                        - verified
+                        - rejected
+                    type: string
+                - description: status of the `locale` translation (needs locale)
+                  in: query
+                  name: translation_status
+                  required: false
+                  schema:
+                    enum:
+                        - draft
+                        - in_review
+                        - verified
+                        - rejected
+                    type: string
+                - in: query
+                  name: subcategory_id
+                  required: false
+                  schema:
+                    format: uuid
+                    type: string
+                - description: only questions with this translation; its prompt is shown
+                  in: query
+                  name: locale
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+                - in: query
+                  name: include_retired
+                  required: false
+                  schema:
+                    type: boolean
+                - description: 1–100, default 20
+                  in: query
+                  name: limit
+                  required: false
+                  schema:
+                    type: integer
+                - description: next_cursor of the previous page
+                  in: query
+                  name: cursor
+                  required: false
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/QuestionPage'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_DELETION_PENDING, ACCOUNT_SUSPENDED, FORBIDDEN'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Question listing for review tools, newest first
+            tags:
+                - content
+            x-auth: mod
+        post:
+            operationId: postV1Questions
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+                - description: Client-generated UUID; repeats within 24 h replay the stored response (conventions.md §9)
+                  in: header
+                  name: Idempotency-Key
+                  required: true
+                  schema:
+                    format: uuid
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/QuestionRequest'
+                required: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Question'
+                    description: Created
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_DELETION_PENDING, ACCOUNT_SUSPENDED, FORBIDDEN'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: IDEMPOTENCY_KEY_REUSED, IDEMPOTENT_REQUEST_IN_PROGRESS, QUESTION_DUPLICATE'
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: QUESTION_SOURCE_REQUIRED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Create a draft question with its source (D-006)
+            tags:
+                - content
+            x-auth: mod
+    /v1/questions/{id}:
+        get:
+            operationId: getV1QuestionsId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Question'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_DELETION_PENDING, ACCOUNT_SUSPENDED, FORBIDDEN'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: 'Full question: translations, options with the correct one, revisions, events, stats'
+            tags:
+                - content
+            x-auth: mod
+        patch:
+            operationId: patchV1QuestionsId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/QuestionPatch'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Question'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_DELETION_PENDING, ACCOUNT_SUSPENDED, FORBIDDEN'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: QUESTION_DUPLICATE, QUESTION_IN_USE, QUESTION_STATE_INVALID'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: 'Edit a question: bumps the revision; a verified question goes back to review; the correct option of a used question is fixed'
+            tags:
+                - content
+            x-auth: mod
+    /v1/questions/{id}/retire:
+        post:
+            operationId: postV1QuestionsIdRetire
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Question'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_DELETION_PENDING, ACCOUNT_SUSPENDED, FORBIDDEN'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: 'Retire a question: never selected again, kept for match history; repeating it is harmless'
+            tags:
+                - content
+            x-auth: adm
+    /v1/questions/{id}/review:
+        post:
+            operationId: postV1QuestionsIdReview
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ReviewRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Question'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_DELETION_PENDING, ACCOUNT_SUSPENDED, FORBIDDEN'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: QUESTION_STATE_INVALID'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Approve or reject a question (with its original wording) or one translation (D-007)
+            tags:
+                - content
+            x-auth: mod
+    /v1/questions/{id}/submit:
+        post:
+            operationId: postV1QuestionsIdSubmit
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Question'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_DELETION_PENDING, ACCOUNT_SUSPENDED, FORBIDDEN'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: QUESTION_STATE_INVALID'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Submit a draft (and its draft translations) for review
+            tags:
+                - content
+            x-auth: mod
     /v1/session:
         post:
             operationId: postV1Session

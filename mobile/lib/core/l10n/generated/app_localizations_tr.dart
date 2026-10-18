@@ -274,6 +274,27 @@ class AppLocalizationsTr extends AppLocalizations {
   String get challengesNobody => 'Kimseden';
 
   @override
+  String get creditsTitle => 'Kaynaklar ve Lisanslar';
+
+  @override
+  String get creditsQuestions => 'Soruların kaynakları';
+
+  @override
+  String creditsLicense(String license) {
+    return 'Lisans: $license';
+  }
+
+  @override
+  String get creditsShareAlike =>
+      'Bu kaynaktan alınan sorular ve çevirileri aynı lisansla paylaşılır.';
+
+  @override
+  String get creditsLinkCopied => 'Bağlantı kopyalandı.';
+
+  @override
+  String get creditsOpenSource => 'Açık kaynak lisansları';
+
+  @override
   String get errorNetwork =>
       'Bağlantı kurulamadı. İnternet bağlantını kontrol et.';
 
@@ -435,12 +456,19 @@ class AppLocalizationsTr extends AppLocalizations {
   String get error_PURCHASE_INVALID => 'Satın alma doğrulanamadı.';
 
   @override
+  String get error_QUESTION_DUPLICATE => 'Bu soru zaten var.';
+
+  @override
   String get error_QUESTION_IN_USE =>
       'Bu soru maçlarda kullanıldığı için bu şekilde değiştirilemez.';
 
   @override
   String get error_QUESTION_SOURCE_REQUIRED =>
       'Sorunun kaynağı ve lisansı belirtilmeli.';
+
+  @override
+  String get error_QUESTION_STATE_INVALID =>
+      'Sorunun şu anki durumunda bu işlem yapılamaz.';
 
   @override
   String get error_QUEUE_COOLDOWN => 'Bir süre eşleşme sırasına giremezsin.';
