@@ -1,0 +1,273 @@
+import 'dart:async';
+
+import 'package:brainvolt/app/app.dart';
+import 'package:brainvolt/core/realtime/realtime_providers.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import '../../support/fakes.dart';
+
+const me = 'user-guest-1';
+
+void main() {
+  setUp(() {
+    final binding = TestWidgetsFlutterBinding.ensureInitialized();
+    binding.platformDispatcher.localesTestValue = const [Locale('tr', 'TR')];
+    addTearDown(binding.platformDispatcher.clearLocalesTestValue);
+  });
+
+  int now() => DateTime.now().millisecondsSinceEpoch;
+
+  /// Screens with countdowns never settle; advance a little instead.
+  Future<void> step(WidgetTester tester) async {
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 150));
+  }
+
+  Future<TestApp> launch(WidgetTester tester) async {
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final t = await TestApp.create();
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: t.container,
+        child: const BrainVoltApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    return t;
+  }
+
+  /// Closes the socket so no reconnect or reauth timer outlives the test.
+  Future<void> finish(WidgetTester tester, TestApp t) async {
+    // stop() cancels its timers before its first await.
+    unawaited(t.container.read(realtimeClientProvider).stop());
+    await tester.pump();
+  }
+
+  /// Opens the queue and lets the server find a match.
+  Future<FakeSocket> queueAndMatch(WidgetTester tester, TestApp t) async {
+    await tester.tap(find.byKey(const Key('play-quick-duel')));
+    await step(tester);
+    expect(find.byKey(const Key('queue-searching')), findsOneWidget);
+    expect(t.matches.calls, ['enqueue']);
+    final s = t.sockets.single;
+    expect(s.sent.first['t'], 'sys.auth');
+    s.serverSends({
+      't': 'sys.welcome',
+      'd': {'session_id': 's1', 'resume_token': 'r1'},
+    });
+    await step(tester);
+    s.serverSends({
+      't': 'mm.match_found',
+      'd': {'match_id': 'm1'},
+    });
+    await step(tester);
+    await step(tester);
+    expect(s.lastSent('match.join')['d'], {'match_id': 'm1'});
+    s
+      ..ack('match.join')
+      ..serverSends({
+        't': 'match.snapshot',
+        's': 'match:m1',
+        'seq': 1,
+        'd': {
+          'status': 'waiting',
+          'phase': 'lobby',
+          'question_count': 7,
+          'ready_deadline_at': now() + 20000,
+          'participants': [
+            {'user_id': me, 'side_no': 1, 'display_name': 'Ben'},
+            {'user_id': 'opp', 'side_no': 2, 'display_name': 'Rakip'},
+          ],
+          'sides': [
+            {'side_no': 1, 'score': 0},
+            {'side_no': 2, 'score': 0},
+          ],
+        },
+      });
+    await step(tester);
+    return s;
+  }
+
+  testWidgets('quick duel: queue, ready, question, answer, reveal, result', (
+    tester,
+  ) async {
+    final t = await launch(tester);
+    final s = await queueAndMatch(tester, t);
+    expect(find.text('Maç bulundu — Hazır mısın?'), findsOneWidget);
+    expect(find.text('Rakip'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('ready')));
+    await step(tester);
+    s.ack('match.ready');
+    expect(find.text('Rakip bekleniyor…'), findsOneWidget);
+
+    s.serverSends({
+      't': 'match.starting',
+      's': 'match:m1',
+      'seq': 2,
+      'd': {'starts_at': now() + 3000},
+    });
+    await step(tester);
+    expect(find.byKey(const Key('countdown')), findsOneWidget);
+
+    s
+      ..serverSends({
+        't': 'match.started',
+        's': 'match:m1',
+        'seq': 3,
+        'd': <String, dynamic>{},
+      })
+      ..serverSends({
+        't': 'round.started',
+        's': 'match:m1',
+        'seq': 4,
+        'd': {
+          'round_no': 1,
+          'question': {
+            'id': 'q1',
+            'prompt': 'Türkiye’nin başkenti neresidir?',
+            'category': {'id': 'c1', 'name': 'Coğrafya'},
+          },
+          'options': [
+            {'id': 'o1', 'text': 'Ankara'},
+            {'id': 'o2', 'text': 'İzmir'},
+          ],
+          'show_at': now() - 100,
+          'deadline_at': now() + 15000,
+        },
+      });
+    await step(tester);
+    expect(find.text('Türkiye’nin başkenti neresidir?'), findsOneWidget);
+    expect(find.text('Soru 1/7'), findsOneWidget);
+    expect(find.text('Coğrafya'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('option-o1')));
+    await step(tester);
+    expect(s.lastSent('match.answer')['d'], {
+      'match_id': 'm1',
+      'round_no': 1,
+      'option_id': 'o1',
+    });
+    s
+      ..ack('match.answer')
+      ..serverSends({
+        't': 'round.answer_received',
+        's': 'match:m1',
+        'seq': 5,
+        'd': {'round_no': 1, 'user_id': me, 'option_id': 'o1'},
+      })
+      ..serverSends({
+        't': 'round.answer_received',
+        's': 'match:m1',
+        'seq': 6,
+        'd': {'round_no': 1, 'user_id': 'opp'},
+      });
+    await step(tester);
+    expect(find.byKey(const Key('opponent-answered')), findsOneWidget);
+
+    s.serverSends({
+      't': 'round.revealed',
+      's': 'match:m1',
+      'seq': 7,
+      'd': {
+        'round_no': 1,
+        'correct_option_id': 'o1',
+        'category': {'id': 'c1', 'name': 'Coğrafya'},
+        'answers': [
+          {
+            'user_id': me,
+            'option_id': 'o1',
+            'correct': true,
+            'points': {'total': 180},
+          },
+          {
+            'user_id': 'opp',
+            'option_id': 'o2',
+            'correct': false,
+            'points': {'total': 0},
+          },
+        ],
+        'sides': [
+          {'side_no': 1, 'score': 180},
+          {'side_no': 2, 'score': 0},
+        ],
+      },
+    });
+    await step(tester);
+    expect(find.text('Doğru!'), findsOneWidget);
+    expect(find.text('+180 puan'), findsOneWidget);
+    expect(tester.widget<Text>(find.byKey(const Key('my-score'))).data, '180');
+
+    s.serverSends({
+      't': 'match.completed',
+      's': 'match:m1',
+      'seq': 8,
+      'd': {
+        'end_reason': 'all_rounds_played',
+        'winner_side_no': 1,
+        'is_draw': false,
+        'sides': [
+          {'side_no': 1, 'score': 1200},
+          {'side_no': 2, 'score': 640},
+        ],
+      },
+    });
+    await step(tester);
+    expect(find.text('Kazandın!'), findsOneWidget);
+    expect(find.text('1200 — 640'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('back-home')));
+    await step(tester);
+    expect(find.byKey(const Key('play-quick-duel')), findsOneWidget);
+    await finish(tester, t);
+  });
+
+  testWidgets('cancelling the search leaves the queue', (tester) async {
+    final t = await launch(tester);
+    await tester.tap(find.byKey(const Key('play-quick-duel')));
+    await step(tester);
+    await tester.tap(find.byKey(const Key('queue-cancel')));
+    await step(tester);
+    expect(t.matches.calls, ['enqueue', 'leaveQueue']);
+    expect(find.byKey(const Key('play-quick-duel')), findsOneWidget);
+    await finish(tester, t);
+  });
+
+  testWidgets('leaving a match asks first, then sends match.leave', (
+    tester,
+  ) async {
+    final t = await launch(tester);
+    final s = await queueAndMatch(tester, t);
+    await tester.tap(find.byKey(const Key('match-leave')));
+    await step(tester);
+    expect(find.text('Maçtan ayrılmak istiyor musun?'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('dialog-confirm')));
+    await step(tester);
+    s.ack('match.leave');
+    await step(tester);
+    expect(s.lastSent('match.leave')['d'], {'match_id': 'm1'});
+    expect(find.byKey(const Key('play-quick-duel')), findsOneWidget);
+    await finish(tester, t);
+  });
+
+  testWidgets('a live match on start offers to go back to it', (tester) async {
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final t = await TestApp.create();
+    t.matches.current = 'm9';
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: t.container,
+        child: const BrainVoltApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('resume-match')), findsOneWidget);
+    expect(find.byKey(const Key('play-practice')), findsOneWidget);
+  });
+}

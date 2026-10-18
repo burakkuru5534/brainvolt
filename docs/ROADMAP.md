@@ -333,10 +333,10 @@ Goal: two players finish a live 1v1 match on their phones: the WebSocket gateway
 - [x] 4.3.3 Development practice opponent (bot) so one device can test
 
 ### 4.4 Mobile
-- [ ] 4.4.1 `RealtimeClient` (auth, heartbeat & clock offset, seq/ack, reconnect with backoff, resume)
-- [ ] 4.4.2 Play entry & searching screen, match found / ready
-- [ ] 4.4.3 Match screen: countdown, question at `show_at`, options, timer, answer state, reveal, live scores, opponent status
-- [ ] 4.4.4 Results screen, reconnect banner, leave confirmation
+- [x] 4.4.1 `RealtimeClient` (auth, heartbeat & clock offset, seq/ack, reconnect with backoff, resume)
+- [x] 4.4.2 Play entry & searching screen, match found / ready
+- [x] 4.4.3 Match screen: countdown, question at `show_at`, options, timer, answer state, reveal, live scores, opponent status
+- [x] 4.4.4 Results screen, reconnect banner, leave confirmation
 
 ### 4.5 Tests & docs
 - [ ] 4.5.1 Backend WebSocket end-to-end (two clients play a match; reconnect; takeover), mobile unit/widget tests with a fake socket, docs and decision log

@@ -1,10 +1,10 @@
-import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:brainvolt/core/network/token_source.dart';
 import 'package:brainvolt/core/realtime/realtime_client.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../support/fakes.dart';
 
 class _Tokens implements TokenSource {
   int refreshes = 0;
@@ -18,42 +18,11 @@ class _Tokens implements TokenSource {
   }
 }
 
-/// A socket whose server side the test drives.
-class FakeSocket implements SocketConnection {
-  final _in = StreamController<dynamic>();
-  final sent = <Map<String, dynamic>>[];
-
-  @override
-  int? closeCode;
-
-  @override
-  Stream<dynamic> get stream => _in.stream;
-
-  @override
-  void add(String data) => sent.add(jsonDecode(data) as Map<String, dynamic>);
-
-  @override
-  Future<void> close([int? code, String? reason]) async {
-    closeCode ??= code;
-    await _in.close();
-  }
-
-  void serverSends(Map<String, dynamic> frame) => _in.add(jsonEncode(frame));
-
-  Future<void> serverCloses(int code) async {
-    closeCode = code;
-    await _in.close();
-  }
-
-  Map<String, dynamic> lastSent(String type) =>
-      sent.lastWhere((m) => m['t'] == type);
-}
-
 void main() {
   late List<FakeSocket> sockets;
   late _Tokens tokens;
   late RealtimeClient client;
-  var now = DateTime.fromMillisecondsSinceEpoch(1000000);
+  final now = DateTime.fromMillisecondsSinceEpoch(1000000);
 
   setUp(() {
     sockets = [];
@@ -118,7 +87,9 @@ void main() {
     });
     await expectLater(
       bad,
-      throwsA(isA<RealtimeError>().having((e) => e.code, 'code', 'ANSWER_LATE')),
+      throwsA(
+        isA<RealtimeError>().having((e) => e.code, 'code', 'ANSWER_LATE'),
+      ),
     );
   });
 
@@ -166,7 +137,7 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 700));
     final s2 = sockets.last;
     expect(s2, isNot(same(s)));
-    expect(s2.sent.first['d']['resume'], {
+    expect((s2.sent.first['d'] as Map)['resume'], {
       'session_id': 's1',
       'resume_token': 'rt-s1',
       'streams': {'match:m1': 9},
@@ -177,7 +148,10 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 1400));
     expect(tokens.refreshes, 1);
     final s3 = sockets.last;
-    s3.serverSends({'t': 'sys.welcome', 'd': {'session_id': 's1', 'resume_token': 'rt2'}});
+    s3.serverSends({
+      't': 'sys.welcome',
+      'd': {'session_id': 's1', 'resume_token': 'rt2'},
+    });
     await settle();
     expect(client.status, RealtimeStatus.connected);
 

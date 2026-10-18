@@ -20,8 +20,10 @@ abstract interface class SocketConnection {
 }
 
 /// Opens a connection to [url] with the handshake [headers].
-typedef SocketConnector =
-    Future<SocketConnection> Function(Uri url, Map<String, String> headers);
+typedef SocketConnector = Future<SocketConnection> Function(
+  Uri url,
+  Map<String, String> headers,
+);
 
 /// The real connector (web_socket_channel, ADR-0003).
 Future<SocketConnection> ioConnector(

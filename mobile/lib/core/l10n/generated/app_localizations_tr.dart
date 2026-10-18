@@ -305,6 +305,120 @@ class AppLocalizationsTr extends AppLocalizations {
   String get errorUnknown => 'Beklenmeyen bir hata oluştu. Lütfen tekrar dene.';
 
   @override
+  String get playQuickDuel => 'Hızlı Düello';
+
+  @override
+  String get playPractice => 'Bota karşı pratik';
+
+  @override
+  String get searchingTitle => 'Rakip aranıyor…';
+
+  @override
+  String searchingElapsed(int seconds) {
+    return '$seconds sn';
+  }
+
+  @override
+  String get searchingCancel => 'Aramayı iptal et';
+
+  @override
+  String get matchFoundTitle => 'Maç bulundu — Hazır mısın?';
+
+  @override
+  String get readyButton => 'Hazırım';
+
+  @override
+  String readyDeadline(int seconds) {
+    return '$seconds sn içinde hazır ol';
+  }
+
+  @override
+  String get waitingForOpponent => 'Rakip bekleniyor…';
+
+  @override
+  String matchStartsIn(int seconds) {
+    return '$seconds';
+  }
+
+  @override
+  String roundOf(int round, int total) {
+    return 'Soru $round/$total';
+  }
+
+  @override
+  String get you => 'Sen';
+
+  @override
+  String get opponentAnswered => 'Rakip cevapladı';
+
+  @override
+  String get answerCorrect => 'Doğru!';
+
+  @override
+  String get answerWrong => 'Yanlış';
+
+  @override
+  String get answerTimeout => 'Süre doldu';
+
+  @override
+  String pointsGained(int points) {
+    return '+$points puan';
+  }
+
+  @override
+  String get matchWon => 'Kazandın!';
+
+  @override
+  String get matchLost => 'Kaybettin';
+
+  @override
+  String get matchDraw => 'Berabere';
+
+  @override
+  String get matchCancelled => 'Maç iptal edildi';
+
+  @override
+  String get opponentLeft => 'Rakibin maçtan ayrıldı';
+
+  @override
+  String get backHome => 'Ana sayfaya dön';
+
+  @override
+  String get showDetails => 'Soruları gör';
+
+  @override
+  String get leaveMatchTitle => 'Maçtan ayrılmak istiyor musun?';
+
+  @override
+  String get leaveMatchBody => 'Ayrılırsan maçı kaybetmiş sayılırsın.';
+
+  @override
+  String get leaveButton => 'Ayrıl';
+
+  @override
+  String get reconnecting => 'Bağlantı yeniden kuruluyor…';
+
+  @override
+  String get opponentDisconnected => 'Rakibin bağlantısı koptu';
+
+  @override
+  String get seatMoved => 'Maç başka bir cihazda açıldı';
+
+  @override
+  String get matchResumed => 'Sunucu değişti, soru yenilendi';
+
+  @override
+  String get resultTitle => 'Maç sonucu';
+
+  @override
+  String resultCorrectAnswer(String answer) {
+    return 'Doğru cevap: $answer';
+  }
+
+  @override
+  String get resumeMatch => 'Maça dön';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.';
 

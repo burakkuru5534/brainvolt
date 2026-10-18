@@ -1,5 +1,11 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:brainvolt/app/config.dart';
 import 'package:brainvolt/app/providers.dart';
+import 'package:brainvolt/core/network/token_source.dart';
+import 'package:brainvolt/core/realtime/realtime_client.dart';
+import 'package:brainvolt/core/realtime/realtime_providers.dart';
 import 'package:brainvolt/features/auth/data/auth_providers.dart';
 import 'package:brainvolt/features/auth/domain/auth_repository.dart';
 import 'package:brainvolt/features/auth/domain/session.dart';
@@ -7,6 +13,8 @@ import 'package:brainvolt/features/auth/domain/session_repository.dart';
 import 'package:brainvolt/features/content/data/content_providers.dart';
 import 'package:brainvolt/features/content/domain/content_repository.dart';
 import 'package:brainvolt/features/content/domain/credit.dart';
+import 'package:brainvolt/features/match/data/match_providers.dart';
+import 'package:brainvolt/features/match/domain/match_repository.dart';
 import 'package:brainvolt/features/profile/data/profile_providers.dart';
 import 'package:brainvolt/features/profile/domain/me.dart';
 import 'package:brainvolt/features/profile/domain/profile_repository.dart';
@@ -299,6 +307,69 @@ class FakeContentRepository implements ContentRepository {
   Future<List<Credit>> credits() async => sources;
 }
 
+/// The game and matchmaking endpoints in memory.
+class FakeMatchRepository implements MatchRepository {
+  final calls = <String>[];
+
+  /// What enqueue answers; a practice ticket carries a match id.
+  QueueTicket ticket = const QueueTicket(id: 't1', state: 'searching');
+  String? current;
+  MatchResult? matchResult;
+
+  @override
+  Future<QueueTicket> enqueue({bool practice = false}) async {
+    calls.add(practice ? 'enqueue:practice' : 'enqueue');
+    return ticket;
+  }
+
+  @override
+  Future<void> leaveQueue() async => calls.add('leaveQueue');
+
+  @override
+  Future<String?> currentMatch() async => current;
+
+  @override
+  Future<MatchResult> result(String matchId) async => matchResult!;
+}
+
+/// A WebSocket whose server side the test drives.
+class FakeSocket implements SocketConnection {
+  final _in = StreamController<dynamic>();
+  final sent = <Map<String, dynamic>>[];
+
+  @override
+  int? closeCode;
+
+  @override
+  Stream<dynamic> get stream => _in.stream;
+
+  @override
+  void add(String data) => sent.add(jsonDecode(data) as Map<String, dynamic>);
+
+  @override
+  Future<void> close([int? code, String? reason]) async {
+    closeCode ??= code;
+    await _in.close();
+  }
+
+  /// Sends a frame from the server.
+  void serverSends(Map<String, dynamic> frame) => _in.add(jsonEncode(frame));
+
+  /// Closes from the server side with [code].
+  Future<void> serverCloses(int code) async {
+    closeCode = code;
+    await _in.close();
+  }
+
+  /// The last client message of [type].
+  Map<String, dynamic> lastSent(String type) =>
+      sent.lastWhere((m) => m['t'] == type);
+
+  /// Acknowledges the last client message of [type].
+  void ack(String type) =>
+      serverSends({'t': 'sys.ack', 're': lastSent(type)['id']});
+}
+
 /// Everything a test app needs, with fakes behind the repositories.
 class TestApp {
   TestApp._(
@@ -307,6 +378,8 @@ class TestApp {
     this.auth,
     this.sessions,
     this.profiles,
+    this.matches,
+    this.sockets,
   );
 
   /// [ageConfirmed] skips the age gate; [user] is an already signed-in user.
@@ -323,6 +396,8 @@ class TestApp {
     final auth = FakeAuthRepository(user: user);
     final sessions = FakeSessionRepository(auth);
     final profiles = FakeProfileRepository();
+    final matches = FakeMatchRepository();
+    final sockets = <FakeSocket>[];
     final container = ProviderContainer(
       overrides: [
         appConfigProvider.overrideWithValue(
@@ -338,15 +413,41 @@ class TestApp {
         sessionRepositoryProvider.overrideWithValue(sessions),
         profileRepositoryProvider.overrideWithValue(profiles),
         contentRepositoryProvider.overrideWithValue(FakeContentRepository()),
+        matchRepositoryProvider.overrideWithValue(matches),
+        realtimeClientProvider.overrideWith((ref) {
+          final client = RealtimeClient(
+            url: Uri.parse('ws://test/v1/ws'),
+            tokens: const _StaticTokens(),
+            installationId: 'test-installation',
+            connector: (url, headers) async {
+              final s = FakeSocket();
+              sockets.add(s);
+              return s;
+            },
+          );
+          ref.onDispose(client.dispose);
+          return client;
+        }),
       ],
     );
     addTearDown(container.dispose);
-    return TestApp._(container, p, auth, sessions, profiles);
+    return TestApp._(container, p, auth, sessions, profiles, matches, sockets);
   }
 
   final ProviderContainer container;
   final SharedPreferences prefs;
+  final FakeMatchRepository matches;
+
+  /// Every WebSocket the app opened, newest last.
+  final List<FakeSocket> sockets;
   final FakeAuthRepository auth;
   final FakeSessionRepository sessions;
   final FakeProfileRepository profiles;
+}
+
+class _StaticTokens implements TokenSource {
+  const _StaticTokens();
+
+  @override
+  Future<String?> idToken({bool forceRefresh = false}) async => 'test-token';
 }

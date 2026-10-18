@@ -11,6 +11,9 @@ import '../features/auth/presentation/splash_screen.dart';
 import '../features/auth/presentation/verify_email_screen.dart';
 import '../features/content/presentation/credits_screen.dart';
 import '../features/home/presentation/home_screen.dart';
+import '../features/match/presentation/match_screen.dart';
+import '../features/match/presentation/queue_screen.dart';
+import '../features/match/presentation/result_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/settings_screen.dart';
 import 'session_controller.dart';
@@ -30,6 +33,10 @@ abstract final class Routes {
   static const emailSignIn = '/account/email-sign-in';
   static const verifyEmail = '/account/verify-email';
   static const credits = '/credits';
+  static const play = '/play';
+  static const practice = '/play?practice=1';
+  static String match(String id) => '/match/$id';
+  static String matchResult(String id) => '/match/$id/result';
 }
 
 /// The sign-in guard (roadmap 1.8.3): where [location] must go for the
@@ -108,6 +115,23 @@ GoRouter router(Ref ref) {
       GoRoute(
         path: Routes.credits,
         builder: (context, state) => const CreditsScreen(),
+      ),
+      GoRoute(
+        path: Routes.play,
+        builder: (context, state) =>
+            QueueScreen(practice: state.uri.queryParameters['practice'] == '1'),
+      ),
+      GoRoute(
+        path: '/match/:id',
+        builder: (context, state) =>
+            MatchScreen(matchId: state.pathParameters['id']!),
+        routes: [
+          GoRoute(
+            path: 'result',
+            builder: (context, state) =>
+                ResultScreen(matchId: state.pathParameters['id']!),
+          ),
+        ],
       ),
     ],
   );

@@ -306,6 +306,120 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errorUnknown => 'Something went wrong. Please try again.';
 
   @override
+  String get playQuickDuel => 'Quick Duel';
+
+  @override
+  String get playPractice => 'Practice vs bot';
+
+  @override
+  String get searchingTitle => 'Looking for an opponent…';
+
+  @override
+  String searchingElapsed(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String get searchingCancel => 'Cancel search';
+
+  @override
+  String get matchFoundTitle => 'Match found — ready?';
+
+  @override
+  String get readyButton => 'I\'m ready';
+
+  @override
+  String readyDeadline(int seconds) {
+    return 'Get ready within $seconds s';
+  }
+
+  @override
+  String get waitingForOpponent => 'Waiting for the opponent…';
+
+  @override
+  String matchStartsIn(int seconds) {
+    return '$seconds';
+  }
+
+  @override
+  String roundOf(int round, int total) {
+    return 'Question $round/$total';
+  }
+
+  @override
+  String get you => 'You';
+
+  @override
+  String get opponentAnswered => 'Opponent answered';
+
+  @override
+  String get answerCorrect => 'Correct!';
+
+  @override
+  String get answerWrong => 'Wrong';
+
+  @override
+  String get answerTimeout => 'Time\'s up';
+
+  @override
+  String pointsGained(int points) {
+    return '+$points points';
+  }
+
+  @override
+  String get matchWon => 'You won!';
+
+  @override
+  String get matchLost => 'You lost';
+
+  @override
+  String get matchDraw => 'Draw';
+
+  @override
+  String get matchCancelled => 'Match cancelled';
+
+  @override
+  String get opponentLeft => 'Your opponent left the match';
+
+  @override
+  String get backHome => 'Back to home';
+
+  @override
+  String get showDetails => 'See the questions';
+
+  @override
+  String get leaveMatchTitle => 'Leave the match?';
+
+  @override
+  String get leaveMatchBody => 'If you leave, you lose the match.';
+
+  @override
+  String get leaveButton => 'Leave';
+
+  @override
+  String get reconnecting => 'Reconnecting…';
+
+  @override
+  String get opponentDisconnected => 'Your opponent lost connection';
+
+  @override
+  String get seatMoved => 'The match was opened on another device';
+
+  @override
+  String get matchResumed => 'Server switched, the question was replaced';
+
+  @override
+  String get resultTitle => 'Match result';
+
+  @override
+  String resultCorrectAnswer(String answer) {
+    return 'Correct answer: $answer';
+  }
+
+  @override
+  String get resumeMatch => 'Back to your match';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Your account is being deleted. You can only cancel the deletion.';
 

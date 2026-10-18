@@ -626,6 +626,210 @@ abstract class AppLocalizations {
   /// **'Beklenmeyen bir hata oluştu. Lütfen tekrar dene.'**
   String get errorUnknown;
 
+  /// Home: start a Quick Duel 1v1.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hızlı Düello'**
+  String get playQuickDuel;
+
+  /// Home: development-only practice match against the server bot.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bota karşı pratik'**
+  String get playPractice;
+
+  /// Queue screen title.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rakip aranıyor…'**
+  String get searchingTitle;
+
+  /// Queue screen: seconds waited.
+  ///
+  /// In tr, this message translates to:
+  /// **'{seconds} sn'**
+  String searchingElapsed(int seconds);
+
+  /// Queue screen: leave the queue.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aramayı iptal et'**
+  String get searchingCancel;
+
+  /// Ready prompt (match-lifecycle §4).
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç bulundu — Hazır mısın?'**
+  String get matchFoundTitle;
+
+  /// Ready button.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hazırım'**
+  String get readyButton;
+
+  /// Ready countdown.
+  ///
+  /// In tr, this message translates to:
+  /// **'{seconds} sn içinde hazır ol'**
+  String readyDeadline(int seconds);
+
+  /// Shown after tapping Ready.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rakip bekleniyor…'**
+  String get waitingForOpponent;
+
+  /// Big start countdown number.
+  ///
+  /// In tr, this message translates to:
+  /// **'{seconds}'**
+  String matchStartsIn(int seconds);
+
+  /// Round counter.
+  ///
+  /// In tr, this message translates to:
+  /// **'Soru {round}/{total}'**
+  String roundOf(int round, int total);
+
+  /// Label for the player.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sen'**
+  String get you;
+
+  /// Shown when the opponent answered.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rakip cevapladı'**
+  String get opponentAnswered;
+
+  /// Reveal: own answer correct.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğru!'**
+  String get answerCorrect;
+
+  /// Reveal: own answer wrong.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanlış'**
+  String get answerWrong;
+
+  /// Reveal: no answer in time.
+  ///
+  /// In tr, this message translates to:
+  /// **'Süre doldu'**
+  String get answerTimeout;
+
+  /// Points of a round.
+  ///
+  /// In tr, this message translates to:
+  /// **'+{points} puan'**
+  String pointsGained(int points);
+
+  /// Result: win.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kazandın!'**
+  String get matchWon;
+
+  /// Result: loss.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaybettin'**
+  String get matchLost;
+
+  /// Result: draw.
+  ///
+  /// In tr, this message translates to:
+  /// **'Berabere'**
+  String get matchDraw;
+
+  /// Result: cancelled.
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç iptal edildi'**
+  String get matchCancelled;
+
+  /// Result: opponent left / forfeited.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rakibin maçtan ayrıldı'**
+  String get opponentLeft;
+
+  /// Return to the home screen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ana sayfaya dön'**
+  String get backHome;
+
+  /// Open the result screen with rounds.
+  ///
+  /// In tr, this message translates to:
+  /// **'Soruları gör'**
+  String get showDetails;
+
+  /// Leave confirmation title.
+  ///
+  /// In tr, this message translates to:
+  /// **'Maçtan ayrılmak istiyor musun?'**
+  String get leaveMatchTitle;
+
+  /// Leave confirmation body (edge-cases §3).
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayrılırsan maçı kaybetmiş sayılırsın.'**
+  String get leaveMatchBody;
+
+  /// Leave button.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayrıl'**
+  String get leaveButton;
+
+  /// Banner while the WebSocket reconnects.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bağlantı yeniden kuruluyor…'**
+  String get reconnecting;
+
+  /// Banner when the opponent is disconnected.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rakibin bağlantısı koptu'**
+  String get opponentDisconnected;
+
+  /// Shown on match.seat_moved.
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç başka bir cihazda açıldı'**
+  String get seatMoved;
+
+  /// Shown on match.resumed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sunucu değişti, soru yenilendi'**
+  String get matchResumed;
+
+  /// Result screen title.
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç sonucu'**
+  String get resultTitle;
+
+  /// Result screen: correct answer of a round.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğru cevap: {answer}'**
+  String resultCorrectAnswer(String answer);
+
+  /// Home: a live match is running; go back to it.
+  ///
+  /// In tr, this message translates to:
+  /// **'Maça dön'**
+  String get resumeMatch;
+
   /// Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md).
   ///
   /// In tr, this message translates to:

@@ -384,6 +384,175 @@
   "@errorUnknown": {
     "description": "Client-side: unknown error without a server message."
   },
+  "playQuickDuel": "Hızlı Düello",
+  "@playQuickDuel": {
+    "description": "Home: start a Quick Duel 1v1."
+  },
+  "playPractice": "Bota karşı pratik",
+  "@playPractice": {
+    "description": "Home: development-only practice match against the server bot."
+  },
+  "searchingTitle": "Rakip aranıyor…",
+  "@searchingTitle": {
+    "description": "Queue screen title."
+  },
+  "searchingElapsed": "{seconds} sn",
+  "@searchingElapsed": {
+    "description": "Queue screen: seconds waited.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "searchingCancel": "Aramayı iptal et",
+  "@searchingCancel": {
+    "description": "Queue screen: leave the queue."
+  },
+  "matchFoundTitle": "Maç bulundu — Hazır mısın?",
+  "@matchFoundTitle": {
+    "description": "Ready prompt (match-lifecycle §4)."
+  },
+  "readyButton": "Hazırım",
+  "@readyButton": {
+    "description": "Ready button."
+  },
+  "readyDeadline": "{seconds} sn içinde hazır ol",
+  "@readyDeadline": {
+    "description": "Ready countdown.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "waitingForOpponent": "Rakip bekleniyor…",
+  "@waitingForOpponent": {
+    "description": "Shown after tapping Ready."
+  },
+  "matchStartsIn": "{seconds}",
+  "@matchStartsIn": {
+    "description": "Big start countdown number.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "roundOf": "Soru {round}/{total}",
+  "@roundOf": {
+    "description": "Round counter.",
+    "placeholders": {
+      "round": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "you": "Sen",
+  "@you": {
+    "description": "Label for the player."
+  },
+  "opponentAnswered": "Rakip cevapladı",
+  "@opponentAnswered": {
+    "description": "Shown when the opponent answered."
+  },
+  "answerCorrect": "Doğru!",
+  "@answerCorrect": {
+    "description": "Reveal: own answer correct."
+  },
+  "answerWrong": "Yanlış",
+  "@answerWrong": {
+    "description": "Reveal: own answer wrong."
+  },
+  "answerTimeout": "Süre doldu",
+  "@answerTimeout": {
+    "description": "Reveal: no answer in time."
+  },
+  "pointsGained": "+{points} puan",
+  "@pointsGained": {
+    "description": "Points of a round.",
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "matchWon": "Kazandın!",
+  "@matchWon": {
+    "description": "Result: win."
+  },
+  "matchLost": "Kaybettin",
+  "@matchLost": {
+    "description": "Result: loss."
+  },
+  "matchDraw": "Berabere",
+  "@matchDraw": {
+    "description": "Result: draw."
+  },
+  "matchCancelled": "Maç iptal edildi",
+  "@matchCancelled": {
+    "description": "Result: cancelled."
+  },
+  "opponentLeft": "Rakibin maçtan ayrıldı",
+  "@opponentLeft": {
+    "description": "Result: opponent left / forfeited."
+  },
+  "backHome": "Ana sayfaya dön",
+  "@backHome": {
+    "description": "Return to the home screen."
+  },
+  "showDetails": "Soruları gör",
+  "@showDetails": {
+    "description": "Open the result screen with rounds."
+  },
+  "leaveMatchTitle": "Maçtan ayrılmak istiyor musun?",
+  "@leaveMatchTitle": {
+    "description": "Leave confirmation title."
+  },
+  "leaveMatchBody": "Ayrılırsan maçı kaybetmiş sayılırsın.",
+  "@leaveMatchBody": {
+    "description": "Leave confirmation body (edge-cases §3)."
+  },
+  "leaveButton": "Ayrıl",
+  "@leaveButton": {
+    "description": "Leave button."
+  },
+  "reconnecting": "Bağlantı yeniden kuruluyor…",
+  "@reconnecting": {
+    "description": "Banner while the WebSocket reconnects."
+  },
+  "opponentDisconnected": "Rakibin bağlantısı koptu",
+  "@opponentDisconnected": {
+    "description": "Banner when the opponent is disconnected."
+  },
+  "seatMoved": "Maç başka bir cihazda açıldı",
+  "@seatMoved": {
+    "description": "Shown on match.seat_moved."
+  },
+  "matchResumed": "Sunucu değişti, soru yenilendi",
+  "@matchResumed": {
+    "description": "Shown on match.resumed."
+  },
+  "resultTitle": "Maç sonucu",
+  "@resultTitle": {
+    "description": "Result screen title."
+  },
+  "resultCorrectAnswer": "Doğru cevap: {answer}",
+  "@resultCorrectAnswer": {
+    "description": "Result screen: correct answer of a round.",
+    "placeholders": {
+      "answer": {
+        "type": "String"
+      }
+    }
+  },
+  "resumeMatch": "Maça dön",
+  "@resumeMatch": {
+    "description": "Home: a live match is running; go back to it."
+  },
   "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
   "@error_ACCOUNT_DELETION_PENDING": {
     "description": "Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md)."
