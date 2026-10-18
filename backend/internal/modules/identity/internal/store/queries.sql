@@ -47,6 +47,18 @@ SET provider_uid    = EXCLUDED.provider_uid,
     email_verified  = EXCLUDED.email_verified,
     last_sign_in_at = EXCLUDED.last_sign_in_at;
 
+-- Firebase allows one owner per provider identity; a row held by another
+-- user is stale (that Firebase account was deleted) and is removed.
+-- name: ReleaseProviderUID :many
+DELETE FROM identity.auth_identities
+WHERE provider = @provider AND provider_uid = @provider_uid AND user_id <> @user_id
+RETURNING user_id;
+
+-- name: ReleasePasswordEmail :many
+DELETE FROM identity.auth_identities
+WHERE provider = 'password' AND email = @email AND user_id <> @user_id
+RETURNING user_id;
+
 -- name: DeleteAuthIdentitiesExcept :exec
 -- Drops sign-in methods no longer linked in Firebase (the mirror follows Firebase).
 DELETE FROM identity.auth_identities WHERE user_id = @user_id AND NOT (provider = ANY(@providers::text[]));

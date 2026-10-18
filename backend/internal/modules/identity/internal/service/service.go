@@ -138,7 +138,7 @@ func (s *Service) Session(ctx context.Context, tok firebase.Token, in SessionInp
 func (s *Service) createTx(ctx context.Context, tx pgx.Tx, q *sqlc.Queries, id uuid.UUID, tier domain.Tier,
 	identities []domain.LinkedIdentity, in SessionInput, now time.Time,
 ) error {
-	if err := mirrorTx(ctx, q, id, identities, now); err != nil {
+	if err := s.mirrorTx(ctx, q, id, identities, now); err != nil {
 		return err
 	}
 	if err := s.d.Profiles.CreateTx(ctx, tx, domain.NewProfile{UserID: id, Locale: in.Locale, CountryCode: in.CountryHint, Now: now}); err != nil {
@@ -155,7 +155,7 @@ func (s *Service) syncTx(ctx context.Context, tx pgx.Tx, q *sqlc.Queries, u sqlc
 	if domain.Status(u.Status) == domain.StatusDeleted {
 		return apierror.New(apierror.Unauthenticated).With("reason", "account_deleted")
 	}
-	if err := mirrorTx(ctx, q, u.ID, identities, now); err != nil {
+	if err := s.mirrorTx(ctx, q, u.ID, identities, now); err != nil {
 		return err
 	}
 	if old := domain.Tier(u.AccountTier); old != tier {
@@ -170,10 +170,29 @@ func (s *Service) syncTx(ctx context.Context, tx pgx.Tx, q *sqlc.Queries, u sqlc
 	return q.TouchUser(ctx, sqlc.TouchUserParams{ID: u.ID, Now: now})
 }
 
-func mirrorTx(ctx context.Context, q *sqlc.Queries, userID uuid.UUID, identities []domain.LinkedIdentity, now time.Time) error {
+// mirrorTx stores the user's sign-in methods as the Firebase account record
+// lists them. Firebase lets one account own a Google/Apple identity or a
+// password email; when another BrainVolt user still holds it here, that
+// user's Firebase account no longer exists (deleted, or a restarted Auth
+// emulator in development), so the stale row moves to this user.
+func (s *Service) mirrorTx(ctx context.Context, q *sqlc.Queries, userID uuid.UUID, identities []domain.LinkedIdentity, now time.Time) error {
 	providers := make([]string, 0, len(identities))
 	for _, id := range identities {
 		providers = append(providers, string(id.Provider))
+		var released []uuid.UUID
+		var err error
+		switch {
+		case id.ProviderUID != nil:
+			released, err = q.ReleaseProviderUID(ctx, sqlc.ReleaseProviderUIDParams{Provider: string(id.Provider), ProviderUid: id.ProviderUID, UserID: userID})
+		case id.Provider == domain.ProviderPassword && id.Email != nil:
+			released, err = q.ReleasePasswordEmail(ctx, sqlc.ReleasePasswordEmailParams{Email: id.Email, UserID: userID})
+		}
+		if err != nil {
+			return fmt.Errorf("mirroring %s: %w", id.Provider, err)
+		}
+		for _, other := range released {
+			s.d.Logger.WarnContext(ctx, "sign-in method moved from a stale account", "provider", id.Provider, "from_user", other, "to_user", userID)
+		}
 		if err := q.UpsertAuthIdentity(ctx, sqlc.UpsertAuthIdentityParams{
 			UserID: userID, Provider: string(id.Provider), ProviderUid: id.ProviderUID,
 			Email: id.Email, EmailVerified: id.EmailVerified, Now: now,

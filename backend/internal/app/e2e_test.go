@@ -399,3 +399,55 @@ func TestConcurrentFirstSessions(t *testing.T) {
 		t.Fatalf("UserRegistered jobs = %d", n)
 	}
 }
+
+// linkGoogle links a Google identity (emulator: an unsigned JSON id_token)
+// to the signed-in user, as linkWithCredential does.
+func (e emulator) linkGoogle(token, sub, email string) string {
+	idToken := fmt.Sprintf(`{"sub":%q,"email":%q,"email_verified":true}`, sub, email)
+	out := e.call("accounts:signInWithIdp", map[string]any{
+		"idToken": token, "postBody": "id_token=" + idToken + "&providerId=google.com",
+		"requestUri": "http://localhost", "returnSecureToken": true,
+	}, false)
+	return out["idToken"].(string)
+}
+
+func (e emulator) deleteUser(uid string) {
+	e.call("projects/"+emulatorProject+"/accounts:delete", map[string]any{"localId": uid}, true)
+}
+
+// TestStaleIdentityMovesToNewAccount: a Firebase account that no longer
+// exists (deleted, or a restarted Auth emulator) can leave its Google
+// identity or password email in identity.auth_identities. When a new
+// Firebase user links the same sign-in method, the session must move it
+// instead of failing with a unique violation (owner report 2026-10-18).
+func TestStaleIdentityMovesToNewAccount(t *testing.T) {
+	x := newE2E(t)
+	email := "stale-" + ids.NewString()[24:] + "@example.com"
+	sub := "google-" + ids.NewString()[24:]
+
+	oldToken, oldUID := x.emu.signUpAnonymous()
+	want(t, "old guest", x.session(oldToken, nil), 200, "")
+	oldToken = x.emu.linkGoogle(oldToken, sub, email)
+	oldToken = x.emu.linkPassword(oldToken, email)
+	r := x.session(oldToken, nil)
+	want(t, "old account with google + password", r, 200, "")
+	oldID := r.get("user", "id").(string)
+	x.emu.deleteUser(oldUID)
+
+	newToken, _ := x.emu.signUpAnonymous()
+	want(t, "new guest", x.session(newToken, nil), 200, "")
+	newToken = x.emu.linkGoogle(newToken, sub, email)
+	newToken = x.emu.linkPassword(newToken, email)
+	r = x.session(newToken, nil)
+	want(t, "new account takes over google + password", r, 200, "")
+	if r.get("tier") != "full" {
+		t.Fatalf("new account = %s", r.raw)
+	}
+	var left int
+	if err := x.db.QueryRow(t.Context(), `SELECT count(*) FROM identity.auth_identities WHERE user_id = $1 AND provider IN ('google', 'password')`, oldID).Scan(&left); err != nil {
+		t.Fatal(err)
+	}
+	if left != 0 {
+		t.Fatalf("stale account still holds %d sign-in methods", left)
+	}
+}

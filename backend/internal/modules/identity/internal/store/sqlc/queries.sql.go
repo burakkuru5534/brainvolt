@@ -226,6 +226,71 @@ func (q *Queries) MarkGuestAbandoned(ctx context.Context, arg MarkGuestAbandoned
 	return result.RowsAffected(), nil
 }
 
+const releasePasswordEmail = `-- name: ReleasePasswordEmail :many
+DELETE FROM identity.auth_identities
+WHERE provider = 'password' AND email = $1 AND user_id <> $2
+RETURNING user_id
+`
+
+type ReleasePasswordEmailParams struct {
+	Email  *string
+	UserID uuid.UUID
+}
+
+func (q *Queries) ReleasePasswordEmail(ctx context.Context, arg ReleasePasswordEmailParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, releasePasswordEmail, arg.Email, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var user_id uuid.UUID
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const releaseProviderUID = `-- name: ReleaseProviderUID :many
+DELETE FROM identity.auth_identities
+WHERE provider = $1 AND provider_uid = $2 AND user_id <> $3
+RETURNING user_id
+`
+
+type ReleaseProviderUIDParams struct {
+	Provider    string
+	ProviderUid *string
+	UserID      uuid.UUID
+}
+
+// Firebase allows one owner per provider identity; a row held by another
+// user is stale (that Firebase account was deleted) and is removed.
+func (q *Queries) ReleaseProviderUID(ctx context.Context, arg ReleaseProviderUIDParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, releaseProviderUID, arg.Provider, arg.ProviderUid, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var user_id uuid.UUID
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const revokeRole = `-- name: RevokeRole :exec
 DELETE FROM identity.user_roles WHERE user_id = $1 AND role = $2
 `
