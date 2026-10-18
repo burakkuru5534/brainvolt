@@ -8,7 +8,8 @@
 // saying how to run it, so `go test ./...` still works without Docker. A
 // variable that is set but malformed (e.g. "localhost:" because a ${PORT}
 // reference in .env expanded to nothing) fails the test with its name, since
-// the services were clearly meant to be used.
+// the services were clearly meant to be used. CI sets RequireVar so a missing
+// variable fails instead of silently skipping the integration tests.
 package testenv
 
 import (
@@ -28,6 +29,9 @@ const (
 	RedisVar = "BRAINVOLT_TEST_REDIS_URL"
 	// FirebaseEmulatorVar names the Firebase Auth emulator host:port.
 	FirebaseEmulatorVar = "BRAINVOLT_TEST_FIREBASE_AUTH_EMULATOR_HOST"
+	// RequireVar names the switch that, set to any value, turns a missing
+	// service variable into a test failure (CI).
+	RequireVar = "BRAINVOLT_TEST_REQUIRE_SERVICES"
 )
 
 // PostgresURL returns the test Postgres URL or skips the test.
@@ -84,6 +88,9 @@ func CheckURL(v string) error {
 func lookup(t testing.TB, name string) string {
 	t.Helper()
 	v := os.Getenv(name)
+	if v == "" && os.Getenv(RequireVar) != "" {
+		t.Fatalf("integration test: %s not set, but %s requires the services", name, RequireVar)
+	}
 	if v == "" {
 		t.Skipf("integration test: %s not set (run `make up` and `make test`, or export it)", name)
 	}

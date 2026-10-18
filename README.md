@@ -125,6 +125,32 @@ Module boundaries from [`backend-modules.md`](docs/architecture/backend-modules.
 - Docker Desktop must be running with the WSL 2 backend. If a port is already taken (for example a locally installed PostgreSQL on 5432), change `BRAINVOLT_POSTGRES_PORT` in `.env` — the connection URL picks it up automatically.
 - `go test -race` needs a C compiler (cgo); on Windows plain `go test` is the default and CI runs the race detector.
 
+## Continuous integration
+
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs on every push to `main` and every pull request (D-010):
+
+| Job | Steps |
+|---|---|
+| `backend` | starts Postgres, Redis and the Firebase Auth emulator with `docker compose` and the values of `.env.example` (same as local), `go vet`, `golangci-lint` v2.14.0, `sqlc diff`, `go test -race ./...` (unit + integration + OpenAPI drift test; `BRAINVOLT_TEST_REQUIRE_SERVICES=1` makes a missing service fail instead of skip) |
+| `mobile` | Flutter from `mobile/.flutter-version`, `flutter pub get --enforce-lockfile`, `dart analyze --fatal-infos`, `flutter test`, generated code up to date (`make gen` + `git diff --exit-code`) |
+
+There is no iOS job until the Apple Developer account exists (D-057). The same checks run locally with `make lint`, `make test` and `make check-gen`.
+
+### Branch protection (repository owner, once)
+
+GitHub → **Settings → Rules → Rulesets → New branch ruleset**, target branch `main`, enforcement *Active*. Two levels:
+
+**A. Now (direct pushes to `main` stay possible, as the current workflow merges the working branch into `main`):**
+- **Restrict deletions** and **Block force pushes**.
+- CI still runs on every push to `main`; a red run shows on the commit and in the Actions tab.
+
+**B. Later (recommended once more people work on the repository, or when you want CI to gate every change):** everything in A, plus
+- **Require a pull request before merging** — required approvals 0 while you work alone (1 when someone joins), dismiss stale approvals on new commits;
+- **Require status checks to pass** → add `backend` and `mobile` (they appear in the search box after the workflow has run once) and tick **Require branches to be up to date before merging**;
+- optional: **Require linear history**.
+
+With B, changes reach `main` only through pull requests whose `backend` and `mobile` checks are green; the owner can keep a bypass for emergencies under *Bypass list*.
+
 ## Mobile app
 
 See [`mobile/README.md`](mobile/README.md): `cd mobile && flutter run --dart-define-from-file=env/dev.json` with the backend running. `make test`, `make lint` and `make gen` cover the app too (lint uses `dart analyze`, which also runs riverpod_lint).

@@ -1,0 +1,111 @@
+# Continuous integration (roadmap 1.9, D-010). Both jobs run on every push to
+# main and every pull request; their names ("backend", "mobile") are the
+# required status checks for branch protection (README).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  backend:
+    name: backend
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      # Integration tests fail instead of skipping when a service is missing.
+      BRAINVOLT_TEST_REQUIRE_SERVICES: "1"
+    steps:
+      - uses: actions/checkout@v5
+
+      # The services start exactly as in local development: docker-compose.yml
+      # with the values of .env.example (pinned images, Redis persistence
+      # settings checked by the tests, the Firebase Auth emulator image).
+      - name: Start Postgres, Redis and the Firebase Auth emulator
+        working-directory: .
+        run: |
+          cp .env.example .env
+          docker compose up -d --build --wait postgres redis firebase-auth
+
+      - name: Export test settings from .env
+        working-directory: .
+        run: |
+          set -a; . ./.env; set +a
+          env | grep '^BRAINVOLT_TEST_' >> "$GITHUB_ENV"
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - uses: sqlc-dev/setup-sqlc@v4
+        with:
+          sqlc-version: "1.31.1"
+
+      - name: Install golangci-lint
+        # Built from source with the project's Go, as golangci-lint must be
+        # built with a Go at least as new as the code it checks.
+        run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.14.0
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: golangci-lint
+        run: golangci-lint run
+
+      - name: sqlc diff
+        run: sqlc diff
+
+      - name: Tests (unit + integration, race detector; includes the OpenAPI drift test)
+        run: go test -race -count=1 ./...
+
+  mobile:
+    name: mobile
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Read Flutter version
+        id: flutter
+        run: echo "version=$(tr -d '[:space:]' < .flutter-version)" >> "$GITHUB_OUTPUT"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ steps.flutter.outputs.version }}
+          cache: true
+
+      - name: flutter pub get
+        run: flutter pub get --enforce-lockfile
+
+      - name: dart analyze (includes riverpod_lint)
+        run: dart analyze --fatal-infos
+
+      - name: flutter test
+        run: flutter test
+
+      - name: Generated code is up to date
+        run: |
+          dart run tool/gen_error_l10n.dart
+          flutter gen-l10n
+          dart run build_runner build --delete-conflicting-outputs
+          git diff --exit-code -- lib || {
+            echo "::error::Generated files are stale: run 'make gen' and commit the result."
+            exit 1
+          }
