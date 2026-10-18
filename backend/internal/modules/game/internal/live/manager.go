@@ -150,7 +150,8 @@ func (m *Manager) forget(o *owner) {
 
 // Start takes ownership of a match just created in `waiting`, saves its
 // live state and delivers the creation events (T1).
-func (m *Manager) Start(ctx context.Context, match *engine.Match, out engine.Output) error {
+// bots are development practice opponents the owner plays (D-066).
+func (m *Manager) Start(ctx context.Context, match *engine.Match, out engine.Output, bots ...uuid.UUID) error {
 	users := make([]uuid.UUID, 0, len(match.Participants))
 	locales := map[string]bool{}
 	seats := make([]engine.Seat, 0, len(match.Participants))
@@ -179,7 +180,7 @@ func (m *Manager) Start(ctx context.Context, match *engine.Match, out engine.Out
 	mt := &meta{MatchID: match.ID, Texts: texts, Cards: cards, Seats: seats, Summary: map[string]any{
 		"match_type": match.Config.MatchType, "format": match.Config.Format, "category_mode": match.Config.CategoryMode,
 		"question_count": match.Derived.QuestionCount, "answer_window_ms": match.Derived.AnswerWindowMS,
-	}}
+	}, Bots: bots}
 	metaJSON, err := json.Marshal(mt)
 	if err != nil {
 		return err
@@ -314,6 +315,11 @@ func (m *Manager) Handle(ctx context.Context, c realtime.Client, msg realtime.Me
 		return err
 	}
 	return realtime.ErrDeferred
+}
+
+// LiveMatch returns the user's live match, if any.
+func (m *Manager) LiveMatch(ctx context.Context, user uuid.UUID) (uuid.UUID, bool) {
+	return m.liveMatch(ctx, user)
 }
 
 // liveMatch returns the user's live match, if any.

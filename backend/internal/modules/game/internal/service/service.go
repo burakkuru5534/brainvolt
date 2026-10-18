@@ -63,6 +63,7 @@ var PreseasonID = uuid.MustParse("01a14f8e-0000-7000-8000-000000000001")
 type Questions interface {
 	Select(ctx context.Context, r content.SelectRequest) ([]content.SelectedQuestion, error)
 	CategoryExists(ctx context.Context, id uuid.UUID) (bool, error)
+	Texts(ctx context.Context, ids []uuid.UUID, locales []string) (map[uuid.UUID]map[string]content.QuestionText, error)
 }
 
 // Users is what game needs from identity.
@@ -104,6 +105,7 @@ type Deps struct {
 	Redis     *redis.Client
 	Questions Questions
 	Users     Users
+	Cards     Cards
 	Seasons   SeasonProvider
 	Sanctions SanctionChecker
 	Events    *events.Bus

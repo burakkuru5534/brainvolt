@@ -264,10 +264,11 @@ JOIN content.subcategories s ON s.id = q.subcategory_id
 WHERE t.question_id = ANY(@ids::uuid[]) AND t.locale = ANY(@locales::text[]);
 
 -- name: OptionTexts :many
-SELECT o.question_id, ot.option_id, ot.locale, ot.text
+SELECT o.question_id, ot.option_id, ot.locale, ot.text, o.is_correct
 FROM content.option_translations ot
 JOIN content.options o ON o.id = ot.option_id
-WHERE o.question_id = ANY(@ids::uuid[]) AND ot.locale = ANY(@locales::text[]);
+WHERE o.question_id = ANY(@ids::uuid[]) AND ot.locale = ANY(@locales::text[])
+ORDER BY o.question_id, o.position;
 
 -- name: CategoryNames :many
 SELECT category_id, locale, name FROM content.category_translations

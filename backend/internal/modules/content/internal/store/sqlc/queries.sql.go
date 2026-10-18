@@ -821,10 +821,11 @@ func (q *Queries) MarkStatsApplied(ctx context.Context, arg MarkStatsAppliedPara
 }
 
 const optionTexts = `-- name: OptionTexts :many
-SELECT o.question_id, ot.option_id, ot.locale, ot.text
+SELECT o.question_id, ot.option_id, ot.locale, ot.text, o.is_correct
 FROM content.option_translations ot
 JOIN content.options o ON o.id = ot.option_id
 WHERE o.question_id = ANY($1::uuid[]) AND ot.locale = ANY($2::text[])
+ORDER BY o.question_id, o.position
 `
 
 type OptionTextsParams struct {
@@ -837,6 +838,7 @@ type OptionTextsRow struct {
 	OptionID   uuid.UUID
 	Locale     string
 	Text       string
+	IsCorrect  bool
 }
 
 func (q *Queries) OptionTexts(ctx context.Context, arg OptionTextsParams) ([]OptionTextsRow, error) {
@@ -853,6 +855,7 @@ func (q *Queries) OptionTexts(ctx context.Context, arg OptionTextsParams) ([]Opt
 			&i.OptionID,
 			&i.Locale,
 			&i.Text,
+			&i.IsCorrect,
 		); err != nil {
 			return nil, err
 		}

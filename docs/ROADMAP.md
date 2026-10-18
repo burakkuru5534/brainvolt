@@ -328,9 +328,9 @@ Goal: two players finish a live 1v1 match on their phones: the WebSocket gateway
 - [x] 4.2.4 Owner loss: sweeper takeover with open-round voiding (`match.resumed`), `server_error` after 30 s
 
 ### 4.3 Getting into a match & results
-- [ ] 4.3.1 Minimal Quick Duel queue (`POST/GET/DELETE /v1/matchmaking/tickets`, first-come pairing, `mm.status` / `mm.match_found`); real matchmaking replaces the pairing in Phase 5
-- [ ] 4.3.2 `GET /v1/matches/current`, `GET /v1/matches/{id}` (result screen data)
-- [ ] 4.3.3 Development practice opponent (bot) so one device can test
+- [x] 4.3.1 Minimal Quick Duel queue (`POST/GET/DELETE /v1/matchmaking/tickets`, first-come pairing, `mm.status` / `mm.match_found`); real matchmaking replaces the pairing in Phase 5
+- [x] 4.3.2 `GET /v1/matches/current`, `GET /v1/matches/{id}` (result screen data)
+- [x] 4.3.3 Development practice opponent (bot) so one device can test
 
 ### 4.4 Mobile
 - [ ] 4.4.1 `RealtimeClient` (auth, heartbeat & clock offset, seq/ack, reconnect with backoff, resume)

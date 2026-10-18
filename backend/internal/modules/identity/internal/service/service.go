@@ -405,3 +405,28 @@ func (s *Service) CancelDeletion(ctx context.Context, p domain.Principal) error 
 	s.forget(ctx, p.FirebaseUID)
 	return nil
 }
+
+// EnsureBot returns the user id of a development practice bot, creating
+// the bot (guest account with a profile, no Firebase account, no events)
+// on first use. Only the dev composition calls it (D-066).
+func (s *Service) EnsureBot(ctx context.Context, key, displayName, locale string) (uuid.UUID, error) {
+	uid := "bot:" + key
+	now := s.d.Clock.Now().UTC()
+	err := postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error {
+		q := sqlc.New(tx)
+		id := ids.New()
+		n, err := q.InsertUser(ctx, sqlc.InsertUserParams{ID: id, FirebaseUid: uid, AccountTier: string(domain.TierGuest), Now: now})
+		if err != nil || n == 0 {
+			return err
+		}
+		return s.d.Profiles.CreateTx(ctx, tx, domain.NewProfile{UserID: id, Locale: locale, Now: now, DisplayName: displayName})
+	})
+	if err != nil {
+		return uuid.Nil, err
+	}
+	u, err := sqlc.New(s.d.DB).GetUserByFirebaseUID(ctx, uid)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	return u.ID, nil
+}

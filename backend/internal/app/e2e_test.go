@@ -124,7 +124,7 @@ func newE2E(t *testing.T) *e2e {
 	srv := httpserver.New(cfg, config.EnvDev, discard)
 	mods := registerModules(srv, moduleDeps{db: db, rdb: rdb, verifier: verifier, bus: bus,
 		limiter: ratelimit.New(rdb, clock.Real{}, discard), idem: idempotency.New(rdb, discard),
-		clock: clock.Real{}, logger: discard, instance: "test-" + ids.NewString()})
+		clock: clock.Real{}, logger: discard, instance: "test-" + ids.NewString(), env: config.EnvDev})
 	return &e2e{t: t, srv: srv, db: db, rdb: rdb, emu: emulator{t: t, host: host}, mods: mods}
 }
 

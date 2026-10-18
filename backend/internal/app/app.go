@@ -26,6 +26,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/content"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/matchmaking"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/notification"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
@@ -133,9 +134,9 @@ func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, 
 		health.Check{Name: "migrations", Fn: func(ctx context.Context) error { return migrations.Check(ctx, schema) }},
 	)
 	mods := registerModules(srv, moduleDeps{db: db, rdb: rdb, verifier: verifier, bus: bus, limiter: limiter,
-		idem: idempotency.New(rdb, logger), clock: clk, logger: logger, instance: ids.New().String()})
+		idem: idempotency.New(rdb, logger), clock: clk, logger: logger, instance: ids.New().String(), env: cfg.Env})
 
-	a := New(RoleAPI, logger, srv, mods.realtime, mods.game)
+	a := New(RoleAPI, logger, srv, mods.realtime, mods.game, mods.matchmaking)
 	a.closers = append(a.closers, db.Close, func() { _ = sqlDB.Close() }, func() { _ = rdb.Close() })
 	return a, nil
 }
@@ -152,15 +153,18 @@ type moduleDeps struct {
 	logger   *slog.Logger
 	// instance identifies this API process (realtime delivery, match owners).
 	instance string
+	// env enables development-only features (practice bot, D-066).
+	env config.Environment
 }
 
 // modules are the built modules a process runs besides the HTTP server.
 type modules struct {
-	identity *identity.Module
-	profile  *profile.Module
-	content  *content.Module
-	realtime *realtime.Module
-	game     *game.Module
+	identity    *identity.Module
+	profile     *profile.Module
+	content     *content.Module
+	realtime    *realtime.Module
+	game        *game.Module
+	matchmaking *matchmaking.Module
 }
 
 // registerModules builds the modules and their routes. The wiring follows
@@ -184,7 +188,12 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 		DB: d.db, Redis: d.rdb, Content: cont, Identity: ident, Profiles: prof, Realtime: rt,
 		Events: d.bus, Clock: d.clock, Logger: d.logger, Instance: d.instance,
 	})
-	return modules{identity: ident, profile: prof, content: cont, realtime: rt, game: g}
+	g.Register(srv, ident)
+	mm := matchmaking.New(matchmaking.Deps{
+		Redis: d.rdb, Game: g, Realtime: rt, Clock: d.clock, Logger: d.logger, Practice: d.env == config.EnvDev,
+	})
+	mm.Register(srv, ident, d.idem)
+	return modules{identity: ident, profile: prof, content: cont, realtime: rt, game: g, matchmaking: mm}
 }
 
 // newBus returns the event bus with every subscription. The API and the

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand/v2"
 	"sync"
 	"time"
 
@@ -183,6 +184,7 @@ func (o *owner) commit(ctx context.Context, out engine.Output, now int64) error 
 	}
 	o.deliver(ctx, out.Events, now)
 	o.arm(out.Timers, now)
+	o.playBots(out.Events)
 	return nil
 }
 
@@ -262,13 +264,62 @@ func (o *owner) send(ctx context.Context, t realtime.Target, f realtime.Frame) {
 // arm schedules the output's timers; the engine ignores stale ones.
 func (o *owner) arm(timers []engine.Timer, now int64) {
 	for _, t := range timers {
-		d := time.Duration(t.AtMS-now) * time.Millisecond
-		o.timers = append(o.timers, o.m.d.Clock.AfterFunc(max(d, 0), func() {
-			select {
-			case o.inbox <- command{Kind: kindFire, Match: o.match.ID, Timer: t}:
-			case <-o.stop:
+		o.later(time.Duration(t.AtMS-now)*time.Millisecond, command{Kind: kindFire, Match: o.match.ID, Timer: t})
+	}
+}
+
+// later posts a command to the mailbox after d.
+func (o *owner) later(d time.Duration, c command) {
+	o.timers = append(o.timers, o.m.d.Clock.AfterFunc(max(d, 0), func() {
+		select {
+		case o.inbox <- c:
+		case <-o.stop:
+		}
+	}))
+}
+
+// Practice bot behaviour (development only, D-066).
+const (
+	botReadyAfter   = 800 * time.Millisecond
+	botMinAnswerMS  = 1_500
+	botAnswerSpread = 4_500
+	botCorrectPct   = 60
+)
+
+// playBots makes the practice bots ready after creation and answer every
+// round they are expected in, right about 60 % of the time.
+func (o *owner) playBots(events []engine.Event) {
+	if len(o.meta.Bots) == 0 {
+		return
+	}
+	now := o.m.d.Clock.Now().UnixMilli()
+	for _, e := range events {
+		switch e.Type {
+		case "match.created":
+			for _, b := range o.meta.Bots {
+				o.later(botReadyAfter, command{Kind: kindReady, Match: o.match.ID, Client: realtime.Client{UserID: b}})
 			}
-		}))
+		case "round.started":
+			r := o.match.Round
+			if r == nil {
+				continue
+			}
+			for _, b := range o.meta.Bots {
+				opt := r.Question.Correct
+				if rand.IntN(100) >= botCorrectPct { //nolint:gosec // G404: practice bot, not security relevant
+					for _, x := range r.Question.Options {
+						if x != r.Question.Correct {
+							opt = x
+							break
+						}
+					}
+				}
+				at := r.ShowAtMS + botMinAnswerMS + int64(rand.IntN(botAnswerSpread)) //nolint:gosec // G404: as above
+				o.later(time.Duration(at-now)*time.Millisecond, command{
+					Kind: kindAnswer, Match: o.match.ID, Client: realtime.Client{UserID: b}, Round: r.No, Option: opt,
+				})
+			}
+		}
 	}
 }
 

@@ -104,3 +104,16 @@ JOIN game.match_participants p ON p.match_id = a.match_id AND p.user_id = a.user
 WHERE a.match_id = $1
 GROUP BY r.question_id, p.locale
 ORDER BY r.question_id, p.locale;
+
+-- name: ListSides :many
+SELECT side_no, score, correct_count, result FROM game.match_sides WHERE match_id = $1 ORDER BY side_no;
+
+-- name: ListRounds :many
+SELECT round_no, question_id, option_order FROM game.match_rounds WHERE match_id = $1 ORDER BY round_no;
+
+-- name: ListAnswers :many
+SELECT round_no, user_id, side_no, option_id, response_ms, is_correct, points_awarded
+FROM game.answers WHERE match_id = $1 ORDER BY round_no, side_no, user_id;
+
+-- name: ListRoundResults :many
+SELECT round_no, side_no, is_correct, points FROM game.round_results WHERE match_id = $1 ORDER BY round_no, side_no;

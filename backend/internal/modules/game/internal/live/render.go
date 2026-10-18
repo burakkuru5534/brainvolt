@@ -23,6 +23,8 @@ type meta struct {
 	Seats   []engine.Seat                                 `json:"seats"`
 	// Summary is the configuration shown in match.created.
 	Summary map[string]any `json:"summary"`
+	// Bots are development practice opponents played by the owner (D-066).
+	Bots []uuid.UUID `json:"bots,omitempty"`
 }
 
 // stored is one match-stream event as kept in game:{m}:events.

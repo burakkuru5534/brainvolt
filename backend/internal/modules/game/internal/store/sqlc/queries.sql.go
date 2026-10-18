@@ -346,6 +346,49 @@ func (q *Queries) InsertTransition(ctx context.Context, arg InsertTransitionPara
 	return err
 }
 
+const listAnswers = `-- name: ListAnswers :many
+SELECT round_no, user_id, side_no, option_id, response_ms, is_correct, points_awarded
+FROM game.answers WHERE match_id = $1 ORDER BY round_no, side_no, user_id
+`
+
+type ListAnswersRow struct {
+	RoundNo       int16
+	UserID        uuid.UUID
+	SideNo        int16
+	OptionID      *uuid.UUID
+	ResponseMs    *int32
+	IsCorrect     bool
+	PointsAwarded int32
+}
+
+func (q *Queries) ListAnswers(ctx context.Context, matchID uuid.UUID) ([]ListAnswersRow, error) {
+	rows, err := q.db.Query(ctx, listAnswers, matchID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAnswersRow{}
+	for rows.Next() {
+		var i ListAnswersRow
+		if err := rows.Scan(
+			&i.RoundNo,
+			&i.UserID,
+			&i.SideNo,
+			&i.OptionID,
+			&i.ResponseMs,
+			&i.IsCorrect,
+			&i.PointsAwarded,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listParticipants = `-- name: ListParticipants :many
 SELECT match_id, user_id, side_no, seat_no, locale, account_tier_at_start, status, ready_at, left_at, disconnect_count, disconnected_ms_total, score_contribution, correct_count, answered_count, joined_at FROM game.match_participants WHERE match_id = $1 ORDER BY side_no, seat_no
 `
@@ -375,6 +418,108 @@ func (q *Queries) ListParticipants(ctx context.Context, matchID uuid.UUID) ([]Ga
 			&i.CorrectCount,
 			&i.AnsweredCount,
 			&i.JoinedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listRoundResults = `-- name: ListRoundResults :many
+SELECT round_no, side_no, is_correct, points FROM game.round_results WHERE match_id = $1 ORDER BY round_no, side_no
+`
+
+type ListRoundResultsRow struct {
+	RoundNo   int16
+	SideNo    int16
+	IsCorrect bool
+	Points    int32
+}
+
+func (q *Queries) ListRoundResults(ctx context.Context, matchID uuid.UUID) ([]ListRoundResultsRow, error) {
+	rows, err := q.db.Query(ctx, listRoundResults, matchID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListRoundResultsRow{}
+	for rows.Next() {
+		var i ListRoundResultsRow
+		if err := rows.Scan(
+			&i.RoundNo,
+			&i.SideNo,
+			&i.IsCorrect,
+			&i.Points,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listRounds = `-- name: ListRounds :many
+SELECT round_no, question_id, option_order FROM game.match_rounds WHERE match_id = $1 ORDER BY round_no
+`
+
+type ListRoundsRow struct {
+	RoundNo     int16
+	QuestionID  uuid.UUID
+	OptionOrder []int16
+}
+
+func (q *Queries) ListRounds(ctx context.Context, matchID uuid.UUID) ([]ListRoundsRow, error) {
+	rows, err := q.db.Query(ctx, listRounds, matchID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListRoundsRow{}
+	for rows.Next() {
+		var i ListRoundsRow
+		if err := rows.Scan(&i.RoundNo, &i.QuestionID, &i.OptionOrder); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listSides = `-- name: ListSides :many
+SELECT side_no, score, correct_count, result FROM game.match_sides WHERE match_id = $1 ORDER BY side_no
+`
+
+type ListSidesRow struct {
+	SideNo       int16
+	Score        int32
+	CorrectCount int16
+	Result       *string
+}
+
+func (q *Queries) ListSides(ctx context.Context, matchID uuid.UUID) ([]ListSidesRow, error) {
+	rows, err := q.db.Query(ctx, listSides, matchID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListSidesRow{}
+	for rows.Next() {
+		var i ListSidesRow
+		if err := rows.Scan(
+			&i.SideNo,
+			&i.Score,
+			&i.CorrectCount,
+			&i.Result,
 		); err != nil {
 			return nil, err
 		}

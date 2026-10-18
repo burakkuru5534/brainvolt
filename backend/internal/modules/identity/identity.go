@@ -149,5 +149,10 @@ func (m *Module) SetRole(ctx context.Context, user, role string, grant bool) (uu
 	return m.svc.SetRole(ctx, user, role, grant)
 }
 
+// EnsureBot returns (creating once) a development practice bot user.
+func (m *Module) EnsureBot(ctx context.Context, key, displayName, locale string) (uuid.UUID, error) {
+	return m.svc.EnsureBot(ctx, key, displayName, locale)
+}
+
 // User returns the identity view of a user (NOT_FOUND if missing).
 func (m *Module) User(ctx context.Context, id uuid.UUID) (User, error) { return m.svc.User(ctx, id) }

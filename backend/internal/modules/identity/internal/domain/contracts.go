@@ -25,6 +25,8 @@ type NewProfile struct {
 	Locale      string  // "tr" | "en"
 	CountryCode *string // device region hint, validated ISO 3166-1 alpha-2
 	Now         time.Time
+	// DisplayName overrides the generated name (development bots only).
+	DisplayName string
 }
 
 // ProfileSummary is the profile part of the session response.

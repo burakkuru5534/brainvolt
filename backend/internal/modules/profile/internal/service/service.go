@@ -44,10 +44,14 @@ func (s *Service) CreateTx(ctx context.Context, tx pgx.Tx, p identity.NewProfile
 	if country != nil && !domain.ValidCountry(*country) {
 		country = nil
 	}
+	name := p.DisplayName
+	if name == "" {
+		name = domain.GeneratedDisplayName(p.Locale)
+	}
 	for attempt := range maxUsernameAttempts {
 		n, err := q.InsertProfile(ctx, sqlc.InsertProfileParams{
 			UserID: p.UserID, Username: domain.GeneratedUsername(attempt),
-			DisplayName: domain.GeneratedDisplayName(p.Locale), AvatarID: domain.RandomAvatar(),
+			DisplayName: name, AvatarID: domain.RandomAvatar(),
 			CountryCode: country, Locale: p.Locale, Now: p.Now,
 		})
 		if err != nil {

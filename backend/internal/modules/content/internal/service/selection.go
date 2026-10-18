@@ -155,10 +155,14 @@ func nonNil(ids []uuid.UUID) []uuid.UUID {
 }
 
 // QuestionText is a question's wording in one locale as a match shows it.
+// Order lists the options in canonical position order and Correct is the
+// correct one: servers only reveal it after a round (round-lifecycle §4).
 type QuestionText struct {
 	Prompt      string               `json:"prompt"`
 	Explanation string               `json:"explanation,omitempty"`
 	Options     map[uuid.UUID]string `json:"options"`
+	Order       []uuid.UUID          `json:"order"`
+	Correct     uuid.UUID            `json:"correct"`
 	Category    string               `json:"category"`
 }
 
@@ -208,6 +212,11 @@ func (s *Service) Texts(ctx context.Context, ids []uuid.UUID, locales []string) 
 	for _, o := range opts {
 		if t, ok := out[o.QuestionID][o.Locale]; ok {
 			t.Options[o.OptionID] = o.Text
+			t.Order = append(t.Order, o.OptionID)
+			if o.IsCorrect {
+				t.Correct = o.OptionID
+			}
+			out[o.QuestionID][o.Locale] = t
 		}
 	}
 	return out, nil

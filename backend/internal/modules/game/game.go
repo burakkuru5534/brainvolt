@@ -8,18 +8,22 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/content"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/domain"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/domain/config"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/domain/engine"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/live"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/service"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/transport"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
@@ -87,18 +91,19 @@ type Deps struct {
 // Module is the game module. In the API it is also an app component: Run
 // receives match commands forwarded from other instances.
 type Module struct {
-	svc  *service.Service
-	live *live.Manager
+	svc      *service.Service
+	live     *live.Manager
+	identity *identity.Module
 }
 
 // New builds the module and, with a realtime gateway, registers the
 // match.* intents, match stream resume, disconnect and RTT hooks.
 func New(d Deps) *Module {
 	svc := service.New(service.Deps{
-		DB: d.DB, Redis: d.Redis, Questions: d.Content, Users: d.Identity, Seasons: d.Seasons,
+		DB: d.DB, Redis: d.Redis, Questions: d.Content, Users: d.Identity, Cards: d.Profiles, Seasons: d.Seasons,
 		Sanctions: d.Sanctions, Events: d.Events, Clock: d.Clock, Logger: d.Logger,
 	})
-	m := &Module{svc: svc}
+	m := &Module{svc: svc, identity: d.Identity}
 	if d.Realtime != nil {
 		m.live = live.New(live.Deps{
 			Redis: d.Redis, Persister: svc, RT: d.Realtime, Texts: d.Content, Cards: d.Profiles,
@@ -132,9 +137,44 @@ func (m *Module) Start(ctx context.Context, r CreateRequest) (*Created, error) {
 	return c, nil
 }
 
+// Practice starts a development Quick Duel against a bot played by the
+// server (D-066; only the dev composition exposes it).
+func (m *Module) Practice(ctx context.Context, user uuid.UUID, locale string) (*Created, error) {
+	name := "Pratik Botu"
+	if locale == "en" {
+		name = "Practice Bot"
+	}
+	bot, err := m.identity.EnsureBot(ctx, "practice-"+user.String(), name, locale)
+	if err != nil {
+		return nil, err
+	}
+	c, err := m.svc.Create(ctx, CreateRequest{
+		Config: Config{MatchType: domain.QuickDuel, Format: domain.Format1v1, Origin: domain.Challenge},
+		Sides:  [2][]Member{{{UserID: user, Locale: locale}}, {{UserID: bot, Locale: locale}}},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if err := m.live.Start(ctx, c.Match, c.Output, bot); err != nil {
+		m.svc.Abandon(context.WithoutCancel(ctx), c.Match)
+		return nil, err
+	}
+	return c, nil
+}
+
+// LiveMatch returns the user's live match, if any.
+func (m *Module) LiveMatch(ctx context.Context, user uuid.UUID) (uuid.UUID, bool) {
+	return m.live.LiveMatch(ctx, user)
+}
+
 // Apply persists one engine output (rounds, transitions, results, events).
 func (m *Module) Apply(ctx context.Context, match *engine.Match, out engine.Output) error {
 	return m.svc.Apply(ctx, match, out)
+}
+
+// Register adds game's REST routes; ident authenticates them.
+func (m *Module) Register(s *httpserver.Server, ident *identity.Module) {
+	transport.New(m.svc, ident).Register(s)
 }
 
 // Close stops this instance's live owners without releasing their leases,
