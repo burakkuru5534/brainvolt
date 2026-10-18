@@ -45,7 +45,7 @@ final class SessionControllerProvider
   SessionController create() => SessionController();
 }
 
-String _$sessionControllerHash() => r'94a45ef79676c05354fb6e04a76f4fa0ba21e68e';
+String _$sessionControllerHash() => r'fb9bab480cc2e3ab67e588b8b702c9ee75b062f8';
 
 /// The app's sign-in state (roadmap 1.8.3), app-wide like the router so
 /// every feature can read it: age gate → Firebase user (an
