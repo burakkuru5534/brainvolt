@@ -1,5 +1,3 @@
-import 'dart:io' show Platform;
-
 import 'package:dio/dio.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -24,6 +22,7 @@ abstract final class ApiHeaders {
 }
 
 const _retriedKey = 'brainvolt_auth_retried';
+const _explicitTokenKey = 'brainvolt_explicit_token';
 
 /// Builds the dio instance with BrainVolt's interceptors:
 /// standard headers, the Firebase Bearer token, and one retry with a
@@ -57,11 +56,13 @@ Dio buildDio({
         options.headers[ApiHeaders.acceptLanguage] = locale();
         options.headers[ApiHeaders.appVersion] = appVersion;
         options.headers[ApiHeaders.platform] = platform;
-        final token = await tokens.idToken(
-          forceRefresh: options.extra[_retriedKey] == true,
-        );
-        if (token != null) {
-          options.headers[ApiHeaders.authorization] = 'Bearer $token';
+        if (options.extra[_explicitTokenKey] != true) {
+          final token = await tokens.idToken(
+            forceRefresh: options.extra[_retriedKey] == true,
+          );
+          if (token != null) {
+            options.headers[ApiHeaders.authorization] = 'Bearer $token';
+          }
         }
         handler.next(options);
       },
@@ -70,7 +71,9 @@ Dio buildDio({
         final expired =
             error.response?.statusCode == 401 &&
             ApiException.fromDio(error).code == 'TOKEN_EXPIRED';
-        if (!expired || options.extra[_retriedKey] == true) {
+        if (!expired ||
+            options.extra[_retriedKey] == true ||
+            options.extra[_explicitTokenKey] == true) {
           handler.next(error);
           return;
         }
@@ -97,16 +100,25 @@ class ApiClient {
       _send(() => _dio.get<dynamic>(path));
 
   /// POST; [idempotencyKey] for creating/spending calls (conventions.md §9).
+  /// [idToken] sends another user's token instead of the current one (the
+  /// guest's, in the link-conflict flow); it is never refreshed.
   /// Returns null for 204 No Content.
   Future<Map<String, dynamic>?> postJson(
     String path, {
     Object? body,
     String? idempotencyKey,
+    String? idToken,
   }) => _sendNullable(
     () => _dio.post<dynamic>(
       path,
       data: body,
-      options: Options(headers: {ApiHeaders.idempotencyKey: ?idempotencyKey}),
+      options: Options(
+        headers: {
+          ApiHeaders.idempotencyKey: ?idempotencyKey,
+          if (idToken != null) ApiHeaders.authorization: 'Bearer $idToken',
+        },
+        extra: {if (idToken != null) _explicitTokenKey: true},
+      ),
     ),
   );
 
@@ -147,7 +159,8 @@ class ApiClient {
   }
 }
 
-/// Firebase ID tokens; signed out until roadmap 1.8 replaces it.
+/// Firebase ID tokens. `main.dart` overrides it with the auth feature's
+/// source (core never imports features, ADR-0003); unauthenticated until then.
 @Riverpod(keepAlive: true)
 TokenSource tokenSource(Ref ref) => const SignedOutTokenSource();
 
@@ -157,7 +170,7 @@ ApiClient apiClient(Ref ref) => ApiClient(
   buildDio(
     baseUrl: ref.watch(appConfigProvider).apiBaseUrl,
     appVersion: ref.watch(appVersionProvider),
-    platform: Platform.isIOS ? 'ios' : 'android',
+    platform: ref.watch(devicePlatformProvider),
     locale: () =>
         effectiveLocale(ref.read(localeOverrideProvider)).languageCode,
     tokens: ref.watch(tokenSourceProvider),

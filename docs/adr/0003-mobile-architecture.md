@@ -39,6 +39,7 @@ Rules:
 1. `presentation` → `domain` ← `data`. Widgets never call `dio` or the WebSocket directly.
 2. A feature may import another feature's **`domain`** only; never its `data` or `presentation`. Shared pieces move to `core/`.
 3. `core/` never imports `features/`.
+3a. App-wide state that several features read — the router and the sign-in/session controller (D-061) — lives in `app/`, the composition root; features may read it, `app/` wires the features together.
 4. Feature folders mirror backend modules (`backend-modules.md` §1): `auth`, `profile`, `home`, `content` (category browse), `lobby`, `match`, `results`, `matchmaking`, `friends`, `teams`, `leaderboard`, `progression`, `creator`, `moderation` (report), `notifications`, `chat`, `tournament`, `store`.
 
 ### Server-authority rules on the client
@@ -55,7 +56,7 @@ Rules:
 - Fully unit-tested against a fake channel (drop, duplicate, out-of-order, slow network).
 
 ### Environments
-Build flavors **dev** and **prod** via `--dart-define-from-file=env/<flavor>.json` (API base URL, WS URL). Both use the **single Firebase project `brainvolt`** (D-014) with one Android and one iOS app, both `com.brainvolt.app` (D-012). To keep test sign-ups out of real user data, local development points the app and backend at the **Firebase Auth Emulator** (backend reads `FIREBASE_AUTH_EMULATOR_HOST`); only builds talking to deployed servers use the real `brainvolt` project.
+Build flavors **dev** and **prod** via `--dart-define-from-file=env/<flavor>.json` (API base URL, WS URL). Both use the **single Firebase project `brainvolt`** (D-014; project id `brainvolt-a9caa`, D-061) with one Android and one iOS app, both `com.brainvolt.app` (D-012). To keep test sign-ups out of real user data, local development points the app (`AUTH_EMULATOR_HOST` in `env/dev.json`) and backend (`FIREBASE_AUTH_EMULATOR_HOST`) at the **Firebase Auth Emulator**, which issues tokens for its offline `demo-brainvolt` project; only builds talking to deployed servers use the real project.
 
 ## Alternatives considered
 | Rejected | Reason |

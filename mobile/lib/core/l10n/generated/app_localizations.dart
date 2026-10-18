@@ -140,6 +140,438 @@ abstract class AppLocalizations {
   /// **'English'**
   String get languageEnglish;
 
+  /// Retry button.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tekrar dene'**
+  String get retry;
+
+  /// Dialog cancel button.
+  ///
+  /// In tr, this message translates to:
+  /// **'Vazgeç'**
+  String get cancel;
+
+  /// Generic continue button.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devam et'**
+  String get continueButton;
+
+  /// Save button.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydet'**
+  String get save;
+
+  /// Splash screen: the session could not be started.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sunucuya bağlanamadık.'**
+  String get splashError;
+
+  /// Age gate (D-020) title.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hoş geldin!'**
+  String get ageGateTitle;
+
+  /// Age gate explanation.
+  ///
+  /// In tr, this message translates to:
+  /// **'BrainVolt\'u kullanmak için en az 13 yaşında olmalısın.'**
+  String get ageGateBody;
+
+  /// Age gate checkbox.
+  ///
+  /// In tr, this message translates to:
+  /// **'13 yaşından büyüğüm'**
+  String get ageGateConfirm;
+
+  /// Home greeting with the display name.
+  ///
+  /// In tr, this message translates to:
+  /// **'Merhaba, {name}!'**
+  String homeGreeting(String name);
+
+  /// Home banner for guests.
+  ///
+  /// In tr, this message translates to:
+  /// **'Misafir olarak oynuyorsun. İlerlemeni korumak için hesabını bağla.'**
+  String get homeGuestBanner;
+
+  /// Home banner for unverified email accounts (D-017).
+  ///
+  /// In tr, this message translates to:
+  /// **'E-posta adresini doğrula; doğrulanana kadar misafir sınırları geçerli.'**
+  String get homeVerifyBanner;
+
+  /// Opens the account screen from the guest banner.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabını bağla'**
+  String get linkAccountAction;
+
+  /// Opens the verify-email screen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrula'**
+  String get verifyAction;
+
+  /// Account screen title.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap'**
+  String get accountTitle;
+
+  /// Account screen text for guests.
+  ///
+  /// In tr, this message translates to:
+  /// **'Misafir hesabı. Bir giriş yöntemi bağlarsan ilerlemen korunur ve başka cihazlarda da oynayabilirsin.'**
+  String get accountGuestInfo;
+
+  /// Account screen: signed-in email.
+  ///
+  /// In tr, this message translates to:
+  /// **'{email} ile giriş yapıldı'**
+  String accountSignedInAs(String email);
+
+  /// Account screen when the account has no email.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabın bağlı.'**
+  String get accountSignedIn;
+
+  /// Snackbar after a successful guest upgrade.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabın bağlandı. İlerlemen korunuyor.'**
+  String get accountLinked;
+
+  /// Google sign-in button.
+  ///
+  /// In tr, this message translates to:
+  /// **'Google ile devam et'**
+  String get signInWithGoogle;
+
+  /// Apple sign-in button (iOS).
+  ///
+  /// In tr, this message translates to:
+  /// **'Apple ile devam et'**
+  String get signInWithApple;
+
+  /// Email sign-up button and screen title.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-posta ile kaydol'**
+  String get signUpWithEmail;
+
+  /// Email sign-in button.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabım var: e-posta ile giriş yap'**
+  String get signInWithEmail;
+
+  /// Email sign-in screen title.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-posta ile giriş'**
+  String get emailSignInTitle;
+
+  /// Email field label.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-posta'**
+  String get emailLabel;
+
+  /// Password field label.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifre'**
+  String get passwordLabel;
+
+  /// Password field helper text.
+  ///
+  /// In tr, this message translates to:
+  /// **'En az 6 karakter'**
+  String get passwordHint;
+
+  /// Email sign-up submit button.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydol'**
+  String get signUpButton;
+
+  /// Email sign-in submit button.
+  ///
+  /// In tr, this message translates to:
+  /// **'Giriş yap'**
+  String get signInButton;
+
+  /// Sign-out button.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çıkış yap'**
+  String get signOut;
+
+  /// Sign-out confirmation.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çıkış yaparsan bu cihazda yeni bir misafir olarak devam edersin.'**
+  String get signOutConfirm;
+
+  /// Account deletion button.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabımı sil'**
+  String get deleteAccount;
+
+  /// Account deletion confirmation (D-022).
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabın 14 gün sonra kalıcı olarak silinir. Bu süre içinde giriş yapıp iptal edebilirsin.'**
+  String get deleteAccountConfirm;
+
+  /// Link conflict dialog title (D-015).
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap zaten kayıtlı'**
+  String get linkConflictTitle;
+
+  /// Link conflict dialog text (D-015).
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu hesap zaten kayıtlı. Misafir ilerlemen kaybolacak. Devam edilsin mi?'**
+  String get linkConflictBody;
+
+  /// Verify-email screen title.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-postanı doğrula'**
+  String get verifyEmailTitle;
+
+  /// Verify-email screen text.
+  ///
+  /// In tr, this message translates to:
+  /// **'{email} adresine bir doğrulama bağlantısı gönderdik. Bağlantıyı açtıktan sonra aşağıya dokun.'**
+  String verifyEmailBody(String email);
+
+  /// Verify-email check button.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğruladım'**
+  String get verifyEmailDone;
+
+  /// Resend verification email.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tekrar gönder'**
+  String get verifyEmailResend;
+
+  /// Snackbar after resending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrulama e-postası gönderildi.'**
+  String get verifyEmailSent;
+
+  /// Snackbar when the check fails.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-posta henüz doğrulanmadı.'**
+  String get verifyEmailNotYet;
+
+  /// Snackbar after verification.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-postan doğrulandı.'**
+  String get verifyEmailVerified;
+
+  /// Sign-in error.
+  ///
+  /// In tr, this message translates to:
+  /// **'E-posta veya şifre hatalı.'**
+  String get authErrorInvalidCredential;
+
+  /// Sign-up error.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şifre en az 6 karakter olmalı.'**
+  String get authErrorWeakPassword;
+
+  /// Sign-in error.
+  ///
+  /// In tr, this message translates to:
+  /// **'Geçerli bir e-posta adresi gir.'**
+  String get authErrorInvalidEmail;
+
+  /// Sign-in error.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu e-postayla kayıtlı bir hesap yok.'**
+  String get authErrorUserNotFound;
+
+  /// Sign-in error.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çok fazla deneme yaptın. Biraz sonra tekrar dene.'**
+  String get authErrorTooManyRequests;
+
+  /// Sign-in error.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu giriş yöntemi bu cihazda kullanılamıyor.'**
+  String get authErrorUnsupported;
+
+  /// Account status screen title.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabın askıya alındı'**
+  String get accountSuspendedTitle;
+
+  /// Account status screen text.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayrıntılar için destek ekibiyle iletişime geç.'**
+  String get accountSuspendedBody;
+
+  /// Deletion pending screen title.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabın silinecek'**
+  String get deletionPendingTitle;
+
+  /// Deletion pending text.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabın {date} tarihinde kalıcı olarak silinecek.'**
+  String deletionPendingBody(DateTime date);
+
+  /// Cancels a pending deletion.
+  ///
+  /// In tr, this message translates to:
+  /// **'Silmeyi iptal et'**
+  String get cancelDeletion;
+
+  /// Profile screen title.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil'**
+  String get profileTitle;
+
+  /// Display name field.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görünen ad'**
+  String get displayNameLabel;
+
+  /// Display name helper text.
+  ///
+  /// In tr, this message translates to:
+  /// **'2–24 karakter'**
+  String get displayNameHint;
+
+  /// Username field.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcı adı'**
+  String get usernameLabel;
+
+  /// Username helper text.
+  ///
+  /// In tr, this message translates to:
+  /// **'3–20 karakter: küçük harf, rakam, _ ve .'**
+  String get usernameHint;
+
+  /// Username locked for restricted accounts.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcı adını değiştirmek için hesabını bağla ve doğrula.'**
+  String get usernameGuestHint;
+
+  /// Username change cooldown.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcı adını {date} tarihinden sonra değiştirebilirsin.'**
+  String usernameAvailableAt(DateTime date);
+
+  /// Avatar picker label.
+  ///
+  /// In tr, this message translates to:
+  /// **'Avatar'**
+  String get avatarLabel;
+
+  /// Snackbar after saving the profile.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profil kaydedildi.'**
+  String get profileSaved;
+
+  /// Settings section.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyun'**
+  String get settingsGame;
+
+  /// Setting.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ses efektleri'**
+  String get settingsSound;
+
+  /// Setting.
+  ///
+  /// In tr, this message translates to:
+  /// **'Müzik'**
+  String get settingsMusic;
+
+  /// Setting.
+  ///
+  /// In tr, this message translates to:
+  /// **'Titreşim'**
+  String get settingsHaptics;
+
+  /// Settings section.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gizlilik'**
+  String get settingsPrivacy;
+
+  /// Setting.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çevrimiçi durumumu göster'**
+  String get settingsShowOnline;
+
+  /// Setting.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşlık isteklerine izin ver'**
+  String get settingsAllowFriendRequests;
+
+  /// Setting.
+  ///
+  /// In tr, this message translates to:
+  /// **'Meydan okumalar'**
+  String get settingsChallengesFrom;
+
+  /// challenges_from value.
+  ///
+  /// In tr, this message translates to:
+  /// **'Herkesten'**
+  String get challengesEveryone;
+
+  /// challenges_from value.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yalnızca arkadaşlardan'**
+  String get challengesFriends;
+
+  /// challenges_from value.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kimseden'**
+  String get challengesNobody;
+
   /// Client-side: the server could not be reached.
   ///
   /// In tr, this message translates to:

@@ -11,10 +11,22 @@ cd mobile
 flutter run --dart-define-from-file=env/dev.json     # Android emulator → backend at 10.0.2.2:8080
 ```
 
-- `env/dev.json` targets the Android emulator, which reaches the host computer as `10.0.2.2`. On the iOS simulator use `localhost`; on a physical phone use the computer's LAN address (same Wi-Fi) — copy the file, e.g. `env/dev.local.json`, and pass that one.
+- `env/dev.json` targets the Android emulator, which reaches the host computer as `10.0.2.2`; `env/dev_ios.json` is the same for the iOS simulator (`localhost`). On a physical phone use the computer's LAN address (same Wi-Fi) — copy the file, e.g. `env/dev.local.json`, and pass that one.
+- Dev builds sign in against the **Firebase Auth emulator** from `make up` (`AUTH_EMULATOR_HOST`), never the real project; emulator users disappear when the container restarts (the app then starts as a new guest after its next sign-out or reinstall). Verification emails are not sent: the emulator prints the link in `docker compose logs firebase-auth`; open it in a browser, then tap "Doğruladım".
 - Plain HTTP to local addresses is allowed only in debug builds (Android `src/debug` network security config, iOS `NSAllowsLocalNetworking`).
 - `env/prod.json` targets the deployed API (https/wss only; the app refuses anything else for prod).
 - Starting without `--dart-define-from-file` stops with a message saying exactly that.
+
+## Sign-in setup (Firebase project `brainvolt-a9caa`)
+
+- Config: `lib/firebase_options.dart` and `android/app/google-services.json` come from `flutterfire configure` (client keys, safe to commit). Re-run it after adding apps or providers.
+- **Google on Android** needs each signing key's SHA-1 in Firebase console → Project settings → Android app: debug key (`cd android && ./gradlew signingReport`) now, Play App Signing key before release. Without it Google sign-in fails with "canceled" right after choosing an account.
+- **Apple (iOS, D-057: tested later):** `ios/Runner/Runner.entitlements` enables Sign in with Apple; the App ID needs the same capability and Firebase console → Authentication → Apple must be enabled. Google's iOS callback URL scheme is in `ios/Runner/Info.plist`.
+- Enabled providers in Firebase console → Authentication: Anonymous, Google, Email/Password (+ Apple later).
+
+## Flows
+
+Age gate (D-020) → anonymous guest → `POST /v1/session` → home. Guests link Google/Apple/email in Settings → Account (same user, progress kept, D-013a); if the account already exists the app warns (D-015), signs in to it and then abandons the guest. Email accounts verify their address (D-017). Suspended or deletion-pending accounts see only the status screen.
 
 ## Windows: Kotlin "Could not close incremental caches"
 
@@ -44,11 +56,13 @@ Generated files (`*.g.dart`, `*.freezed.dart`, `lib/core/l10n/generated/`, `lib/
 
 ```
 lib/
-├── main.dart            builds config, shared preferences, app version; starts the app
-├── app/                 app widget, router (go_router), theme, config (flavors), injected providers
+├── main.dart            builds config, Firebase (+ Auth emulator in dev), shared preferences, app version
+├── app/                 app widget, router + sign-in guard, session controller, theme, config (flavors), injected providers
 ├── core/
 │   ├── l10n/            ARB files (tr = template, en), generated localizations, language choice
-│   └── network/         dio client (headers, Firebase token, TOKEN_EXPIRED retry), ApiException, error texts
-└── features/<feature>/  data / domain / presentation (ADR-0003 rules)
+│   ├── network/         dio client (headers, Firebase token, TOKEN_EXPIRED retry), ApiException, error texts
+│   ├── storage/         installation id
+│   └── widgets/         shared dialogs
+└── features/<feature>/  data / domain / presentation (ADR-0003 rules): auth, home, profile
 tool/gen_error_l10n.dart error_<CODE> texts from the backend registry (docs/api/errors.md)
 ```

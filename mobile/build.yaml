@@ -1,0 +1,9 @@
+# Code generation options (build_runner).
+targets:
+  $default:
+    builders:
+      json_serializable:
+        options:
+          # API JSON uses snake_case (conventions.md).
+          field_rename: snake
+          explicit_to_json: true

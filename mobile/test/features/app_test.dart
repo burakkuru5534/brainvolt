@@ -1,75 +1,266 @@
 import 'package:brainvolt/app/app.dart';
-import 'package:brainvolt/app/config.dart';
-import 'package:brainvolt/app/providers.dart';
+import 'package:brainvolt/app/session_controller.dart';
 import 'package:brainvolt/core/l10n/locale_controller.dart';
+import 'package:brainvolt/core/network/api_exception.dart';
+import 'package:brainvolt/features/auth/domain/auth_repository.dart';
+import 'package:brainvolt/features/auth/domain/session.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-Future<SharedPreferences> prefs([Map<String, Object> values = const {}]) async {
-  SharedPreferences.setMockInitialValues(values);
-  return SharedPreferences.getInstance();
-}
+import '../support/fakes.dart';
 
-/// A root container with the values main() injects.
-ProviderContainer container(SharedPreferences p) {
-  final c = ProviderContainer(
-    overrides: [
-      appConfigProvider.overrideWithValue(
-        AppConfig.parse(
-          flavor: 'dev',
-          apiBaseUrl: 'http://10.0.2.2:8080',
-          wsUrl: 'ws://10.0.2.2:8080/v1/ws',
-        ),
-      ),
-      sharedPreferencesProvider.overrideWithValue(p),
-      appVersionProvider.overrideWithValue('1.0.0+1'),
-    ],
-  );
-  addTearDown(c.dispose);
-  return c;
-}
-
-Widget app(ProviderContainer c) =>
-    UncontrolledProviderScope(container: c, child: const BrainVoltApp());
+Widget app(TestApp t) => UncontrolledProviderScope(
+  container: t.container,
+  child: const BrainVoltApp(),
+);
 
 void main() {
-  testWidgets('starts in Turkish when the device language is unsupported', (
-    tester,
-  ) async {
-    tester.platformDispatcher.localesTestValue = const [Locale('de')];
-    addTearDown(tester.platformDispatcher.clearLocalesTestValue);
-    await tester.pumpWidget(app(container(await prefs())));
+  setUp(() {
+    final binding = TestWidgetsFlutterBinding.ensureInitialized();
+    binding.platformDispatcher.localesTestValue = const [Locale('tr', 'TR')];
+    addTearDown(binding.platformDispatcher.clearLocalesTestValue);
+  });
+
+  Future<TestApp> launch(
+    WidgetTester tester, {
+    bool ageConfirmed = true,
+  }) async {
+    // Tall enough that no screen needs scrolling.
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final t = await TestApp.create(ageConfirmed: ageConfirmed);
+    await tester.pumpWidget(app(t));
     await tester.pumpAndSettle();
+    return t;
+  }
+
+  Future<void> tapKey(WidgetTester tester, String key) async {
+    await tester.tap(find.byKey(Key(key)));
+    await tester.pumpAndSettle();
+  }
+
+  /// For taps that open a dialog while a progress bar keeps animating.
+  Future<void> tapToDialog(WidgetTester tester, String key) async {
+    await tester.tap(find.byKey(Key(key)));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+  }
+
+  group('age gate (D-020)', () {
+    testWidgets('continue needs the confirmation, then a guest starts', (
+      tester,
+    ) async {
+      final t = await launch(tester, ageConfirmed: false);
+      expect(find.text('13 yaşından büyüğüm'), findsOneWidget);
+      expect(t.auth.calls, isEmpty);
+
+      await tapKey(tester, 'age-continue'); // disabled: nothing happens
+      expect(t.auth.calls, isEmpty);
+
+      await tapKey(tester, 'age-confirm');
+      await tapKey(tester, 'age-continue');
+      expect(t.auth.calls, ['signInAnonymously']);
+      expect(t.prefs.getBool('age_confirmed'), isTrue);
+      expect(find.text('Merhaba, Misafir 1234!'), findsOneWidget);
+      expect(find.byKey(const Key('guest-banner')), findsOneWidget);
+    });
+
+    testWidgets('is skipped once confirmed', (tester) async {
+      await launch(tester);
+      expect(find.text('13 yaşından büyüğüm'), findsNothing);
+      expect(find.text('Bilgi yarışmasına hoş geldin!'), findsOneWidget);
+    });
+  });
+
+  testWidgets('a failed start shows the error and retries', (tester) async {
+    final t = await TestApp.create();
+    t.sessions.syncError = const ApiException(code: ApiException.networkCode);
+    await tester.pumpWidget(app(t));
+    await tester.pumpAndSettle();
+    expect(find.text('Sunucuya bağlanamadık.'), findsOneWidget);
+
+    await tapKey(tester, 'splash-retry');
     expect(find.text('Bilgi yarışmasına hoş geldin!'), findsOneWidget);
   });
 
-  testWidgets('language override is applied and persisted', (tester) async {
-    tester.platformDispatcher.localesTestValue = const [Locale('tr', 'TR')];
-    addTearDown(tester.platformDispatcher.clearLocalesTestValue);
-    final p = await prefs();
-    await tester.pumpWidget(app(container(p)));
-    await tester.pumpAndSettle();
+  group('guest upgrade', () {
+    const existing = AuthUser(
+      uid: 'existing',
+      isAnonymous: false,
+      email: 'me@example.com',
+      emailVerified: true,
+      providers: {AuthMethod.google},
+    );
 
-    await tester.tap(find.byKey(const Key('open-settings')));
-    await tester.pumpAndSettle();
-    expect(find.text('Ayarlar'), findsOneWidget);
+    testWidgets('linking Google keeps the guest (D-013a)', (tester) async {
+      final t = await launch(tester);
+      await tester.tap(find.text('Hesabını bağla'));
+      await tester.pumpAndSettle();
+      await tapKey(tester, 'sign-in-google');
 
-    await tester.tap(find.byKey(const Key('locale-en')));
-    await tester.pumpAndSettle();
-    expect(find.text('Settings'), findsOneWidget);
-    expect(p.getString('locale_override'), 'en');
+      expect(t.auth.calls, containsAllInOrder(['link:google']));
+      expect(find.text('google@example.com ile giriş yapıldı'), findsOneWidget);
+      expect(t.sessions.calls, isNot(contains(startsWith('abandonGuest'))));
+    });
 
-    await tester.tap(find.byKey(const Key('locale-system')));
-    await tester.pumpAndSettle();
-    expect(find.text('Ayarlar'), findsOneWidget);
-    expect(p.getString('locale_override'), isNull);
+    testWidgets(
+      'link conflict asks first and switches only on confirm (D-015)',
+      (tester) async {
+        final t = await launch(tester);
+        t.auth.existing[AuthMethod.google] = existing;
+        await tester.tap(find.text('Hesabını bağla'));
+        await tester.pumpAndSettle();
+
+        await tapToDialog(tester, 'sign-in-google');
+        expect(
+          find.text(
+            'Bu hesap zaten kayıtlı. Misafir ilerlemen kaybolacak. '
+            'Devam edilsin mi?',
+          ),
+          findsOneWidget,
+        );
+        await tapKey(tester, 'dialog-cancel');
+        expect(t.auth.currentUser!.uid, 'guest-1');
+        expect(t.auth.calls, isNot(contains('signIn:google')));
+
+        await tapToDialog(tester, 'sign-in-google');
+        await tapKey(tester, 'dialog-confirm');
+        expect(t.auth.currentUser!.uid, 'existing');
+        expect(t.sessions.calls, contains('abandonGuest:token-of-guest-1'));
+        expect(find.text('me@example.com ile giriş yapıldı'), findsOneWidget);
+      },
+    );
+
+    testWidgets('a cancelled Google sign-in shows nothing', (tester) async {
+      final t = await launch(tester);
+      t.auth.obtainFailure = const AuthFailure(AuthFailureKind.cancelled);
+      await tester.tap(find.text('Hesabını bağla'));
+      await tester.pumpAndSettle();
+      await tapKey(tester, 'sign-in-google');
+      expect(find.byType(SnackBar), findsNothing);
+      expect(t.auth.currentUser!.isAnonymous, isTrue);
+    });
+
+    testWidgets('email sign-up leads to verification (D-017)', (tester) async {
+      final t = await launch(tester);
+      await tester.tap(find.text('Hesabını bağla'));
+      await tester.pumpAndSettle();
+      await tapKey(tester, 'sign-up-email');
+
+      await tester.enterText(find.byKey(const Key('email-field')), 'a@b.co');
+      await tester.enterText(find.byKey(const Key('password-field')), '123');
+      await tapKey(tester, 'email-submit');
+      expect(find.text('Şifre en az 6 karakter olmalı.'), findsOneWidget);
+      expect(t.auth.calls, isNot(contains('link:email')));
+
+      await tester.enterText(
+        find.byKey(const Key('password-field')),
+        'secret1',
+      );
+      await tapKey(tester, 'email-submit');
+      expect(t.auth.calls, contains('sendEmailVerification'));
+      expect(find.text('E-postanı doğrula'), findsOneWidget);
+
+      await tapKey(tester, 'verify-check');
+      expect(find.text('E-posta henüz doğrulanmadı.'), findsOneWidget);
+
+      t.auth.verifyOnReload = true;
+      await tapKey(tester, 'verify-check');
+      expect(find.text('E-postan doğrulandı.'), findsOneWidget);
+      final s = t.container.read(sessionControllerProvider).requireValue;
+      expect((s as SignedIn).session.tier, Tier.full);
+    });
   });
 
-  testWidgets('a stored override is read on start', (tester) async {
-    final c = container(await prefs({'locale_override': 'en'}));
-    expect(c.read(localeOverrideProvider), const Locale('en'));
-    expect(effectiveLocale(c.read(localeOverrideProvider)), const Locale('en'));
+  testWidgets('deletion pending holds the app on the status screen', (
+    tester,
+  ) async {
+    final t = await TestApp.create();
+    t.sessions.deletionRequestedAt = DateTime.utc(2026, 10, 18);
+    await tester.pumpWidget(app(t));
+    await tester.pumpAndSettle();
+    expect(find.text('Hesabın silinecek'), findsOneWidget);
+    expect(find.textContaining('1 Kasım 2026'), findsOneWidget);
+
+    await tapKey(tester, 'cancel-deletion');
+    expect(t.sessions.calls, contains('cancelDeletion'));
+    expect(find.text('Bilgi yarışmasına hoş geldin!'), findsOneWidget);
+  });
+
+  group('settings (1.8.6)', () {
+    testWidgets('language override is applied, persisted and sent', (
+      tester,
+    ) async {
+      final t = await launch(tester);
+      await tapKey(tester, 'open-settings');
+      expect(find.text('Ayarlar'), findsOneWidget);
+
+      await tapKey(tester, 'locale-en');
+      expect(find.text('Settings'), findsOneWidget);
+      expect(t.prefs.getString('locale_override'), 'en');
+      expect(t.profiles.calls, contains('updateProfile:{locale: en}'));
+
+      await tapKey(tester, 'locale-system');
+      expect(find.text('Ayarlar'), findsOneWidget);
+      expect(t.prefs.getString('locale_override'), isNull);
+    });
+
+    testWidgets('a failed save puts the switch back', (tester) async {
+      final t = await launch(tester);
+      await tapKey(tester, 'open-settings');
+      SwitchListTile sound() =>
+          tester.widget(find.byKey(const Key('setting-sound')));
+      expect(sound().value, isTrue);
+
+      await tapKey(tester, 'setting-sound');
+      expect(sound().value, isFalse);
+      expect(t.profiles.userSettings.soundEnabled, isFalse);
+
+      t.profiles.settingsError = const ApiException(
+        code: ApiException.networkCode,
+      );
+      await tapKey(tester, 'setting-sound');
+      expect(sound().value, isFalse);
+      expect(
+        find.text('Bağlantı kurulamadı. İnternet bağlantını kontrol et.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('profile edit sends only changes; guests keep the username', (
+      tester,
+    ) async {
+      final t = await launch(tester);
+      await tapKey(tester, 'open-settings');
+      await tapKey(tester, 'open-profile');
+
+      final username = tester.widget<TextField>(
+        find.byKey(const Key('username-field')),
+      );
+      expect(username.enabled, isFalse);
+
+      await tester.enterText(
+        find.byKey(const Key('display-name-field')),
+        'Ayşe',
+      );
+      await tapKey(tester, 'avatar-owl');
+      await tapKey(tester, 'profile-save');
+      expect(
+        t.profiles.calls,
+        contains('updateProfile:{display_name: Ayşe, avatar_id: owl}'),
+      );
+      expect(find.text('Profil kaydedildi.'), findsOneWidget);
+    });
+  });
+
+  test('a stored language override is read on start', () async {
+    final t = await TestApp.create(prefs: {'locale_override': 'en'});
+    expect(t.container.read(localeOverrideProvider), const Locale('en'));
+    expect(
+      effectiveLocale(t.container.read(localeOverrideProvider)),
+      const Locale('en'),
+    );
   });
 }

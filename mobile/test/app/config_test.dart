@@ -54,4 +54,47 @@ void main() {
       ),
     );
   });
+
+  test('AUTH_EMULATOR_HOST points dev at the Auth emulator', () {
+    final c = AppConfig.parse(
+      flavor: 'dev',
+      apiBaseUrl: 'http://10.0.2.2:8080',
+      wsUrl: 'ws://10.0.2.2:8080/v1/ws',
+      authEmulatorHost: '10.0.2.2:9099',
+    );
+    expect(c.authEmulator?.host, '10.0.2.2');
+    expect(c.authEmulator?.port, 9099);
+    expect(
+      AppConfig.parse(
+        flavor: 'dev',
+        apiBaseUrl: 'http://10.0.2.2:8080',
+        wsUrl: 'ws://10.0.2.2:8080/v1/ws',
+      ).authEmulator,
+      isNull,
+    );
+  });
+
+  test('a malformed emulator host, or one in prod, is rejected', () {
+    Matcher fails(String text) => throwsA(
+      isA<StateError>().having((e) => e.message, 'message', contains(text)),
+    );
+    expect(
+      () => AppConfig.parse(
+        flavor: 'dev',
+        apiBaseUrl: 'http://10.0.2.2:8080',
+        wsUrl: 'ws://10.0.2.2:8080/v1/ws',
+        authEmulatorHost: '10.0.2.2',
+      ),
+      fails('host:port'),
+    );
+    expect(
+      () => AppConfig.parse(
+        flavor: 'prod',
+        apiBaseUrl: 'https://api.brainvolt.app',
+        wsUrl: 'wss://api.brainvolt.app/v1/ws',
+        authEmulatorHost: 'localhost:9099',
+      ),
+      fails('must not use the Firebase Auth emulator'),
+    );
+  });
 }

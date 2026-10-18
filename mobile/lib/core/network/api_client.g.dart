@@ -8,17 +8,20 @@ part of 'api_client.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Firebase ID tokens; signed out until roadmap 1.8 replaces it.
+/// Firebase ID tokens. `main.dart` overrides it with the auth feature's
+/// source (core never imports features, ADR-0003); unauthenticated until then.
 
 @ProviderFor(tokenSource)
 final tokenSourceProvider = TokenSourceProvider._();
 
-/// Firebase ID tokens; signed out until roadmap 1.8 replaces it.
+/// Firebase ID tokens. `main.dart` overrides it with the auth feature's
+/// source (core never imports features, ADR-0003); unauthenticated until then.
 
 final class TokenSourceProvider
     extends $FunctionalProvider<TokenSource, TokenSource, TokenSource>
     with $Provider<TokenSource> {
-  /// Firebase ID tokens; signed out until roadmap 1.8 replaces it.
+  /// Firebase ID tokens. `main.dart` overrides it with the auth feature's
+  /// source (core never imports features, ADR-0003); unauthenticated until then.
   TokenSourceProvider._()
     : super(
         from: null,
@@ -98,4 +101,4 @@ final class ApiClientProvider
   }
 }
 
-String _$apiClientHash() => r'30df6023a4b20afd5ecccfdb8fbd4cc0e780ad61';
+String _$apiClientHash() => r'ca9e071a8bc1174505eba7735c97b4067167e72a';

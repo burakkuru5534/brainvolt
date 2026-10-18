@@ -2,6 +2,18 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<!-- Google Sign-In callback: REVERSED_CLIENT_ID of iosClientId in lib/firebase_options.dart -->
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.684037840139-3hco6fgk8rn2ebglkvs038s8s46gjb2g</string>
+			</array>
+		</dict>
+	</array>
 	<!-- Plain HTTP only to local addresses (dev backend, Firebase Auth emulator); everything else stays HTTPS. -->
 	<key>NSAppTransportSecurity</key>
 	<dict>

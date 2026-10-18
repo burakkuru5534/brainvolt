@@ -1,5 +1,6 @@
 {
   "FLAVOR": "dev",
   "API_BASE_URL": "http://10.0.2.2:8080",
-  "WS_URL": "ws://10.0.2.2:8080/v1/ws"
+  "WS_URL": "ws://10.0.2.2:8080/v1/ws",
+  "AUTH_EMULATOR_HOST": "10.0.2.2:9099"
 }

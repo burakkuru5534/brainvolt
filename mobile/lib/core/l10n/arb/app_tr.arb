@@ -28,6 +28,321 @@
   "@languageEnglish": {
     "description": "English, always written in English."
   },
+  "retry": "Tekrar dene",
+  "@retry": {
+    "description": "Retry button."
+  },
+  "cancel": "Vazgeç",
+  "@cancel": {
+    "description": "Dialog cancel button."
+  },
+  "continueButton": "Devam et",
+  "@continueButton": {
+    "description": "Generic continue button."
+  },
+  "save": "Kaydet",
+  "@save": {
+    "description": "Save button."
+  },
+  "splashError": "Sunucuya bağlanamadık.",
+  "@splashError": {
+    "description": "Splash screen: the session could not be started."
+  },
+  "ageGateTitle": "Hoş geldin!",
+  "@ageGateTitle": {
+    "description": "Age gate (D-020) title."
+  },
+  "ageGateBody": "BrainVolt'u kullanmak için en az 13 yaşında olmalısın.",
+  "@ageGateBody": {
+    "description": "Age gate explanation."
+  },
+  "ageGateConfirm": "13 yaşından büyüğüm",
+  "@ageGateConfirm": {
+    "description": "Age gate checkbox."
+  },
+  "homeGreeting": "Merhaba, {name}!",
+  "@homeGreeting": {
+    "description": "Home greeting with the display name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "homeGuestBanner": "Misafir olarak oynuyorsun. İlerlemeni korumak için hesabını bağla.",
+  "@homeGuestBanner": {
+    "description": "Home banner for guests."
+  },
+  "homeVerifyBanner": "E-posta adresini doğrula; doğrulanana kadar misafir sınırları geçerli.",
+  "@homeVerifyBanner": {
+    "description": "Home banner for unverified email accounts (D-017)."
+  },
+  "linkAccountAction": "Hesabını bağla",
+  "@linkAccountAction": {
+    "description": "Opens the account screen from the guest banner."
+  },
+  "verifyAction": "Doğrula",
+  "@verifyAction": {
+    "description": "Opens the verify-email screen."
+  },
+  "accountTitle": "Hesap",
+  "@accountTitle": {
+    "description": "Account screen title."
+  },
+  "accountGuestInfo": "Misafir hesabı. Bir giriş yöntemi bağlarsan ilerlemen korunur ve başka cihazlarda da oynayabilirsin.",
+  "@accountGuestInfo": {
+    "description": "Account screen text for guests."
+  },
+  "accountSignedInAs": "{email} ile giriş yapıldı",
+  "@accountSignedInAs": {
+    "description": "Account screen: signed-in email.",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "accountSignedIn": "Hesabın bağlı.",
+  "@accountSignedIn": {
+    "description": "Account screen when the account has no email."
+  },
+  "accountLinked": "Hesabın bağlandı. İlerlemen korunuyor.",
+  "@accountLinked": {
+    "description": "Snackbar after a successful guest upgrade."
+  },
+  "signInWithGoogle": "Google ile devam et",
+  "@signInWithGoogle": {
+    "description": "Google sign-in button."
+  },
+  "signInWithApple": "Apple ile devam et",
+  "@signInWithApple": {
+    "description": "Apple sign-in button (iOS)."
+  },
+  "signUpWithEmail": "E-posta ile kaydol",
+  "@signUpWithEmail": {
+    "description": "Email sign-up button and screen title."
+  },
+  "signInWithEmail": "Hesabım var: e-posta ile giriş yap",
+  "@signInWithEmail": {
+    "description": "Email sign-in button."
+  },
+  "emailSignInTitle": "E-posta ile giriş",
+  "@emailSignInTitle": {
+    "description": "Email sign-in screen title."
+  },
+  "emailLabel": "E-posta",
+  "@emailLabel": {
+    "description": "Email field label."
+  },
+  "passwordLabel": "Şifre",
+  "@passwordLabel": {
+    "description": "Password field label."
+  },
+  "passwordHint": "En az 6 karakter",
+  "@passwordHint": {
+    "description": "Password field helper text."
+  },
+  "signUpButton": "Kaydol",
+  "@signUpButton": {
+    "description": "Email sign-up submit button."
+  },
+  "signInButton": "Giriş yap",
+  "@signInButton": {
+    "description": "Email sign-in submit button."
+  },
+  "signOut": "Çıkış yap",
+  "@signOut": {
+    "description": "Sign-out button."
+  },
+  "signOutConfirm": "Çıkış yaparsan bu cihazda yeni bir misafir olarak devam edersin.",
+  "@signOutConfirm": {
+    "description": "Sign-out confirmation."
+  },
+  "deleteAccount": "Hesabımı sil",
+  "@deleteAccount": {
+    "description": "Account deletion button."
+  },
+  "deleteAccountConfirm": "Hesabın 14 gün sonra kalıcı olarak silinir. Bu süre içinde giriş yapıp iptal edebilirsin.",
+  "@deleteAccountConfirm": {
+    "description": "Account deletion confirmation (D-022)."
+  },
+  "linkConflictTitle": "Hesap zaten kayıtlı",
+  "@linkConflictTitle": {
+    "description": "Link conflict dialog title (D-015)."
+  },
+  "linkConflictBody": "Bu hesap zaten kayıtlı. Misafir ilerlemen kaybolacak. Devam edilsin mi?",
+  "@linkConflictBody": {
+    "description": "Link conflict dialog text (D-015)."
+  },
+  "verifyEmailTitle": "E-postanı doğrula",
+  "@verifyEmailTitle": {
+    "description": "Verify-email screen title."
+  },
+  "verifyEmailBody": "{email} adresine bir doğrulama bağlantısı gönderdik. Bağlantıyı açtıktan sonra aşağıya dokun.",
+  "@verifyEmailBody": {
+    "description": "Verify-email screen text.",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "verifyEmailDone": "Doğruladım",
+  "@verifyEmailDone": {
+    "description": "Verify-email check button."
+  },
+  "verifyEmailResend": "Tekrar gönder",
+  "@verifyEmailResend": {
+    "description": "Resend verification email."
+  },
+  "verifyEmailSent": "Doğrulama e-postası gönderildi.",
+  "@verifyEmailSent": {
+    "description": "Snackbar after resending."
+  },
+  "verifyEmailNotYet": "E-posta henüz doğrulanmadı.",
+  "@verifyEmailNotYet": {
+    "description": "Snackbar when the check fails."
+  },
+  "verifyEmailVerified": "E-postan doğrulandı.",
+  "@verifyEmailVerified": {
+    "description": "Snackbar after verification."
+  },
+  "authErrorInvalidCredential": "E-posta veya şifre hatalı.",
+  "@authErrorInvalidCredential": {
+    "description": "Sign-in error."
+  },
+  "authErrorWeakPassword": "Şifre en az 6 karakter olmalı.",
+  "@authErrorWeakPassword": {
+    "description": "Sign-up error."
+  },
+  "authErrorInvalidEmail": "Geçerli bir e-posta adresi gir.",
+  "@authErrorInvalidEmail": {
+    "description": "Sign-in error."
+  },
+  "authErrorUserNotFound": "Bu e-postayla kayıtlı bir hesap yok.",
+  "@authErrorUserNotFound": {
+    "description": "Sign-in error."
+  },
+  "authErrorTooManyRequests": "Çok fazla deneme yaptın. Biraz sonra tekrar dene.",
+  "@authErrorTooManyRequests": {
+    "description": "Sign-in error."
+  },
+  "authErrorUnsupported": "Bu giriş yöntemi bu cihazda kullanılamıyor.",
+  "@authErrorUnsupported": {
+    "description": "Sign-in error."
+  },
+  "accountSuspendedTitle": "Hesabın askıya alındı",
+  "@accountSuspendedTitle": {
+    "description": "Account status screen title."
+  },
+  "accountSuspendedBody": "Ayrıntılar için destek ekibiyle iletişime geç.",
+  "@accountSuspendedBody": {
+    "description": "Account status screen text."
+  },
+  "deletionPendingTitle": "Hesabın silinecek",
+  "@deletionPendingTitle": {
+    "description": "Deletion pending screen title."
+  },
+  "deletionPendingBody": "Hesabın {date} tarihinde kalıcı olarak silinecek.",
+  "@deletionPendingBody": {
+    "description": "Deletion pending text.",
+    "placeholders": {
+      "date": {
+        "type": "DateTime",
+        "format": "yMMMMd"
+      }
+    }
+  },
+  "cancelDeletion": "Silmeyi iptal et",
+  "@cancelDeletion": {
+    "description": "Cancels a pending deletion."
+  },
+  "profileTitle": "Profil",
+  "@profileTitle": {
+    "description": "Profile screen title."
+  },
+  "displayNameLabel": "Görünen ad",
+  "@displayNameLabel": {
+    "description": "Display name field."
+  },
+  "displayNameHint": "2–24 karakter",
+  "@displayNameHint": {
+    "description": "Display name helper text."
+  },
+  "usernameLabel": "Kullanıcı adı",
+  "@usernameLabel": {
+    "description": "Username field."
+  },
+  "usernameHint": "3–20 karakter: küçük harf, rakam, _ ve .",
+  "@usernameHint": {
+    "description": "Username helper text."
+  },
+  "usernameGuestHint": "Kullanıcı adını değiştirmek için hesabını bağla ve doğrula.",
+  "@usernameGuestHint": {
+    "description": "Username locked for restricted accounts."
+  },
+  "usernameAvailableAt": "Kullanıcı adını {date} tarihinden sonra değiştirebilirsin.",
+  "@usernameAvailableAt": {
+    "description": "Username change cooldown.",
+    "placeholders": {
+      "date": {
+        "type": "DateTime",
+        "format": "yMMMMd"
+      }
+    }
+  },
+  "avatarLabel": "Avatar",
+  "@avatarLabel": {
+    "description": "Avatar picker label."
+  },
+  "profileSaved": "Profil kaydedildi.",
+  "@profileSaved": {
+    "description": "Snackbar after saving the profile."
+  },
+  "settingsGame": "Oyun",
+  "@settingsGame": {
+    "description": "Settings section."
+  },
+  "settingsSound": "Ses efektleri",
+  "@settingsSound": {
+    "description": "Setting."
+  },
+  "settingsMusic": "Müzik",
+  "@settingsMusic": {
+    "description": "Setting."
+  },
+  "settingsHaptics": "Titreşim",
+  "@settingsHaptics": {
+    "description": "Setting."
+  },
+  "settingsPrivacy": "Gizlilik",
+  "@settingsPrivacy": {
+    "description": "Settings section."
+  },
+  "settingsShowOnline": "Çevrimiçi durumumu göster",
+  "@settingsShowOnline": {
+    "description": "Setting."
+  },
+  "settingsAllowFriendRequests": "Arkadaşlık isteklerine izin ver",
+  "@settingsAllowFriendRequests": {
+    "description": "Setting."
+  },
+  "settingsChallengesFrom": "Meydan okumalar",
+  "@settingsChallengesFrom": {
+    "description": "Setting."
+  },
+  "challengesEveryone": "Herkesten",
+  "@challengesEveryone": {
+    "description": "challenges_from value."
+  },
+  "challengesFriends": "Yalnızca arkadaşlardan",
+  "@challengesFriends": {
+    "description": "challenges_from value."
+  },
+  "challengesNobody": "Kimseden",
+  "@challengesNobody": {
+    "description": "challenges_from value."
+  },
   "errorNetwork": "Bağlantı kurulamadı. İnternet bağlantını kontrol et.",
   "@errorNetwork": {
     "description": "Client-side: the server could not be reached."

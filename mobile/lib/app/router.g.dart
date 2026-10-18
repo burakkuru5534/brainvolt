@@ -8,20 +8,20 @@ part of 'router.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// The app's router (go_router, ADR-0003). The sign-in redirect guard is
-/// added with Firebase Auth (roadmap 1.8).
+/// The app's router (go_router, ADR-0003), re-evaluated on every session
+/// change.
 
 @ProviderFor(router)
 final routerProvider = RouterProvider._();
 
-/// The app's router (go_router, ADR-0003). The sign-in redirect guard is
-/// added with Firebase Auth (roadmap 1.8).
+/// The app's router (go_router, ADR-0003), re-evaluated on every session
+/// change.
 
 final class RouterProvider
     extends $FunctionalProvider<GoRouter, GoRouter, GoRouter>
     with $Provider<GoRouter> {
-  /// The app's router (go_router, ADR-0003). The sign-in redirect guard is
-  /// added with Firebase Auth (roadmap 1.8).
+  /// The app's router (go_router, ADR-0003), re-evaluated on every session
+  /// change.
   RouterProvider._()
     : super(
         from: null,
@@ -55,4 +55,4 @@ final class RouterProvider
   }
 }
 
-String _$routerHash() => r'7c768de7f82eb6db3c75d5b75f7b83e1dd414b50';
+String _$routerHash() => r'e8b017a9c081b9306886b2cb59ea8461da1b0aa7';

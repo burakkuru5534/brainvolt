@@ -31,6 +31,249 @@ class AppLocalizationsEn extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
+  String get retry => 'Try again';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get continueButton => 'Continue';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get splashError => 'We couldn\'t reach the server.';
+
+  @override
+  String get ageGateTitle => 'Welcome!';
+
+  @override
+  String get ageGateBody =>
+      'You must be at least 13 years old to use BrainVolt.';
+
+  @override
+  String get ageGateConfirm => 'I am 13 or older';
+
+  @override
+  String homeGreeting(String name) {
+    return 'Hi, $name!';
+  }
+
+  @override
+  String get homeGuestBanner =>
+      'You\'re playing as a guest. Link an account to keep your progress.';
+
+  @override
+  String get homeVerifyBanner =>
+      'Verify your email address; guest limits apply until you do.';
+
+  @override
+  String get linkAccountAction => 'Link account';
+
+  @override
+  String get verifyAction => 'Verify';
+
+  @override
+  String get accountTitle => 'Account';
+
+  @override
+  String get accountGuestInfo =>
+      'Guest account. Link a sign-in method to keep your progress and play on other devices.';
+
+  @override
+  String accountSignedInAs(String email) {
+    return 'Signed in as $email';
+  }
+
+  @override
+  String get accountSignedIn => 'Your account is linked.';
+
+  @override
+  String get accountLinked => 'Your account is linked. Your progress is safe.';
+
+  @override
+  String get signInWithGoogle => 'Continue with Google';
+
+  @override
+  String get signInWithApple => 'Continue with Apple';
+
+  @override
+  String get signUpWithEmail => 'Sign up with email';
+
+  @override
+  String get signInWithEmail => 'I have an account: sign in with email';
+
+  @override
+  String get emailSignInTitle => 'Sign in with email';
+
+  @override
+  String get emailLabel => 'Email';
+
+  @override
+  String get passwordLabel => 'Password';
+
+  @override
+  String get passwordHint => 'At least 6 characters';
+
+  @override
+  String get signUpButton => 'Sign up';
+
+  @override
+  String get signInButton => 'Sign in';
+
+  @override
+  String get signOut => 'Sign out';
+
+  @override
+  String get signOutConfirm =>
+      'After signing out you\'ll continue on this device as a new guest.';
+
+  @override
+  String get deleteAccount => 'Delete my account';
+
+  @override
+  String get deleteAccountConfirm =>
+      'Your account will be permanently deleted after 14 days. You can sign in and cancel within that time.';
+
+  @override
+  String get linkConflictTitle => 'Account already registered';
+
+  @override
+  String get linkConflictBody =>
+      'This account is already registered. Your guest progress will be lost. Continue?';
+
+  @override
+  String get verifyEmailTitle => 'Verify your email';
+
+  @override
+  String verifyEmailBody(String email) {
+    return 'We sent a verification link to $email. Tap below after opening it.';
+  }
+
+  @override
+  String get verifyEmailDone => 'I\'ve verified';
+
+  @override
+  String get verifyEmailResend => 'Send again';
+
+  @override
+  String get verifyEmailSent => 'Verification email sent.';
+
+  @override
+  String get verifyEmailNotYet => 'Your email isn\'t verified yet.';
+
+  @override
+  String get verifyEmailVerified => 'Your email is verified.';
+
+  @override
+  String get authErrorInvalidCredential => 'Wrong email or password.';
+
+  @override
+  String get authErrorWeakPassword =>
+      'The password must be at least 6 characters.';
+
+  @override
+  String get authErrorInvalidEmail => 'Enter a valid email address.';
+
+  @override
+  String get authErrorUserNotFound => 'There\'s no account with this email.';
+
+  @override
+  String get authErrorTooManyRequests => 'Too many attempts. Try again later.';
+
+  @override
+  String get authErrorUnsupported =>
+      'This sign-in method isn\'t available on this device.';
+
+  @override
+  String get accountSuspendedTitle => 'Your account is suspended';
+
+  @override
+  String get accountSuspendedBody => 'Contact support for details.';
+
+  @override
+  String get deletionPendingTitle => 'Your account will be deleted';
+
+  @override
+  String deletionPendingBody(DateTime date) {
+    final intl.DateFormat dateDateFormat = intl.DateFormat.yMMMMd(localeName);
+    final String dateString = dateDateFormat.format(date);
+
+    return 'Your account will be permanently deleted on $dateString.';
+  }
+
+  @override
+  String get cancelDeletion => 'Cancel deletion';
+
+  @override
+  String get profileTitle => 'Profile';
+
+  @override
+  String get displayNameLabel => 'Display name';
+
+  @override
+  String get displayNameHint => '2–24 characters';
+
+  @override
+  String get usernameLabel => 'Username';
+
+  @override
+  String get usernameHint =>
+      '3–20 characters: lowercase letters, digits, _ and .';
+
+  @override
+  String get usernameGuestHint =>
+      'Link and verify an account to change your username.';
+
+  @override
+  String usernameAvailableAt(DateTime date) {
+    final intl.DateFormat dateDateFormat = intl.DateFormat.yMMMMd(localeName);
+    final String dateString = dateDateFormat.format(date);
+
+    return 'You can change your username after $dateString.';
+  }
+
+  @override
+  String get avatarLabel => 'Avatar';
+
+  @override
+  String get profileSaved => 'Profile saved.';
+
+  @override
+  String get settingsGame => 'Game';
+
+  @override
+  String get settingsSound => 'Sound effects';
+
+  @override
+  String get settingsMusic => 'Music';
+
+  @override
+  String get settingsHaptics => 'Haptics';
+
+  @override
+  String get settingsPrivacy => 'Privacy';
+
+  @override
+  String get settingsShowOnline => 'Show my online status';
+
+  @override
+  String get settingsAllowFriendRequests => 'Allow friend requests';
+
+  @override
+  String get settingsChallengesFrom => 'Challenges from';
+
+  @override
+  String get challengesEveryone => 'Everyone';
+
+  @override
+  String get challengesFriends => 'Friends only';
+
+  @override
+  String get challengesNobody => 'Nobody';
+
+  @override
   String get errorNetwork =>
       'Couldn\'t connect. Check your internet connection.';
 

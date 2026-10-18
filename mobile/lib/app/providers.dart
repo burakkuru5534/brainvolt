@@ -2,6 +2,7 @@
 /// injected with `ProviderScope.overrides` (Riverpod doubles as DI, ADR-0003).
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -26,3 +27,8 @@ SharedPreferences sharedPreferences(Ref ref) =>
 @Riverpod(keepAlive: true)
 String appVersion(Ref ref) =>
     throw UnimplementedError('appVersionProvider $_injected');
+
+/// `android` or `ios`, sent as X-Platform and in session/device bodies.
+@Riverpod(keepAlive: true)
+String devicePlatform(Ref ref) =>
+    defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';

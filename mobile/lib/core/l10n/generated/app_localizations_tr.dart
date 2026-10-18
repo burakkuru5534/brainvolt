@@ -31,6 +31,249 @@ class AppLocalizationsTr extends AppLocalizations {
   String get languageEnglish => 'English';
 
   @override
+  String get retry => 'Tekrar dene';
+
+  @override
+  String get cancel => 'Vazgeç';
+
+  @override
+  String get continueButton => 'Devam et';
+
+  @override
+  String get save => 'Kaydet';
+
+  @override
+  String get splashError => 'Sunucuya bağlanamadık.';
+
+  @override
+  String get ageGateTitle => 'Hoş geldin!';
+
+  @override
+  String get ageGateBody =>
+      'BrainVolt\'u kullanmak için en az 13 yaşında olmalısın.';
+
+  @override
+  String get ageGateConfirm => '13 yaşından büyüğüm';
+
+  @override
+  String homeGreeting(String name) {
+    return 'Merhaba, $name!';
+  }
+
+  @override
+  String get homeGuestBanner =>
+      'Misafir olarak oynuyorsun. İlerlemeni korumak için hesabını bağla.';
+
+  @override
+  String get homeVerifyBanner =>
+      'E-posta adresini doğrula; doğrulanana kadar misafir sınırları geçerli.';
+
+  @override
+  String get linkAccountAction => 'Hesabını bağla';
+
+  @override
+  String get verifyAction => 'Doğrula';
+
+  @override
+  String get accountTitle => 'Hesap';
+
+  @override
+  String get accountGuestInfo =>
+      'Misafir hesabı. Bir giriş yöntemi bağlarsan ilerlemen korunur ve başka cihazlarda da oynayabilirsin.';
+
+  @override
+  String accountSignedInAs(String email) {
+    return '$email ile giriş yapıldı';
+  }
+
+  @override
+  String get accountSignedIn => 'Hesabın bağlı.';
+
+  @override
+  String get accountLinked => 'Hesabın bağlandı. İlerlemen korunuyor.';
+
+  @override
+  String get signInWithGoogle => 'Google ile devam et';
+
+  @override
+  String get signInWithApple => 'Apple ile devam et';
+
+  @override
+  String get signUpWithEmail => 'E-posta ile kaydol';
+
+  @override
+  String get signInWithEmail => 'Hesabım var: e-posta ile giriş yap';
+
+  @override
+  String get emailSignInTitle => 'E-posta ile giriş';
+
+  @override
+  String get emailLabel => 'E-posta';
+
+  @override
+  String get passwordLabel => 'Şifre';
+
+  @override
+  String get passwordHint => 'En az 6 karakter';
+
+  @override
+  String get signUpButton => 'Kaydol';
+
+  @override
+  String get signInButton => 'Giriş yap';
+
+  @override
+  String get signOut => 'Çıkış yap';
+
+  @override
+  String get signOutConfirm =>
+      'Çıkış yaparsan bu cihazda yeni bir misafir olarak devam edersin.';
+
+  @override
+  String get deleteAccount => 'Hesabımı sil';
+
+  @override
+  String get deleteAccountConfirm =>
+      'Hesabın 14 gün sonra kalıcı olarak silinir. Bu süre içinde giriş yapıp iptal edebilirsin.';
+
+  @override
+  String get linkConflictTitle => 'Hesap zaten kayıtlı';
+
+  @override
+  String get linkConflictBody =>
+      'Bu hesap zaten kayıtlı. Misafir ilerlemen kaybolacak. Devam edilsin mi?';
+
+  @override
+  String get verifyEmailTitle => 'E-postanı doğrula';
+
+  @override
+  String verifyEmailBody(String email) {
+    return '$email adresine bir doğrulama bağlantısı gönderdik. Bağlantıyı açtıktan sonra aşağıya dokun.';
+  }
+
+  @override
+  String get verifyEmailDone => 'Doğruladım';
+
+  @override
+  String get verifyEmailResend => 'Tekrar gönder';
+
+  @override
+  String get verifyEmailSent => 'Doğrulama e-postası gönderildi.';
+
+  @override
+  String get verifyEmailNotYet => 'E-posta henüz doğrulanmadı.';
+
+  @override
+  String get verifyEmailVerified => 'E-postan doğrulandı.';
+
+  @override
+  String get authErrorInvalidCredential => 'E-posta veya şifre hatalı.';
+
+  @override
+  String get authErrorWeakPassword => 'Şifre en az 6 karakter olmalı.';
+
+  @override
+  String get authErrorInvalidEmail => 'Geçerli bir e-posta adresi gir.';
+
+  @override
+  String get authErrorUserNotFound => 'Bu e-postayla kayıtlı bir hesap yok.';
+
+  @override
+  String get authErrorTooManyRequests =>
+      'Çok fazla deneme yaptın. Biraz sonra tekrar dene.';
+
+  @override
+  String get authErrorUnsupported =>
+      'Bu giriş yöntemi bu cihazda kullanılamıyor.';
+
+  @override
+  String get accountSuspendedTitle => 'Hesabın askıya alındı';
+
+  @override
+  String get accountSuspendedBody =>
+      'Ayrıntılar için destek ekibiyle iletişime geç.';
+
+  @override
+  String get deletionPendingTitle => 'Hesabın silinecek';
+
+  @override
+  String deletionPendingBody(DateTime date) {
+    final intl.DateFormat dateDateFormat = intl.DateFormat.yMMMMd(localeName);
+    final String dateString = dateDateFormat.format(date);
+
+    return 'Hesabın $dateString tarihinde kalıcı olarak silinecek.';
+  }
+
+  @override
+  String get cancelDeletion => 'Silmeyi iptal et';
+
+  @override
+  String get profileTitle => 'Profil';
+
+  @override
+  String get displayNameLabel => 'Görünen ad';
+
+  @override
+  String get displayNameHint => '2–24 karakter';
+
+  @override
+  String get usernameLabel => 'Kullanıcı adı';
+
+  @override
+  String get usernameHint => '3–20 karakter: küçük harf, rakam, _ ve .';
+
+  @override
+  String get usernameGuestHint =>
+      'Kullanıcı adını değiştirmek için hesabını bağla ve doğrula.';
+
+  @override
+  String usernameAvailableAt(DateTime date) {
+    final intl.DateFormat dateDateFormat = intl.DateFormat.yMMMMd(localeName);
+    final String dateString = dateDateFormat.format(date);
+
+    return 'Kullanıcı adını $dateString tarihinden sonra değiştirebilirsin.';
+  }
+
+  @override
+  String get avatarLabel => 'Avatar';
+
+  @override
+  String get profileSaved => 'Profil kaydedildi.';
+
+  @override
+  String get settingsGame => 'Oyun';
+
+  @override
+  String get settingsSound => 'Ses efektleri';
+
+  @override
+  String get settingsMusic => 'Müzik';
+
+  @override
+  String get settingsHaptics => 'Titreşim';
+
+  @override
+  String get settingsPrivacy => 'Gizlilik';
+
+  @override
+  String get settingsShowOnline => 'Çevrimiçi durumumu göster';
+
+  @override
+  String get settingsAllowFriendRequests => 'Arkadaşlık isteklerine izin ver';
+
+  @override
+  String get settingsChallengesFrom => 'Meydan okumalar';
+
+  @override
+  String get challengesEveryone => 'Herkesten';
+
+  @override
+  String get challengesFriends => 'Yalnızca arkadaşlardan';
+
+  @override
+  String get challengesNobody => 'Kimseden';
+
+  @override
   String get errorNetwork =>
       'Bağlantı kurulamadı. İnternet bağlantını kontrol et.';
 

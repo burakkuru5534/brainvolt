@@ -151,3 +151,49 @@ final class AppVersionProvider
 }
 
 String _$appVersionHash() => r'79f57eccbbbae963a3ac4f82d59af58c92b9e460';
+
+/// `android` or `ios`, sent as X-Platform and in session/device bodies.
+
+@ProviderFor(devicePlatform)
+final devicePlatformProvider = DevicePlatformProvider._();
+
+/// `android` or `ios`, sent as X-Platform and in session/device bodies.
+
+final class DevicePlatformProvider
+    extends $FunctionalProvider<String, String, String>
+    with $Provider<String> {
+  /// `android` or `ios`, sent as X-Platform and in session/device bodies.
+  DevicePlatformProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'devicePlatformProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$devicePlatformHash();
+
+  @$internal
+  @override
+  $ProviderElement<String> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  String create(Ref ref) {
+    return devicePlatform(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<String>(value),
+    );
+  }
+}
+
+String _$devicePlatformHash() => r'441447b04b9a0574b192fffc1e202faf9f1f8e92';

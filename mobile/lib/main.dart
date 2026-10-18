@@ -1,17 +1,31 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:logging/logging.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app/app.dart';
 import 'app/config.dart';
 import 'app/providers.dart';
+import 'core/network/api_client.dart';
+import 'features/auth/data/auth_providers.dart';
+import 'firebase_options.dart';
 
 /// Entry point: build the injected values, then start the widget tree.
 /// Run with `flutter run --dart-define-from-file=env/dev.json`.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  _setUpLogging();
   final config = AppConfig.fromEnvironment();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  final emulator = config.authEmulator;
+  if (emulator != null) {
+    // Local development signs in against the Auth emulator (ADR-0003).
+    await FirebaseAuth.instance.useAuthEmulator(emulator.host, emulator.port);
+  }
   final prefs = await SharedPreferences.getInstance();
   final info = await PackageInfo.fromPlatform();
   runApp(
@@ -22,8 +36,26 @@ Future<void> main() async {
         appVersionProvider.overrideWithValue(
           '${info.version}+${info.buildNumber}',
         ),
+        tokenSourceProvider.overrideWith(
+          (ref) => AuthTokenSource(ref.watch(authRepositoryProvider)),
+        ),
       ],
       child: const BrainVoltApp(),
     ),
   );
+}
+
+/// Logs go to the debug console; release builds stay silent (ADR-0003).
+void _setUpLogging() {
+  if (kReleaseMode) {
+    Logger.root.level = Level.OFF;
+    return;
+  }
+  Logger.root.level = Level.INFO;
+  Logger.root.onRecord.listen((r) {
+    debugPrint(
+      '${r.level.name} ${r.loggerName}: ${r.message}'
+      '${r.error == null ? '' : ' (${r.error})'}',
+    );
+  });
 }
