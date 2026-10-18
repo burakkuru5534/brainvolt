@@ -16,6 +16,20 @@ flutter run --dart-define-from-file=env/dev.json     # Android emulator → back
 - `env/prod.json` targets the deployed API (https/wss only; the app refuses anything else for prod).
 - Starting without `--dart-define-from-file` stops with a message saying exactly that.
 
+## Windows: Kotlin "Could not close incremental caches"
+
+When the project is on another drive than the pub cache (e.g. project on `D:`, cache in `C:\Users\…\AppData\Local\Pub\Cache`), Kotlin's incremental compilation of plugins such as `package_info_plus` fails. `android/gradle.properties` therefore sets `kotlin.incremental=false`. If a build already failed, clear the broken caches once:
+
+```powershell
+cd mobile
+flutter clean
+cd android; .\gradlew --stop; cd ..
+flutter pub get
+flutter run --dart-define-from-file=env/dev.json
+```
+
+Optional, for faster builds: keep the pub cache on the project's drive (`setx PUB_CACHE D:\pub-cache`, open a new terminal, `flutter pub get`).
+
 ## Develop
 
 | Task | Command (or `make …` from the repository root) |
