@@ -6,6 +6,11 @@
 package content
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/content/internal/domain"
@@ -48,6 +53,18 @@ type ImportResult = service.ImportResult
 // QuestionReviewed is the payload of the review events.
 type QuestionReviewed = service.QuestionReviewed
 
+// SelectRequest asks for the questions of one match.
+type SelectRequest = service.SelectRequest
+
+// SelectRules are the mix rules of a selection.
+type SelectRules = domain.SelectRules
+
+// SelectedQuestion is one selected question.
+type SelectedQuestion = service.SelectedQuestion
+
+// AnswerStat is one (question, locale) statistics line of a match.
+type AnswerStat = service.AnswerStat
+
 // Constants.
 const (
 	MultipleChoice = domain.MultipleChoice
@@ -78,6 +95,25 @@ type Module struct {
 // cmd/seed.
 func New(db *pgxpool.Pool, c clock.Clock, bus *events.Bus) *Module {
 	return &Module{Service: service.New(db, c, bus)}
+}
+
+// MatchStats is the part of game.MatchCompleted that content reads
+// (content does not import game: layer 2 below layer 3).
+type MatchStats struct {
+	MatchID       uuid.UUID    `json:"match_id"`
+	QuestionStats []AnswerStat `json:"question_stats"`
+}
+
+// SubscriberMatchStats is content's subscription to game.MatchCompleted.
+const SubscriberMatchStats = "content.on_match_completed"
+
+// OnMatchCompleted records a completed match's answer statistics.
+func (m *Module) OnMatchCompleted(ctx context.Context, e events.Envelope) error {
+	var p MatchStats
+	if err := json.Unmarshal(e.Payload, &p); err != nil {
+		return fmt.Errorf("content: decoding %s: %w", e.Name, err)
+	}
+	return m.RecordStats(ctx, p.MatchID, p.QuestionStats, e.OccurredAt)
 }
 
 // Register adds content's routes; ident authenticates them.

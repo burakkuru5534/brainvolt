@@ -13,6 +13,52 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const addQuestionStats = `-- name: AddQuestionStats :exec
+INSERT INTO content.question_stats (question_id, locale, times_asked, times_correct, times_timed_out, sum_response_ms, last_asked_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+ON CONFLICT (question_id, locale) DO UPDATE
+SET times_asked = content.question_stats.times_asked + EXCLUDED.times_asked,
+    times_correct = content.question_stats.times_correct + EXCLUDED.times_correct,
+    times_timed_out = content.question_stats.times_timed_out + EXCLUDED.times_timed_out,
+    sum_response_ms = content.question_stats.sum_response_ms + EXCLUDED.sum_response_ms,
+    last_asked_at = greatest(content.question_stats.last_asked_at, EXCLUDED.last_asked_at)
+`
+
+type AddQuestionStatsParams struct {
+	QuestionID    uuid.UUID
+	Locale        string
+	Asked         int64
+	Correct       int64
+	TimedOut      int64
+	SumResponseMs int64
+	At            *time.Time
+}
+
+// Answer statistics from a completed match (schema-content §5).
+func (q *Queries) AddQuestionStats(ctx context.Context, arg AddQuestionStatsParams) error {
+	_, err := q.db.Exec(ctx, addQuestionStats,
+		arg.QuestionID,
+		arg.Locale,
+		arg.Asked,
+		arg.Correct,
+		arg.TimedOut,
+		arg.SumResponseMs,
+		arg.At,
+	)
+	return err
+}
+
+const categoryIsTopLevel = `-- name: CategoryIsTopLevel :one
+SELECT EXISTS (SELECT 1 FROM content.categories WHERE id = $1 AND is_active)
+`
+
+func (q *Queries) CategoryIsTopLevel(ctx context.Context, id uuid.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, categoryIsTopLevel, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const clearOptionCorrect = `-- name: ClearOptionCorrect :exec
 UPDATE content.options SET is_correct = false WHERE question_id = $1
 `
@@ -721,6 +767,61 @@ func (q *Queries) ListVerificationEvents(ctx context.Context, questionID uuid.UU
 	return items, nil
 }
 
+const markStatsApplied = `-- name: MarkStatsApplied :execrows
+INSERT INTO content.stats_applied (match_id, applied_at) VALUES ($1, $2) ON CONFLICT (match_id) DO NOTHING
+`
+
+type MarkStatsAppliedParams struct {
+	MatchID   uuid.UUID
+	AppliedAt time.Time
+}
+
+func (q *Queries) MarkStatsApplied(ctx context.Context, arg MarkStatsAppliedParams) (int64, error) {
+	result, err := q.db.Exec(ctx, markStatsApplied, arg.MatchID, arg.AppliedAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const optionsOf = `-- name: OptionsOf :many
+SELECT question_id, id, position, is_correct FROM content.options
+WHERE question_id = ANY($1::uuid[])
+ORDER BY question_id, position
+`
+
+type OptionsOfRow struct {
+	QuestionID uuid.UUID
+	ID         uuid.UUID
+	Position   int16
+	IsCorrect  bool
+}
+
+func (q *Queries) OptionsOf(ctx context.Context, ids []uuid.UUID) ([]OptionsOfRow, error) {
+	rows, err := q.db.Query(ctx, optionsOf, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []OptionsOfRow{}
+	for rows.Next() {
+		var i OptionsOfRow
+		if err := rows.Scan(
+			&i.QuestionID,
+			&i.ID,
+			&i.Position,
+			&i.IsCorrect,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const questionIDByFingerprint = `-- name: QuestionIDByFingerprint :one
 SELECT id FROM content.questions WHERE fingerprint = $1
 `
@@ -757,6 +858,79 @@ type RetireQuestionParams struct {
 func (q *Queries) RetireQuestion(ctx context.Context, arg RetireQuestionParams) error {
 	_, err := q.db.Exec(ctx, retireQuestion, arg.Now, arg.ID)
 	return err
+}
+
+const selectCandidates = `-- name: SelectCandidates :many
+
+SELECT q.id, q.revision, q.question_type, q.subcategory_id, s.category_id,
+       coalesce(round(q.difficulty_calibrated)::smallint, q.difficulty)::smallint AS difficulty_used
+FROM content.questions q
+JOIN content.subcategories s ON s.id = q.subcategory_id
+WHERE q.verification_status = 'verified' AND q.retired_at IS NULL AND q.pool = 'general'
+  AND (NOT $1::boolean OR q.question_type = 'multiple_choice')
+  AND (cardinality($2::uuid[]) = 0 OR s.category_id = ANY($2::uuid[]))
+  AND ($3::uuid IS NULL OR q.subcategory_id = $3::uuid)
+  AND NOT (q.id = ANY($4::uuid[]))
+  AND (SELECT count(*) FROM content.question_translations t
+       WHERE t.question_id = q.id AND t.verification_status = 'verified' AND t.locale = ANY($5::text[]))
+      = cardinality($5::text[])
+ORDER BY random()
+LIMIT $6
+`
+
+type SelectCandidatesParams struct {
+	McOnly        bool
+	CategoryIds   []uuid.UUID
+	SubcategoryID *uuid.UUID
+	Exclude       []uuid.UUID
+	Locales       []string
+	RowLimit      int32
+}
+
+type SelectCandidatesRow struct {
+	ID             uuid.UUID
+	Revision       int32
+	QuestionType   string
+	SubcategoryID  uuid.UUID
+	CategoryID     uuid.UUID
+	DifficultyUsed int16
+}
+
+// ---------- Selection for matches (schema-content §3, match-types §2) ----------
+// Eligible questions in random order: verified, not retired, general pool,
+// a verified translation in every locale of the match.
+func (q *Queries) SelectCandidates(ctx context.Context, arg SelectCandidatesParams) ([]SelectCandidatesRow, error) {
+	rows, err := q.db.Query(ctx, selectCandidates,
+		arg.McOnly,
+		arg.CategoryIds,
+		arg.SubcategoryID,
+		arg.Exclude,
+		arg.Locales,
+		arg.RowLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SelectCandidatesRow{}
+	for rows.Next() {
+		var i SelectCandidatesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Revision,
+			&i.QuestionType,
+			&i.SubcategoryID,
+			&i.CategoryID,
+			&i.DifficultyUsed,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const setOptionCorrect = `-- name: SetOptionCorrect :exec

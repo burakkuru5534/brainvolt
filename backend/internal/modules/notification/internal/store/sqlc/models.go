@@ -127,6 +127,11 @@ type ContentSource struct {
 	CreatedAt       time.Time
 }
 
+type ContentStatsApplied struct {
+	MatchID   uuid.UUID
+	AppliedAt time.Time
+}
+
 type ContentSubcategory struct {
 	ID         uuid.UUID
 	CategoryID uuid.UUID
@@ -154,6 +159,116 @@ type ContentVerificationEvent struct {
 	Reason     *string
 	Revision   int32
 	CreatedAt  time.Time
+}
+
+type GameAnswer struct {
+	MatchID       uuid.UUID
+	RoundNo       int16
+	UserID        uuid.UUID
+	SideNo        int16
+	OptionID      *uuid.UUID
+	ReceivedAt    *time.Time
+	ResponseMs    *int32
+	IsCorrect     bool
+	PointsAwarded int32
+	IsSideAnswer  bool
+	CreatedAt     time.Time
+}
+
+type GameMatch struct {
+	ID             uuid.UUID
+	MatchType      string
+	Format         string
+	TeamAnswerMode *string
+	CategoryMode   *string
+	IsRated        bool
+	RatingBucket   *string
+	SeasonID       *uuid.UUID
+	QuestionCount  *int16
+	AnswerWindowMs int32
+	Locales        []string
+	QuestionSetID  *uuid.UUID
+	ConfigExtra    []byte
+	RulesetVersion int32
+	Origin         string
+	OriginRef      *uuid.UUID
+	ParentMatchID  *uuid.UUID
+	Status         string
+	CreatedAt      time.Time
+	ReadyAt        *time.Time
+	StartedAt      *time.Time
+	EndedAt        *time.Time
+	EndReason      *string
+	CancelReason   *string
+	WinnerSideNo   *int16
+	IsDraw         bool
+	VoidedAt       *time.Time
+	VoidReason     *string
+	VoidedBy       *uuid.UUID
+	UpdatedAt      time.Time
+}
+
+type GameMatchParticipant struct {
+	MatchID             uuid.UUID
+	UserID              uuid.UUID
+	SideNo              int16
+	SeatNo              int16
+	Locale              string
+	AccountTierAtStart  string
+	Status              string
+	ReadyAt             *time.Time
+	LeftAt              *time.Time
+	DisconnectCount     int16
+	DisconnectedMsTotal int32
+	ScoreContribution   int32
+	CorrectCount        int16
+	AnsweredCount       int16
+	JoinedAt            time.Time
+}
+
+type GameMatchRound struct {
+	MatchID          uuid.UUID
+	RoundNo          int16
+	QuestionID       uuid.UUID
+	QuestionRevision int32
+	DifficultyUsed   int16
+	OptionOrder      []int16
+	AnsweringSideNo  *int16
+	AnsweringUserID  *uuid.UUID
+	DispatchedAt     time.Time
+	DeadlineAt       time.Time
+	RevealedAt       time.Time
+}
+
+type GameMatchSide struct {
+	MatchID      uuid.UUID
+	SideNo       int16
+	TeamID       *uuid.UUID
+	CoupleID     *uuid.UUID
+	Score        int32
+	CorrectCount int16
+	Result       *string
+	ForfeitedAt  *time.Time
+}
+
+type GameMatchTransition struct {
+	MatchID    uuid.UUID
+	Seq        int32
+	FromStatus *string
+	ToStatus   string
+	Reason     *string
+	Actor      string
+	ActorID    *uuid.UUID
+	At         time.Time
+}
+
+type GameRoundResult struct {
+	MatchID   uuid.UUID
+	RoundNo   int16
+	SideNo    int16
+	IsCorrect bool
+	Points    int32
+	Detail    []byte
 }
 
 type IdentityAuthIdentity struct {

@@ -213,3 +213,45 @@ SELECT * FROM content.verification_events WHERE question_id = $1 ORDER BY create
 
 -- name: ListQuestionStats :many
 SELECT * FROM content.question_stats WHERE question_id = $1 ORDER BY locale;
+
+-- ---------- Selection for matches (schema-content §3, match-types §2) ----------
+
+-- Eligible questions in random order: verified, not retired, general pool,
+-- a verified translation in every locale of the match.
+-- name: SelectCandidates :many
+SELECT q.id, q.revision, q.question_type, q.subcategory_id, s.category_id,
+       coalesce(round(q.difficulty_calibrated)::smallint, q.difficulty)::smallint AS difficulty_used
+FROM content.questions q
+JOIN content.subcategories s ON s.id = q.subcategory_id
+WHERE q.verification_status = 'verified' AND q.retired_at IS NULL AND q.pool = 'general'
+  AND (NOT @mc_only::boolean OR q.question_type = 'multiple_choice')
+  AND (cardinality(@category_ids::uuid[]) = 0 OR s.category_id = ANY(@category_ids::uuid[]))
+  AND (sqlc.narg(subcategory_id)::uuid IS NULL OR q.subcategory_id = sqlc.narg(subcategory_id)::uuid)
+  AND NOT (q.id = ANY(@exclude::uuid[]))
+  AND (SELECT count(*) FROM content.question_translations t
+       WHERE t.question_id = q.id AND t.verification_status = 'verified' AND t.locale = ANY(@locales::text[]))
+      = cardinality(@locales::text[])
+ORDER BY random()
+LIMIT @row_limit;
+
+-- name: OptionsOf :many
+SELECT question_id, id, position, is_correct FROM content.options
+WHERE question_id = ANY(@ids::uuid[])
+ORDER BY question_id, position;
+
+-- name: CategoryIsTopLevel :one
+SELECT EXISTS (SELECT 1 FROM content.categories WHERE id = $1 AND is_active);
+
+-- name: MarkStatsApplied :execrows
+INSERT INTO content.stats_applied (match_id, applied_at) VALUES ($1, $2) ON CONFLICT (match_id) DO NOTHING;
+
+-- Answer statistics from a completed match (schema-content §5).
+-- name: AddQuestionStats :exec
+INSERT INTO content.question_stats (question_id, locale, times_asked, times_correct, times_timed_out, sum_response_ms, last_asked_at)
+VALUES (@question_id, @locale, @asked, @correct, @timed_out, @sum_response_ms, @at)
+ON CONFLICT (question_id, locale) DO UPDATE
+SET times_asked = content.question_stats.times_asked + EXCLUDED.times_asked,
+    times_correct = content.question_stats.times_correct + EXCLUDED.times_correct,
+    times_timed_out = content.question_stats.times_timed_out + EXCLUDED.times_timed_out,
+    sum_response_ms = content.question_stats.sum_response_ms + EXCLUDED.sum_response_ms,
+    last_asked_at = greatest(content.question_stats.last_asked_at, EXCLUDED.last_asked_at);

@@ -45,6 +45,17 @@ type ParticipantResult struct {
 // Result returns the terminal result, or nil while the match is live.
 func (m *Match) Result() *Result { return m.result }
 
+// Questions returns the selected questions not yet asked, in order.
+func (m *Match) Questions() []Question {
+	var out []Question
+	for _, q := range m.questions {
+		if !m.used[q.ID] {
+			out = append(out, q)
+		}
+	}
+	return out
+}
+
 func (m *Match) snapshotResult(now int64) *Result {
 	// An open, unrevealed round is aborted and never scored (round-lifecycle §1).
 	r := &Result{Status: m.Status, EndedMS: now, RoundsPlayed: m.revealedRounds()}

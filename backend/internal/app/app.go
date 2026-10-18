@@ -24,6 +24,7 @@ import (
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/content"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/notification"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
@@ -110,7 +111,7 @@ func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, 
 		return nil, err
 	}
 	// Insert-only River client: the API queues event deliveries, the worker runs them.
-	bus := newBus()
+	bus := newBus(db)
 	inserter, err := river.NewClient(riverpgxv5.New(db), &river.Config{Logger: logger})
 	if err != nil {
 		_ = sqlDB.Close()
@@ -167,8 +168,12 @@ func registerModules(srv *httpserver.Server, d moduleDeps) {
 // worker build it the same way: the API to address deliveries, the worker
 // to run them. Consumers subscribe here as their phases arrive
 // (backend-modules.md §3.2 event catalogue).
-func newBus() *events.Bus {
-	return events.NewBus()
+func newBus(db *pgxpool.Pool) *events.Bus {
+	bus := events.NewBus()
+	// content counts answer statistics of completed matches (schema-content §5).
+	stats := content.New(db, clock.Real{}, bus)
+	bus.Subscribe(game.EventMatchCompleted, content.SubscriberMatchStats, stats.OnMatchCompleted)
+	return bus
 }
 
 // NewWorker builds the composition for cmd/worker: a Postgres pool with the
@@ -183,7 +188,7 @@ func NewWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) (*Ap
 	if err != nil {
 		return nil, err
 	}
-	bus := newBus()
+	bus := newBus(db)
 	workers := river.NewWorkers()
 	bus.AddWorker(workers)
 	client, err := river.NewClient(riverpgxv5.New(db), &river.Config{
