@@ -218,6 +218,57 @@ void main() {
     await finish(tester, t);
   });
 
+  testWidgets('private room: joining by code shows the room', (tester) async {
+    final t = await launch(tester);
+    final s = welcome(t);
+    await step(tester);
+    final joined = {
+      't': 'room.state',
+      's': 'room:r1',
+      'seq': 2,
+      'd': {
+        'room': {
+          'id': 'r1',
+          'status': 'open',
+          'version': 2,
+          'host_user_id': 'host',
+          'code': 'ROOM23',
+          'capacity': 2,
+          'match_config': {'match_type': 'quick_duel', 'format': '1v1'},
+          'members': [
+            {
+              'user_id': 'host',
+              'display_name': 'Kurucu Ali',
+              'side_no': 1,
+              'seat_no': 1,
+              'is_host': true,
+            },
+            {'user_id': me, 'display_name': 'Ben', 'side_no': 2, 'seat_no': 1},
+          ],
+        },
+      },
+    };
+    await tester.tap(find.byKey(const Key('private-room')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('join-room')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('room-code-input')), 'room23');
+    // The join broadcast arrives while the home screen is still open.
+    s.serverSends(joined);
+    await tester.tap(find.byKey(const Key('room-code-join')));
+    await step(tester);
+    await step(tester);
+    expect(t.lobby.calls, ['joinRoom:room23']);
+    // The room screen asks again and gets the same version.
+    s
+      ..ack('room.join')
+      ..serverSends(joined);
+    await step(tester);
+    expect(find.text('Kurucu Ali'), findsOneWidget);
+    expect(find.byKey(const Key('room-ready')), findsOneWidget);
+    await finish(tester, t);
+  });
+
   testWidgets('teams: guests are asked to link their account', (tester) async {
     final t = await launch(tester);
     t.container.read(routerProvider).go(Routes.teams);

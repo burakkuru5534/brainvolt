@@ -67,16 +67,35 @@ Future<void> showRoomSheet(BuildContext context, WidgetRef ref) async {
   }
 }
 
-Future<String?> _askCode(BuildContext context) {
-  final l10n = context.l10n;
-  final text = TextEditingController();
-  return showDialog<String>(
-    context: context,
-    builder: (context) => AlertDialog(
+Future<String?> _askCode(BuildContext context) =>
+    showDialog<String>(context: context, builder: (_) => const _CodeDialog());
+
+/// Asks for a room code; owns its text controller so it outlives the
+/// closing animation.
+class _CodeDialog extends StatefulWidget {
+  const _CodeDialog();
+
+  @override
+  State<_CodeDialog> createState() => _CodeDialogState();
+}
+
+class _CodeDialogState extends State<_CodeDialog> {
+  final _text = TextEditingController();
+
+  @override
+  void dispose() {
+    _text.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return AlertDialog(
       title: Text(l10n.joinRoom),
       content: TextField(
         key: const Key('room-code-input'),
-        controller: text,
+        controller: _text,
         autofocus: true,
         textCapitalization: TextCapitalization.characters,
         decoration: InputDecoration(labelText: l10n.roomCodeLabel),
@@ -88,12 +107,12 @@ Future<String?> _askCode(BuildContext context) {
         ),
         FilledButton(
           key: const Key('room-code-join'),
-          onPressed: () => Navigator.pop(context, text.text.trim()),
+          onPressed: () => Navigator.pop(context, _text.text.trim()),
           child: Text(l10n.joinRoom),
         ),
       ],
-    ),
-  ).whenComplete(text.dispose);
+    );
+  }
 }
 
 /// A private room: the code to share, the two sides with their seats,

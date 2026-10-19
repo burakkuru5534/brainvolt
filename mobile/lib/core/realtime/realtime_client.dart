@@ -318,7 +318,15 @@ class RealtimeClient {
     final seq = f.seq;
     if (stream != null && seq != null) {
       final last = _lastSeq[stream] ?? 0;
-      if (f.type != 'match.snapshot' && seq <= last) {
+      // Snapshots replace the screen state: match.snapshot always passes;
+      // room.state (a full room) passes again at the same seq, because a
+      // screen opened later asks for it with room.join.
+      final stale = switch (f.type) {
+        'match.snapshot' => false,
+        'room.state' => seq < last,
+        _ => seq <= last,
+      };
+      if (stale) {
         return; // duplicate (websocket.md §6)
       }
       _lastSeq[stream] = seq;

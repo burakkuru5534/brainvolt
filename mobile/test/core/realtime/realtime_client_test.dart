@@ -114,6 +114,9 @@ void main() {
       {'t': 'round.started', 's': 'match:m1', 'seq': 5},
       {'t': 'round.answer_received', 's': 'match:m1', 'seq': 6},
       {'t': 'match.snapshot', 's': 'match:m1', 'seq': 6},
+      {'t': 'room.state', 's': 'room:r1', 'seq': 2},
+      {'t': 'room.state', 's': 'room:r1', 'seq': 2},
+      {'t': 'room.state', 's': 'room:r1', 'seq': 1},
     ]) {
       s.serverSends(f);
     }
@@ -122,6 +125,8 @@ void main() {
       'round.started:5',
       'round.answer_received:6',
       'match.snapshot:6',
+      'room.state:2',
+      'room.state:2',
     ]);
   });
 
