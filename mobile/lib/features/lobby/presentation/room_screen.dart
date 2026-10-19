@@ -8,11 +8,11 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/session_controller.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../match/presentation/match_type_name.dart';
 import '../../match/presentation/play_error_text.dart';
 import '../../profile/domain/avatars.dart';
 import '../data/lobby_providers.dart';
 import '../domain/lobby_repository.dart';
-import 'challenge_dialog.dart';
 import 'room_controller.dart';
 
 /// Creates a room or joins one by code, then opens it.

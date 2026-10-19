@@ -7,11 +7,11 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/realtime/realtime_providers.dart';
+import '../../match/presentation/match_type_name.dart';
 import '../../match/presentation/play_error_text.dart';
 import '../../profile/domain/avatars.dart';
 import '../data/lobby_providers.dart';
 import '../domain/lobby_repository.dart';
-import 'challenge_dialog.dart';
 
 /// Pending challenges: received first, then sent ones.
 final challengesProvider = FutureProvider.autoDispose<List<(bool, Challenge)>>((

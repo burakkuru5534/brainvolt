@@ -2,18 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/l10n.dart';
+import '../../match/presentation/match_type_name.dart';
 import '../../match/presentation/play_error_text.dart';
 import '../../social/domain/social_repository.dart';
 import '../data/lobby_providers.dart';
 import '../domain/lobby_repository.dart';
-
-/// The localized name of a match type.
-String matchTypeName(AppLocalizations l, String wire) =>
-    switch (MatchType.parse(wire)) {
-      MatchType.suddenDeath => l.matchTypeSuddenDeath,
-      MatchType.marathon => l.matchTypeMarathon,
-      _ => l.matchTypeQuickDuel,
-    };
 
 /// Picks a match type and sends [target] a direct challenge (1v1).
 Future<void> showChallengeDialog(

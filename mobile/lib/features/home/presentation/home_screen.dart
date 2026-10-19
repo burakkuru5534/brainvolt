@@ -116,72 +116,76 @@ class HomeScreen extends ConsumerWidget {
             ),
           Expanded(
             child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (session != null) ...[
+              // Scrolls when a dialog's keyboard leaves little room.
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (session != null) ...[
+                      Text(
+                        avatarFor(session.profile.avatarId),
+                        style: const TextStyle(fontSize: 64),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        l10n.homeGreeting(session.profile.displayName),
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 8),
+                    ],
                     Text(
-                      avatarFor(session.profile.avatarId),
-                      style: const TextStyle(fontSize: 64),
+                      l10n.homeWelcome,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.homeGreeting(session.profile.displayName),
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                  Text(
-                    l10n.homeWelcome,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 32),
-                  if (ref.watch(currentMatchProvider).value case final id?)
-                    FilledButton.icon(
-                      key: const Key('resume-match'),
-                      icon: const Icon(Icons.play_arrow),
-                      onPressed: () => context.go(Routes.match(id)),
-                      label: Text(l10n.resumeMatch),
-                    )
-                  else
-                    FilledButton.icon(
-                      key: const Key('play-quick-duel'),
-                      icon: const Icon(Icons.bolt),
-                      onPressed: () => context.push(Routes.play),
-                      label: Text(l10n.playQuickDuel),
-                    ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    key: const Key('play-modes'),
-                    icon: const Icon(Icons.tune),
-                    onPressed: () => context.push(Routes.modes),
-                    label: Text(l10n.playModes),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    key: const Key('private-room'),
-                    icon: const Icon(Icons.meeting_room),
-                    onPressed: () => showRoomSheet(context, ref),
-                    label: Text(l10n.privateRoom),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    key: const Key('open-teams'),
-                    icon: const Icon(Icons.groups),
-                    onPressed: () => context.push(Routes.teams),
-                    label: Text(l10n.homeTeams),
-                  ),
-                  if (ref.watch(appConfigProvider).flavor == Flavor.dev) ...[
+                    const SizedBox(height: 32),
+                    if (ref.watch(currentMatchProvider).value case final id?)
+                      FilledButton.icon(
+                        key: const Key('resume-match'),
+                        icon: const Icon(Icons.play_arrow),
+                        onPressed: () => context.go(Routes.match(id)),
+                        label: Text(l10n.resumeMatch),
+                      )
+                    else
+                      FilledButton.icon(
+                        key: const Key('play-quick-duel'),
+                        icon: const Icon(Icons.bolt),
+                        onPressed: () => context.push(Routes.play),
+                        label: Text(l10n.playQuickDuel),
+                      ),
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
-                      key: const Key('play-practice'),
-                      icon: const Icon(Icons.smart_toy_outlined),
-                      onPressed: () => context.push(Routes.practice),
-                      label: Text(l10n.playPractice),
+                      key: const Key('play-modes'),
+                      icon: const Icon(Icons.tune),
+                      onPressed: () => context.push(Routes.modes),
+                      label: Text(l10n.playModes),
                     ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      key: const Key('private-room'),
+                      icon: const Icon(Icons.meeting_room),
+                      onPressed: () => showRoomSheet(context, ref),
+                      label: Text(l10n.privateRoom),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      key: const Key('open-teams'),
+                      icon: const Icon(Icons.groups),
+                      onPressed: () => context.push(Routes.teams),
+                      label: Text(l10n.homeTeams),
+                    ),
+                    if (ref.watch(appConfigProvider).flavor == Flavor.dev) ...[
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        key: const Key('play-practice'),
+                        icon: const Icon(Icons.smart_toy_outlined),
+                        onPressed: () => context.push(Routes.practice),
+                        label: Text(l10n.playPractice),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),

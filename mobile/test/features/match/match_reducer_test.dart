@@ -63,4 +63,17 @@ void main() {
     expect(s.over, isTrue);
     expect(s.cancelReason, 'not_all_ready');
   });
+
+  test('the match type comes from match.created and snapshots', () {
+    var s = reduce(
+      start,
+      f('match.created', {'match_type': 'sudden_death', 'question_count': 0}),
+    );
+    expect(s.matchType, 'sudden_death');
+    s = reduce(
+      s,
+      f('match.snapshot', {'status': 'waiting', 'match_type': 'marathon'}),
+    );
+    expect(s.matchType, 'marathon');
+  });
 }

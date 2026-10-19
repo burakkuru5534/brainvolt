@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../core/l10n/l10n.dart';
 import '../domain/match_repository.dart';
+import 'match_type_name.dart';
 import 'play_controllers.dart';
 import 'play_error_text.dart';
 
@@ -73,7 +74,7 @@ class _QueueScreenState extends ConsumerState<QueueScreen> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(title: Text(l10n.playQuickDuel)),
+        appBar: AppBar(title: Text(matchTypeName(l10n, widget.mode.matchType))),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),

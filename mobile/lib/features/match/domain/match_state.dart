@@ -172,6 +172,7 @@ class MatchState {
   const MatchState({
     required this.matchId,
     required this.myUserId,
+    this.matchType = '',
     this.phase = MatchPhase.waiting,
     this.questionCount = 0,
     this.readyDeadlineAt = 0,
@@ -190,6 +191,9 @@ class MatchState {
 
   final String matchId;
   final String myUserId;
+
+  /// quick_duel / ranked / sudden_death / marathon ('' until known).
+  final String matchType;
   final MatchPhase phase;
   final int questionCount;
   final int readyDeadlineAt;
@@ -220,6 +224,7 @@ class MatchState {
       phase == MatchPhase.completed || phase == MatchPhase.cancelled;
 
   MatchState copyWith({
+    String? matchType,
     MatchPhase? phase,
     int? questionCount,
     int? readyDeadlineAt,
@@ -239,6 +244,7 @@ class MatchState {
   }) => MatchState(
     matchId: matchId,
     myUserId: myUserId,
+    matchType: matchType ?? this.matchType,
     phase: phase ?? this.phase,
     questionCount: questionCount ?? this.questionCount,
     readyDeadlineAt: readyDeadlineAt ?? this.readyDeadlineAt,

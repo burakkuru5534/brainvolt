@@ -11,6 +11,7 @@ import '../../../core/realtime/realtime_providers.dart';
 import '../../../core/widgets/dialogs.dart';
 import '../../profile/domain/avatars.dart';
 import '../domain/match_state.dart';
+import 'match_type_name.dart';
 import 'play_controllers.dart';
 import 'play_error_text.dart';
 
@@ -105,7 +106,7 @@ class _MatchScreenState extends ConsumerState<MatchScreen> {
           title: Text(
             state.round != null && state.questionCount > 0
                 ? l10n.roundOf(state.round!.roundNo, state.questionCount)
-                : l10n.playQuickDuel,
+                : matchTypeName(l10n, state.matchType),
           ),
           leading: IconButton(
             key: const Key('match-leave'),

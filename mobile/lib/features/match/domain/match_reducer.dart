@@ -76,6 +76,7 @@ MatchState reduce(MatchState s, ServerFrame f) {
   switch (f.type) {
     case 'match.created':
       return s.copyWith(
+        matchType: _str(d['match_type']),
         phase: MatchPhase.waiting,
         questionCount: _int(d['question_count']),
         readyDeadlineAt: _int(d['ready_deadline_at']),
@@ -90,6 +91,7 @@ MatchState reduce(MatchState s, ServerFrame f) {
       return MatchState(
         matchId: s.matchId,
         myUserId: s.myUserId,
+        matchType: _str(d['match_type']) ?? s.matchType,
         phase: _phaseOf(_str(d['status']), _str(d['phase'])),
         questionCount: _int(d['question_count']),
         readyDeadlineAt: _int(d['ready_deadline_at']),
