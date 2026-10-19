@@ -8,6 +8,7 @@ import '../../../app/session_controller.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../lobby/presentation/room_controller.dart';
 import '../../profile/domain/avatars.dart';
+import '../../progress/presentation/progress_widgets.dart';
 import '../data/match_providers.dart';
 import '../domain/match_repository.dart';
 import 'play_controllers.dart';
@@ -80,6 +81,11 @@ class ResultScreen extends ConsumerWidget {
           style: Theme.of(context).textTheme.displaySmall,
         ),
         if (r.players.length > 2) _TeamLines(result: r, mySide: mySide),
+        if (r.status == 'completed')
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: MatchAwardsCard(matchId: r.id),
+          ),
         if (r.status == 'completed' &&
             r.origin != 'private_room' &&
             (r.endedAt

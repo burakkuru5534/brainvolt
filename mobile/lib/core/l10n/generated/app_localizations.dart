@@ -1478,6 +1478,270 @@ abstract class AppLocalizations {
   /// **'Takımsız'**
   String get noTeam;
 
+  /// Leaderboards screen title
+  ///
+  /// In tr, this message translates to:
+  /// **'Liderlik Tablosu'**
+  String get leaderboardsTitle;
+
+  /// Quests screen title
+  ///
+  /// In tr, this message translates to:
+  /// **'Görevler'**
+  String get questsTitle;
+
+  /// Badges screen title
+  ///
+  /// In tr, this message translates to:
+  /// **'Rozetler'**
+  String get badgesTitle;
+
+  /// Board period
+  ///
+  /// In tr, this message translates to:
+  /// **'Günlük'**
+  String get periodDaily;
+
+  /// Board period
+  ///
+  /// In tr, this message translates to:
+  /// **'Haftalık'**
+  String get periodWeekly;
+
+  /// Board period
+  ///
+  /// In tr, this message translates to:
+  /// **'Aylık'**
+  String get periodMonthly;
+
+  /// Board period
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm zamanlar'**
+  String get periodAllTime;
+
+  /// Board period (Season Points)
+  ///
+  /// In tr, this message translates to:
+  /// **'Sezon'**
+  String get periodSeason;
+
+  /// Board entity
+  ///
+  /// In tr, this message translates to:
+  /// **'Bireysel'**
+  String get entityUser;
+
+  /// Board entity
+  ///
+  /// In tr, this message translates to:
+  /// **'Takımlar'**
+  String get entityTeam;
+
+  /// Board entity
+  ///
+  /// In tr, this message translates to:
+  /// **'Çiftler'**
+  String get entityCouple;
+
+  /// Board scope
+  ///
+  /// In tr, this message translates to:
+  /// **'Dünya'**
+  String get scopeGlobal;
+
+  /// Board scope
+  ///
+  /// In tr, this message translates to:
+  /// **'Ülke'**
+  String get scopeCountry;
+
+  /// Board scope
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşlar'**
+  String get scopeFriends;
+
+  /// Empty leaderboard
+  ///
+  /// In tr, this message translates to:
+  /// **'Burada henüz kimse yok.'**
+  String get leaderboardEmpty;
+
+  /// The caller's own row
+  ///
+  /// In tr, this message translates to:
+  /// **'Sen'**
+  String get leaderboardMe;
+
+  /// Leaderboard score
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} puan'**
+  String boardPoints(int count);
+
+  /// Player level
+  ///
+  /// In tr, this message translates to:
+  /// **'Seviye {level}'**
+  String levelLabel(int level);
+
+  /// XP inside the level
+  ///
+  /// In tr, this message translates to:
+  /// **'{current} / {total} XP'**
+  String xpProgress(int current, int total);
+
+  /// Play streak
+  ///
+  /// In tr, this message translates to:
+  /// **'{days} gün seri'**
+  String streakDays(int days);
+
+  /// Season Points
+  ///
+  /// In tr, this message translates to:
+  /// **'{sp} SP'**
+  String seasonPoints(int sp);
+
+  /// League
+  ///
+  /// In tr, this message translates to:
+  /// **'Bronz'**
+  String get leagueBronze;
+
+  /// League
+  ///
+  /// In tr, this message translates to:
+  /// **'Gümüş'**
+  String get leagueSilver;
+
+  /// League
+  ///
+  /// In tr, this message translates to:
+  /// **'Altın'**
+  String get leagueGold;
+
+  /// League
+  ///
+  /// In tr, this message translates to:
+  /// **'Platin'**
+  String get leaguePlatinum;
+
+  /// League
+  ///
+  /// In tr, this message translates to:
+  /// **'Elmas'**
+  String get leagueDiamond;
+
+  /// SP of the next division
+  ///
+  /// In tr, this message translates to:
+  /// **'Sonraki kademe: {sp} SP'**
+  String nextDivisionAt(int sp);
+
+  /// Quest section
+  ///
+  /// In tr, this message translates to:
+  /// **'Günlük görevler'**
+  String get questsDaily;
+
+  /// Quest section
+  ///
+  /// In tr, this message translates to:
+  /// **'Haftalık görevler'**
+  String get questsWeekly;
+
+  /// Claim a quest reward
+  ///
+  /// In tr, this message translates to:
+  /// **'Ödülü al'**
+  String get questClaim;
+
+  /// Claimed quest
+  ///
+  /// In tr, this message translates to:
+  /// **'Alındı'**
+  String get questClaimed;
+
+  /// Swap a quest
+  ///
+  /// In tr, this message translates to:
+  /// **'Değiştir'**
+  String get questReroll;
+
+  /// Rerolls
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugün kalan değiştirme: {count}'**
+  String questRerollsLeft(int count);
+
+  /// After claiming
+  ///
+  /// In tr, this message translates to:
+  /// **'+{xp} XP kazandın'**
+  String questXpGained(int xp);
+
+  /// Quest reward
+  ///
+  /// In tr, this message translates to:
+  /// **'{xp} XP'**
+  String questReward(int xp);
+
+  /// Locked badge
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz kazanılmadı'**
+  String get badgeLocked;
+
+  /// Match rewards section
+  ///
+  /// In tr, this message translates to:
+  /// **'Ödüller'**
+  String get awardsTitle;
+
+  /// Waiting for match.awards
+  ///
+  /// In tr, this message translates to:
+  /// **'Ödüller hesaplanıyor…'**
+  String get awardsPending;
+
+  /// XP from the match
+  ///
+  /// In tr, this message translates to:
+  /// **'+{xp} XP'**
+  String awardsXp(int xp);
+
+  /// Level up
+  ///
+  /// In tr, this message translates to:
+  /// **'Seviye atladın: {level}!'**
+  String awardsLevelUp(int level);
+
+  /// Signed SP change
+  ///
+  /// In tr, this message translates to:
+  /// **'{sp} SP'**
+  String awardsSp(String sp);
+
+  /// League promotion
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni lig: {league}!'**
+  String awardsLeagueUp(String league);
+
+  /// Badge earned
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni rozet: {name}'**
+  String awardsBadge(String name);
+
+  /// Quests completed by the match
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} görev tamamlandı'**
+  String awardsQuests(int count);
+
   /// Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md).
   ///
   /// In tr, this message translates to:

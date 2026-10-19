@@ -768,6 +768,168 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noTeam => 'No team';
 
   @override
+  String get leaderboardsTitle => 'Leaderboards';
+
+  @override
+  String get questsTitle => 'Quests';
+
+  @override
+  String get badgesTitle => 'Badges';
+
+  @override
+  String get periodDaily => 'Daily';
+
+  @override
+  String get periodWeekly => 'Weekly';
+
+  @override
+  String get periodMonthly => 'Monthly';
+
+  @override
+  String get periodAllTime => 'All time';
+
+  @override
+  String get periodSeason => 'Season';
+
+  @override
+  String get entityUser => 'Individual';
+
+  @override
+  String get entityTeam => 'Teams';
+
+  @override
+  String get entityCouple => 'Couples';
+
+  @override
+  String get scopeGlobal => 'Global';
+
+  @override
+  String get scopeCountry => 'Country';
+
+  @override
+  String get scopeFriends => 'Friends';
+
+  @override
+  String get leaderboardEmpty => 'No one here yet.';
+
+  @override
+  String get leaderboardMe => 'You';
+
+  @override
+  String boardPoints(int count) {
+    return '$count pts';
+  }
+
+  @override
+  String levelLabel(int level) {
+    return 'Level $level';
+  }
+
+  @override
+  String xpProgress(int current, int total) {
+    return '$current / $total XP';
+  }
+
+  @override
+  String streakDays(int days) {
+    return '$days-day streak';
+  }
+
+  @override
+  String seasonPoints(int sp) {
+    return '$sp SP';
+  }
+
+  @override
+  String get leagueBronze => 'Bronze';
+
+  @override
+  String get leagueSilver => 'Silver';
+
+  @override
+  String get leagueGold => 'Gold';
+
+  @override
+  String get leaguePlatinum => 'Platinum';
+
+  @override
+  String get leagueDiamond => 'Diamond';
+
+  @override
+  String nextDivisionAt(int sp) {
+    return 'Next division: $sp SP';
+  }
+
+  @override
+  String get questsDaily => 'Daily quests';
+
+  @override
+  String get questsWeekly => 'Weekly quests';
+
+  @override
+  String get questClaim => 'Claim';
+
+  @override
+  String get questClaimed => 'Claimed';
+
+  @override
+  String get questReroll => 'Reroll';
+
+  @override
+  String questRerollsLeft(int count) {
+    return 'Rerolls left today: $count';
+  }
+
+  @override
+  String questXpGained(int xp) {
+    return '+$xp XP earned';
+  }
+
+  @override
+  String questReward(int xp) {
+    return '$xp XP';
+  }
+
+  @override
+  String get badgeLocked => 'Not earned yet';
+
+  @override
+  String get awardsTitle => 'Rewards';
+
+  @override
+  String get awardsPending => 'Calculating rewards…';
+
+  @override
+  String awardsXp(int xp) {
+    return '+$xp XP';
+  }
+
+  @override
+  String awardsLevelUp(int level) {
+    return 'Level up: $level!';
+  }
+
+  @override
+  String awardsSp(String sp) {
+    return '$sp SP';
+  }
+
+  @override
+  String awardsLeagueUp(String league) {
+    return 'New league: $league!';
+  }
+
+  @override
+  String awardsBadge(String name) {
+    return 'New badge: $name';
+  }
+
+  @override
+  String awardsQuests(int count) {
+    return '$count quests completed';
+  }
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Your account is being deleted. You can only cancel the deletion.';
 

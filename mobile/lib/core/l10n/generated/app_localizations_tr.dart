@@ -766,6 +766,168 @@ class AppLocalizationsTr extends AppLocalizations {
   String get noTeam => 'Takımsız';
 
   @override
+  String get leaderboardsTitle => 'Liderlik Tablosu';
+
+  @override
+  String get questsTitle => 'Görevler';
+
+  @override
+  String get badgesTitle => 'Rozetler';
+
+  @override
+  String get periodDaily => 'Günlük';
+
+  @override
+  String get periodWeekly => 'Haftalık';
+
+  @override
+  String get periodMonthly => 'Aylık';
+
+  @override
+  String get periodAllTime => 'Tüm zamanlar';
+
+  @override
+  String get periodSeason => 'Sezon';
+
+  @override
+  String get entityUser => 'Bireysel';
+
+  @override
+  String get entityTeam => 'Takımlar';
+
+  @override
+  String get entityCouple => 'Çiftler';
+
+  @override
+  String get scopeGlobal => 'Dünya';
+
+  @override
+  String get scopeCountry => 'Ülke';
+
+  @override
+  String get scopeFriends => 'Arkadaşlar';
+
+  @override
+  String get leaderboardEmpty => 'Burada henüz kimse yok.';
+
+  @override
+  String get leaderboardMe => 'Sen';
+
+  @override
+  String boardPoints(int count) {
+    return '$count puan';
+  }
+
+  @override
+  String levelLabel(int level) {
+    return 'Seviye $level';
+  }
+
+  @override
+  String xpProgress(int current, int total) {
+    return '$current / $total XP';
+  }
+
+  @override
+  String streakDays(int days) {
+    return '$days gün seri';
+  }
+
+  @override
+  String seasonPoints(int sp) {
+    return '$sp SP';
+  }
+
+  @override
+  String get leagueBronze => 'Bronz';
+
+  @override
+  String get leagueSilver => 'Gümüş';
+
+  @override
+  String get leagueGold => 'Altın';
+
+  @override
+  String get leaguePlatinum => 'Platin';
+
+  @override
+  String get leagueDiamond => 'Elmas';
+
+  @override
+  String nextDivisionAt(int sp) {
+    return 'Sonraki kademe: $sp SP';
+  }
+
+  @override
+  String get questsDaily => 'Günlük görevler';
+
+  @override
+  String get questsWeekly => 'Haftalık görevler';
+
+  @override
+  String get questClaim => 'Ödülü al';
+
+  @override
+  String get questClaimed => 'Alındı';
+
+  @override
+  String get questReroll => 'Değiştir';
+
+  @override
+  String questRerollsLeft(int count) {
+    return 'Bugün kalan değiştirme: $count';
+  }
+
+  @override
+  String questXpGained(int xp) {
+    return '+$xp XP kazandın';
+  }
+
+  @override
+  String questReward(int xp) {
+    return '$xp XP';
+  }
+
+  @override
+  String get badgeLocked => 'Henüz kazanılmadı';
+
+  @override
+  String get awardsTitle => 'Ödüller';
+
+  @override
+  String get awardsPending => 'Ödüller hesaplanıyor…';
+
+  @override
+  String awardsXp(int xp) {
+    return '+$xp XP';
+  }
+
+  @override
+  String awardsLevelUp(int level) {
+    return 'Seviye atladın: $level!';
+  }
+
+  @override
+  String awardsSp(String sp) {
+    return '$sp SP';
+  }
+
+  @override
+  String awardsLeagueUp(String league) {
+    return 'Yeni lig: $league!';
+  }
+
+  @override
+  String awardsBadge(String name) {
+    return 'Yeni rozet: $name';
+  }
+
+  @override
+  String awardsQuests(int count) {
+    return '$count görev tamamlandı';
+  }
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.';
 

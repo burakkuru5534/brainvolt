@@ -20,6 +20,8 @@ import 'package:brainvolt/features/match/domain/match_repository.dart';
 import 'package:brainvolt/features/profile/data/profile_providers.dart';
 import 'package:brainvolt/features/profile/domain/me.dart';
 import 'package:brainvolt/features/profile/domain/profile_repository.dart';
+import 'package:brainvolt/features/progress/data/progress_providers.dart';
+import 'package:brainvolt/features/progress/domain/progress_repository.dart';
 import 'package:brainvolt/features/social/data/social_providers.dart';
 import 'package:brainvolt/features/social/domain/social_repository.dart';
 import 'package:brainvolt/features/team/data/team_providers.dart';
@@ -575,6 +577,74 @@ class FakeTeamRepository implements TeamRepository {
 }
 
 /// A WebSocket whose server side the test drives.
+class FakeProgressRepository implements ProgressRepository {
+  Progress current = const Progress(
+    xpTotal: 120,
+    level: 2,
+    levelXp: 20,
+    levelSize: 125,
+    streak: 3,
+    longestStreak: 3,
+    playedToday: true,
+    badges: 2,
+  );
+  Standing myStanding = const Standing(
+    seasonPoints: 130,
+    league: 'bronze',
+    division: 2,
+    matches: 5,
+    wins: 4,
+    nextAt: 200,
+  );
+  QuestList questList = const QuestList(daily: [], weekly: [], rerollsLeft: 1);
+  List<BadgeInfo> catalogue = const [];
+  final boards = <String, Board>{};
+  final boardCalls = <String>[];
+  final claimed = <String>[];
+  final rerolled = <String>[];
+  MatchAwards matchAwards = const MatchAwards();
+
+  @override
+  Future<Progress> progress() async => current;
+
+  @override
+  Future<Standing> standing(String kind, String id) async => myStanding;
+
+  @override
+  Future<QuestList> quests() async => questList;
+
+  @override
+  Future<int> claim(String questId) async {
+    claimed.add(questId);
+    return 50;
+  }
+
+  @override
+  Future<QuestList> reroll(String questId) async {
+    rerolled.add(questId);
+    return questList;
+  }
+
+  @override
+  Future<List<BadgeInfo>> badges() async => catalogue;
+
+  @override
+  Future<Board> leaderboard({
+    required BoardPeriod period,
+    required BoardEntity entity,
+    required BoardScope scope,
+    String? categoryId,
+    String? cursor,
+  }) async {
+    final key = '${period.wire}/${entity.name}/${scope.name}';
+    boardCalls.add(key);
+    return boards[key] ?? const Board(entries: []);
+  }
+
+  @override
+  Future<MatchAwards> awards(String matchId) async => matchAwards;
+}
+
 class FakeSocket implements SocketConnection {
   final _in = StreamController<dynamic>();
   final sent = <Map<String, dynamic>>[];
@@ -625,6 +695,7 @@ class TestApp {
     this.social,
     this.lobby,
     this.teams,
+    this.progress,
   );
 
   /// [ageConfirmed] skips the age gate; [user] is an already signed-in user.
@@ -645,6 +716,7 @@ class TestApp {
     final social = FakeSocialRepository();
     final lobby = FakeLobbyRepository();
     final teams = FakeTeamRepository();
+    final progress = FakeProgressRepository();
     final sockets = <FakeSocket>[];
     final container = ProviderContainer(
       retry: noRetry,
@@ -666,6 +738,7 @@ class TestApp {
         socialRepositoryProvider.overrideWithValue(social),
         lobbyRepositoryProvider.overrideWithValue(lobby),
         teamRepositoryProvider.overrideWithValue(teams),
+        progressRepositoryProvider.overrideWithValue(progress),
         realtimeClientProvider.overrideWith((ref) {
           final client = RealtimeClient(
             url: Uri.parse('ws://test/v1/ws'),
@@ -694,6 +767,7 @@ class TestApp {
       social,
       lobby,
       teams,
+      progress,
     );
   }
 
@@ -703,6 +777,7 @@ class TestApp {
   final FakeSocialRepository social;
   final FakeLobbyRepository lobby;
   final FakeTeamRepository teams;
+  final FakeProgressRepository progress;
 
   /// Every WebSocket the app opened, newest last.
   final List<FakeSocket> sockets;

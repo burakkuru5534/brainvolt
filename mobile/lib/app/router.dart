@@ -20,6 +20,9 @@ import '../features/match/presentation/queue_screen.dart';
 import '../features/match/presentation/result_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/settings_screen.dart';
+import '../features/progress/presentation/badges_screen.dart';
+import '../features/progress/presentation/leaderboards_screen.dart';
+import '../features/progress/presentation/quests_screen.dart';
 import '../features/social/presentation/friends_screen.dart';
 import '../features/team/presentation/teams_screen.dart';
 import 'session_controller.dart';
@@ -43,6 +46,9 @@ abstract final class Routes {
   static const challenges = '/challenges';
   static const modes = '/modes';
   static const teams = '/teams';
+  static const leaderboards = '/leaderboards';
+  static const quests = '/quests';
+  static const badges = '/badges';
   static String room(String id) => '/rooms/$id';
   static String team(String id) => '/teams/$id';
   static const play = '/play';
@@ -110,6 +116,18 @@ GoRouter router(Ref ref) {
       GoRoute(
         path: Routes.home,
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: Routes.leaderboards,
+        builder: (context, state) => const LeaderboardsScreen(),
+      ),
+      GoRoute(
+        path: Routes.quests,
+        builder: (context, state) => const QuestsScreen(),
+      ),
+      GoRoute(
+        path: Routes.badges,
+        builder: (context, state) => const BadgesScreen(),
       ),
       GoRoute(
         path: Routes.settings,

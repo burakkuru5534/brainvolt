@@ -1040,6 +1040,260 @@
   "@noTeam": {
     "description": "Queue: no persistent team."
   },
+  "leaderboardsTitle": "Liderlik Tablosu",
+  "@leaderboardsTitle": {
+    "description": "Leaderboards screen title"
+  },
+  "questsTitle": "Görevler",
+  "@questsTitle": {
+    "description": "Quests screen title"
+  },
+  "badgesTitle": "Rozetler",
+  "@badgesTitle": {
+    "description": "Badges screen title"
+  },
+  "periodDaily": "Günlük",
+  "@periodDaily": {
+    "description": "Board period"
+  },
+  "periodWeekly": "Haftalık",
+  "@periodWeekly": {
+    "description": "Board period"
+  },
+  "periodMonthly": "Aylık",
+  "@periodMonthly": {
+    "description": "Board period"
+  },
+  "periodAllTime": "Tüm zamanlar",
+  "@periodAllTime": {
+    "description": "Board period"
+  },
+  "periodSeason": "Sezon",
+  "@periodSeason": {
+    "description": "Board period (Season Points)"
+  },
+  "entityUser": "Bireysel",
+  "@entityUser": {
+    "description": "Board entity"
+  },
+  "entityTeam": "Takımlar",
+  "@entityTeam": {
+    "description": "Board entity"
+  },
+  "entityCouple": "Çiftler",
+  "@entityCouple": {
+    "description": "Board entity"
+  },
+  "scopeGlobal": "Dünya",
+  "@scopeGlobal": {
+    "description": "Board scope"
+  },
+  "scopeCountry": "Ülke",
+  "@scopeCountry": {
+    "description": "Board scope"
+  },
+  "scopeFriends": "Arkadaşlar",
+  "@scopeFriends": {
+    "description": "Board scope"
+  },
+  "leaderboardEmpty": "Burada henüz kimse yok.",
+  "@leaderboardEmpty": {
+    "description": "Empty leaderboard"
+  },
+  "leaderboardMe": "Sen",
+  "@leaderboardMe": {
+    "description": "The caller's own row"
+  },
+  "boardPoints": "{count} puan",
+  "@boardPoints": {
+    "description": "Leaderboard score",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "levelLabel": "Seviye {level}",
+  "@levelLabel": {
+    "description": "Player level",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "xpProgress": "{current} / {total} XP",
+  "@xpProgress": {
+    "description": "XP inside the level",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "streakDays": "{days} gün seri",
+  "@streakDays": {
+    "description": "Play streak",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "seasonPoints": "{sp} SP",
+  "@seasonPoints": {
+    "description": "Season Points",
+    "placeholders": {
+      "sp": {
+        "type": "int"
+      }
+    }
+  },
+  "leagueBronze": "Bronz",
+  "@leagueBronze": {
+    "description": "League"
+  },
+  "leagueSilver": "Gümüş",
+  "@leagueSilver": {
+    "description": "League"
+  },
+  "leagueGold": "Altın",
+  "@leagueGold": {
+    "description": "League"
+  },
+  "leaguePlatinum": "Platin",
+  "@leaguePlatinum": {
+    "description": "League"
+  },
+  "leagueDiamond": "Elmas",
+  "@leagueDiamond": {
+    "description": "League"
+  },
+  "nextDivisionAt": "Sonraki kademe: {sp} SP",
+  "@nextDivisionAt": {
+    "description": "SP of the next division",
+    "placeholders": {
+      "sp": {
+        "type": "int"
+      }
+    }
+  },
+  "questsDaily": "Günlük görevler",
+  "@questsDaily": {
+    "description": "Quest section"
+  },
+  "questsWeekly": "Haftalık görevler",
+  "@questsWeekly": {
+    "description": "Quest section"
+  },
+  "questClaim": "Ödülü al",
+  "@questClaim": {
+    "description": "Claim a quest reward"
+  },
+  "questClaimed": "Alındı",
+  "@questClaimed": {
+    "description": "Claimed quest"
+  },
+  "questReroll": "Değiştir",
+  "@questReroll": {
+    "description": "Swap a quest"
+  },
+  "questRerollsLeft": "Bugün kalan değiştirme: {count}",
+  "@questRerollsLeft": {
+    "description": "Rerolls",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "questXpGained": "+{xp} XP kazandın",
+  "@questXpGained": {
+    "description": "After claiming",
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "questReward": "{xp} XP",
+  "@questReward": {
+    "description": "Quest reward",
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "badgeLocked": "Henüz kazanılmadı",
+  "@badgeLocked": {
+    "description": "Locked badge"
+  },
+  "awardsTitle": "Ödüller",
+  "@awardsTitle": {
+    "description": "Match rewards section"
+  },
+  "awardsPending": "Ödüller hesaplanıyor…",
+  "@awardsPending": {
+    "description": "Waiting for match.awards"
+  },
+  "awardsXp": "+{xp} XP",
+  "@awardsXp": {
+    "description": "XP from the match",
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "awardsLevelUp": "Seviye atladın: {level}!",
+  "@awardsLevelUp": {
+    "description": "Level up",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "awardsSp": "{sp} SP",
+  "@awardsSp": {
+    "description": "Signed SP change",
+    "placeholders": {
+      "sp": {
+        "type": "String"
+      }
+    }
+  },
+  "awardsLeagueUp": "Yeni lig: {league}!",
+  "@awardsLeagueUp": {
+    "description": "League promotion",
+    "placeholders": {
+      "league": {
+        "type": "String"
+      }
+    }
+  },
+  "awardsBadge": "Yeni rozet: {name}",
+  "@awardsBadge": {
+    "description": "Badge earned",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "awardsQuests": "{count} görev tamamlandı",
+  "@awardsQuests": {
+    "description": "Quests completed by the match",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
   "@error_ACCOUNT_DELETION_PENDING": {
     "description": "Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md)."

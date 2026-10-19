@@ -13,6 +13,7 @@ import '../../auth/domain/session.dart';
 import '../../lobby/presentation/room_screen.dart';
 import '../../match/data/match_providers.dart';
 import '../../profile/domain/avatars.dart';
+import '../../progress/presentation/progress_widgets.dart';
 
 /// The caller's live match, if any (back from a crash or another screen).
 final currentMatchProvider = FutureProvider.autoDispose<String?>(
@@ -133,6 +134,7 @@ class HomeScreen extends ConsumerWidget {
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       const SizedBox(height: 8),
+                      const ProgressCard(),
                     ],
                     Text(
                       l10n.homeWelcome,
