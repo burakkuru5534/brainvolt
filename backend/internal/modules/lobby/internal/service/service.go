@@ -57,6 +57,7 @@ type Teams interface {
 type Game interface {
 	Start(ctx context.Context, r game.CreateRequest) (*game.Created, error)
 	Summary(ctx context.Context, id uuid.UUID) (game.Summary, error)
+	CategoryExists(ctx context.Context, id uuid.UUID) (bool, error)
 }
 
 // Realtime delivers lobby events and answers deferred intents.

@@ -40,6 +40,18 @@ type MatchView struct {
 	Sides        []SideView        `json:"sides"`
 	Participants []ParticipantView `json:"participants"`
 	Rounds       []RoundView       `json:"rounds"`
+	// Revenge is the caller's revenge state once the match is over.
+	Revenge *RevengeView `json:"revenge,omitempty"`
+}
+
+// RevengeView says whether the caller may ask for revenge (losing side,
+// 24 h, chain < 3, D-045/D-046) and the series score of the revenge chain
+// from the caller's view (first match included).
+type RevengeView struct {
+	Available bool `json:"available"`
+	Wins      int  `json:"wins"`
+	Losses    int  `json:"losses"`
+	Chain     int  `json:"chain"`
 }
 
 // SideView is one side's total.
@@ -152,7 +164,49 @@ func (s *Service) Match(ctx context.Context, caller, id uuid.UUID, locale string
 	if v.Rounds, err = s.rounds(ctx, q, id, locale); err != nil {
 		return MatchView{}, err
 	}
+	if m.Status == string(domain.StatusCompleted) {
+		if v.Revenge, err = s.revengeView(ctx, q, &m, caller); err != nil {
+			return MatchView{}, err
+		}
+	}
 	return v, nil
+}
+
+// revengeView walks the revenge chain back to its first match.
+func (s *Service) revengeView(ctx context.Context, q *sqlc.Queries, m *sqlc.GameMatch, caller uuid.UUID) (*RevengeView, error) {
+	out := &RevengeView{}
+	lost := false
+	for cur, first := m, true; cur != nil; first = false {
+		ps, err := q.ListParticipants(ctx, cur.ID)
+		if err != nil {
+			return nil, err
+		}
+		side := int16(0)
+		for i := range ps {
+			if ps[i].UserID == caller {
+				side = ps[i].SideNo
+			}
+		}
+		if cur.WinnerSideNo != nil && side != 0 {
+			if *cur.WinnerSideNo == side {
+				out.Wins++
+			} else {
+				out.Losses++
+				lost = lost || first
+			}
+		}
+		if cur.Origin != string(domain.Revenge) || cur.ParentMatchID == nil {
+			break
+		}
+		out.Chain++
+		parent, err := q.GetMatch(ctx, *cur.ParentMatchID)
+		if err != nil {
+			return nil, err
+		}
+		cur = &parent
+	}
+	out.Available = lost && m.EndedAt != nil && s.d.Clock.Now().Sub(*m.EndedAt) < RevengeWindow && out.Chain < RevengeChain
+	return out, nil
 }
 
 func (s *Service) rounds(ctx context.Context, q *sqlc.Queries, id uuid.UUID, locale string) ([]RoundView, error) {
@@ -252,11 +306,15 @@ func (s *Service) Current(ctx context.Context, user uuid.UUID) (Current, error) 
 // Summary is what other modules read about a match: its state and seating
 // (lobby: rematch, rooms after a match).
 type Summary struct {
-	ID           uuid.UUID
-	Status       domain.Status
-	Origin       domain.Origin
-	OriginRef    *uuid.UUID
-	EndedAt      *time.Time
+	ID        uuid.UUID
+	Status    domain.Status
+	Origin    domain.Origin
+	OriginRef *uuid.UUID
+	EndedAt   *time.Time
+	// WinnerSide is 0 for a draw or an unfinished match.
+	WinnerSide int
+	// Couples are the sides' couple profiles (Couple Contest).
+	Couples      [2]*uuid.UUID
 	Participants []Seated
 }
 
@@ -283,6 +341,16 @@ func (s *Service) Summary(ctx context.Context, id uuid.UUID) (Summary, error) {
 		return Summary{}, err
 	}
 	out := Summary{ID: id, Status: domain.Status(m.Status), Origin: domain.Origin(m.Origin), OriginRef: m.OriginRef, EndedAt: m.EndedAt}
+	if m.WinnerSideNo != nil {
+		out.WinnerSide = int(*m.WinnerSideNo)
+	}
+	sides, err := q.SideEntities(ctx, id)
+	if err != nil {
+		return Summary{}, err
+	}
+	for _, sd := range sides {
+		out.Couples[sd.SideNo-1] = sd.CoupleID
+	}
 	for i := range ps {
 		p := &ps[i]
 		out.Participants = append(out.Participants, Seated{UserID: p.UserID, Side: int(p.SideNo), Seat: int(p.SeatNo), Locale: p.Locale})

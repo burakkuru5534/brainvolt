@@ -20,6 +20,7 @@ Challenge challengeFromJson(Map<String, dynamic> j) => Challenge(
   matchType: _map(j['match_config'])['match_type'] as String? ?? '',
   expiresAt: DateTime.parse(j['expires_at'] as String),
   matchId: j['match_id'] as String?,
+  kind: j['kind'] as String? ?? 'direct',
 );
 
 /// Parses a room of the API (REST and room.state).
@@ -107,6 +108,16 @@ class ApiLobbyRepository implements LobbyRepository {
     final j = await api.postJson('/v1/challenges/$id/${action.name}');
     return challengeFromJson(j!);
   }
+
+  @override
+  Future<Challenge> revenge(String matchId, String homeCategoryId) async =>
+      challengeFromJson(
+        (await api.postJson(
+          '/v1/matches/$matchId/revenge',
+          body: {'home_category_id': homeCategoryId},
+          idempotencyKey: const Uuid().v7(),
+        ))!,
+      );
 
   @override
   Future<Room> createRoom(

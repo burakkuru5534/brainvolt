@@ -377,3 +377,60 @@ func TestCoupleChallenge(t *testing.T) {
 	}
 	leaveMatch(t, matchID, ws[0], ws[1], ws[2], ws[3])
 }
+
+// Revenge (D-045): the losing side of a completed 1v1 challenges the
+// winner with a home category; the result shows the series.
+func TestRevengeChallenge(t *testing.T) {
+	x := newE2E(t)
+	tokA, a, _ := x.fullUser()
+	tokB, _, _ := x.fullUser()
+	x.seedQuestions(a)
+	wa, _ := x.auth(tokA, "inst-a", nil)
+	wb, _ := x.auth(tokB, "inst-b", nil)
+
+	// A completed match that B won.
+	r := x.post("/v1/challenges", tokA, map[string]any{"target_user_id": x.userOf(tokB), "match_config": quickDuel})
+	r = x.do(http.MethodPost, "/v1/challenges/"+str(r.get("id"))+"/accept", tokB, nil)
+	parent := str(r.get("match_id"))
+	leaveMatch(t, parent, wa, wb)
+	if _, err := x.db.Exec(t.Context(), `UPDATE game.matches SET status = 'completed', ended_at = now(), winner_side_no = 2, is_draw = false,
+		cancel_reason = NULL, end_reason = 'all_rounds_played' WHERE id = $1`, parent); err != nil {
+		t.Fatal(err)
+	}
+	var cat string
+	if err := x.db.QueryRow(t.Context(), `SELECT id FROM content.categories ORDER BY sort_order LIMIT 1`).Scan(&cat); err != nil {
+		t.Fatal(err)
+	}
+
+	r = x.do(http.MethodGet, "/v1/matches/"+parent, tokA, nil)
+	if r.get("revenge", "available") != true || r.get("revenge", "losses") != 1.0 {
+		t.Fatalf("loser's revenge view %s", r.raw)
+	}
+	if r := x.do(http.MethodGet, "/v1/matches/"+parent, tokB, nil); r.get("revenge", "available") != false {
+		t.Fatalf("winner's revenge view %s", r.raw)
+	}
+	path := "/v1/matches/" + parent + "/revenge"
+	want(t, "winner asks", x.post(path, tokB, map[string]any{"home_category_id": cat}), 403, "REVENGE_NOT_ALLOWED")
+	want(t, "bad category", x.post(path, tokA, map[string]any{"home_category_id": uuid.NewString()}), 400, "VALIDATION_FAILED")
+	r = x.post(path, tokA, map[string]any{"home_category_id": cat})
+	want(t, "revenge", r, 201, "")
+	id := str(r.get("id"))
+	if r.get("kind") != "revenge" || r.get("parent_match_id") != parent || r.get("target", "user_id") != x.userOf(tokB).String() {
+		t.Fatalf("revenge challenge %s", r.raw)
+	}
+	wb.find("challenge.received", func(f map[string]any) bool {
+		return f["t"] == "challenge.received" && data(f)["challenge"].(map[string]any)["id"] == id
+	})
+	want(t, "second revenge", x.post(path, tokA, map[string]any{"home_category_id": cat}), 409, "REQUEST_PENDING")
+
+	r = x.do(http.MethodPost, "/v1/challenges/"+id+"/accept", tokB, nil)
+	next := str(r.get("match_id"))
+	if r.code != 200 || next == "" {
+		t.Fatalf("accept revenge %s", r.raw)
+	}
+	r = x.do(http.MethodGet, "/v1/matches/"+next, tokA, nil)
+	if r.get("origin") != "revenge" || r.get("category_mode") != "revenge_match" || r.get("match_type") != "quick_duel" {
+		t.Fatalf("revenge match %s", r.raw)
+	}
+	leaveMatch(t, next, wa, wb)
+}

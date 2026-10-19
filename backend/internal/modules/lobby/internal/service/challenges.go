@@ -50,8 +50,10 @@ type Challenge struct {
 	TargetCoupleID     *uuid.UUID     `json:"target_couple_id,omitempty"`
 	MatchConfig        game.Config    `json:"match_config"`
 	MatchID            *uuid.UUID     `json:"match_id,omitempty"`
-	CreatedAt          time.Time      `json:"created_at"`
-	ExpiresAt          time.Time      `json:"expires_at"`
+	// ParentMatchID is the match a revenge answers.
+	ParentMatchID *uuid.UUID `json:"parent_match_id,omitempty"`
+	CreatedAt     time.Time  `json:"created_at"`
+	ExpiresAt     time.Time  `json:"expires_at"`
 }
 
 // ChallengeSent / ChallengeAccepted are the event payloads.
@@ -131,7 +133,7 @@ func (s *Service) view(ctx context.Context, rows ...sqlc.LobbyChallenge) ([]Chal
 			ID: r.ID, Kind: r.Kind, Status: r.Status, Challenger: cards[sides[i][0][0]], Target: cards[sides[i][1][0]],
 			ChallengerSide: pick(sides[i][0]), TargetSide: pick(sides[i][1]),
 			ChallengerCoupleID: r.ChallengerCoupleID, TargetCoupleID: r.TargetCoupleID,
-			MatchConfig: cfg, MatchID: r.MatchID, CreatedAt: r.CreatedAt, ExpiresAt: r.ExpiresAt,
+			MatchConfig: cfg, MatchID: r.MatchID, ParentMatchID: r.ParentMatchID, CreatedAt: r.CreatedAt, ExpiresAt: r.ExpiresAt,
 		}
 	}
 	return out, nil
@@ -377,7 +379,7 @@ func (s *Service) RespondChallenge(ctx context.Context, user, id uuid.UUID, acti
 					sides[i] = append(sides[i], game.Member{UserID: u, Locale: locales[u]})
 				}
 			}
-			req := game.CreateRequest{Config: cfg, Sides: sides, OriginRef: &row.ID}
+			req := game.CreateRequest{Config: cfg, Sides: sides, OriginRef: &row.ID, Parent: row.ParentMatchID}
 			if row.ChallengerCoupleID != nil {
 				req.Couples = [2]*uuid.UUID{row.ChallengerCoupleID, row.TargetCoupleID}
 			}

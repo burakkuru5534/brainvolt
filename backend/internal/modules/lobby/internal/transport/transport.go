@@ -81,6 +81,13 @@ func (t *Transport) Register(s *httpserver.Server) {
 		Errors: []apierror.Code{apierror.ValidationFailed, apierror.NotFound, apierror.Blocked, apierror.ChallengesDisabled, apierror.RequestPending,
 			apierror.RateLimited, apierror.ModeNotAllowed, apierror.IdempotencyKeyReused, apierror.IdempotencyInProgress},
 	}))
+	s.Handle("POST /v1/matches/{id}/revenge", t.ident.Auth(t.idem.Wrap(idempotency.Required, t.revenge)), httpserver.WithDoc(httpserver.Doc{
+		Tag: "lobby", Auth: "losing side", Idempotency: true, Status: http.StatusCreated,
+		Summary: "Revenge challenge to the winners of a completed 1v1 or couple match, with the challenger's home category (D-045)",
+		Request: RevengeRequest{}, Response: service.Challenge{},
+		Errors: []apierror.Code{apierror.ValidationFailed, apierror.MatchNotFound, apierror.RevengeNotAllowed, apierror.Blocked,
+			apierror.RequestPending, apierror.RateLimited, apierror.ModeNotAllowed, apierror.IdempotencyKeyReused, apierror.IdempotencyInProgress},
+	}))
 	s.Handle("GET /v1/challenges", t.ident.Auth(t.challenges), httpserver.WithDoc(httpserver.Doc{
 		Tag: "lobby", Auth: "any", Summary: "Pending challenges (box=in, default, or out)", Response: Challenges{},
 		Query: []httpserver.QueryParam{{Name: "box", Type: "string", Enum: []string{"in", "out"}}},
@@ -165,6 +172,27 @@ func (t *Transport) challenge(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	c, err := t.svc.Challenge(r.Context(), me(r), service.ChallengeTarget{User: req.TargetUserID, Couple: req.TargetCoupleID}, req.MatchConfig)
+	if err != nil {
+		return err
+	}
+	return httpserver.WriteJSON(w, http.StatusCreated, c)
+}
+
+// RevengeRequest is the body of POST /v1/matches/{id}/revenge.
+type RevengeRequest struct {
+	HomeCategoryID uuid.UUID `json:"home_category_id"`
+}
+
+func (t *Transport) revenge(w http.ResponseWriter, r *http.Request) error {
+	parent, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		return apierror.New(apierror.MatchNotFound)
+	}
+	var req RevengeRequest
+	if err := httpserver.DecodeJSON(r, &req); err != nil {
+		return err
+	}
+	c, err := t.svc.Revenge(r.Context(), me(r), parent, req.HomeCategoryID)
 	if err != nil {
 		return err
 	}

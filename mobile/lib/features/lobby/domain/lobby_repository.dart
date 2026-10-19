@@ -41,9 +41,13 @@ class Challenge {
     required this.matchType,
     required this.expiresAt,
     this.matchId,
+    this.kind = 'direct',
   });
 
   final String id;
+
+  /// direct / rematch / revenge.
+  final String kind;
 
   /// pending / declined / cancelled / expired / started / failed.
   final String status;
@@ -119,6 +123,9 @@ abstract interface class LobbyRepository {
   Future<List<Challenge>> challenges({required bool incoming});
 
   Future<Challenge> respondChallenge(String id, ChallengeAction action);
+
+  /// Revenge to the winners of [matchId] with a home category (D-045).
+  Future<Challenge> revenge(String matchId, String homeCategoryId);
 
   /// Creates a room hosted by the caller (who leaves a previous room).
   Future<Room> createRoom(

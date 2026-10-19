@@ -930,6 +930,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get revengeButton => 'Ask for revenge';
+
+  @override
+  String get revengePickCategory => 'Pick your home category';
+
+  @override
+  String get revengeSent => 'Revenge request sent';
+
+  @override
+  String revengeSeries(int wins, int losses) {
+    return 'Revenge series: $wins–$losses';
+  }
+
+  @override
+  String get revengeLabel => 'Revenge';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Your account is being deleted. You can only cancel the deletion.';
 

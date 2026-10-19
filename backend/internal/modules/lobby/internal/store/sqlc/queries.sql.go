@@ -469,6 +469,25 @@ func (q *Queries) PendingCoupleChallengeBetween(ctx context.Context, arg Pending
 	return exists, err
 }
 
+const pendingRevengeOf = `-- name: PendingRevengeOf :one
+SELECT EXISTS (
+  SELECT 1 FROM lobby.challenges
+  WHERE status = 'pending' AND kind = 'revenge' AND parent_match_id = $1 AND expires_at > $2
+)
+`
+
+type PendingRevengeOfParams struct {
+	ParentMatchID *uuid.UUID
+	Now           time.Time
+}
+
+func (q *Queries) PendingRevengeOf(ctx context.Context, arg PendingRevengeOfParams) (bool, error) {
+	row := q.db.QueryRow(ctx, pendingRevengeOf, arg.ParentMatchID, arg.Now)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const revokeCodes = `-- name: RevokeCodes :exec
 UPDATE lobby.invite_codes SET revoked_at = $1::timestamptz
 WHERE target_kind = $2 AND target_id = $3 AND revoked_at IS NULL

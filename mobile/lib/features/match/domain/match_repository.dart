@@ -91,6 +91,23 @@ class ResultRound {
 }
 
 /// GET /v1/matches/{id}.
+/// The caller's revenge state on a finished match (D-045).
+class RevengeInfo {
+  const RevengeInfo({
+    required this.available,
+    this.wins = 0,
+    this.losses = 0,
+    this.chain = 0,
+  });
+
+  final bool available;
+  final int wins;
+  final int losses;
+
+  /// Revenge matches so far in this series (0 for the first match).
+  final int chain;
+}
+
 class MatchResult {
   const MatchResult({
     required this.id,
@@ -104,6 +121,7 @@ class MatchResult {
     this.cancelReason,
     this.origin = '',
     this.endedAt,
+    this.revenge,
   });
 
   final String id;
@@ -119,6 +137,7 @@ class MatchResult {
   final bool isDraw;
   final String? endReason;
   final String? cancelReason;
+  final RevengeInfo? revenge;
 }
 
 abstract interface class MatchRepository {

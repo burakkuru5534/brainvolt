@@ -128,6 +128,7 @@ Standard game rules, retention periods, default limits and small details are dec
 | D-076 | Snapshots & season close (delegated) | One River **periodic job** `ranking.maintain` in the worker (every 5 min, on start too, leader only). **Snapshots:** every daily / weekly / monthly board touched (`rank:lbdirty`) is archived once its period ended — top 1 000 into `leaderboard_snapshots` with `board_key` = the Redis key without `rank:lb:` (e.g. `w:2026-W43:user:country:TR:all`); boards expire by TTL. **Season close** when `ends_at` has passed: season boards archived the same way and kept 30 days; final global ranks per entity kind by SP (ties: who reached it first); `final_rank_country` stays empty for now; soft reset RD → ≥ `reset_policy.min_rd` (150) recorded in `rating_changes` with `match_id` = the season id; the season becomes `closed` and the next one opens at the old end in the same transaction (seasons missed while the worker was down are skipped). `ranking.SeasonEnded` / `SeasonStarted` events come with their consumers (7.3) | 2026-10-20 (delegated) | 7.2 |
 | D-077 | Progression details (delegated) | **XP** per progression-formulas §5 in the worker from `game.MatchCompleted` (every origin), once per match (`progression.processed_matches`, ledger unique per source); badges add 25 / 50 / 100 by tier; level from the §5.2 curve. **Streak:** Istanbul days, leavers don't extend it, shown as 0 once a whole day was missed. **Badges** seeded in migration 12 with TR/EN texts and JSON criteria: wins 1/10/100/1 000, perfect Quick Duel 7/7 · Ranked 10/10 · Marathon 25/25, answer streak 10 in a match, play streak 3/7/30/100/365, 50/250/1 000 correct in one category, first team match, first couple win, season peak league (each league once) and season top 100 (from `ranking.SeasonEnded`, now published at season close); speed and Daily badges wait for per-answer times and Phase 8. **Quests:** 6 daily + 7 weekly definitions; 3 per period with different objectives, assigned on first read or on the first match of the period (per-user advisory lock); objectives play / win / correct answers / match type / team match / win streak (a loss resets it); leavers' matches don't count; claim grants the XP once; one free reroll per Istanbul day swaps an open quest for one not in the period. New codes `QUEST_NOT_COMPLETED`, `QUEST_ALREADY_CLAIMED`, `QUEST_REROLL_LIMIT`, `QUEST_NOT_REROLLABLE`. **match.awards** comes as two personal messages with the same `match_id` — ranking's `{sp_delta, season_points, league, division, league_up}` (ranked only) and progression's `{xp, xp_total, level, level_up, streak, badges, quests}` — pushed from the worker through realtime; `GET /v1/me/awards/{match_id}` returns progression's part for a client that missed it | 2026-10-20 (delegated) | 7.3 |
 | D-078 | Mobile progression & leaderboards (delegated) | Home shows a **progress card** (level with XP bar, play streak, league + division and SP of the current season) with shortcuts to **Leaderboards**, **Quests** and **Badges**. Leaderboards: chips for period (daily / weekly / monthly / all time / season), entity (individual / teams / couples) and scope (global / country / friends — friends only for individual boards); the caller's own row stays pinned under the list. Quests: daily and weekly cards with progress bars, "Claim" on completed ones and "Reroll" on open ones while a reroll is left. Badges: the catalogue, earned ones highlighted, the rest locked. The result screen of a completed match shows **Rewards** merged from the two `match.awards` messages (XP, level up, SP change, promotion, new badges, completed quests) and reads `GET /v1/me/awards/{id}` after 3 s if progression's part has not come | 2026-10-20 (delegated) | 7.4 |
+| D-079 | Revenge details (delegated) | `POST /v1/matches/{id}/revenge {home_category_id}` by a player of the losing side of a **completed 1v1 or Couple Contest** match (team formats rematch in rooms instead); target = the winner / winning couple; valid until the parent ended + 24 h; one pending revenge per match; only **blocks** stop it (the players just met, so `challenges_from` does not apply); counts toward the 20/h challenge cap. Accepting passes the parent to game, which copies the configuration (Ranked → Quick Duel with Ranked length, unrated) and checks R15. `GET /v1/matches/{id}` of a completed match carries `revenge {available, wins, losses, chain}` from the caller's view over the whole chain. Mobile: "Ask for revenge" on the result screen opens a category list, the series line shows from the first revenge on, challenges show "Revenge" | 2026-10-20 (delegated) | 8.1 |
 
 ---
 
@@ -382,7 +383,7 @@ Goal: players find each other — friends, blocks, direct challenges, invite cod
 ### 5.6 Tests & docs
 - [x] 5.6.1 Backend integration/e2e, mobile tests, docs, decision log
 
-## Phase 6 — Team Matches & Couple Contest  `[~]`
+## Phase 6 — Team Matches & Couple Contest  `[x]`
 Goal: 2v2, 3v3, 4v4 and couple matches played live with all three team answer modes, from rooms, challenges and matchmaking (temporary sides, parties, persistent teams, couples). The engine already implements the modes and aggregated scoring (Phase 3). Owner list: 2v2/3v3/4v4 team matches, team membership & management (Phase 5), team answer mechanics (all three modes, live), aggregated team scoring, team result screens, Couple Contest rules & flow.
 
 ### 6.1 Game
@@ -400,7 +401,7 @@ Goal: 2v2, 3v3, 4v4 and couple matches played live with all three team answer mo
 ### 6.4 Tests & docs
 - [x] 6.4.1 Backend e2e for each mode and origin, mobile tests, docs, decision log
 
-## Phase 7 — Ranked Seasons & Leaderboards  `[~]`
+## Phase 7 — Ranked Seasons & Leaderboards  `[x]`
 Goal: the four numbers of progression-formulas.md live — Glicko-2 rating (MMR), Season Points with leagues, leaderboard points on every board, XP with levels — plus play streaks, badges, quests and seasonal resets, all computed from `game.MatchCompleted` in the worker. Owner list: MMR, Season Points, XP, time / entity / scope filters, category boards, leagues Bronze → Diamond, streaks, badges, quests, seasonal resets.
 
 ### 7.1 Ranking (`ranking`)
@@ -420,24 +421,34 @@ Goal: the four numbers of progression-formulas.md live — Glicko-2 rating (MMR)
 ### 7.5 Tests & docs
 - [x] 7.5.1 Formula tests (progression-formulas §11), consumer e2e, mobile tests, docs, decision log
 
-## Phase 8 — Special Modes & Content Moderation  `[ ]`
-- [ ] Blind Challenge (full feature)
-- [ ] Category Master (full feature)
-- [ ] Mixed Battle (full feature)
-- [ ] Daily Challenge (full feature) — solo score race per D-040:
-  - [ ] Daily set publishing job (10 MC, verified TR+EN, Ranked curve)
-  - [ ] Solo run engine (`format = solo`) reusing round phases, timing and scoring
-  - [ ] Isolated persistence: `game.daily_runs`, `game.daily_run_answers`
-  - [ ] Official-attempt limit (one per day) + practice runs
-  - [ ] Failure grace: server-error / not-started voids; strict resume (≤ 2 min, clock keeps running)
-  - [ ] Daily board (`ranking.daily_challenge_entries`, `rank:daily:*`) with tie-breakers correct → total time → completion time
-  - [ ] Share card + "beat my score" notification & deep link
-  - [ ] Tests: attempt limits, tie-breakers & score encoding, disconnect/error handling (category-modes.md §9)
-- [ ] Creator Quiz (full feature incl. authoring)
-- [ ] Revenge Match (full feature)
-- [ ] Question reporting
-- [ ] Moderation tools
-- [ ] Anti-cheat checks
+## Phase 8 — Special Modes & Content Moderation  `[~]`
+Goal: every category mode as a full feature, the Daily Challenge solo race, creator quizzes, question reporting with moderation tools and the first anti-cheat checks (category-modes.md, schema-moderation.md, schema-platform.md §5–6).
+
+Blind Challenge (category hidden until reveal), Category Master (one category, same-category queues, category boards) and Mixed Battle (3 lobby categories, alternating 10 s picks) were built with the engine, matchmaking and leaderboards in Phases 3–7; their remaining checks are part of 8.6.
+
+### 8.1 Revenge Match
+- [x] 8.1.1 `POST /v1/matches/{id}/revenge` with a home category from the losing side of a completed 1v1 or couple match (24 h, one pending per match, blocks); accepting starts the revenge with the parent's configuration (R15 chain ≤ 3); the result shows revenge availability and the series score; mobile revenge button with home category picker, series line, "Revenge" label on challenges
+
+### 8.2 Daily Challenge (D-040)
+- [ ] 8.2.1 Daily set publishing job (10 MC, verified TR+EN, Ranked curve) and isolated persistence (`game.daily_runs`, `game.daily_run_answers`)
+- [ ] 8.2.2 Solo run engine (`format = solo`) on the WebSocket: official attempt once a day + practice, failure grace (void server error / not started), strict resume (≤ 2 min, clock keeps running)
+- [ ] 8.2.3 `game.DailyRunCompleted` → daily board (`ranking.daily_challenge_entries`, `rank:daily:*`, correct → total time → completion), XP / quest / streak in progression
+- [ ] 8.2.4 Mobile: daily entry on home, solo run screen, result with rank, daily board, share card + "beat my score" to friends and deep link
+
+### 8.3 Question reporting & moderation tools
+- [ ] 8.3.1 `moderation` schema: reports, cases, actions, sanctions, appeals; question reports from the result screen; moderator queue and actions (retire / fix question, warn / restrict / suspend users) over REST
+- [ ] 8.3.2 Mobile: report a question from the result screen; sanctions shown to the player
+
+### 8.4 Creator Quiz (D-044)
+- [ ] 8.4.1 `creator` schema and authoring API (5–30 questions, window 10/15/20 s), submit for review, moderation publish / reject, discovery list
+- [ ] 8.4.2 Quiz rooms and challenges (unverified: host's friends only), awards rules (author 0 XP)
+- [ ] 8.4.3 Mobile: my quizzes, editor, play in a room
+
+### 8.5 Anti-cheat
+- [ ] 8.5.1 Signals from matches (impossible response times, protocol violations, repeated server-error voids) into moderation cases
+
+### 8.6 Tests & docs
+- [ ] 8.6.1 category-modes §9 test list, docs, decision log
 
 ## Phase 9 — Polish & Production Readiness  `[ ]`
 - [ ] FCM notifications

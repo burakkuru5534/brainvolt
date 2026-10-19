@@ -97,7 +97,11 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen> {
                         ? l10n.challengeFrom(c.challenger.displayName)
                         : l10n.challengeTo(c.target.displayName),
                   ),
-                  subtitle: Text(matchTypeName(l10n, c.matchType)),
+                  subtitle: Text(
+                    c.kind == 'revenge'
+                        ? '${l10n.revengeLabel} · ${matchTypeName(l10n, c.matchType)}'
+                        : matchTypeName(l10n, c.matchType),
+                  ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: incoming

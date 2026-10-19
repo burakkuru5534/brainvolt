@@ -928,6 +928,23 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String get revengeButton => 'Rövanş iste';
+
+  @override
+  String get revengePickCategory => 'Ev sahibi kategorini seç';
+
+  @override
+  String get revengeSent => 'Rövanş isteği gönderildi';
+
+  @override
+  String revengeSeries(int wins, int losses) {
+    return 'Rövanş serisi: $wins–$losses';
+  }
+
+  @override
+  String get revengeLabel => 'Rövanş';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.';
 

@@ -105,3 +105,9 @@ LIMIT 100;
 -- A started challenge whose match was cancelled before it began.
 -- name: FailChallengeOfMatch :execrows
 UPDATE lobby.challenges SET status = 'failed' WHERE match_id = @match_id::uuid AND status = 'started';
+
+-- name: PendingRevengeOf :one
+SELECT EXISTS (
+  SELECT 1 FROM lobby.challenges
+  WHERE status = 'pending' AND kind = 'revenge' AND parent_match_id = @parent_match_id AND expires_at > @now
+);

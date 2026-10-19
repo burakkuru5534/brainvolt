@@ -1294,6 +1294,34 @@
       }
     }
   },
+  "revengeButton": "Rövanş iste",
+  "@revengeButton": {
+    "description": "Revenge button on the result screen"
+  },
+  "revengePickCategory": "Ev sahibi kategorini seç",
+  "@revengePickCategory": {
+    "description": "Revenge home category dialog title"
+  },
+  "revengeSent": "Rövanş isteği gönderildi",
+  "@revengeSent": {
+    "description": "After sending revenge"
+  },
+  "revengeSeries": "Rövanş serisi: {wins}–{losses}",
+  "@revengeSeries": {
+    "description": "Series score",
+    "placeholders": {
+      "wins": {
+        "type": "int"
+      },
+      "losses": {
+        "type": "int"
+      }
+    }
+  },
+  "revengeLabel": "Rövanş",
+  "@revengeLabel": {
+    "description": "Revenge challenge label"
+  },
   "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
   "@error_ACCOUNT_DELETION_PENDING": {
     "description": "Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md)."

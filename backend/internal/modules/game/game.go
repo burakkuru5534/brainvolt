@@ -106,6 +106,7 @@ const (
 	OriginChallenge   = domain.Challenge
 	OriginPrivateRoom = domain.PrivateRoom
 	OriginRematch     = domain.Rematch
+	OriginRevenge     = domain.Revenge
 )
 
 // SeasonProvider is implemented by ranking (Phase 7); until then ranked

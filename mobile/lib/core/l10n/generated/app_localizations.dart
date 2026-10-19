@@ -1742,6 +1742,36 @@ abstract class AppLocalizations {
   /// **'{count} görev tamamlandı'**
   String awardsQuests(int count);
 
+  /// Revenge button on the result screen
+  ///
+  /// In tr, this message translates to:
+  /// **'Rövanş iste'**
+  String get revengeButton;
+
+  /// Revenge home category dialog title
+  ///
+  /// In tr, this message translates to:
+  /// **'Ev sahibi kategorini seç'**
+  String get revengePickCategory;
+
+  /// After sending revenge
+  ///
+  /// In tr, this message translates to:
+  /// **'Rövanş isteği gönderildi'**
+  String get revengeSent;
+
+  /// Series score
+  ///
+  /// In tr, this message translates to:
+  /// **'Rövanş serisi: {wins}–{losses}'**
+  String revengeSeries(int wins, int losses);
+
+  /// Revenge challenge label
+  ///
+  /// In tr, this message translates to:
+  /// **'Rövanş'**
+  String get revengeLabel;
+
   /// Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md).
   ///
   /// In tr, this message translates to:

@@ -455,6 +455,12 @@ class FakeLobbyRepository implements LobbyRepository {
     return responded!;
   }
 
+  @override
+  Future<Challenge> revenge(String matchId, String homeCategoryId) async {
+    calls.add('revenge:$matchId:$homeCategoryId');
+    return responded!;
+  }
+
   /// What creating or joining a room gives.
   Room room1 = const Room(
     id: 'r1',
