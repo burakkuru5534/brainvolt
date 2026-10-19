@@ -10,6 +10,8 @@ import '../features/auth/presentation/email_auth_screen.dart';
 import '../features/auth/presentation/splash_screen.dart';
 import '../features/auth/presentation/verify_email_screen.dart';
 import '../features/content/presentation/credits_screen.dart';
+import '../features/creator/presentation/quiz_editor_screen.dart';
+import '../features/creator/presentation/quizzes_screen.dart';
 import '../features/daily/presentation/daily_run_screen.dart';
 import '../features/daily/presentation/daily_screen.dart';
 import '../features/home/presentation/home_screen.dart';
@@ -54,6 +56,9 @@ abstract final class Routes {
   static const badges = '/badges';
   static const daily = '/daily';
   static const sanctions = '/sanctions';
+  static const quizzes = '/quizzes';
+  static const quizNew = '/quizzes/new';
+  static String quiz(String id) => '/quizzes/$id';
   static String dailyRun(String id) => '/daily/runs/$id';
   static String room(String id) => '/rooms/$id';
   static String team(String id) => '/teams/$id';
@@ -197,6 +202,19 @@ GoRouter router(Ref ref) {
         path: '/rooms/:id',
         builder: (context, state) =>
             RoomScreen(roomId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: Routes.quizzes,
+        builder: (context, state) => const QuizzesScreen(),
+      ),
+      GoRoute(
+        path: Routes.quizNew,
+        builder: (context, state) => const QuizEditorScreen(),
+      ),
+      GoRoute(
+        path: '/quizzes/:id',
+        builder: (context, state) =>
+            QuizEditorScreen(quizId: state.pathParameters['id']),
       ),
       GoRoute(
         path: Routes.credits,

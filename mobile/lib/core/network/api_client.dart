@@ -19,6 +19,7 @@ abstract final class ApiHeaders {
   static const platform = 'X-Platform';
   static const authorization = 'Authorization';
   static const idempotencyKey = 'Idempotency-Key';
+  static const ifMatch = 'If-Match';
 }
 
 const _retriedKey = 'brainvolt_auth_retried';
@@ -122,9 +123,19 @@ class ApiClient {
     ),
   );
 
-  /// PATCH returning the decoded JSON object.
-  Future<Map<String, dynamic>> patchJson(String path, {required Object body}) =>
-      _send(() => _dio.patch<dynamic>(path, data: body));
+  /// PATCH returning the decoded JSON object; [ifMatch] is the version
+  /// the change applies to.
+  Future<Map<String, dynamic>> patchJson(
+    String path, {
+    required Object body,
+    String? ifMatch,
+  }) => _send(
+    () => _dio.patch<dynamic>(
+      path,
+      data: body,
+      options: Options(headers: {ApiHeaders.ifMatch: ?ifMatch}),
+    ),
+  );
 
   /// DELETE; null for 204 No Content.
   Future<Map<String, dynamic>?> delete(String path) =>

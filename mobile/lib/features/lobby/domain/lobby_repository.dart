@@ -90,6 +90,9 @@ class Room {
     this.teamMode,
     this.categoryMode,
     this.matchId,
+    this.creatorQuizId,
+    this.quizLength,
+    this.friendsOnly = false,
   });
 
   final String id;
@@ -106,6 +109,13 @@ class Room {
   final int capacity;
   final List<RoomMember> members;
   final String? matchId;
+
+  /// The Creator Quiz the room plays, with its length.
+  final String? creatorQuizId;
+  final int? quizLength;
+
+  /// Only the host's friends may join (an unpublished quiz, D-023).
+  final bool friendsOnly;
 
   bool get full => members.length >= capacity;
 }
@@ -127,12 +137,14 @@ abstract interface class LobbyRepository {
   /// Revenge to the winners of [matchId] with a home category (D-045).
   Future<Challenge> revenge(String matchId, String homeCategoryId);
 
-  /// Creates a room hosted by the caller (who leaves a previous room).
+  /// Creates a room hosted by the caller (who leaves a previous room);
+  /// [creatorQuizId] plays a Creator Quiz (Quick Duel).
   Future<Room> createRoom(
     MatchType type, {
     String? categoryMode,
     String format = '1v1',
     String? teamMode,
+    String? creatorQuizId,
   });
 
   /// Joins the room of an invite code.

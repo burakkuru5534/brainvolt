@@ -2042,6 +2042,270 @@ abstract class AppLocalizations {
   /// **'İtiraz reddedildi'**
   String get appealRejected;
 
+  /// Creator Quiz screen title
+  ///
+  /// In tr, this message translates to:
+  /// **'Quizler'**
+  String get quizzesTitle;
+
+  /// Tab with the caller's quizzes
+  ///
+  /// In tr, this message translates to:
+  /// **'Quizlerim'**
+  String get quizzesMine;
+
+  /// Tab with published quizzes
+  ///
+  /// In tr, this message translates to:
+  /// **'Keşfet'**
+  String get quizzesDiscover;
+
+  /// Empty my quizzes
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz bir quiz yazmadın.'**
+  String get quizzesEmptyMine;
+
+  /// Empty discovery
+  ///
+  /// In tr, this message translates to:
+  /// **'Yayında quiz yok.'**
+  String get quizzesEmptyDiscover;
+
+  /// Create quiz button
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni quiz'**
+  String get quizNew;
+
+  /// Editor title for an existing quiz
+  ///
+  /// In tr, this message translates to:
+  /// **'Quizi düzenle'**
+  String get quizEdit;
+
+  /// Quiz title field
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlık'**
+  String get quizTitleField;
+
+  /// Quiz description field
+  ///
+  /// In tr, this message translates to:
+  /// **'Açıklama (isteğe bağlı)'**
+  String get quizDescriptionField;
+
+  /// Quiz language label
+  ///
+  /// In tr, this message translates to:
+  /// **'Dil'**
+  String get quizLanguage;
+
+  /// Quiz category label
+  ///
+  /// In tr, this message translates to:
+  /// **'Kategori'**
+  String get quizCategory;
+
+  /// Answer window label
+  ///
+  /// In tr, this message translates to:
+  /// **'Cevap süresi'**
+  String get quizWindow;
+
+  /// Seconds
+  ///
+  /// In tr, this message translates to:
+  /// **'{seconds} sn'**
+  String quizSeconds(int seconds);
+
+  /// Question heading
+  ///
+  /// In tr, this message translates to:
+  /// **'Soru {n}'**
+  String quizQuestionN(int n);
+
+  /// Prompt field
+  ///
+  /// In tr, this message translates to:
+  /// **'Soru metni'**
+  String get quizPrompt;
+
+  /// Option field
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçenek {n}'**
+  String quizOptionN(int n);
+
+  /// True/false toggle
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğru / Yanlış'**
+  String get quizTrueFalse;
+
+  /// True option
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğru'**
+  String get quizTrue;
+
+  /// False option
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanlış'**
+  String get quizFalse;
+
+  /// Correct option hint
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğru cevabı daire ile işaretle.'**
+  String get quizCorrectHint;
+
+  /// Add question button
+  ///
+  /// In tr, this message translates to:
+  /// **'Soru ekle'**
+  String get quizAddQuestion;
+
+  /// Remove question tooltip
+  ///
+  /// In tr, this message translates to:
+  /// **'Soruyu sil'**
+  String get quizRemoveQuestion;
+
+  /// Save quiz
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydet'**
+  String get quizSave;
+
+  /// Saved snack
+  ///
+  /// In tr, this message translates to:
+  /// **'Quiz kaydedildi.'**
+  String get quizSaved;
+
+  /// Client validation
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlık 3–60 karakter olmalı ve her soru ile seçenek dolu olmalı.'**
+  String get quizInvalid;
+
+  /// Question count rule
+  ///
+  /// In tr, this message translates to:
+  /// **'{min}–{max} soru gerekli.'**
+  String quizCountRule(int min, int max);
+
+  /// Status
+  ///
+  /// In tr, this message translates to:
+  /// **'Taslak'**
+  String get quizStatusDraft;
+
+  /// Status
+  ///
+  /// In tr, this message translates to:
+  /// **'İncelemede'**
+  String get quizStatusSubmitted;
+
+  /// Status
+  ///
+  /// In tr, this message translates to:
+  /// **'Yayında'**
+  String get quizStatusPublished;
+
+  /// Status
+  ///
+  /// In tr, this message translates to:
+  /// **'Reddedildi'**
+  String get quizStatusRejected;
+
+  /// Status
+  ///
+  /// In tr, this message translates to:
+  /// **'Yayından kaldırıldı'**
+  String get quizStatusUnpublished;
+
+  /// Submit action
+  ///
+  /// In tr, this message translates to:
+  /// **'İncelemeye gönder'**
+  String get quizSubmit;
+
+  /// Submitted snack
+  ///
+  /// In tr, this message translates to:
+  /// **'Quiz incelemeye gönderildi.'**
+  String get quizSubmitted;
+
+  /// Delete action
+  ///
+  /// In tr, this message translates to:
+  /// **'Sil'**
+  String get quizDelete;
+
+  /// Delete confirmation
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu quiz silinsin mi?'**
+  String get quizDeleteConfirm;
+
+  /// Create a room with the quiz
+  ///
+  /// In tr, this message translates to:
+  /// **'Odada oyna'**
+  String get quizPlayInRoom;
+
+  /// Quiz list subtitle
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} soru · {author}'**
+  String quizMeta(int count, String author);
+
+  /// Quiz stats
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} beğeni · {plays} oyun'**
+  String quizLikes(int count, int plays);
+
+  /// Like tooltip
+  ///
+  /// In tr, this message translates to:
+  /// **'Beğen'**
+  String get quizLike;
+
+  /// Rejection reason
+  ///
+  /// In tr, this message translates to:
+  /// **'Red sebebi: {reason}'**
+  String quizRejectedReason(String reason);
+
+  /// Unpublished play note
+  ///
+  /// In tr, this message translates to:
+  /// **'Yayında olmayan quiz yalnızca arkadaşlarınla oynanır ve ödül vermez.'**
+  String get quizUnpublishedNote;
+
+  /// Room subtitle for a quiz room
+  ///
+  /// In tr, this message translates to:
+  /// **'Quiz · {count} soru'**
+  String roomQuiz(int count);
+
+  /// Friends-only room note
+  ///
+  /// In tr, this message translates to:
+  /// **'Yalnızca ev sahibinin arkadaşları katılabilir.'**
+  String get roomFriendsOnly;
+
+  /// Home button to quizzes
+  ///
+  /// In tr, this message translates to:
+  /// **'Quizler'**
+  String get homeQuizzes;
+
   /// Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md).
   ///
   /// In tr, this message translates to:

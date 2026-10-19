@@ -179,6 +179,13 @@ class HomeScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
+                      key: const Key('open-quizzes'),
+                      icon: const Icon(Icons.edit_note),
+                      onPressed: () => context.push(Routes.quizzes),
+                      label: Text(l10n.homeQuizzes),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
                       key: const Key('open-teams'),
                       icon: const Icon(Icons.groups),
                       onPressed: () => context.push(Routes.teams),

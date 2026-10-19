@@ -1528,6 +1528,231 @@
   "@appealRejected": {
     "description": "Appeal status"
   },
+  "quizzesTitle": "Quizler",
+  "@quizzesTitle": {
+    "description": "Creator Quiz screen title"
+  },
+  "quizzesMine": "Quizlerim",
+  "@quizzesMine": {
+    "description": "Tab with the caller's quizzes"
+  },
+  "quizzesDiscover": "Keşfet",
+  "@quizzesDiscover": {
+    "description": "Tab with published quizzes"
+  },
+  "quizzesEmptyMine": "Henüz bir quiz yazmadın.",
+  "@quizzesEmptyMine": {
+    "description": "Empty my quizzes"
+  },
+  "quizzesEmptyDiscover": "Yayında quiz yok.",
+  "@quizzesEmptyDiscover": {
+    "description": "Empty discovery"
+  },
+  "quizNew": "Yeni quiz",
+  "@quizNew": {
+    "description": "Create quiz button"
+  },
+  "quizEdit": "Quizi düzenle",
+  "@quizEdit": {
+    "description": "Editor title for an existing quiz"
+  },
+  "quizTitleField": "Başlık",
+  "@quizTitleField": {
+    "description": "Quiz title field"
+  },
+  "quizDescriptionField": "Açıklama (isteğe bağlı)",
+  "@quizDescriptionField": {
+    "description": "Quiz description field"
+  },
+  "quizLanguage": "Dil",
+  "@quizLanguage": {
+    "description": "Quiz language label"
+  },
+  "quizCategory": "Kategori",
+  "@quizCategory": {
+    "description": "Quiz category label"
+  },
+  "quizWindow": "Cevap süresi",
+  "@quizWindow": {
+    "description": "Answer window label"
+  },
+  "quizSeconds": "{seconds} sn",
+  "@quizSeconds": {
+    "description": "Seconds",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "quizQuestionN": "Soru {n}",
+  "@quizQuestionN": {
+    "description": "Question heading",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "quizPrompt": "Soru metni",
+  "@quizPrompt": {
+    "description": "Prompt field"
+  },
+  "quizOptionN": "Seçenek {n}",
+  "@quizOptionN": {
+    "description": "Option field",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "quizTrueFalse": "Doğru / Yanlış",
+  "@quizTrueFalse": {
+    "description": "True/false toggle"
+  },
+  "quizTrue": "Doğru",
+  "@quizTrue": {
+    "description": "True option"
+  },
+  "quizFalse": "Yanlış",
+  "@quizFalse": {
+    "description": "False option"
+  },
+  "quizCorrectHint": "Doğru cevabı daire ile işaretle.",
+  "@quizCorrectHint": {
+    "description": "Correct option hint"
+  },
+  "quizAddQuestion": "Soru ekle",
+  "@quizAddQuestion": {
+    "description": "Add question button"
+  },
+  "quizRemoveQuestion": "Soruyu sil",
+  "@quizRemoveQuestion": {
+    "description": "Remove question tooltip"
+  },
+  "quizSave": "Kaydet",
+  "@quizSave": {
+    "description": "Save quiz"
+  },
+  "quizSaved": "Quiz kaydedildi.",
+  "@quizSaved": {
+    "description": "Saved snack"
+  },
+  "quizInvalid": "Başlık 3–60 karakter olmalı ve her soru ile seçenek dolu olmalı.",
+  "@quizInvalid": {
+    "description": "Client validation"
+  },
+  "quizCountRule": "{min}–{max} soru gerekli.",
+  "@quizCountRule": {
+    "description": "Question count rule",
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "quizStatusDraft": "Taslak",
+  "@quizStatusDraft": {
+    "description": "Status"
+  },
+  "quizStatusSubmitted": "İncelemede",
+  "@quizStatusSubmitted": {
+    "description": "Status"
+  },
+  "quizStatusPublished": "Yayında",
+  "@quizStatusPublished": {
+    "description": "Status"
+  },
+  "quizStatusRejected": "Reddedildi",
+  "@quizStatusRejected": {
+    "description": "Status"
+  },
+  "quizStatusUnpublished": "Yayından kaldırıldı",
+  "@quizStatusUnpublished": {
+    "description": "Status"
+  },
+  "quizSubmit": "İncelemeye gönder",
+  "@quizSubmit": {
+    "description": "Submit action"
+  },
+  "quizSubmitted": "Quiz incelemeye gönderildi.",
+  "@quizSubmitted": {
+    "description": "Submitted snack"
+  },
+  "quizDelete": "Sil",
+  "@quizDelete": {
+    "description": "Delete action"
+  },
+  "quizDeleteConfirm": "Bu quiz silinsin mi?",
+  "@quizDeleteConfirm": {
+    "description": "Delete confirmation"
+  },
+  "quizPlayInRoom": "Odada oyna",
+  "@quizPlayInRoom": {
+    "description": "Create a room with the quiz"
+  },
+  "quizMeta": "{count} soru · {author}",
+  "@quizMeta": {
+    "description": "Quiz list subtitle",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "author": {
+        "type": "String"
+      }
+    }
+  },
+  "quizLikes": "{count} beğeni · {plays} oyun",
+  "@quizLikes": {
+    "description": "Quiz stats",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "plays": {
+        "type": "int"
+      }
+    }
+  },
+  "quizLike": "Beğen",
+  "@quizLike": {
+    "description": "Like tooltip"
+  },
+  "quizRejectedReason": "Red sebebi: {reason}",
+  "@quizRejectedReason": {
+    "description": "Rejection reason",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "quizUnpublishedNote": "Yayında olmayan quiz yalnızca arkadaşlarınla oynanır ve ödül vermez.",
+  "@quizUnpublishedNote": {
+    "description": "Unpublished play note"
+  },
+  "roomQuiz": "Quiz · {count} soru",
+  "@roomQuiz": {
+    "description": "Room subtitle for a quiz room",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "roomFriendsOnly": "Yalnızca ev sahibinin arkadaşları katılabilir.",
+  "@roomFriendsOnly": {
+    "description": "Friends-only room note"
+  },
+  "homeQuizzes": "Quizler",
+  "@homeQuizzes": {
+    "description": "Home button to quizzes"
+  },
   "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
   "@error_ACCOUNT_DELETION_PENDING": {
     "description": "Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md)."

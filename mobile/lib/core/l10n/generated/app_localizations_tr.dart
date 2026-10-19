@@ -1089,6 +1089,157 @@ class AppLocalizationsTr extends AppLocalizations {
   String get appealRejected => 'İtiraz reddedildi';
 
   @override
+  String get quizzesTitle => 'Quizler';
+
+  @override
+  String get quizzesMine => 'Quizlerim';
+
+  @override
+  String get quizzesDiscover => 'Keşfet';
+
+  @override
+  String get quizzesEmptyMine => 'Henüz bir quiz yazmadın.';
+
+  @override
+  String get quizzesEmptyDiscover => 'Yayında quiz yok.';
+
+  @override
+  String get quizNew => 'Yeni quiz';
+
+  @override
+  String get quizEdit => 'Quizi düzenle';
+
+  @override
+  String get quizTitleField => 'Başlık';
+
+  @override
+  String get quizDescriptionField => 'Açıklama (isteğe bağlı)';
+
+  @override
+  String get quizLanguage => 'Dil';
+
+  @override
+  String get quizCategory => 'Kategori';
+
+  @override
+  String get quizWindow => 'Cevap süresi';
+
+  @override
+  String quizSeconds(int seconds) {
+    return '$seconds sn';
+  }
+
+  @override
+  String quizQuestionN(int n) {
+    return 'Soru $n';
+  }
+
+  @override
+  String get quizPrompt => 'Soru metni';
+
+  @override
+  String quizOptionN(int n) {
+    return 'Seçenek $n';
+  }
+
+  @override
+  String get quizTrueFalse => 'Doğru / Yanlış';
+
+  @override
+  String get quizTrue => 'Doğru';
+
+  @override
+  String get quizFalse => 'Yanlış';
+
+  @override
+  String get quizCorrectHint => 'Doğru cevabı daire ile işaretle.';
+
+  @override
+  String get quizAddQuestion => 'Soru ekle';
+
+  @override
+  String get quizRemoveQuestion => 'Soruyu sil';
+
+  @override
+  String get quizSave => 'Kaydet';
+
+  @override
+  String get quizSaved => 'Quiz kaydedildi.';
+
+  @override
+  String get quizInvalid =>
+      'Başlık 3–60 karakter olmalı ve her soru ile seçenek dolu olmalı.';
+
+  @override
+  String quizCountRule(int min, int max) {
+    return '$min–$max soru gerekli.';
+  }
+
+  @override
+  String get quizStatusDraft => 'Taslak';
+
+  @override
+  String get quizStatusSubmitted => 'İncelemede';
+
+  @override
+  String get quizStatusPublished => 'Yayında';
+
+  @override
+  String get quizStatusRejected => 'Reddedildi';
+
+  @override
+  String get quizStatusUnpublished => 'Yayından kaldırıldı';
+
+  @override
+  String get quizSubmit => 'İncelemeye gönder';
+
+  @override
+  String get quizSubmitted => 'Quiz incelemeye gönderildi.';
+
+  @override
+  String get quizDelete => 'Sil';
+
+  @override
+  String get quizDeleteConfirm => 'Bu quiz silinsin mi?';
+
+  @override
+  String get quizPlayInRoom => 'Odada oyna';
+
+  @override
+  String quizMeta(int count, String author) {
+    return '$count soru · $author';
+  }
+
+  @override
+  String quizLikes(int count, int plays) {
+    return '$count beğeni · $plays oyun';
+  }
+
+  @override
+  String get quizLike => 'Beğen';
+
+  @override
+  String quizRejectedReason(String reason) {
+    return 'Red sebebi: $reason';
+  }
+
+  @override
+  String get quizUnpublishedNote =>
+      'Yayında olmayan quiz yalnızca arkadaşlarınla oynanır ve ödül vermez.';
+
+  @override
+  String roomQuiz(int count) {
+    return 'Quiz · $count soru';
+  }
+
+  @override
+  String get roomFriendsOnly =>
+      'Yalnızca ev sahibinin arkadaşları katılabilir.';
+
+  @override
+  String get homeQuizzes => 'Quizler';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.';
 

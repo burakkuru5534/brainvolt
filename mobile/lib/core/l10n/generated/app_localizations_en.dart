@@ -1091,6 +1091,156 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appealRejected => 'Appeal rejected';
 
   @override
+  String get quizzesTitle => 'Quizzes';
+
+  @override
+  String get quizzesMine => 'My quizzes';
+
+  @override
+  String get quizzesDiscover => 'Discover';
+
+  @override
+  String get quizzesEmptyMine => 'You haven\'t written a quiz yet.';
+
+  @override
+  String get quizzesEmptyDiscover => 'No published quizzes yet.';
+
+  @override
+  String get quizNew => 'New quiz';
+
+  @override
+  String get quizEdit => 'Edit quiz';
+
+  @override
+  String get quizTitleField => 'Title';
+
+  @override
+  String get quizDescriptionField => 'Description (optional)';
+
+  @override
+  String get quizLanguage => 'Language';
+
+  @override
+  String get quizCategory => 'Category';
+
+  @override
+  String get quizWindow => 'Answer time';
+
+  @override
+  String quizSeconds(int seconds) {
+    return '$seconds s';
+  }
+
+  @override
+  String quizQuestionN(int n) {
+    return 'Question $n';
+  }
+
+  @override
+  String get quizPrompt => 'Question';
+
+  @override
+  String quizOptionN(int n) {
+    return 'Option $n';
+  }
+
+  @override
+  String get quizTrueFalse => 'True / False';
+
+  @override
+  String get quizTrue => 'True';
+
+  @override
+  String get quizFalse => 'False';
+
+  @override
+  String get quizCorrectHint => 'Mark the correct answer with the circle.';
+
+  @override
+  String get quizAddQuestion => 'Add question';
+
+  @override
+  String get quizRemoveQuestion => 'Remove question';
+
+  @override
+  String get quizSave => 'Save';
+
+  @override
+  String get quizSaved => 'Quiz saved.';
+
+  @override
+  String get quizInvalid =>
+      'The title needs 3–60 characters and every question and option must be filled in.';
+
+  @override
+  String quizCountRule(int min, int max) {
+    return '$min–$max questions are needed.';
+  }
+
+  @override
+  String get quizStatusDraft => 'Draft';
+
+  @override
+  String get quizStatusSubmitted => 'In review';
+
+  @override
+  String get quizStatusPublished => 'Published';
+
+  @override
+  String get quizStatusRejected => 'Rejected';
+
+  @override
+  String get quizStatusUnpublished => 'Unpublished';
+
+  @override
+  String get quizSubmit => 'Send to review';
+
+  @override
+  String get quizSubmitted => 'Quiz sent to review.';
+
+  @override
+  String get quizDelete => 'Delete';
+
+  @override
+  String get quizDeleteConfirm => 'Delete this quiz?';
+
+  @override
+  String get quizPlayInRoom => 'Play in a room';
+
+  @override
+  String quizMeta(int count, String author) {
+    return '$count questions · $author';
+  }
+
+  @override
+  String quizLikes(int count, int plays) {
+    return '$count likes · $plays plays';
+  }
+
+  @override
+  String get quizLike => 'Like';
+
+  @override
+  String quizRejectedReason(String reason) {
+    return 'Rejected: $reason';
+  }
+
+  @override
+  String get quizUnpublishedNote =>
+      'An unpublished quiz is played with your friends only and gives no rewards.';
+
+  @override
+  String roomQuiz(int count) {
+    return 'Quiz · $count questions';
+  }
+
+  @override
+  String get roomFriendsOnly => 'Only the host\'s friends can join.';
+
+  @override
+  String get homeQuizzes => 'Quizzes';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Your account is being deleted. You can only cancel the deletion.';
 

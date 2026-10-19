@@ -236,6 +236,8 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
               matchTypeName(l10n, room.matchType),
               formatName(l10n, room.format),
               if (room.teamMode case final m?) teamModeName(l10n, m),
+              if (room.quizLength case final n? when room.creatorQuizId != null)
+                l10n.roomQuiz(n),
             ].join(' · '),
           ),
           trailing: IconButton(
@@ -249,6 +251,13 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
             },
           ),
         ),
+        if (room.friendsOnly)
+          ListTile(
+            key: const Key('room-friends-only'),
+            leading: const Icon(Icons.lock_outline),
+            title: Text(l10n.roomFriendsOnly),
+            subtitle: Text(l10n.quizUnpublishedNote),
+          ),
         for (var side = 1; side <= 2; side++) ...[
           Padding(
             padding: const EdgeInsets.only(top: 16, bottom: 4),

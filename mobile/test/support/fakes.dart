@@ -13,6 +13,8 @@ import 'package:brainvolt/features/auth/domain/session_repository.dart';
 import 'package:brainvolt/features/content/data/content_providers.dart';
 import 'package:brainvolt/features/content/domain/content_repository.dart';
 import 'package:brainvolt/features/content/domain/credit.dart';
+import 'package:brainvolt/features/creator/data/creator_providers.dart';
+import 'package:brainvolt/features/creator/domain/creator_repository.dart';
 import 'package:brainvolt/features/daily/data/daily_providers.dart';
 import 'package:brainvolt/features/daily/domain/daily_repository.dart';
 import 'package:brainvolt/features/lobby/data/lobby_providers.dart';
@@ -483,9 +485,12 @@ class FakeLobbyRepository implements LobbyRepository {
     String? categoryMode,
     String format = '1v1',
     String? teamMode,
+    String? creatorQuizId,
   }) async {
     calls.add(
-      format == '1v1'
+      creatorQuizId != null
+          ? 'createRoom:${type.wire}:quiz:$creatorQuizId'
+          : format == '1v1'
           ? 'createRoom:${type.wire}'
           : 'createRoom:${type.wire}:$format:$teamMode',
     );
@@ -698,6 +703,67 @@ class FakeModerationRepository implements ModerationRepository {
       appeals.add('$sanctionId:$text');
 }
 
+class FakeCreatorRepository implements CreatorRepository {
+  final calls = <String>[];
+  List<Quiz> quizzes = [];
+  List<Quiz> published = [];
+
+  /// The last draft sent.
+  QuizDraft? saved;
+
+  @override
+  Future<List<Quiz>> mine() async => quizzes;
+
+  @override
+  Future<List<Quiz>> discover({String? locale}) async => published;
+
+  @override
+  Future<Quiz> quiz(String id) async =>
+      [...quizzes, ...published].firstWhere((q) => q.id == id);
+
+  @override
+  Future<Quiz> create(QuizDraft draft) async {
+    saved = draft;
+    calls.add('create:${draft.title}:${draft.questions.length}');
+    final q = Quiz(
+      id: 'quiz-${quizzes.length + 1}',
+      title: draft.title,
+      locale: draft.locale,
+      answerWindowMs: draft.answerWindowMs,
+      questionCount: draft.questions.length,
+      status: 'draft',
+      version: 1,
+      categoryId: draft.categoryId,
+      questions: draft.questions,
+    );
+    quizzes = [...quizzes, q];
+    return q;
+  }
+
+  @override
+  Future<Quiz> update(String id, int version, QuizDraft draft) async {
+    saved = draft;
+    calls.add('update:$id:$version:${draft.questions.length}');
+    return quiz(id);
+  }
+
+  @override
+  Future<void> delete(String id) async {
+    calls.add('delete:$id');
+    quizzes = quizzes.where((q) => q.id != id).toList();
+  }
+
+  @override
+  Future<Quiz> submit(String id) async {
+    calls.add('submit:$id');
+    return quiz(id);
+  }
+
+  @override
+  Future<void> like(String id, {required bool like}) async =>
+      calls.add('like:$id:$like');
+}
+
 class FakeSocket implements SocketConnection {
   final _in = StreamController<dynamic>();
   final sent = <Map<String, dynamic>>[];
@@ -751,6 +817,7 @@ class TestApp {
     this.progress,
     this.daily,
     this.moderation,
+    this.creator,
   );
 
   /// [ageConfirmed] skips the age gate; [user] is an already signed-in user.
@@ -774,6 +841,7 @@ class TestApp {
     final progress = FakeProgressRepository();
     final daily = FakeDailyRepository();
     final moderation = FakeModerationRepository();
+    final creator = FakeCreatorRepository();
     final sockets = <FakeSocket>[];
     final container = ProviderContainer(
       retry: noRetry,
@@ -798,6 +866,7 @@ class TestApp {
         progressRepositoryProvider.overrideWithValue(progress),
         dailyRepositoryProvider.overrideWithValue(daily),
         moderationRepositoryProvider.overrideWithValue(moderation),
+        creatorRepositoryProvider.overrideWithValue(creator),
         realtimeClientProvider.overrideWith((ref) {
           final client = RealtimeClient(
             url: Uri.parse('ws://test/v1/ws'),
@@ -829,6 +898,7 @@ class TestApp {
       progress,
       daily,
       moderation,
+      creator,
     );
   }
 
@@ -841,6 +911,7 @@ class TestApp {
   final FakeProgressRepository progress;
   final FakeDailyRepository daily;
   final FakeModerationRepository moderation;
+  final FakeCreatorRepository creator;
 
   /// Every WebSocket the app opened, newest last.
   final List<FakeSocket> sockets;
