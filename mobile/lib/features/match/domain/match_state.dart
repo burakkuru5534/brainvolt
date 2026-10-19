@@ -99,6 +99,9 @@ class RoundState {
     this.correctOptionId,
     this.explanation,
     this.revealed = const {},
+    this.answering = const {},
+    this.proposals = const {},
+    this.sideCorrect = const {},
   });
 
   final int roundNo;
@@ -121,6 +124,15 @@ class RoundState {
   final String? explanation;
   final Map<String, RevealedAnswer> revealed;
 
+  /// Who may answer this round (Individual Turns: the turn holders).
+  final Set<String> answering;
+
+  /// Shared Answer: the own side's latest proposal per teammate.
+  final Map<String, String> proposals;
+
+  /// Revealed: whether each side (1, 2) was correct.
+  final Map<int, bool> sideCorrect;
+
   RoundState copyWith({
     String? myOptionId,
     Set<String>? answered,
@@ -129,6 +141,8 @@ class RoundState {
     String? explanation,
     Map<String, RevealedAnswer>? revealed,
     String? category,
+    Map<String, String>? proposals,
+    Map<int, bool>? sideCorrect,
   }) => RoundState(
     roundNo: roundNo,
     prompt: prompt,
@@ -142,6 +156,9 @@ class RoundState {
     correctOptionId: correctOptionId ?? this.correctOptionId,
     explanation: explanation ?? this.explanation,
     revealed: revealed ?? this.revealed,
+    answering: answering,
+    proposals: proposals ?? this.proposals,
+    sideCorrect: sideCorrect ?? this.sideCorrect,
   );
 }
 
@@ -173,6 +190,8 @@ class MatchState {
     required this.matchId,
     required this.myUserId,
     this.matchType = '',
+    this.format = '1v1',
+    this.teamMode,
     this.phase = MatchPhase.waiting,
     this.questionCount = 0,
     this.readyDeadlineAt = 0,
@@ -194,6 +213,12 @@ class MatchState {
 
   /// quick_duel / ranked / sudden_death / marathon ('' until known).
   final String matchType;
+
+  /// 1v1 / 2v2 / 3v3 / 4v4 / couple.
+  final String format;
+
+  /// shared_answer / individual_turns / fast_team_round (team formats).
+  final String? teamMode;
   final MatchPhase phase;
   final int questionCount;
   final int readyDeadlineAt;
@@ -217,6 +242,10 @@ class MatchState {
 
   Player? get me => players.where((p) => p.userId == myUserId).firstOrNull;
   Player? get opponent => players.where((p) => p.side != mySide).firstOrNull;
+  bool get isTeam => format != '1v1';
+  bool get sharedAnswer => teamMode == 'shared_answer';
+  List<Player> sidePlayers(int side) =>
+      players.where((p) => p.side == side).toList();
   int get mySide => me?.side ?? 1;
   int get myScore => scores[mySide - 1];
   int get opponentScore => scores[2 - mySide];
@@ -225,6 +254,8 @@ class MatchState {
 
   MatchState copyWith({
     String? matchType,
+    String? format,
+    String? teamMode,
     MatchPhase? phase,
     int? questionCount,
     int? readyDeadlineAt,
@@ -245,6 +276,8 @@ class MatchState {
     matchId: matchId,
     myUserId: myUserId,
     matchType: matchType ?? this.matchType,
+    format: format ?? this.format,
+    teamMode: teamMode ?? this.teamMode,
     phase: phase ?? this.phase,
     questionCount: questionCount ?? this.questionCount,
     readyDeadlineAt: readyDeadlineAt ?? this.readyDeadlineAt,

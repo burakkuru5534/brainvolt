@@ -38,9 +38,20 @@ RoundState _round(Map<String, dynamic> d) {
     ],
     showAt: _int(d['show_at']),
     deadlineAt: _int(d['deadline_at']),
-    myOptionId: _str(d['own_option_id']),
+    myOptionId: _str(d['locked_option_id']) ?? _str(d['own_option_id']),
+    answering: _ids(d['answering_user_ids']),
+    answered: _ids(d['answered_user_ids']),
+    proposals: _proposals(d['proposals']),
   );
 }
+
+Set<String> _ids(Object? v) => {
+  for (final id in (v as List?) ?? const []) id as String,
+};
+
+Map<String, String> _proposals(Object? v) => {
+  for (final p in _maps(v)) p['user_id'] as String: p['option_id'] as String,
+};
 
 MatchPhase _phaseOf(String? status, String? phase) => switch (status) {
   'waiting' => MatchPhase.waiting,
@@ -77,6 +88,8 @@ MatchState reduce(MatchState s, ServerFrame f) {
     case 'match.created':
       return s.copyWith(
         matchType: _str(d['match_type']),
+        format: _str(d['format']),
+        teamMode: _str(d['team_answer_mode']),
         phase: MatchPhase.waiting,
         questionCount: _int(d['question_count']),
         readyDeadlineAt: _int(d['ready_deadline_at']),
@@ -92,6 +105,8 @@ MatchState reduce(MatchState s, ServerFrame f) {
         matchId: s.matchId,
         myUserId: s.myUserId,
         matchType: _str(d['match_type']) ?? s.matchType,
+        format: _str(d['format']) ?? s.format,
+        teamMode: _str(d['team_answer_mode']) ?? s.teamMode,
         phase: _phaseOf(_str(d['status']), _str(d['phase'])),
         questionCount: _int(d['question_count']),
         readyDeadlineAt: _int(d['ready_deadline_at']),
@@ -150,11 +165,23 @@ MatchState reduce(MatchState s, ServerFrame f) {
         return s;
       }
       final user = d['user_id'] as String;
+      // A Shared Answer lock carries the option to the whole side.
+      final sideLock = d['locked'] == true && d['option_id'] != null;
       return s.copyWith(
         round: r.copyWith(
           answered: {...r.answered, user},
-          myOptionId: user == s.myUserId ? _str(d['option_id']) : null,
+          myOptionId: user == s.myUserId || sideLock
+              ? _str(d['option_id'])
+              : null,
         ),
+      );
+    case 'round.proposals':
+      final r = s.round;
+      if (r == null || d['redacted'] == true) {
+        return s;
+      }
+      return s.copyWith(
+        round: r.copyWith(proposals: _proposals(d['proposals'])),
       );
     case 'round.locked':
       final r = s.round;
@@ -165,8 +192,10 @@ MatchState reduce(MatchState s, ServerFrame f) {
         return s;
       }
       final scores = List.of(s.scores);
+      final sideCorrect = <int, bool>{};
       for (final side in _maps(d['sides'])) {
         scores[_int(side['side_no']) - 1] = _int(side['score']);
+        sideCorrect[_int(side['side_no'])] = side['correct'] == true;
       }
       final cat = (d['category'] as Map?)?.cast<String, dynamic>();
       return s.copyWith(
@@ -177,6 +206,7 @@ MatchState reduce(MatchState s, ServerFrame f) {
           correctOptionId: _str(d['correct_option_id']),
           explanation: _str(d['explanation']),
           category: _str(cat?['name']),
+          sideCorrect: sideCorrect,
           revealed: {
             for (final a in _maps(d['answers']))
               a['user_id'] as String: RevealedAnswer(

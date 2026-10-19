@@ -719,6 +719,53 @@ class AppLocalizationsTr extends AppLocalizations {
   String get pickFriend => 'Arkadaş seç';
 
   @override
+  String get yourTeam => 'Takımın';
+
+  @override
+  String get opponentsTeam => 'Rakipler';
+
+  @override
+  String get lockAnswer => 'Cevabı kilitle';
+
+  @override
+  String get yourTurn => 'Sıra sende';
+
+  @override
+  String turnOf(String name) {
+    return 'Sıra: $name';
+  }
+
+  @override
+  String get formatLabel => 'Format';
+
+  @override
+  String get formatCouple => 'Çift';
+
+  @override
+  String get teamModeLabel => 'Takım modu';
+
+  @override
+  String get teamModeShared => 'Ortak Cevap';
+
+  @override
+  String get teamModeTurns => 'Sırayla';
+
+  @override
+  String get teamModeFast => 'Hızlı Takım Turu';
+
+  @override
+  String get partyLabel => 'Grubun';
+
+  @override
+  String get pickParty => 'Arkadaşlarını seç';
+
+  @override
+  String get playAsTeam => 'Takımımla oyna';
+
+  @override
+  String get noTeam => 'Takımsız';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.';
 

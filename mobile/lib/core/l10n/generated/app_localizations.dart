@@ -1388,6 +1388,96 @@ abstract class AppLocalizations {
   /// **'Arkadaş seç'**
   String get pickFriend;
 
+  /// Team scoreboard: own side.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takımın'**
+  String get yourTeam;
+
+  /// Team scoreboard: other side.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rakipler'**
+  String get opponentsTeam;
+
+  /// Shared Answer: lock the side's answer.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cevabı kilitle'**
+  String get lockAnswer;
+
+  /// Individual Turns: the player answers.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıra sende'**
+  String get yourTurn;
+
+  /// Individual Turns: a teammate answers.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıra: {name}'**
+  String turnOf(String name);
+
+  /// Picker: format.
+  ///
+  /// In tr, this message translates to:
+  /// **'Format'**
+  String get formatLabel;
+
+  /// Couple format name.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çift'**
+  String get formatCouple;
+
+  /// Picker: team answer mode.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takım modu'**
+  String get teamModeLabel;
+
+  /// Team answer mode name.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ortak Cevap'**
+  String get teamModeShared;
+
+  /// Team answer mode name.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sırayla'**
+  String get teamModeTurns;
+
+  /// Team answer mode name.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hızlı Takım Turu'**
+  String get teamModeFast;
+
+  /// Queue: friends playing on the player's side.
+  ///
+  /// In tr, this message translates to:
+  /// **'Grubun'**
+  String get partyLabel;
+
+  /// Queue: choose party members.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşlarını seç'**
+  String get pickParty;
+
+  /// Queue: play as a persistent team.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takımımla oyna'**
+  String get playAsTeam;
+
+  /// Queue: no persistent team.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takımsız'**
+  String get noTeam;
+
   /// Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md).
   ///
   /// In tr, this message translates to:

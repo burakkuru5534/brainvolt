@@ -7,6 +7,7 @@ import '../../../app/router.dart';
 import '../../../app/session_controller.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../lobby/presentation/room_controller.dart';
+import '../../profile/domain/avatars.dart';
 import '../data/match_providers.dart';
 import '../domain/match_repository.dart';
 import 'play_controllers.dart';
@@ -78,6 +79,7 @@ class ResultScreen extends ConsumerWidget {
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.displaySmall,
         ),
+        if (r.players.length > 2) _TeamLines(result: r, mySide: mySide),
         if (r.status == 'completed' &&
             r.origin != 'private_room' &&
             (r.endedAt
@@ -165,6 +167,41 @@ class _Rematch extends ConsumerWidget {
               ],
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Team matches: each side's players with their correct answers.
+class _TeamLines extends StatelessWidget {
+  const _TeamLines({required this.result, required this.mySide});
+
+  final MatchResult result;
+  final int mySide;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    Widget column(int side, String title) => Expanded(
+      child: Column(
+        children: [
+          Text(title, style: Theme.of(context).textTheme.titleSmall),
+          for (final p in result.players.where((p) => p.side == side))
+            Text(
+              '${avatarFor(p.avatarId)} ${p.displayName} · ${p.correct}',
+              key: Key('result-player-${p.userId}'),
+            ),
+        ],
+      ),
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          column(mySide, l10n.yourTeam),
+          column(3 - mySide, l10n.opponentsTeam),
         ],
       ),
     );

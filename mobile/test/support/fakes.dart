@@ -345,7 +345,8 @@ class FakeMatchRepository implements MatchRepository {
           ? 'enqueue:practice'
           : mode.isDefault
           ? 'enqueue'
-          : 'enqueue:${mode.matchType}:${mode.categoryMode}:${mode.categoryId}',
+          : 'enqueue:${mode.matchType}:${mode.format}:${mode.categoryMode}:'
+                '${mode.categoryId}:${mode.partyUserIds.join(',')}:${mode.teamId}',
     );
     return ticket;
   }
@@ -465,8 +466,17 @@ class FakeLobbyRepository implements LobbyRepository {
   );
 
   @override
-  Future<Room> createRoom(MatchType type, {String? categoryMode}) async {
-    calls.add('createRoom:${type.wire}');
+  Future<Room> createRoom(
+    MatchType type, {
+    String? categoryMode,
+    String format = '1v1',
+    String? teamMode,
+  }) async {
+    calls.add(
+      format == '1v1'
+          ? 'createRoom:${type.wire}'
+          : 'createRoom:${type.wire}:$format:$teamMode',
+    );
     return room1;
   }
 

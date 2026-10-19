@@ -130,7 +130,7 @@ final class MatchControllerProvider
   }
 }
 
-String _$matchControllerHash() => r'5db8644494157a942ef61e39f0254f5b41869b72';
+String _$matchControllerHash() => r'0ad54fa2cb171435d333f268876a655dc5f30968';
 
 /// One live match: joins it on every (re)connect, folds the match stream
 /// into [MatchState] and sends the player's intents.

@@ -82,6 +82,8 @@ class Room {
     required this.matchType,
     required this.capacity,
     required this.members,
+    this.format = '1v1',
+    this.teamMode,
     this.categoryMode,
     this.matchId,
   });
@@ -94,6 +96,8 @@ class Room {
   final String hostUserId;
   final String code;
   final String matchType;
+  final String format;
+  final String? teamMode;
   final String? categoryMode;
   final int capacity;
   final List<RoomMember> members;
@@ -117,7 +121,12 @@ abstract interface class LobbyRepository {
   Future<Challenge> respondChallenge(String id, ChallengeAction action);
 
   /// Creates a room hosted by the caller (who leaves a previous room).
-  Future<Room> createRoom(MatchType type, {String? categoryMode});
+  Future<Room> createRoom(
+    MatchType type, {
+    String? categoryMode,
+    String format = '1v1',
+    String? teamMode,
+  });
 
   /// Joins the room of an invite code.
   Future<Room> joinRoom(String code);

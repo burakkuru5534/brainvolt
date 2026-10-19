@@ -8,13 +8,24 @@ class QueueMode {
     this.matchType = 'quick_duel',
     this.categoryMode,
     this.categoryId,
+    this.format = '1v1',
+    this.partyUserIds = const [],
+    this.teamId,
   });
 
   final String matchType;
   final String? categoryMode;
   final String? categoryId;
 
-  bool get isDefault => matchType == 'quick_duel' && categoryMode == null;
+  /// 1v1 / 2v2 / 3v3 / 4v4 / couple (the player's couple).
+  final String format;
+
+  /// Friends (or, with [teamId], teammates) on the player's side.
+  final List<String> partyUserIds;
+  final String? teamId;
+
+  bool get isDefault =>
+      matchType == 'quick_duel' && categoryMode == null && format == '1v1';
 }
 
 /// A queue ticket; [matchId] is set when a practice match started at once.

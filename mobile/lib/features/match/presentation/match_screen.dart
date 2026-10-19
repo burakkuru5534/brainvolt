@@ -150,7 +150,12 @@ class _MatchScreenState extends ConsumerState<MatchScreen> {
                         : _RoundView(
                             state: state,
                             now: now,
-                            onAnswer: (id) => _run(() => _ctrl.answer(id)),
+                            onAnswer: (id) => _run(
+                              () => state.sharedAnswer
+                                  ? _ctrl.propose(id)
+                                  : _ctrl.answer(id),
+                            ),
+                            onLock: (id) => _run(() => _ctrl.lock(id)),
                           ),
                   MatchPhase.completed ||
                   MatchPhase.cancelled => _End(state: state),
@@ -247,6 +252,49 @@ class _Scoreboard extends StatelessWidget {
             ],
           ),
         );
+    if (state.isTeam) {
+      Widget team(int sideNo, String name, int score) => Expanded(
+        child: Column(
+          children: [
+            Wrap(
+              alignment: WrapAlignment.center,
+              children: [
+                for (final p in state.sidePlayers(sideNo))
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Badge(
+                      isLabelVisible:
+                          answered.contains(p.userId) &&
+                          state.phase == MatchPhase.question,
+                      label: const Text('✓'),
+                      child: Text(
+                        avatarFor(p.avatarId),
+                        style: const TextStyle(fontSize: 26),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            Text(name, overflow: TextOverflow.ellipsis),
+            Text(
+              '$score',
+              key: Key(sideNo == state.mySide ? 'my-score' : 'opponent-score'),
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+          ],
+        ),
+      );
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            team(state.mySide, l10n.yourTeam, state.myScore),
+            const Text('—'),
+            team(3 - state.mySide, l10n.opponentsTeam, state.opponentScore),
+          ],
+        ),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
@@ -270,11 +318,16 @@ class _RoundView extends StatelessWidget {
     required this.state,
     required this.now,
     required this.onAnswer,
+    required this.onLock,
   });
 
   final MatchState state;
   final int now;
+
+  /// Answer (1v1, Individual Turns, Fast Team Round) or propose (Shared
+  /// Answer).
   final ValueChanged<String> onAnswer;
+  final ValueChanged<String> onLock;
 
   @override
   Widget build(BuildContext context) {
@@ -288,12 +341,26 @@ class _RoundView extends StatelessWidget {
     final window = (r.deadlineAt - r.showAt).clamp(1, 1 << 31);
     final left = (r.deadlineAt - now).clamp(0, window);
     // The server decides lateness; the buttons stay on a little past zero.
+    final myTurn = r.answering.isEmpty || r.answering.contains(state.myUserId);
     final open =
         !revealed &&
         !r.locked &&
         r.myOptionId == null &&
+        myTurn &&
         now <= r.deadlineAt + 250;
     final mine = r.revealed[state.myUserId];
+    final myProposal = r.proposals[state.myUserId];
+    String nameOf(String id) =>
+        state.players.where((p) => p.userId == id).firstOrNull?.displayName ??
+        '';
+    // Individual Turns: whose turn it is on my side.
+    final turnHolder = state.teamMode == 'individual_turns'
+        ? state
+              .sidePlayers(state.mySide)
+              .where((p) => r.answering.contains(p.userId))
+              .firstOrNull
+        : null;
+    final sideResult = state.isTeam ? r.sideCorrect[state.mySide] : null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -310,6 +377,16 @@ class _RoundView extends StatelessWidget {
           style: Theme.of(context).textTheme.titleLarge,
           textAlign: TextAlign.center,
         ),
+        if (turnHolder != null && !revealed) ...[
+          const SizedBox(height: 8),
+          Text(
+            turnHolder.userId == state.myUserId
+                ? l10n.yourTurn
+                : l10n.turnOf(turnHolder.displayName),
+            key: const Key('turn'),
+            textAlign: TextAlign.center,
+          ),
+        ],
         const SizedBox(height: 24),
         for (final o in r.options)
           Padding(
@@ -323,17 +400,39 @@ class _RoundView extends StatelessWidget {
                     Colors.green.shade400,
                   _ when revealed && o.id == r.myOptionId => scheme.error,
                   _ when o.id == r.myOptionId => scheme.primaryContainer,
+                  _ when o.id == myProposal => scheme.secondaryContainer,
                   _ => null,
                 },
               ),
               onPressed: open ? () => onAnswer(o.id) : null,
-              child: Text(o.text, textAlign: TextAlign.center),
+              child: Column(
+                children: [
+                  Text(o.text, textAlign: TextAlign.center),
+                  if (state.sharedAnswer && !revealed)
+                    for (final e in r.proposals.entries)
+                      if (e.value == o.id && e.key != state.myUserId)
+                        Text(
+                          nameOf(e.key),
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                ],
+              ),
             ),
+          ),
+        if (state.sharedAnswer && !revealed)
+          FilledButton(
+            key: const Key('lock'),
+            onPressed: open && myProposal != null
+                ? () => onLock(myProposal)
+                : null,
+            child: Text(l10n.lockAnswer),
           ),
         if (revealed) ...[
           const SizedBox(height: 8),
           Text(
             switch (mine) {
+              _ when sideResult != null =>
+                sideResult ? l10n.answerCorrect : l10n.answerWrong,
               RevealedAnswer(optionId: null) || null => l10n.answerTimeout,
               RevealedAnswer(correct: true) => l10n.answerCorrect,
               _ => l10n.answerWrong,

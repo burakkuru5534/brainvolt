@@ -76,8 +76,36 @@ void main() {
     await tester.tap(search);
     await step(tester);
     expect(t.matches.calls, [
-      'enqueue:sudden_death:category_master:cat-history',
+      'enqueue:sudden_death:1v1:category_master:cat-history::null',
     ]);
+    await tester.tap(find.byKey(const Key('queue-cancel')));
+    await step(tester);
+    await finish(tester, t);
+  });
+
+  testWidgets('mode picker: a 2v2 queue with a friend in the party', (
+    tester,
+  ) async {
+    final t = await launch(
+      tester,
+      setup: (t) => t.social.friendList = [
+        const Friend(UserCard(userId: 'u-ali', displayName: 'Ali')),
+      ],
+    );
+    await tester.tap(find.byKey(const Key('play-modes')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('format-2v2')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Arkadaşlarını seç'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('party-u-ali')));
+    await tester.tap(find.byKey(const Key('party-ok')));
+    await tester.pumpAndSettle();
+    expect(find.text('Ali'), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('mode-search')));
+    await tester.tap(find.byKey(const Key('mode-search')));
+    await step(tester);
+    expect(t.matches.calls, ['enqueue:quick_duel:2v2:null:null:u-ali:null']);
     await tester.tap(find.byKey(const Key('queue-cancel')));
     await step(tester);
     await finish(tester, t);
@@ -153,6 +181,8 @@ void main() {
     await tester.tap(find.byKey(const Key('private-room')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('create-room-quick_duel')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('format-ok')));
     await step(tester);
     await step(tester);
     expect(t.lobby.calls, ['createRoom:quick_duel']);

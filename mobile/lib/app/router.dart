@@ -53,6 +53,9 @@ abstract final class Routes {
       'type': m.matchType,
       'mode': ?m.categoryMode,
       'cat': ?m.categoryId,
+      if (m.format != '1v1') 'format': m.format,
+      if (m.partyUserIds.isNotEmpty) 'party': m.partyUserIds.join(','),
+      'team': ?m.teamId,
     },
   ).toString();
   static String match(String id) => '/match/$id';
@@ -172,6 +175,12 @@ GoRouter router(Ref ref) {
               matchType: q['type'] ?? 'quick_duel',
               categoryMode: q['mode'],
               categoryId: q['cat'],
+              format: q['format'] ?? '1v1',
+              partyUserIds: [
+                for (final id in (q['party'] ?? '').split(','))
+                  if (id.isNotEmpty) id,
+              ],
+              teamId: q['team'],
             ),
           );
         },

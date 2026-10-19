@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/session_controller.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../match/presentation/format_picker.dart';
 import '../../match/presentation/match_type_name.dart';
 import '../../match/presentation/play_error_text.dart';
 import '../../profile/domain/avatars.dart';
@@ -57,7 +58,15 @@ Future<void> showRoomSheet(BuildContext context, WidgetRef ref) async {
       }
       room = await repo.joinRoom(code);
     } else {
-      room = await repo.createRoom(MatchType.parse(choice)!);
+      final format = await pickFormat(context);
+      if (format == null) {
+        return;
+      }
+      room = await repo.createRoom(
+        MatchType.parse(choice)!,
+        format: format.$1,
+        teamMode: format.$2,
+      );
     }
     if (context.mounted) {
       unawaited(context.push(Routes.room(room.id)));
@@ -222,7 +231,13 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
           key: const Key('room-code'),
           leading: const Icon(Icons.vpn_key),
           title: Text(l10n.roomCode(room.code)),
-          subtitle: Text(matchTypeName(l10n, room.matchType)),
+          subtitle: Text(
+            [
+              matchTypeName(l10n, room.matchType),
+              formatName(l10n, room.format),
+              if (room.teamMode case final m?) teamModeName(l10n, m),
+            ].join(' · '),
+          ),
           trailing: IconButton(
             icon: const Icon(Icons.copy),
             onPressed: () async {

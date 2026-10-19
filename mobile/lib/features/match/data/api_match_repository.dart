@@ -23,7 +23,9 @@ class ApiMatchRepository implements MatchRepository {
       '/v1/matchmaking/tickets',
       body: {
         'match_type': mode.matchType,
-        'format': '1v1',
+        'format': mode.format,
+        if (mode.partyUserIds.isNotEmpty) 'party_user_ids': mode.partyUserIds,
+        'team_id': ?mode.teamId,
         'category_mode': ?mode.categoryMode,
         'category_id': ?mode.categoryId,
         if (practice) 'practice': true,

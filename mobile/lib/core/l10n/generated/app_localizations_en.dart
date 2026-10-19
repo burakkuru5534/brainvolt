@@ -721,6 +721,53 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pickFriend => 'Pick a friend';
 
   @override
+  String get yourTeam => 'Your team';
+
+  @override
+  String get opponentsTeam => 'Opponents';
+
+  @override
+  String get lockAnswer => 'Lock the answer';
+
+  @override
+  String get yourTurn => 'Your turn';
+
+  @override
+  String turnOf(String name) {
+    return '$name\'s turn';
+  }
+
+  @override
+  String get formatLabel => 'Format';
+
+  @override
+  String get formatCouple => 'Couple';
+
+  @override
+  String get teamModeLabel => 'Team mode';
+
+  @override
+  String get teamModeShared => 'Shared Answer';
+
+  @override
+  String get teamModeTurns => 'Individual Turns';
+
+  @override
+  String get teamModeFast => 'Fast Team Round';
+
+  @override
+  String get partyLabel => 'Your party';
+
+  @override
+  String get pickParty => 'Pick friends';
+
+  @override
+  String get playAsTeam => 'Play as my team';
+
+  @override
+  String get noTeam => 'No team';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Your account is being deleted. You can only cancel the deletion.';
 

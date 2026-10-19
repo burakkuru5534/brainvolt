@@ -32,6 +32,8 @@ Room roomFromJson(Map<String, dynamic> j) {
     hostUserId: j['host_user_id'] as String,
     code: j['code'] as String? ?? '',
     matchType: cfg['match_type'] as String? ?? '',
+    format: cfg['format'] as String? ?? '1v1',
+    teamMode: cfg['team_answer_mode'] as String?,
     categoryMode: cfg['category_mode'] as String?,
     capacity: (j['capacity'] as num?)?.toInt() ?? 2,
     matchId: j['match_id'] as String?,
@@ -107,13 +109,19 @@ class ApiLobbyRepository implements LobbyRepository {
   }
 
   @override
-  Future<Room> createRoom(MatchType type, {String? categoryMode}) async {
+  Future<Room> createRoom(
+    MatchType type, {
+    String? categoryMode,
+    String format = '1v1',
+    String? teamMode,
+  }) async {
     final j = await api.postJson(
       '/v1/rooms',
       body: {
         'match_config': {
           'match_type': type.wire,
-          'format': '1v1',
+          'format': format,
+          'team_answer_mode': ?teamMode,
           'category_mode': ?categoryMode,
         },
       },

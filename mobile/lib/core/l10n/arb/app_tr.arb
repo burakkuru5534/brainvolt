@@ -975,6 +975,71 @@
   "@pickFriend": {
     "description": "Pick a friend dialog."
   },
+  "yourTeam": "Takımın",
+  "@yourTeam": {
+    "description": "Team scoreboard: own side."
+  },
+  "opponentsTeam": "Rakipler",
+  "@opponentsTeam": {
+    "description": "Team scoreboard: other side."
+  },
+  "lockAnswer": "Cevabı kilitle",
+  "@lockAnswer": {
+    "description": "Shared Answer: lock the side's answer."
+  },
+  "yourTurn": "Sıra sende",
+  "@yourTurn": {
+    "description": "Individual Turns: the player answers."
+  },
+  "turnOf": "Sıra: {name}",
+  "@turnOf": {
+    "description": "Individual Turns: a teammate answers.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "formatLabel": "Format",
+  "@formatLabel": {
+    "description": "Picker: format."
+  },
+  "formatCouple": "Çift",
+  "@formatCouple": {
+    "description": "Couple format name."
+  },
+  "teamModeLabel": "Takım modu",
+  "@teamModeLabel": {
+    "description": "Picker: team answer mode."
+  },
+  "teamModeShared": "Ortak Cevap",
+  "@teamModeShared": {
+    "description": "Team answer mode name."
+  },
+  "teamModeTurns": "Sırayla",
+  "@teamModeTurns": {
+    "description": "Team answer mode name."
+  },
+  "teamModeFast": "Hızlı Takım Turu",
+  "@teamModeFast": {
+    "description": "Team answer mode name."
+  },
+  "partyLabel": "Grubun",
+  "@partyLabel": {
+    "description": "Queue: friends playing on the player's side."
+  },
+  "pickParty": "Arkadaşlarını seç",
+  "@pickParty": {
+    "description": "Queue: choose party members."
+  },
+  "playAsTeam": "Takımımla oyna",
+  "@playAsTeam": {
+    "description": "Queue: play as a persistent team."
+  },
+  "noTeam": "Takımsız",
+  "@noTeam": {
+    "description": "Queue: no persistent team."
+  },
   "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
   "@error_ACCOUNT_DELETION_PENDING": {
     "description": "Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md)."

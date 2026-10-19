@@ -157,6 +157,37 @@ class MatchController extends _$MatchController {
 
   Future<void> ready() => _rt.send('match.ready', {'match_id': matchId});
 
+  /// Shared Answer: proposes an option to the teammates (shown at once).
+  Future<void> propose(String optionId) {
+    final round = state.round;
+    if (round == null || round.myOptionId != null || round.locked) {
+      return Future.value();
+    }
+    state = state.copyWith(
+      round: round.copyWith(
+        proposals: {...round.proposals, state.myUserId: optionId},
+      ),
+    );
+    return _rt.send('match.propose', {
+      'match_id': matchId,
+      'round_no': round.roundNo,
+      'option_id': optionId,
+    });
+  }
+
+  /// Shared Answer: locks the side's answer (the first lock wins).
+  Future<void> lock(String optionId) async {
+    final round = state.round;
+    if (round == null || round.myOptionId != null || round.locked) {
+      return;
+    }
+    await _rt.send('match.lock', {
+      'match_id': matchId,
+      'round_no': round.roundNo,
+      'option_id': optionId,
+    });
+  }
+
   /// Sends the answer; the server's round.answer_received confirms it. The
   /// choice is shown at once and taken back if the server refuses it.
   Future<void> answer(String optionId) async {
@@ -186,6 +217,7 @@ class MatchController extends _$MatchController {
             deadlineAt: now.deadlineAt,
             answered: now.answered,
             locked: now.locked,
+            answering: now.answering,
           ),
         );
       }
