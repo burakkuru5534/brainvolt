@@ -408,6 +408,38 @@ func (q *Queries) SeasonNames(ctx context.Context, seasonID uuid.UUID) ([]Season
 	return items, nil
 }
 
+const seasonUserResults = `-- name: SeasonUserResults :many
+SELECT entity_id AS user_id, peak_league, final_rank_global FROM ranking.season_standings
+WHERE season_id = $1 AND entity_kind = 'user'
+`
+
+type SeasonUserResultsRow struct {
+	UserID          uuid.UUID
+	PeakLeague      string
+	FinalRankGlobal *int32
+}
+
+// Users' peak leagues and final ranks of a closed season (season rewards).
+func (q *Queries) SeasonUserResults(ctx context.Context, seasonID uuid.UUID) ([]SeasonUserResultsRow, error) {
+	rows, err := q.db.Query(ctx, seasonUserResults, seasonID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SeasonUserResultsRow{}
+	for rows.Next() {
+		var i SeasonUserResultsRow
+		if err := rows.Scan(&i.UserID, &i.PeakLeague, &i.FinalRankGlobal); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const setFinalRanks = `-- name: SetFinalRanks :exec
 
 UPDATE ranking.season_standings s SET final_rank_global = r.rank

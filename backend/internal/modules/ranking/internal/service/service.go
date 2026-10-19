@@ -21,6 +21,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/ranking/internal/store/sqlc"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/team"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ids"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/postgres"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
@@ -39,6 +40,11 @@ type Teams interface {
 	CoupleLabels(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]team.Label, error)
 }
 
+// Pusher sends a personal WebSocket message (realtime, wired in app).
+type Pusher interface {
+	Push(ctx context.Context, user uuid.UUID, typ string, data any) error
+}
+
 // Deps are the service's collaborators.
 type Deps struct {
 	DB      *pgxpool.Pool
@@ -46,8 +52,11 @@ type Deps struct {
 	Cards   Cards
 	Teams   Teams
 	Friends Friends
-	Clock   clock.Clock
-	Logger  *slog.Logger
+	// Events publishes ranking.SeasonEnded (nil: not published).
+	Events *events.Bus
+	Pusher Pusher
+	Clock  clock.Clock
+	Logger *slog.Logger
 }
 
 // Service implements ranking.
@@ -105,26 +114,29 @@ func (s *Service) ensureSeason(ctx context.Context) (sqlc.RankingSeason, error) 
 
 // openSeason inserts season number n starting at start with its names.
 func (s *Service) openSeason(ctx context.Context, n int32, start time.Time) error {
-	return postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error { return insertSeason(ctx, sqlc.New(tx), n, start) })
+	return postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error {
+		_, err := insertSeason(ctx, sqlc.New(tx), n, start)
+		return err
+	})
 }
 
-func insertSeason(ctx context.Context, q *sqlc.Queries, n int32, start time.Time) error {
+func insertSeason(ctx context.Context, q *sqlc.Queries, n int32, start time.Time) (uuid.UUID, error) {
 	policy, err := json.Marshal(resetPolicy{MinRD: 150})
 	if err != nil {
-		return err
+		return uuid.Nil, err
 	}
 	id := ids.New()
 	if err := q.InsertSeason(ctx, sqlc.InsertSeasonParams{
 		ID: id, Number: n, StartsAt: start.UTC(), EndsAt: start.Add(domain.SeasonLength).UTC(), ResetPolicy: policy,
 	}); err != nil {
-		return err
+		return uuid.Nil, err
 	}
 	for locale, name := range map[string]string{"tr": fmt.Sprintf("Sezon %d", n), "en": fmt.Sprintf("Season %d", n)} {
 		if err := q.InsertSeasonName(ctx, sqlc.InsertSeasonNameParams{SeasonID: id, Locale: locale, Name: name}); err != nil {
-			return err
+			return uuid.Nil, err
 		}
 	}
-	return nil
+	return id, nil
 }
 
 // CurrentSeason returns the active season with its names.

@@ -29,6 +29,18 @@ const (
 	SubscriberTierChanged  = "ranking.tier_changed"
 )
 
+// EventSeasonEnded is published when a season closes.
+const EventSeasonEnded = service.EventSeasonEnded
+
+// SeasonEnded is the payload of EventSeasonEnded.
+type SeasonEnded = service.SeasonEnded
+
+// SeasonResult is a user's outcome of a closed season.
+type SeasonResult = service.SeasonResult
+
+// Pusher sends a personal WebSocket message (realtime, wired in app).
+type Pusher = service.Pusher
+
 // Rating is a rating and its deviation.
 type Rating = service.Rating
 
@@ -42,6 +54,8 @@ type Deps struct {
 	Profiles *profile.Module
 	Teams    *team.Module
 	Social   *social.Module
+	Events   *events.Bus
+	Pusher   Pusher
 	Clock    clock.Clock
 	Logger   *slog.Logger
 }
@@ -53,7 +67,7 @@ type Module struct {
 
 // New builds the module.
 func New(d Deps) *Module {
-	sd := service.Deps{DB: d.DB, Redis: d.Redis, Clock: d.Clock, Logger: d.Logger}
+	sd := service.Deps{DB: d.DB, Redis: d.Redis, Events: d.Events, Pusher: d.Pusher, Clock: d.Clock, Logger: d.Logger}
 	if d.Profiles != nil {
 		sd.Cards = d.Profiles
 	}
@@ -100,3 +114,8 @@ func (m *Module) OnTierChanged(ctx context.Context, e events.Envelope) error {
 // Maintain archives boards of ended periods and closes an ended season
 // (the worker runs it periodically).
 func (m *Module) Maintain(ctx context.Context) error { return m.svc.Maintain(ctx) }
+
+// SeasonResults lists users' peak leagues and final ranks of a season.
+func (m *Module) SeasonResults(ctx context.Context, season uuid.UUID) ([]SeasonResult, error) {
+	return m.svc.SeasonResults(ctx, season)
+}

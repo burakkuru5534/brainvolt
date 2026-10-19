@@ -133,3 +133,24 @@ sql:
         overrides:
           - db_type: pg_catalog.numeric
             go_type: float64
+  - name: progression
+    engine: postgresql
+    schema: migrations
+    queries: internal/modules/progression/internal/store/queries.sql
+    gen:
+      go:
+        package: sqlc
+        out: internal/modules/progression/internal/store/sqlc
+        sql_package: pgx/v5
+        emit_pointers_for_null_types: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: pg_catalog.numeric
+            go_type: float64
+          - db_type: date
+            go_type: time.Time
+          - db_type: date
+            nullable: true
+            go_type:
+              type: time.Time
+              pointer: true

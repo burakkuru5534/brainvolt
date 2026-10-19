@@ -1,0 +1,85 @@
+// Package progression is the public API of the progression module
+// (backend-modules.md §1, schema-ranking.md §5): XP and levels, play
+// streaks, badges and daily / weekly quests, computed from completed
+// matches in the worker.
+package progression
+
+import (
+	"context"
+	"log/slog"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/progression/internal/service"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/progression/internal/transport"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/ranking"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/idempotency"
+)
+
+// Subscriptions: game.MatchCompleted and ranking.SeasonEnded.
+const (
+	SubscriberMatchAwards  = "progression.match_awards"
+	SubscriberSeasonReward = "progression.season_rewards"
+)
+
+// MsgAwards is the personal match.awards message.
+const MsgAwards = service.MsgAwards
+
+// Pusher sends a personal WebSocket message (realtime, wired in app).
+type Pusher = service.Pusher
+
+// Deps are the module's collaborators.
+type Deps struct {
+	DB      *pgxpool.Pool
+	Pusher  Pusher
+	Ranking *ranking.Module
+	Clock   clock.Clock
+	Logger  *slog.Logger
+}
+
+// Module is the progression module.
+type Module struct {
+	svc     *service.Service
+	ranking *ranking.Module
+}
+
+// New builds the module.
+func New(d Deps) *Module {
+	return &Module{
+		svc:     service.New(service.Deps{DB: d.DB, Pusher: d.Pusher, Clock: d.Clock, Logger: d.Logger}),
+		ranking: d.Ranking,
+	}
+}
+
+// Register adds progression's routes.
+func (m *Module) Register(s *httpserver.Server, ident *identity.Module, idem *idempotency.Store) {
+	transport.New(m.svc, ident, idem).Register(s)
+}
+
+// OnMatchCompleted consumes game.MatchCompleted: XP, streaks, badges,
+// quests and match.awards.
+func (m *Module) OnMatchCompleted(ctx context.Context, e events.Envelope) error {
+	return m.svc.OnMatchCompleted(ctx, e)
+}
+
+// OnSeasonEnded consumes ranking.SeasonEnded: season badges.
+func (m *Module) OnSeasonEnded(ctx context.Context, e events.Envelope) error {
+	return m.svc.OnSeasonEnded(ctx, e, seasons{m.ranking})
+}
+
+// seasons adapts ranking's season results.
+type seasons struct{ *ranking.Module }
+
+func (s seasons) SeasonResults(ctx context.Context, season uuid.UUID) ([]service.SeasonResult, error) {
+	rs, err := s.Module.SeasonResults(ctx, season)
+	out := make([]service.SeasonResult, len(rs))
+	for i, r := range rs {
+		out[i] = service.SeasonResult{UserID: r.UserID, PeakLeague: r.PeakLeague, FinalRank: r.FinalRank}
+	}
+	return out, err
+}

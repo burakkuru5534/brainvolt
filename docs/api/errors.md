@@ -78,5 +78,9 @@
 | `PURCHASE_INVALID` | 422 | — | store verification failed |
 | `PURCHASE_ALREADY_PROCESSED` | 409 | — | idempotent replay of a known transaction |
 | `AD_REWARD_LIMIT` | 429 | — | 5 rewarded ads/day (D-031) |
+| **Progression** | | | |
+| `QUEST_NOT_COMPLETED` / `QUEST_ALREADY_CLAIMED` | 409 / 409 | — | claim before completion / twice (added in Phase 7, D-077) |
+| `QUEST_REROLL_LIMIT` | 429 | — | the day's free reroll is used (progression-formulas §8) |
+| `QUEST_NOT_REROLLABLE` | 409 | — | completed or claimed quest, or no other quest to draw |
 | **Tournament** | | | |
 | `TOURNAMENT_REGISTRATION_CLOSED` / `TOURNAMENT_FULL` / `TOURNAMENT_REQUIREMENTS_NOT_MET` | 409 / 409 / 403 | — | |

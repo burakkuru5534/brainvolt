@@ -105,6 +105,14 @@ const (
 	AdRewardLimit            Code = "AD_REWARD_LIMIT"
 )
 
+// Progression.
+const (
+	QuestNotCompleted   Code = "QUEST_NOT_COMPLETED"
+	QuestAlreadyClaimed Code = "QUEST_ALREADY_CLAIMED"
+	QuestRerollLimit    Code = "QUEST_REROLL_LIMIT"
+	QuestNotRerollable  Code = "QUEST_NOT_REROLLABLE"
+)
+
 // Tournament.
 const (
 	TournamentRegistrationClosed Code = "TOURNAMENT_REGISTRATION_CLOSED"
@@ -195,6 +203,11 @@ var statuses = map[Code]int{
 	PurchaseInvalid:          http.StatusUnprocessableEntity,
 	PurchaseAlreadyProcessed: http.StatusConflict,
 	AdRewardLimit:            http.StatusTooManyRequests,
+
+	QuestNotCompleted:   http.StatusConflict,
+	QuestAlreadyClaimed: http.StatusConflict,
+	QuestRerollLimit:    http.StatusTooManyRequests,
+	QuestNotRerollable:  http.StatusConflict,
 
 	TournamentRegistrationClosed: http.StatusConflict,
 	TournamentFull:               http.StatusConflict,

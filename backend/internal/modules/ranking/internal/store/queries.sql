@@ -113,3 +113,8 @@ FROM (SELECT entity_kind, entity_id,
              row_number() OVER (PARTITION BY entity_kind ORDER BY season_points DESC, updated_at)::int AS rank
       FROM ranking.season_standings WHERE season_id = @season_id) r
 WHERE s.season_id = @season_id AND s.entity_kind = r.entity_kind AND s.entity_id = r.entity_id;
+
+-- Users' peak leagues and final ranks of a closed season (season rewards).
+-- name: SeasonUserResults :many
+SELECT entity_id AS user_id, peak_league, final_rank_global FROM ranking.season_standings
+WHERE season_id = @season_id AND entity_kind = 'user';

@@ -385,6 +385,114 @@ type ProfileSetting struct {
 	UpdatedAt           time.Time
 }
 
+type ProgressionBadge struct {
+	ID        uuid.UUID
+	Code      string
+	Family    string
+	Tier      int16
+	Criteria  []byte
+	IconKey   string
+	IsHidden  bool
+	IsActive  bool
+	CreatedAt time.Time
+}
+
+type ProgressionBadgeTranslation struct {
+	BadgeID     uuid.UUID
+	Locale      string
+	Name        string
+	Description string
+}
+
+type ProgressionCategoryCorrect struct {
+	UserID     uuid.UUID
+	CategoryID uuid.UUID
+	Correct    int32
+}
+
+type ProgressionPlayStreak struct {
+	UserID      uuid.UUID
+	CurrentDays int32
+	LongestDays int32
+	LastPlayDay pgtype.Date
+	UpdatedAt   time.Time
+}
+
+type ProgressionProcessedMatch struct {
+	MatchID     uuid.UUID
+	ProcessedAt time.Time
+}
+
+type ProgressionQuest struct {
+	ID                  uuid.UUID
+	Code                string
+	Cadence             string
+	Objective           string
+	Target              int32
+	Filters             []byte
+	RewardXp            int32
+	RewardExtra         []byte
+	RequiresFullAccount bool
+	SeasonID            *uuid.UUID
+	IsActive            bool
+	CreatedAt           time.Time
+}
+
+type ProgressionQuestAssignment struct {
+	ID          uuid.UUID
+	UserID      uuid.UUID
+	QuestID     uuid.UUID
+	PeriodStart time.Time
+	PeriodEnd   time.Time
+	Progress    int32
+	CompletedAt *time.Time
+	ClaimedAt   *time.Time
+}
+
+type ProgressionQuestReroll struct {
+	UserID uuid.UUID
+	Day    pgtype.Date
+	Count  int32
+}
+
+type ProgressionQuestTranslation struct {
+	QuestID     uuid.UUID
+	Locale      string
+	Title       string
+	Description string
+}
+
+type ProgressionUserBadge struct {
+	UserID    uuid.UUID
+	BadgeID   uuid.UUID
+	EarnedAt  time.Time
+	SourceRef *string
+}
+
+type ProgressionUserProgress struct {
+	UserID    uuid.UUID
+	XpTotal   int64
+	Level     int32
+	UpdatedAt time.Time
+}
+
+type ProgressionUserStat struct {
+	UserID    uuid.UUID
+	Matches   int32
+	Wins      int32
+	Correct   int32
+	UpdatedAt time.Time
+}
+
+type ProgressionXpLedger struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	Amount    int32
+	Source    string
+	SourceRef string
+	CreatedAt time.Time
+}
+
 type RankingLeaderboardSnapshot struct {
 	BoardKey    string
 	PeriodStart time.Time
@@ -487,6 +595,28 @@ type RankingSeasonTranslation struct {
 	SeasonID uuid.UUID
 	Locale   string
 	Name     string
+}
+
+type SeedBadge struct {
+	Code     *string
+	Family   *string
+	Tier     *int16
+	Criteria []byte
+	TrName   *string
+	TrDesc   *string
+	EnName   *string
+	EnDesc   *string
+}
+
+type SeedQuest struct {
+	Code      *string
+	Cadence   *string
+	Objective *string
+	Target    *int32
+	Filters   []byte
+	RewardXp  *int32
+	TrTitle   *string
+	EnTitle   *string
 }
 
 type SocialBlock struct {

@@ -88,6 +88,20 @@ type boardInc struct {
 	expireAt time.Time
 }
 
+// MsgAwards is the personal message with a ranked match's SP result
+// (websocket.md: match.awards; progression sends its part separately).
+const MsgAwards = "match.awards"
+
+// Awards is ranking's part of match.awards.
+type Awards struct {
+	MatchID      uuid.UUID `json:"match_id"`
+	SPDelta      int       `json:"sp_delta"`
+	SeasonPoints int       `json:"season_points"`
+	League       string    `json:"league"`
+	Division     int       `json:"division"`
+	LeagueUp     bool      `json:"league_up"`
+}
+
 // OnMatchCompleted consumes game.MatchCompleted once per match: Glicko-2
 // ratings of rated matches, Season Points of ranked ones and leaderboard
 // points of matchmade ones (progression-formulas §1–4). Redis boards are
@@ -110,8 +124,9 @@ func (s *Service) OnMatchCompleted(ctx context.Context, e events.Envelope) error
 		return err
 	}
 	var incs []boardInc
+	var awards map[uuid.UUID]Awards
 	err = postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error {
-		incs = nil
+		incs, awards = nil, map[uuid.UUID]Awards{}
 		q := sqlc.New(tx)
 		n, err := q.MarkProcessed(ctx, sqlc.MarkProcessedParams{MatchID: p.MatchID, Now: s.d.Clock.Now()})
 		if err != nil || n == 0 {
@@ -123,7 +138,7 @@ func (s *Service) OnMatchCompleted(ctx context.Context, e events.Envelope) error
 			}
 		}
 		if ranked {
-			out, err := standings(ctx, q, &p, sides, season)
+			out, err := standings(ctx, q, &p, sides, season, awards)
 			if err != nil {
 				return err
 			}
@@ -142,6 +157,13 @@ func (s *Service) OnMatchCompleted(ctx context.Context, e events.Envelope) error
 		return err
 	}
 	s.applyBoards(ctx, incs)
+	if s.d.Pusher != nil {
+		for user, a := range awards {
+			if err := s.d.Pusher.Push(ctx, user, MsgAwards, a); err != nil && s.d.Logger != nil {
+				s.d.Logger.WarnContext(ctx, "ranking: awards not delivered", "user", user, "error", err)
+			}
+		}
+	}
 	return nil
 }
 
@@ -278,7 +300,7 @@ func round2(v float64) float64 { return float64(int64(v*100+0.5)) / 100 }
 // standings applies Season Points (progression-formulas §2–3) to every
 // user and persistent entity of a ranked match and returns the season
 // board writes.
-func standings(ctx context.Context, q *sqlc.Queries, p *matchCompleted, sides [2]side, season sqlc.RankingSeason) ([]boardInc, error) {
+func standings(ctx context.Context, q *sqlc.Queries, p *matchCompleted, sides [2]side, season sqlc.RankingSeason, awards map[uuid.UUID]Awards) ([]boardInc, error) {
 	var incs []boardInc
 	apply := func(e entity, sd *side, protected, public bool, countries []string) error {
 		st, err := q.GetStanding(ctx, sqlc.GetStandingParams{SeasonID: season.ID, EntityKind: e.kind, EntityID: e.id})
@@ -301,6 +323,10 @@ func standings(ctx context.Context, q *sqlc.Queries, p *matchCompleted, sides [2
 		}
 		sp := domain.ApplySP(int(st.SeasonPoints), domain.SPDelta(sd.result, streak, protected))
 		pl := domain.Place(sp)
+		if e.kind == "user" {
+			awards[e.id] = Awards{MatchID: p.MatchID, SPDelta: sp - int(st.SeasonPoints), SeasonPoints: sp, League: pl.League, Division: pl.Division,
+				LeagueUp: domain.LeagueIndex(pl.League) > domain.LeagueIndex(st.LeagueCode)}
+		}
 		peak := domain.LeagueIndex(st.PeakLeague)
 		if now := domain.LeagueIndex(pl.League); now > peak || (now == peak && pl.Division < int(st.PeakDivision)) {
 			st.PeakLeague, st.PeakDivision = pl.League, int16(pl.Division) //nolint:gosec // G115: 1–3

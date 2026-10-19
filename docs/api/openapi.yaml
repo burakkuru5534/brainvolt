@@ -25,6 +25,76 @@ components:
                 - response_ms
                 - user_id
             type: object
+        Awards:
+            properties:
+                badges:
+                    items:
+                        $ref: '#/components/schemas/EarnedBadge'
+                    type: array
+                level:
+                    type: integer
+                level_up:
+                    type: boolean
+                match_id:
+                    format: uuid
+                    type: string
+                quests:
+                    items:
+                        $ref: '#/components/schemas/QuestProgress'
+                    type: array
+                streak:
+                    type: integer
+                xp:
+                    type: integer
+                xp_total:
+                    type: integer
+            required:
+                - badges
+                - level
+                - level_up
+                - match_id
+                - quests
+                - streak
+                - xp
+                - xp_total
+            type: object
+        Badge:
+            properties:
+                code:
+                    type: string
+                description:
+                    type: string
+                earned_at:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+                family:
+                    type: string
+                icon_key:
+                    type: string
+                name:
+                    type: string
+                tier:
+                    type: integer
+            required:
+                - code
+                - description
+                - earned_at
+                - family
+                - icon_key
+                - name
+                - tier
+            type: object
+        Badges:
+            properties:
+                badges:
+                    items:
+                        $ref: '#/components/schemas/Badge'
+                    type: array
+            required:
+                - badges
+            type: object
         BlockRequest:
             properties:
                 user_id:
@@ -248,6 +318,19 @@ components:
                     type: array
             required:
                 - challenges
+            type: object
+        Claimed:
+            properties:
+                level:
+                    type: integer
+                level_up:
+                    type: boolean
+                xp:
+                    type: integer
+            required:
+                - level
+                - level_up
+                - xp
             type: object
         CodeRequest:
             properties:
@@ -485,6 +568,22 @@ components:
                 - installation_id
                 - locale
                 - platform
+            type: object
+        EarnedBadge:
+            properties:
+                code:
+                    type: string
+                icon_key:
+                    type: string
+                name:
+                    type: string
+                tier:
+                    type: integer
+            required:
+                - code
+                - icon_key
+                - name
+                - tier
             type: object
         Entry:
             properties:
@@ -981,6 +1080,28 @@ components:
                 - locale
                 - username
             type: object
+        Progress:
+            properties:
+                badges:
+                    type: integer
+                level:
+                    type: integer
+                level_size:
+                    type: integer
+                level_xp:
+                    type: integer
+                streak:
+                    $ref: '#/components/schemas/Streak'
+                xp_total:
+                    type: integer
+            required:
+                - badges
+                - level
+                - level_size
+                - level_xp
+                - streak
+                - xp_total
+            type: object
         PublicProfile:
             properties:
                 avatar_id:
@@ -1002,6 +1123,74 @@ components:
                 - display_name
                 - user_id
                 - username
+            type: object
+        Quest:
+            properties:
+                cadence:
+                    type: string
+                claimed_at:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+                code:
+                    type: string
+                completed_at:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+                description:
+                    type: string
+                ends_at:
+                    format: date-time
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                objective:
+                    type: string
+                progress:
+                    type: integer
+                reward_xp:
+                    type: integer
+                target:
+                    type: integer
+                title:
+                    type: string
+            required:
+                - cadence
+                - claimed_at
+                - code
+                - completed_at
+                - description
+                - ends_at
+                - id
+                - objective
+                - progress
+                - reward_xp
+                - target
+                - title
+            type: object
+        QuestProgress:
+            properties:
+                code:
+                    type: string
+                completed:
+                    type: boolean
+                id:
+                    format: uuid
+                    type: string
+                progress:
+                    type: integer
+                target:
+                    type: integer
+            required:
+                - code
+                - completed
+                - id
+                - progress
+                - target
             type: object
         Question:
             properties:
@@ -1225,6 +1414,23 @@ components:
                 - status
                 - subcategory_id
                 - translations
+            type: object
+        Quests:
+            properties:
+                daily:
+                    items:
+                        $ref: '#/components/schemas/Quest'
+                    type: array
+                rerolls_left:
+                    type: integer
+                weekly:
+                    items:
+                        $ref: '#/components/schemas/Quest'
+                    type: array
+            required:
+                - daily
+                - rerolls_left
+                - weekly
             type: object
         Readiness:
             properties:
@@ -1730,6 +1936,19 @@ components:
                 - times_correct
                 - times_timed_out
             type: object
+        Streak:
+            properties:
+                current:
+                    type: integer
+                longest:
+                    type: integer
+                played_today:
+                    type: boolean
+            required:
+                - current
+                - longest
+                - played_today
+            type: object
         Subcategory:
             properties:
                 description:
@@ -2034,6 +2253,61 @@ paths:
             tags:
                 - health
             x-auth: public
+    /v1/badges:
+        get:
+            operationId: getV1Badges
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Badges'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Badge catalogue with the caller's earn dates (hidden badges only once earned)
+            tags:
+                - progression
+            x-auth: any
     /v1/blocks:
         get:
             operationId: getV1Blocks
@@ -4333,6 +4607,127 @@ paths:
             tags:
                 - profile
             x-auth: any
+    /v1/me/awards/{match_id}:
+        get:
+            operationId: getV1MeAwardsMatchId
+            parameters:
+                - in: path
+                  name: match_id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Awards'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Progression awards of a finished match (the match.awards content) for clients that missed the message
+            tags:
+                - progression
+            x-auth: any
+    /v1/me/badges:
+        get:
+            operationId: getV1MeBadges
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Badges'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: The caller's earned badges
+            tags:
+                - progression
+            x-auth: any
     /v1/me/couple:
         get:
             operationId: getV1MeCouple
@@ -4701,6 +5096,274 @@ paths:
             summary: 'Edit own profile (username: full accounts, once per 30 days; country: once per 30 days)'
             tags:
                 - profile
+            x-auth: any
+    /v1/me/progress:
+        get:
+            operationId: getV1MeProgress
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Progress'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: XP, level with the XP inside it, play streak and badge count
+            tags:
+                - progression
+            x-auth: any
+    /v1/me/quests:
+        get:
+            operationId: getV1MeQuests
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Quests'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Today's and this week's quests (3 each, assigned on first read) and the rerolls left today
+            tags:
+                - progression
+            x-auth: any
+    /v1/me/quests/{id}/claim:
+        post:
+            operationId: postV1MeQuestsIdClaim
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+                - description: Client-generated UUID; repeats within 24 h replay the stored response (conventions.md §9)
+                  in: header
+                  name: Idempotency-Key
+                  required: true
+                  schema:
+                    format: uuid
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Claimed'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: IDEMPOTENCY_KEY_REUSED, IDEMPOTENT_REQUEST_IN_PROGRESS, QUEST_ALREADY_CLAIMED, QUEST_NOT_COMPLETED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Claim a completed quest's XP
+            tags:
+                - progression
+            x-auth: any
+    /v1/me/quests/{id}/reroll:
+        post:
+            operationId: postV1MeQuestsIdReroll
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+                - description: Client-generated UUID; repeats within 24 h replay the stored response (conventions.md §9)
+                  in: header
+                  name: Idempotency-Key
+                  required: true
+                  schema:
+                    format: uuid
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Quests'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: IDEMPOTENCY_KEY_REUSED, IDEMPOTENT_REQUEST_IN_PROGRESS, QUEST_NOT_REROLLABLE'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: QUEST_REROLL_LIMIT, RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Swap an open quest for another one (one free reroll a day)
+            tags:
+                - progression
             x-auth: any
     /v1/me/settings:
         get:

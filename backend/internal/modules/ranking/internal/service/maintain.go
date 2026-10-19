@@ -146,6 +146,43 @@ func (s *Service) closeEndedSeason(ctx context.Context) error {
 		if err := q.SetSeasonStatus(ctx, sqlc.SetSeasonStatusParams{Status: "closed", ClosedAt: &now, ID: se.ID}); err != nil {
 			return err
 		}
-		return insertSeason(ctx, q, se.Number+1, start.In(domain.Istanbul))
+		next, err := insertSeason(ctx, q, se.Number+1, start.In(domain.Istanbul))
+		if err != nil || s.d.Events == nil {
+			return err
+		}
+		return s.d.Events.PublishTx(ctx, tx, EventSeasonEnded, now, SeasonEnded{SeasonID: se.ID, Number: se.Number, NextSeason: next})
 	})
+}
+
+// EventSeasonEnded is published when a season closes (schema-ranking §7).
+const EventSeasonEnded = "ranking.SeasonEnded"
+
+// SeasonEnded is the payload of ranking.SeasonEnded.
+type SeasonEnded struct {
+	SeasonID   uuid.UUID `json:"season_id"`
+	Number     int32     `json:"number"`
+	NextSeason uuid.UUID `json:"next_season_id"`
+}
+
+// SeasonResult is a user's outcome of a closed season.
+type SeasonResult struct {
+	UserID     uuid.UUID
+	PeakLeague string
+	FinalRank  int
+}
+
+// SeasonResults lists the users' peak leagues and final ranks of a season.
+func (s *Service) SeasonResults(ctx context.Context, season uuid.UUID) ([]SeasonResult, error) {
+	rows, err := sqlc.New(s.d.DB).SeasonUserResults(ctx, season)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]SeasonResult, len(rows))
+	for i, r := range rows {
+		out[i] = SeasonResult{UserID: r.UserID, PeakLeague: r.PeakLeague}
+		if r.FinalRankGlobal != nil {
+			out[i].FinalRank = int(*r.FinalRankGlobal)
+		}
+	}
+	return out, nil
 }

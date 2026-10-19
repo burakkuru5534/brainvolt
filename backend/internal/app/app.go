@@ -31,6 +31,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/matchmaking"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/notification"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/progression"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/ranking"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/social"
@@ -171,6 +172,7 @@ type modules struct {
 	social      *social.Module
 	team        *team.Module
 	ranking     *ranking.Module
+	progression *progression.Module
 	game        *game.Module
 	matchmaking *matchmaking.Module
 	lobby       *lobby.Module
@@ -199,6 +201,8 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	tm.Register(srv, ident, d.idem)
 	rk := ranking.New(ranking.Deps{DB: d.db, Redis: d.rdb, Profiles: prof, Teams: tm, Social: soc, Clock: d.clock, Logger: d.logger})
 	rk.Register(srv, ident)
+	prog := progression.New(progression.Deps{DB: d.db, Ranking: rk, Clock: d.clock, Logger: d.logger})
+	prog.Register(srv, ident, d.idem)
 	g := game.New(game.Deps{
 		DB: d.db, Redis: d.rdb, Content: cont, Identity: ident, Profiles: prof, Realtime: rt, Teams: tm, Seasons: rk,
 		Events: d.bus, Clock: d.clock, Logger: d.logger, Instance: d.instance,
@@ -213,7 +217,15 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 		Events: d.bus, Clock: d.clock, Logger: d.logger,
 	})
 	lob.Register(srv, ident, d.idem)
-	return modules{identity: ident, profile: prof, content: cont, realtime: rt, social: soc, team: tm, ranking: rk, game: g, matchmaking: mm, lobby: lob}
+	return modules{identity: ident, profile: prof, content: cont, realtime: rt, social: soc, team: tm, ranking: rk, progression: prog, game: g, matchmaking: mm, lobby: lob}
+}
+
+// pusher sends personal messages through realtime (ranking and
+// progression awards from the worker).
+type pusher struct{ *realtime.Module }
+
+func (p pusher) Push(ctx context.Context, user uuid.UUID, typ string, data any) error {
+	return p.Send(ctx, realtime.Target{User: user}, realtime.Frame{T: typ, D: data})
 }
 
 // ratings adapts ranking to matchmaking's RatingReader.
@@ -236,19 +248,29 @@ func newBus(db *pgxpool.Pool, rdb *redis.Client, logger *slog.Logger) *events.Bu
 	// lobby marks challenges whose match was cancelled as failed (schema-social §3.1).
 	bus.Subscribe(game.EventMatchCancelled, lobby.SubscriberChallengeFailed, lobby.OnMatchCancelled(db))
 	// ranking rates, ranks and scores completed matches (progression-formulas §1–4).
-	rk := newRanking(db, rdb, logger)
+	rk := newRanking(db, rdb, bus, logger)
 	bus.Subscribe(game.EventMatchCompleted, ranking.SubscriberMatchResults, rk.OnMatchCompleted)
 	bus.Subscribe(identity.EventAccountTierChanged, ranking.SubscriberTierChanged, rk.OnTierChanged)
+	// progression: XP, streaks, badges and quests (progression-formulas §5–9).
+	prog := progression.New(progression.Deps{DB: db, Pusher: workerPusher(rdb, logger), Ranking: rk, Clock: clock.Real{}, Logger: logger})
+	bus.Subscribe(game.EventMatchCompleted, progression.SubscriberMatchAwards, prog.OnMatchCompleted)
+	bus.Subscribe(ranking.EventSeasonEnded, progression.SubscriberSeasonReward, prog.OnSeasonEnded)
 	return bus
 }
 
-// newRanking builds ranking for worker use: country and team reads only,
-// no routes.
-func newRanking(db *pgxpool.Pool, rdb *redis.Client, logger *slog.Logger) *ranking.Module {
+// newRanking builds ranking for worker use: country and team reads,
+// SeasonEnded on bus and awards pushed through realtime; no routes.
+func newRanking(db *pgxpool.Pool, rdb *redis.Client, bus *events.Bus, logger *slog.Logger) *ranking.Module {
 	return ranking.New(ranking.Deps{
 		DB: db, Redis: rdb, Profiles: profile.New(db, clock.Real{}), Teams: team.New(team.Deps{DB: db, Clock: clock.Real{}}),
-		Clock: clock.Real{}, Logger: logger,
+		Events: bus, Pusher: workerPusher(rdb, logger), Clock: clock.Real{}, Logger: logger,
 	})
+}
+
+// workerPusher delivers personal messages from the worker: realtime
+// publishes them to the API instances holding the users' sockets.
+func workerPusher(rdb *redis.Client, logger *slog.Logger) pusher {
+	return pusher{realtime.New(realtime.Deps{Redis: rdb, Clock: clock.Real{}, Logger: logger, Instance: "worker-" + ids.NewString()})}
 }
 
 // NewWorker builds the composition for cmd/worker: a Postgres pool with the
@@ -271,7 +293,7 @@ func NewWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) (*Ap
 	bus := newBus(db, rdb, logger)
 	workers := river.NewWorkers()
 	bus.AddWorker(workers)
-	periodic := addJobs(workers, newRanking(db, rdb, logger))
+	periodic := addJobs(workers, newRanking(db, rdb, bus, logger))
 	client, err := river.NewClient(riverpgxv5.New(db), &river.Config{
 		Queues:       map[string]river.QueueConfig{river.QueueDefault: {MaxWorkers: 10}},
 		Workers:      workers,

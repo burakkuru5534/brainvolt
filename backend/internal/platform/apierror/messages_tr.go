@@ -84,6 +84,11 @@ var messagesTR = map[Code]string{
 	PurchaseAlreadyProcessed: "Bu satın alma zaten işlendi.",
 	AdRewardLimit:            "Bugün için reklam ödülü sınırına ulaştın.",
 
+	QuestNotCompleted:   "Bu görev henüz tamamlanmadı.",
+	QuestAlreadyClaimed: "Bu ödülü zaten aldın.",
+	QuestRerollLimit:    "Bugünkü görev değiştirme hakkın bitti.",
+	QuestNotRerollable:  "Bu görev değiştirilemez.",
+
 	TournamentRegistrationClosed: "Turnuva kayıtları kapandı.",
 	TournamentFull:               "Turnuva dolu.",
 	TournamentRequirementsNotMet: "Bu turnuvanın katılım şartlarını karşılamıyorsun.",

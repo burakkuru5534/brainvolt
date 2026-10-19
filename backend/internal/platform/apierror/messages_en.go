@@ -80,6 +80,11 @@ var messagesEN = map[Code]string{
 	PurchaseAlreadyProcessed: "This purchase has already been processed.",
 	AdRewardLimit:            "You've reached today's ad reward limit.",
 
+	QuestNotCompleted:   "This quest isn't completed yet.",
+	QuestAlreadyClaimed: "You already claimed this reward.",
+	QuestRerollLimit:    "No quest rerolls left today.",
+	QuestNotRerollable:  "This quest can't be rerolled.",
+
 	TournamentRegistrationClosed: "Tournament registration is closed.",
 	TournamentFull:               "The tournament is full.",
 	TournamentRequirementsNotMet: "You don't meet this tournament's requirements.",
