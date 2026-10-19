@@ -118,9 +118,16 @@ class FakeAuthRepository implements AuthRepository {
     return _user;
   }
 
+  /// The next [idToken] fails as if Firebase forgot the user.
+  bool loseSession = false;
+
   @override
   Future<String?> idToken({bool forceRefresh = false}) async {
     calls.add(forceRefresh ? 'idToken:refresh' : 'idToken');
+    if (loseSession) {
+      loseSession = false;
+      throw const AuthFailure(AuthFailureKind.sessionLost);
+    }
     final u = _user;
     return u == null ? null : 'token-of-${u.uid}';
   }

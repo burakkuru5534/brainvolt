@@ -133,8 +133,13 @@ class FirebaseAuthRepository implements AuthRepository {
   });
 
   @override
-  Future<String?> idToken({bool forceRefresh = false}) async =>
-      _auth.currentUser?.getIdToken(forceRefresh);
+  Future<String?> idToken({bool forceRefresh = false}) async {
+    try {
+      return await _auth.currentUser?.getIdToken(forceRefresh);
+    } on fb.FirebaseAuthException catch (e) {
+      throw AuthFailure(tokenFailureKind(e.code), cause: e);
+    }
+  }
 
   @override
   Future<void> signOut() async {
@@ -215,6 +220,17 @@ class FirebaseAuthRepository implements AuthRepository {
     }
   }
 }
+
+/// Maps a failed token refresh: codes meaning the user or its refresh
+/// token is gone are [AuthFailureKind.sessionLost].
+@visibleForTesting
+AuthFailureKind tokenFailureKind(String code) => switch (code) {
+  'user-not-found' ||
+  'user-token-expired' ||
+  'invalid-user-token' ||
+  'user-disabled' => AuthFailureKind.sessionLost,
+  _ => firebaseFailureKind(code),
+};
 
 /// Maps a FirebaseAuthException code (firebase_auth docs) to a failure kind.
 @visibleForTesting

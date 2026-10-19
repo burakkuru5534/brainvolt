@@ -16,6 +16,7 @@ String? errorText(AppLocalizations l, Object error) => switch (error) {
     AuthFailureKind.network => l.errorNetwork,
     AuthFailureKind.credentialAlreadyInUse ||
     AuthFailureKind.cancelled ||
+    AuthFailureKind.sessionLost ||
     AuthFailureKind.unknown => l.errorUnknown,
   },
   ApiException() => error.localizedMessage(l),

@@ -44,8 +44,19 @@ void main() {
       user: const AuthUser(uid: 'u1', isAnonymous: true),
     );
     expect(await start(t), isA<SignedIn>());
-    expect(t.auth.calls, isEmpty);
+    expect(t.auth.calls, ['idToken']);
     expect(session(t).user.id, 'user-u1');
+  });
+
+  test('a user Firebase forgot starts over as a new guest', () async {
+    final t = await TestApp.create(
+      user: const AuthUser(uid: 'gone', isAnonymous: true),
+    );
+    t.auth.loseSession = true;
+    expect(await start(t), isA<SignedIn>());
+    expect(t.auth.calls, ['idToken', 'signOut', 'signInAnonymously']);
+    expect(t.sessions.calls, ['sync', 'registerDevice']);
+    expect(session(t).user.id, 'user-guest-1');
   });
 
   test('a user the server does not know starts over as a new guest', () async {
@@ -57,7 +68,7 @@ void main() {
       status: 401,
     );
     expect(await start(t), isA<SignedIn>());
-    expect(t.auth.calls, ['signOut', 'signInAnonymously']);
+    expect(t.auth.calls, ['idToken', 'signOut', 'signInAnonymously']);
     expect(t.sessions.calls, ['sync', 'sync', 'registerDevice']);
     expect(session(t).user.id, 'user-guest-1');
   });

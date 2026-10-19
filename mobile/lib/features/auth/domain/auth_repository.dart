@@ -56,6 +56,10 @@ enum AuthFailureKind {
 
   /// The sign-in method is not available on this device or build.
   unsupported,
+
+  /// The signed-in Firebase user is gone or its refresh token is no longer
+  /// valid (deleted or disabled account, or a restarted Auth emulator).
+  sessionLost,
   unknown,
 }
 

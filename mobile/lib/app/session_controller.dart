@@ -77,10 +77,21 @@ class SessionController extends _$SessionController {
   Future<Session> _sync({bool forceTokenRefresh = false}) async {
     if (_auth.currentUser == null) {
       await _auth.signInAnonymously();
-    } else if (forceTokenRefresh) {
-      // A new token carries the providers and email_verified the backend
-      // derives the tier from (D-059).
-      await _auth.idToken(forceRefresh: true);
+    } else {
+      try {
+        // A new token carries the providers and email_verified the backend
+        // derives the tier from (D-059).
+        await _auth.idToken(forceRefresh: forceTokenRefresh);
+      } on AuthFailure catch (e) {
+        if (e.kind != AuthFailureKind.sessionLost) {
+          rethrow;
+        }
+        // Firebase no longer knows the stored user (deleted account, or a
+        // restarted Auth emulator in development): continue as a new guest.
+        _log.warning('Firebase user is gone; continuing as a new guest');
+        await _auth.signOut();
+        await _auth.signInAnonymously();
+      }
     }
     final sessions = ref.read(sessionRepositoryProvider);
     Session session;
