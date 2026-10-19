@@ -38,7 +38,7 @@ MOBILE_GEN = dart run tool/gen_error_l10n.dart && flutter gen-l10n && dart run b
 # $(call mobile,<command>,<what is skipped>) runs <command> in mobile/ if it exists.
 mobile = $(if $(wildcard $(MOBILE)/pubspec.yaml),cd $(MOBILE) && $(1),@echo mobile/ not set up yet - roadmap 1.7 - skipping $(2))
 
-.PHONY: help env check-env up up-app down reset ps logs psql redis-cli run test lint migrate seed admin gen check-gen
+.PHONY: help env check-env up up-app down reset ps logs psql redis-cli run worker test lint migrate seed admin gen check-gen
 
 help: ## List targets
 	$(HELP)
@@ -79,6 +79,10 @@ redis-cli: ## Open redis-cli in the redis container   (docker compose exec redis
 run: check-env ## Run the API server   (cd backend && go run ./cmd/api)
 	$(require_backend)
 	cd $(BACKEND) && go run ./cmd/api
+
+worker: check-env ## Run the worker: event consumers (ranking, progression, stats) and periodic jobs   (cd backend && go run ./cmd/worker)
+	$(require_backend)
+	cd $(BACKEND) && go run ./cmd/worker
 
 test: check-env ## Run backend and mobile tests   (cd backend && go test ./... ; cd mobile && flutter test)
 	$(require_backend)

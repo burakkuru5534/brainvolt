@@ -61,6 +61,7 @@ Credentials and ports live in `.env` (git-ignored); `.env.example` documents eve
 | `make psql` | `docker compose exec postgres psql -U brainvolt -d brainvolt` |
 | `make redis-cli` | `docker compose exec redis redis-cli` |
 | `make run` | `cd backend && go run ./cmd/api` |
+| `make worker` | `cd backend && go run ./cmd/worker` (second terminal; needed for ratings, SP, XP, leaderboards, quests) |
 | `make test` | `cd backend && go test ./...` then `cd mobile && flutter test` |
 | `make lint` | `cd backend && go vet ./... && golangci-lint run` then `cd mobile && flutter analyze` |
 | `make migrate` | `cd backend && go run ./cmd/migrate up` (`make migrate MIGRATE=status` for other goose commands) |
@@ -111,7 +112,7 @@ Moderators review questions through the `/v1/questions` endpoints (`docs/api/ope
 
 ## Playing a match locally (Phase 4)
 
-1. `make up`, `make migrate`, `make run` (the API serves REST and the WebSocket `ws://<host>:8080/v1/ws`).
+1. `make up`, `make migrate`, `make run` (the API serves REST and the WebSocket `ws://<host>:8080/v1/ws`) and, in a second terminal, `make worker` (match results → ratings, SP, XP, leaderboards, quests).
 2. Sign in once in the app, then import the questions approved for local play: `make seed SEED_ARGS="-approve-as <your-user-id>"`.
 3. **One device:** Home → *Bota karşı pratik* (dev builds only) plays a Quick Duel against a server bot that readies and answers by itself.
 4. **Two devices** (e.g. a phone and an emulator, each signed in as its own guest): both tap *Hızlı Düello*; the queue pairs the first two players, both tap *Hazırım*.
