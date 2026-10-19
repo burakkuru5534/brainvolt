@@ -18,6 +18,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/riverqueue/river"
@@ -30,6 +31,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/matchmaking"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/notification"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/ranking"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/social"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/team"
@@ -117,7 +119,7 @@ func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, 
 		return nil, err
 	}
 	// Insert-only River client: the API queues event deliveries, the worker runs them.
-	bus := newBus(db)
+	bus := newBus(db, rdb, logger)
 	inserter, err := river.NewClient(riverpgxv5.New(db), &river.Config{Logger: logger})
 	if err != nil {
 		_ = sqlDB.Close()
@@ -168,6 +170,7 @@ type modules struct {
 	realtime    *realtime.Module
 	social      *social.Module
 	team        *team.Module
+	ranking     *ranking.Module
 	game        *game.Module
 	matchmaking *matchmaking.Module
 	lobby       *lobby.Module
@@ -194,13 +197,14 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	soc.Register(srv, ident, d.idem)
 	tm := team.New(team.Deps{DB: d.db, Identity: ident, Profiles: prof, Social: soc, Events: d.bus, Clock: d.clock})
 	tm.Register(srv, ident, d.idem)
+	rk := ranking.New(ranking.Deps{DB: d.db, Redis: d.rdb, Profiles: prof, Teams: tm, Clock: d.clock, Logger: d.logger})
 	g := game.New(game.Deps{
-		DB: d.db, Redis: d.rdb, Content: cont, Identity: ident, Profiles: prof, Realtime: rt, Teams: tm,
+		DB: d.db, Redis: d.rdb, Content: cont, Identity: ident, Profiles: prof, Realtime: rt, Teams: tm, Seasons: rk,
 		Events: d.bus, Clock: d.clock, Logger: d.logger, Instance: d.instance,
 	})
 	g.Register(srv, ident)
 	mm := matchmaking.New(matchmaking.Deps{
-		Redis: d.rdb, Game: g, Realtime: rt, Social: soc, Teams: tm, Profiles: prof, Clock: d.clock, Logger: d.logger, Practice: d.env == config.EnvDev,
+		Redis: d.rdb, Game: g, Realtime: rt, Ratings: ratings{rk}, Social: soc, Teams: tm, Profiles: prof, Clock: d.clock, Logger: d.logger, Practice: d.env == config.EnvDev,
 	})
 	mm.Register(srv, ident, d.idem)
 	lob := lobby.New(lobby.Deps{
@@ -208,20 +212,34 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 		Events: d.bus, Clock: d.clock, Logger: d.logger,
 	})
 	lob.Register(srv, ident, d.idem)
-	return modules{identity: ident, profile: prof, content: cont, realtime: rt, social: soc, team: tm, game: g, matchmaking: mm, lobby: lob}
+	return modules{identity: ident, profile: prof, content: cont, realtime: rt, social: soc, team: tm, ranking: rk, game: g, matchmaking: mm, lobby: lob}
+}
+
+// ratings adapts ranking to matchmaking's RatingReader.
+type ratings struct{ *ranking.Module }
+
+func (r ratings) Rating(ctx context.Context, user uuid.UUID, bucket string) (matchmaking.Rating, error) {
+	v, err := r.Module.Rating(ctx, user, bucket)
+	return matchmaking.Rating{Value: v.Value, RD: v.RD}, err
 }
 
 // newBus returns the event bus with every subscription. The API and the
 // worker build it the same way: the API to address deliveries, the worker
 // to run them. Consumers subscribe here as their phases arrive
 // (backend-modules.md §3.2 event catalogue).
-func newBus(db *pgxpool.Pool) *events.Bus {
+func newBus(db *pgxpool.Pool, rdb *redis.Client, logger *slog.Logger) *events.Bus {
 	bus := events.NewBus()
 	// content counts answer statistics of completed matches (schema-content §5).
 	stats := content.New(db, clock.Real{}, bus)
 	bus.Subscribe(game.EventMatchCompleted, content.SubscriberMatchStats, stats.OnMatchCompleted)
 	// lobby marks challenges whose match was cancelled as failed (schema-social §3.1).
 	bus.Subscribe(game.EventMatchCancelled, lobby.SubscriberChallengeFailed, lobby.OnMatchCancelled(db))
+	// ranking rates, ranks and scores completed matches (progression-formulas §1–4).
+	rk := ranking.New(ranking.Deps{
+		DB: db, Redis: rdb, Profiles: profile.New(db, clock.Real{}), Teams: team.New(team.Deps{DB: db, Clock: clock.Real{}}),
+		Clock: clock.Real{}, Logger: logger,
+	})
+	bus.Subscribe(game.EventMatchCompleted, ranking.SubscriberMatchResults, rk.OnMatchCompleted)
 	return bus
 }
 
@@ -237,7 +255,12 @@ func NewWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) (*Ap
 	if err != nil {
 		return nil, err
 	}
-	bus := newBus(db)
+	rdb, err := redis.Connect(ctx, cfg.Redis.URL, "brainvolt-worker")
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+	bus := newBus(db, rdb, logger)
 	workers := river.NewWorkers()
 	bus.AddWorker(workers)
 	client, err := river.NewClient(riverpgxv5.New(db), &river.Config{
@@ -247,11 +270,12 @@ func NewWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) (*Ap
 	})
 	if err != nil {
 		db.Close()
+		_ = rdb.Close()
 		return nil, err
 	}
 	bus.Attach(client)
 	a := New(RoleWorker, logger, events.Runner{Client: client, StopTimeout: 30 * time.Second})
-	a.closers = append(a.closers, db.Close)
+	a.closers = append(a.closers, db.Close, func() { _ = rdb.Close() })
 	return a, nil
 }
 

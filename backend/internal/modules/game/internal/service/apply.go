@@ -24,6 +24,17 @@ type SidePayload struct {
 	Score   int               `json:"score"`
 	Correct int               `json:"correct"`
 	Result  domain.SideResult `json:"result"`
+	// TeamID / CoupleID: the persistent team or couple of the side.
+	TeamID   *uuid.UUID `json:"team_id,omitempty"`
+	CoupleID *uuid.UUID `json:"couple_id,omitempty"`
+}
+
+// RoundPayload is one played round in game.MatchCompleted.
+type RoundPayload struct {
+	RoundNo        int         `json:"round_no"`
+	CategoryID     uuid.UUID   `json:"category_id"`
+	SideCorrect    [2]bool     `json:"side_correct"`
+	CorrectUserIDs []uuid.UUID `json:"correct_user_ids"`
 }
 
 // ParticipantPayload is one participant in game.MatchCompleted.
@@ -59,6 +70,7 @@ type MatchCompleted struct {
 	EndedAt       time.Time            `json:"ended_at"`
 	Sides         []SidePayload        `json:"sides"`
 	Participants  []ParticipantPayload `json:"participants"`
+	Rounds        []RoundPayload       `json:"rounds"`
 	QuestionStats []content.AnswerStat `json:"question_stats"`
 }
 
@@ -258,6 +270,23 @@ func (s *Service) finishTx(ctx context.Context, tx pgx.Tx, q *sqlc.Queries, m *e
 			return err
 		}
 		payload.Sides = append(payload.Sides, SidePayload{SideNo: i + 1, Score: sd.Score, Correct: sd.Correct, Result: sd.Result})
+	}
+	sides, err := q.SideEntities(ctx, m.ID)
+	if err != nil {
+		return err
+	}
+	for _, sd := range sides {
+		payload.Sides[sd.SideNo-1].TeamID, payload.Sides[sd.SideNo-1].CoupleID = sd.TeamID, sd.CoupleID
+	}
+	outcomes, err := q.RoundOutcomes(ctx, m.ID)
+	if err != nil {
+		return err
+	}
+	for _, o := range outcomes {
+		payload.Rounds = append(payload.Rounds, RoundPayload{
+			RoundNo: int(o.RoundNo), CategoryID: o.CategoryID, SideCorrect: [2]bool{o.Side1Correct, o.Side2Correct},
+			CorrectUserIDs: o.CorrectUserIds,
+		})
 	}
 	if err := s.participantsTx(ctx, q, m.ID, r, ended); err != nil {
 		return err

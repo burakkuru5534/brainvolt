@@ -123,6 +123,7 @@ Standard game rules, retention periods, default limits and small details are dec
 | D-071 | Team formats in lobby (delegated) | **Rooms** play every format and team mode (capacity = 2 × side size); sides are temporary, so room results never count for a persistent team; a couple-format room starts only when each side's two seats are partners of an active couple (R16). **Direct challenges** are user → user (1v1) or couple → couple (couple format, sent by either partner, accepted or declined by either target partner, all four players notified); team-vs-team challenges are not offered — teams play each other in rooms (or tournaments later). Any room action first returns a room whose match ended to `open` | 2026-10-20 (delegated) | 6.2 |
 | D-072 | Team queues (delegated) | A ticket is one player, a **party** (the caller + friends, at most a side), a **persistent team lineup** (`team_id`: the caller + members filling exactly one side) or a **couple** (format `couple`: the caller's active couple). Party members are not asked first: they get `mm.match_found` like everyone and confirm by readying; any member leaving the queue drops the whole ticket. A team or couple ticket is a side on its own; other sides are filled from solo and party tickets, closest rating to the side's first ticket, all within the anchor's and their own ranges, no block between any two players of the match. Ticket rating = average of the members' ratings in the format's bucket (solo / team / couple). Team queues are Fast Team Round + average (D-053). After a failed ready check a ticket goes back only if all its players were ready | 2026-10-20 (delegated) | 6.2 |
 | D-073 | Mobile team matches (delegated) | Team scoreboard: each side's avatars with an answered mark, "Your team" / "Opponents". **Shared Answer:** tapping an option proposes it (teammates' names appear under their proposals), "Lock the answer" locks the own proposal; the side's lock shows to all teammates. **Individual Turns:** "Your turn" / "<name>'s turn", options disabled for others. **Fast Team Round:** like 1v1. The reveal text follows the side's result. Result screen lists both sides' players with correct answers. **Pickers:** creating a room asks for format and team mode; the queue's mode picker adds format (1v1–4v4, couple), an optional team (lineup chosen from its members) and a party of friends (up to side size − 1); team queues always play Fast Team Round (D-053). Couple challenges exist in the API; their screen comes with the couple's profile page later | 2026-10-20 (delegated) | 6.3 |
+| D-074 | Ranking consumer details (delegated) | **Seasons:** the first season opens lazily when game or ranking first asks for one (`ActiveSeason`), starting Monday 00:00 Europe/Istanbul of the current week; names "Sezon N" / "Season N"; `reset_policy {"min_rd":150}`; matches of the old fixed preseason id count for the active season. **Consumption:** `ranking.processed_matches` makes `game.MatchCompleted` idempotent (one transaction: ratings, standings, ledger); Redis boards are written after the commit — a Redis failure is logged and the boards are rebuilt from the ledger. **Ratings:** read straight from Postgres with idle-day RD growth (no `rank:rating` cache yet); each user is rated against the opposing side's composite (1v1: the opponent), a team or couple entity against the opposing entity, else the composite. **SP:** every user of a ranked match plus the persistent team / couple; leaver protection only for users whose teammate left or forfeited; new standings start in Bronze III. **Ledger:** user rows count the user's own correct rounds, team / couple rows side-correct rounds; one overall row plus one per played category; a team or couple row is public only when no member was restricted; team country = captain's (D-029), a couple goes to both partners' country boards (the ledger row keeps the first partner's country). Season boards (`rank:lb:s:<n>:…:all`) hold SP | 2026-10-20 (delegated) | 7.1 |
 
 ---
 
@@ -395,19 +396,25 @@ Goal: 2v2, 3v3, 4v4 and couple matches played live with all three team answer mo
 ### 6.4 Tests & docs
 - [x] 6.4.1 Backend e2e for each mode and origin, mobile tests, docs, decision log
 
-## Phase 7 — Ranked Seasons & Leaderboards  `[ ]`
-- [ ] MMR (skill)
-- [ ] Season Points (leaderboard)
-- [ ] XP (progression)
-- [ ] Leaderboard time filters: Daily / Weekly / Monthly / All-time
-- [ ] Leaderboard entity filters: Individual / Team / Couples
-- [ ] Leaderboard scope filters: Friends / Country / Global
-- [ ] Category-based leaderboards
-- [ ] Leagues: Bronze → Diamond
-- [ ] Streaks
-- [ ] Badges
-- [ ] Quests
-- [ ] Seasonal resets
+## Phase 7 — Ranked Seasons & Leaderboards  `[~]`
+Goal: the four numbers of progression-formulas.md live — Glicko-2 rating (MMR), Season Points with leagues, leaderboard points on every board, XP with levels — plus play streaks, badges, quests and seasonal resets, all computed from `game.MatchCompleted` in the worker. Owner list: MMR, Season Points, XP, time / entity / scope filters, category boards, leagues Bronze → Diamond, streaks, badges, quests, seasonal resets.
+
+### 7.1 Ranking (`ranking`)
+- [x] 7.1.1 Schema `ranking`; Glicko-2 (Glickman's worked example), seasons (8 weeks, the first one created on start), `SeasonProvider` for game and `RatingReader` for matchmaking
+- [x] 7.1.2 Match consumer: ratings per bucket and entity (composite opponents, team & couple entities), SP with streak bonus, floor and leaver protection, leagues/divisions, points ledger with category rows
+
+### 7.2 Leaderboards
+- [ ] 7.2.1 Redis boards per period × entity × scope × category, fed by the ledger; friends scope on read; restricted accounts hidden; REST `GET /v1/leaderboards`, seasons, standings, leagues
+- [ ] 7.2.2 Period-end snapshots (top 1 000) and season close (final ranks, soft reset, SP reset) as worker jobs
+
+### 7.3 Progression (`progression`)
+- [ ] 7.3.1 XP & levels, play streak, badges (initial families), quests (3 daily + 3 weekly, progress, claim, reroll); `match.awards` to the players
+
+### 7.4 Mobile
+- [ ] 7.4.1 Profile stats (league, SP, level, streak, badges), leaderboards screen with all filters, quests screen, awards after a match
+
+### 7.5 Tests & docs
+- [ ] 7.5.1 Formula tests (progression-formulas §11), consumer e2e, mobile tests, docs, decision log
 
 ## Phase 8 — Special Modes & Content Moderation  `[ ]`
 - [ ] Blind Challenge (full feature)

@@ -117,3 +117,22 @@ FROM game.answers WHERE match_id = $1 ORDER BY round_no, side_no, user_id;
 
 -- name: ListRoundResults :many
 SELECT round_no, side_no, is_correct, points FROM game.round_results WHERE match_id = $1 ORDER BY round_no, side_no;
+
+-- Each round's category, side results and correct players (ranking:
+-- category boards, team entities).
+-- name: RoundOutcomes :many
+SELECT r.round_no, sc.category_id,
+       coalesce(bool_or(rr.is_correct) FILTER (WHERE rr.side_no = 1), false)::boolean AS side1_correct,
+       coalesce(bool_or(rr.is_correct) FILTER (WHERE rr.side_no = 2), false)::boolean AS side2_correct,
+       coalesce(array_agg(DISTINCT a.user_id) FILTER (WHERE a.is_correct), '{}')::uuid[] AS correct_user_ids
+FROM game.match_rounds r
+JOIN content.questions q ON q.id = r.question_id
+JOIN content.subcategories sc ON sc.id = q.subcategory_id
+LEFT JOIN game.round_results rr ON rr.match_id = r.match_id AND rr.round_no = r.round_no
+LEFT JOIN game.answers a ON a.match_id = r.match_id AND a.round_no = r.round_no
+WHERE r.match_id = $1
+GROUP BY r.round_no, sc.category_id
+ORDER BY r.round_no;
+
+-- name: SideEntities :many
+SELECT side_no, team_id, couple_id FROM game.match_sides WHERE match_id = $1 ORDER BY side_no;

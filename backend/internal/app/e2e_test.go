@@ -109,7 +109,7 @@ func newE2E(t *testing.T) *e2e {
 		t.Fatal(err)
 	}
 
-	bus := newBus(db)
+	bus := newBus(db, rdb, discard)
 	for _, ev := range []string{identity.EventUserRegistered, identity.EventAccountTierChanged, identity.EventGuestAbandoned} {
 		bus.Subscribe(ev, "test.on_"+ev, func(context.Context, events.Envelope) error { return nil })
 	}

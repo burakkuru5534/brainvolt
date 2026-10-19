@@ -119,3 +119,17 @@ sql:
         sql_package: pgx/v5
         emit_pointers_for_null_types: true
         emit_empty_slices: true
+  - name: ranking
+    engine: postgresql
+    schema: migrations
+    queries: internal/modules/ranking/internal/store/queries.sql
+    gen:
+      go:
+        package: sqlc
+        out: internal/modules/ranking/internal/store/sqlc
+        sql_package: pgx/v5
+        emit_pointers_for_null_types: true
+        emit_empty_slices: true
+        overrides:
+          - db_type: pg_catalog.numeric
+            go_type: float64

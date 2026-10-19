@@ -564,6 +564,57 @@ func (q *Queries) RecentQuestionIDs(ctx context.Context, arg RecentQuestionIDsPa
 	return items, nil
 }
 
+const roundOutcomes = `-- name: RoundOutcomes :many
+SELECT r.round_no, sc.category_id,
+       coalesce(bool_or(rr.is_correct) FILTER (WHERE rr.side_no = 1), false)::boolean AS side1_correct,
+       coalesce(bool_or(rr.is_correct) FILTER (WHERE rr.side_no = 2), false)::boolean AS side2_correct,
+       coalesce(array_agg(DISTINCT a.user_id) FILTER (WHERE a.is_correct), '{}')::uuid[] AS correct_user_ids
+FROM game.match_rounds r
+JOIN content.questions q ON q.id = r.question_id
+JOIN content.subcategories sc ON sc.id = q.subcategory_id
+LEFT JOIN game.round_results rr ON rr.match_id = r.match_id AND rr.round_no = r.round_no
+LEFT JOIN game.answers a ON a.match_id = r.match_id AND a.round_no = r.round_no
+WHERE r.match_id = $1
+GROUP BY r.round_no, sc.category_id
+ORDER BY r.round_no
+`
+
+type RoundOutcomesRow struct {
+	RoundNo        int16
+	CategoryID     uuid.UUID
+	Side1Correct   bool
+	Side2Correct   bool
+	CorrectUserIds []uuid.UUID
+}
+
+// Each round's category, side results and correct players (ranking:
+// category boards, team entities).
+func (q *Queries) RoundOutcomes(ctx context.Context, matchID uuid.UUID) ([]RoundOutcomesRow, error) {
+	rows, err := q.db.Query(ctx, roundOutcomes, matchID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []RoundOutcomesRow{}
+	for rows.Next() {
+		var i RoundOutcomesRow
+		if err := rows.Scan(
+			&i.RoundNo,
+			&i.CategoryID,
+			&i.Side1Correct,
+			&i.Side2Correct,
+			&i.CorrectUserIds,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const roundStats = `-- name: RoundStats :many
 SELECT r.question_id, p.locale,
        count(*)::bigint AS asked,
@@ -697,6 +748,36 @@ func (q *Queries) SetSideResult(ctx context.Context, arg SetSideResultParams) er
 		arg.SideNo,
 	)
 	return err
+}
+
+const sideEntities = `-- name: SideEntities :many
+SELECT side_no, team_id, couple_id FROM game.match_sides WHERE match_id = $1 ORDER BY side_no
+`
+
+type SideEntitiesRow struct {
+	SideNo   int16
+	TeamID   *uuid.UUID
+	CoupleID *uuid.UUID
+}
+
+func (q *Queries) SideEntities(ctx context.Context, matchID uuid.UUID) ([]SideEntitiesRow, error) {
+	rows, err := q.db.Query(ctx, sideEntities, matchID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SideEntitiesRow{}
+	for rows.Next() {
+		var i SideEntitiesRow
+		if err := rows.Scan(&i.SideNo, &i.TeamID, &i.CoupleID); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const sideScoreFromRounds = `-- name: SideScoreFromRounds :many

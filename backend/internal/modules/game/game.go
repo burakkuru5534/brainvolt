@@ -62,6 +62,15 @@ type Created = service.Created
 // MatchCompleted is the payload of game.MatchCompleted.
 type MatchCompleted = service.MatchCompleted
 
+// SidePayload is a side of MatchCompleted.
+type SidePayload = service.SidePayload
+
+// ParticipantPayload is a participant of MatchCompleted.
+type ParticipantPayload = service.ParticipantPayload
+
+// RoundPayload is a played round of MatchCompleted.
+type RoundPayload = service.RoundPayload
+
 // MatchCancelled is the payload of game.MatchCancelled.
 type MatchCancelled = service.MatchCancelled
 

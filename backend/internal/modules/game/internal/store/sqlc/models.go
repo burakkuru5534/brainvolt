@@ -385,6 +385,110 @@ type ProfileSetting struct {
 	UpdatedAt           time.Time
 }
 
+type RankingLeaderboardSnapshot struct {
+	BoardKey    string
+	PeriodStart time.Time
+	PeriodEnd   time.Time
+	Rank        int32
+	EntityKind  string
+	EntityID    uuid.UUID
+	Score       int64
+}
+
+type RankingLeague struct {
+	Code      string
+	SortOrder int16
+	Divisions int16
+	Rules     []byte
+}
+
+type RankingLeagueTranslation struct {
+	Code   string
+	Locale string
+	Name   string
+}
+
+type RankingPointsLedger struct {
+	ID          uuid.UUID
+	MatchID     uuid.UUID
+	EntityKind  string
+	EntityID    uuid.UUID
+	SeasonID    uuid.UUID
+	CategoryID  *uuid.UUID
+	Points      int32
+	CountryCode *string
+	Public      bool
+	OccurredAt  time.Time
+}
+
+type RankingProcessedMatch struct {
+	MatchID     uuid.UUID
+	ProcessedAt time.Time
+}
+
+type RankingRating struct {
+	EntityKind   string
+	EntityID     uuid.UUID
+	Bucket       string
+	Rating       pgtype.Numeric
+	Rd           pgtype.Numeric
+	Volatility   pgtype.Numeric
+	RatedMatches int32
+	LastRatedAt  *time.Time
+	UpdatedAt    time.Time
+}
+
+type RankingRatingChange struct {
+	MatchID      uuid.UUID
+	EntityKind   string
+	EntityID     uuid.UUID
+	Bucket       string
+	SeasonID     uuid.UUID
+	RatingBefore pgtype.Numeric
+	RatingAfter  pgtype.Numeric
+	RdBefore     pgtype.Numeric
+	RdAfter      pgtype.Numeric
+	VolBefore    pgtype.Numeric
+	VolAfter     pgtype.Numeric
+	CreatedAt    time.Time
+}
+
+type RankingSeason struct {
+	ID          uuid.UUID
+	Number      int32
+	StartsAt    time.Time
+	EndsAt      time.Time
+	Status      string
+	ResetPolicy []byte
+	ClosedAt    *time.Time
+}
+
+type RankingSeasonStanding struct {
+	SeasonID         uuid.UUID
+	EntityKind       string
+	EntityID         uuid.UUID
+	SeasonPoints     int32
+	LeagueCode       string
+	Division         int16
+	PeakLeague       string
+	PeakDivision     int16
+	Matches          int32
+	Wins             int32
+	Losses           int32
+	Draws            int32
+	BestWinStreak    int32
+	CurrentWinStreak int32
+	FinalRankGlobal  *int32
+	FinalRankCountry *int32
+	UpdatedAt        time.Time
+}
+
+type RankingSeasonTranslation struct {
+	SeasonID uuid.UUID
+	Locale   string
+	Name     string
+}
+
 type SocialBlock struct {
 	BlockerID uuid.UUID
 	BlockedID uuid.UUID
