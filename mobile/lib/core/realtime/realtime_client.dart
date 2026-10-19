@@ -193,10 +193,10 @@ class RealtimeClient {
     _retry?.cancel();
     _reauth?.cancel();
     _setStatus(RealtimeStatus.stopped);
+    _failPending();
     await _sub?.cancel();
     await _conn?.close(1000);
     _conn = null;
-    _failPending();
   }
 
   /// Sends an intent and waits for its acknowledgement; a `sys.error`

@@ -48,6 +48,8 @@ class ApiMatchRepository implements MatchRepository {
     return MatchResult(
       id: j['id'] as String,
       status: j['status'] as String,
+      origin: j['origin'] as String? ?? '',
+      endedAt: DateTime.tryParse(j['ended_at'] as String? ?? ''),
       winnerSide: (j['winner_side_no'] as num?)?.toInt(),
       isDraw: j['is_draw'] == true,
       endReason: j['end_reason'] as String?,

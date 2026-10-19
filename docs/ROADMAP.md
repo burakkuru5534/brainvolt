@@ -365,8 +365,8 @@ Goal: players find each other — friends, blocks, direct challenges, invite cod
 - [x] 5.4.1 Schema `team`; teams (create, invite friends, accept, leave, kick, captain, disband) and couples (request, accept, decline, dissolve, cooldown)
 
 ### 5.5 Mobile
-- [ ] 5.5.1 Friends (search by username, requests, list with presence, unfriend, block)
-- [ ] 5.5.2 Challenges (send from a friend/profile, inbox, accept → match) and rematch on the result screen
+- [x] 5.5.1 Friends (search by username, requests, list with presence, unfriend, block)
+- [x] 5.5.2 Challenges (send from a friend/profile, inbox, accept → match) and rematch on the result screen
 - [ ] 5.5.3 Private rooms (create, share code, join by code, seats, ready, start) and mode picker for the queue
 - [ ] 5.5.4 Teams & couple screens
 

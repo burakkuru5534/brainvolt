@@ -30,6 +30,9 @@ Future<void> main() async {
   final info = await PackageInfo.fromPlatform();
   runApp(
     ProviderScope(
+      // Failed requests are retried by the user (retry buttons, pull to
+      // refresh), not by Riverpod in the background.
+      retry: noRetry,
       overrides: [
         appConfigProvider.overrideWithValue(config),
         sharedPreferencesProvider.overrideWithValue(prefs),

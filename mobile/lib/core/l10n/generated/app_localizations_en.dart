@@ -420,6 +420,145 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resumeMatch => 'Back to your match';
 
   @override
+  String get homeFriends => 'Friends';
+
+  @override
+  String get homeChallenges => 'Challenges';
+
+  @override
+  String get friendsTab => 'Friends';
+
+  @override
+  String get requestsTab => 'Requests';
+
+  @override
+  String get friendsEmpty =>
+      'No friends yet. Add someone by username or friend code.';
+
+  @override
+  String get requestsEmpty => 'No pending requests.';
+
+  @override
+  String get friendsUpgrade => 'Link your account to add friends.';
+
+  @override
+  String friendCode(String code) {
+    return 'Your friend code: $code';
+  }
+
+  @override
+  String get copied => 'Copied';
+
+  @override
+  String get addFriend => 'Add friend';
+
+  @override
+  String get addByUsername => 'Username';
+
+  @override
+  String get addByCode => 'Friend code';
+
+  @override
+  String get send => 'Send';
+
+  @override
+  String get friendRequestSent => 'Friend request sent.';
+
+  @override
+  String get friendAdded => 'You are friends now!';
+
+  @override
+  String get online => 'Online';
+
+  @override
+  String get incomingLabel => 'Incoming';
+
+  @override
+  String get outgoingLabel => 'Sent';
+
+  @override
+  String get accept => 'Accept';
+
+  @override
+  String get decline => 'Decline';
+
+  @override
+  String get withdraw => 'Withdraw';
+
+  @override
+  String get unfriend => 'Remove friend';
+
+  @override
+  String get blockUser => 'Block';
+
+  @override
+  String blockConfirm(String name) {
+    return 'Block $name? Your friendship and pending requests end.';
+  }
+
+  @override
+  String get challengeAction => 'Challenge';
+
+  @override
+  String challengeTitle(String name) {
+    return 'Challenge $name';
+  }
+
+  @override
+  String get challengeSent => 'Challenge sent.';
+
+  @override
+  String get matchTypeQuickDuel => 'Quick Duel';
+
+  @override
+  String get matchTypeSuddenDeath => 'Sudden Death';
+
+  @override
+  String get matchTypeMarathon => 'Marathon';
+
+  @override
+  String get challengesTitle => 'Challenges';
+
+  @override
+  String get challengesEmpty => 'No pending challenges.';
+
+  @override
+  String challengeFrom(String name) {
+    return '$name challenged you';
+  }
+
+  @override
+  String challengeTo(String name) {
+    return 'To $name';
+  }
+
+  @override
+  String challengeReceived(String name) {
+    return '$name challenged you!';
+  }
+
+  @override
+  String get challengeAccepted => 'Your challenge was accepted!';
+
+  @override
+  String get view => 'View';
+
+  @override
+  String get playNow => 'Play';
+
+  @override
+  String get rematchButton => 'Rematch';
+
+  @override
+  String get rematchWaiting => 'Waiting for your opponent…';
+
+  @override
+  String get rematchOffered => 'Your opponent wants a rematch!';
+
+  @override
+  String get rematchDeclined => 'No rematch this time.';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Your account is being deleted. You can only cancel the deletion.';
 

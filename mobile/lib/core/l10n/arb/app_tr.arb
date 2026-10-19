@@ -553,6 +553,204 @@
   "@resumeMatch": {
     "description": "Home: a live match is running; go back to it."
   },
+  "homeFriends": "Arkadaşlar",
+  "@homeFriends": {
+    "description": "Home: open the friends screen."
+  },
+  "homeChallenges": "Meydan okumalar",
+  "@homeChallenges": {
+    "description": "Home: open the challenges screen."
+  },
+  "friendsTab": "Arkadaşlar",
+  "@friendsTab": {
+    "description": "Friends screen tab: friends."
+  },
+  "requestsTab": "İstekler",
+  "@requestsTab": {
+    "description": "Friends screen tab: friend requests."
+  },
+  "friendsEmpty": "Henüz arkadaşın yok. Kullanıcı adı ya da arkadaş koduyla ekleyebilirsin.",
+  "@friendsEmpty": {
+    "description": "Friends list is empty."
+  },
+  "requestsEmpty": "Bekleyen istek yok.",
+  "@requestsEmpty": {
+    "description": "No friend requests."
+  },
+  "friendsUpgrade": "Arkadaş eklemek için hesabını bağla.",
+  "@friendsUpgrade": {
+    "description": "Guests cannot have friends (D-016)."
+  },
+  "friendCode": "Arkadaş kodun: {code}",
+  "@friendCode": {
+    "description": "The caller's friend invite code.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "copied": "Kopyalandı",
+  "@copied": {
+    "description": "Snack bar after copying a code."
+  },
+  "addFriend": "Arkadaş ekle",
+  "@addFriend": {
+    "description": "Add friend dialog title / button."
+  },
+  "addByUsername": "Kullanıcı adı",
+  "@addByUsername": {
+    "description": "Add friend: by username."
+  },
+  "addByCode": "Arkadaş kodu",
+  "@addByCode": {
+    "description": "Add friend: by friend code."
+  },
+  "send": "Gönder",
+  "@send": {
+    "description": "Generic send button."
+  },
+  "friendRequestSent": "Arkadaşlık isteği gönderildi.",
+  "@friendRequestSent": {
+    "description": "After sending a friend request."
+  },
+  "friendAdded": "Artık arkadaşsınız!",
+  "@friendAdded": {
+    "description": "A friend request made a friendship at once."
+  },
+  "online": "Çevrimiçi",
+  "@online": {
+    "description": "Friend is online."
+  },
+  "incomingLabel": "Gelen",
+  "@incomingLabel": {
+    "description": "Incoming requests / challenges."
+  },
+  "outgoingLabel": "Giden",
+  "@outgoingLabel": {
+    "description": "Sent requests / challenges."
+  },
+  "accept": "Kabul et",
+  "@accept": {
+    "description": "Accept button."
+  },
+  "decline": "Reddet",
+  "@decline": {
+    "description": "Decline button."
+  },
+  "withdraw": "Geri çek",
+  "@withdraw": {
+    "description": "Withdraw an own request or challenge."
+  },
+  "unfriend": "Arkadaşlıktan çıkar",
+  "@unfriend": {
+    "description": "Friend menu: unfriend."
+  },
+  "blockUser": "Engelle",
+  "@blockUser": {
+    "description": "Friend menu: block."
+  },
+  "blockConfirm": "{name} engellensin mi? Arkadaşlığınız ve bekleyen istekler sona erer.",
+  "@blockConfirm": {
+    "description": "Block confirmation.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "challengeAction": "Meydan oku",
+  "@challengeAction": {
+    "description": "Friend menu: send a challenge."
+  },
+  "challengeTitle": "{name} adlı oyuncuya meydan oku",
+  "@challengeTitle": {
+    "description": "Challenge dialog title.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "challengeSent": "Meydan okuma gönderildi.",
+  "@challengeSent": {
+    "description": "After sending a challenge."
+  },
+  "matchTypeQuickDuel": "Hızlı Düello",
+  "@matchTypeQuickDuel": {
+    "description": "Match type name."
+  },
+  "matchTypeSuddenDeath": "Ani Ölüm",
+  "@matchTypeSuddenDeath": {
+    "description": "Match type name."
+  },
+  "matchTypeMarathon": "Maraton",
+  "@matchTypeMarathon": {
+    "description": "Match type name."
+  },
+  "challengesTitle": "Meydan okumalar",
+  "@challengesTitle": {
+    "description": "Challenges screen title."
+  },
+  "challengesEmpty": "Bekleyen meydan okuma yok.",
+  "@challengesEmpty": {
+    "description": "No challenges."
+  },
+  "challengeFrom": "{name} sana meydan okudu",
+  "@challengeFrom": {
+    "description": "Incoming challenge line.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "challengeTo": "{name} adlı oyuncuya",
+  "@challengeTo": {
+    "description": "Outgoing challenge line.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "challengeReceived": "{name} sana meydan okudu!",
+  "@challengeReceived": {
+    "description": "Snack bar for challenge.received.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "challengeAccepted": "Meydan okuman kabul edildi!",
+  "@challengeAccepted": {
+    "description": "Snack bar when the target accepted."
+  },
+  "view": "Gör",
+  "@view": {
+    "description": "Snack bar action: open the screen."
+  },
+  "playNow": "Oyna",
+  "@playNow": {
+    "description": "Snack bar action: go to the match."
+  },
+  "rematchButton": "Rövanş",
+  "@rematchButton": {
+    "description": "Result screen: ask for a rematch."
+  },
+  "rematchWaiting": "Rakibin bekleniyor…",
+  "@rematchWaiting": {
+    "description": "Rematch asked, waiting."
+  },
+  "rematchOffered": "Rakibin rövanş istiyor!",
+  "@rematchOffered": {
+    "description": "The opponent asked for a rematch."
+  },
+  "rematchDeclined": "Rövanş olmadı.",
+  "@rematchDeclined": {
+    "description": "Rematch declined or failed."
+  },
   "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
   "@error_ACCOUNT_DELETION_PENDING": {
     "description": "Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md)."

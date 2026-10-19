@@ -13,11 +13,15 @@ import 'package:brainvolt/features/auth/domain/session_repository.dart';
 import 'package:brainvolt/features/content/data/content_providers.dart';
 import 'package:brainvolt/features/content/domain/content_repository.dart';
 import 'package:brainvolt/features/content/domain/credit.dart';
+import 'package:brainvolt/features/lobby/data/lobby_providers.dart';
+import 'package:brainvolt/features/lobby/domain/lobby_repository.dart';
 import 'package:brainvolt/features/match/data/match_providers.dart';
 import 'package:brainvolt/features/match/domain/match_repository.dart';
 import 'package:brainvolt/features/profile/data/profile_providers.dart';
 import 'package:brainvolt/features/profile/domain/me.dart';
 import 'package:brainvolt/features/profile/domain/profile_repository.dart';
+import 'package:brainvolt/features/social/data/social_providers.dart';
+import 'package:brainvolt/features/social/domain/social_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -339,6 +343,99 @@ class FakeMatchRepository implements MatchRepository {
   Future<MatchResult> result(String matchId) async => matchResult!;
 }
 
+/// Friends and requests in memory; [failure] is thrown by every call.
+class FakeSocialRepository implements SocialRepository {
+  final calls = <String>[];
+  List<Friend> friendList = [];
+  List<FriendRequest> incoming = [];
+  List<FriendRequest> outgoing = [];
+  Object? failure;
+
+  void _check() {
+    if (failure != null) {
+      throw failure!;
+    }
+  }
+
+  @override
+  Future<List<Friend>> friends() async {
+    _check();
+    return friendList;
+  }
+
+  @override
+  Future<List<FriendRequest>> requests({required bool incoming}) async {
+    _check();
+    return incoming ? this.incoming : outgoing;
+  }
+
+  @override
+  Future<bool> sendRequest({
+    String? userId,
+    String? username,
+    String via = 'search',
+  }) async {
+    _check();
+    calls.add('send:${userId ?? username}:$via');
+    return false;
+  }
+
+  @override
+  Future<void> respond(String requestId, RequestAction action) async =>
+      calls.add('${action.name}:$requestId');
+
+  @override
+  Future<void> unfriend(String userId) async => calls.add('unfriend:$userId');
+
+  @override
+  Future<void> block(String userId) async => calls.add('block:$userId');
+}
+
+/// Codes and challenges in memory.
+class FakeLobbyRepository implements LobbyRepository {
+  final calls = <String>[];
+  List<Challenge> incoming = [];
+  List<Challenge> outgoing = [];
+
+  /// What resolving any code gives.
+  ResolvedCode resolved = const ResolvedCode(kind: 'friend');
+
+  /// What responding to a challenge gives.
+  Challenge? responded;
+
+  @override
+  Future<FriendCode> friendCode() async => FriendCode('ABC234', DateTime(2030));
+
+  @override
+  Future<ResolvedCode> resolveCode(String code) async {
+    calls.add('resolve:$code');
+    return resolved;
+  }
+
+  @override
+  Future<Challenge> challenge(String targetUserId, MatchType type) async {
+    calls.add('challenge:$targetUserId:${type.wire}');
+    return Challenge(
+      id: 'c-new',
+      status: 'pending',
+      challenger: const UserCard(userId: 'me', displayName: 'Ben'),
+      target: UserCard(userId: targetUserId, displayName: ''),
+      matchType: type.wire,
+      expiresAt: DateTime(2030),
+    );
+  }
+
+  @override
+  Future<List<Challenge>> challenges({required bool incoming}) async =>
+      incoming ? this.incoming : outgoing;
+
+  @override
+  Future<Challenge> respondChallenge(String id, ChallengeAction action) async {
+    calls.add('${action.name}:$id');
+    return responded!;
+  }
+}
+
 /// A WebSocket whose server side the test drives.
 class FakeSocket implements SocketConnection {
   final _in = StreamController<dynamic>();
@@ -387,6 +484,8 @@ class TestApp {
     this.profiles,
     this.matches,
     this.sockets,
+    this.social,
+    this.lobby,
   );
 
   /// [ageConfirmed] skips the age gate; [user] is an already signed-in user.
@@ -404,8 +503,11 @@ class TestApp {
     final sessions = FakeSessionRepository(auth);
     final profiles = FakeProfileRepository();
     final matches = FakeMatchRepository();
+    final social = FakeSocialRepository();
+    final lobby = FakeLobbyRepository();
     final sockets = <FakeSocket>[];
     final container = ProviderContainer(
+      retry: noRetry,
       overrides: [
         appConfigProvider.overrideWithValue(
           AppConfig.parse(
@@ -421,6 +523,8 @@ class TestApp {
         profileRepositoryProvider.overrideWithValue(profiles),
         contentRepositoryProvider.overrideWithValue(FakeContentRepository()),
         matchRepositoryProvider.overrideWithValue(matches),
+        socialRepositoryProvider.overrideWithValue(social),
+        lobbyRepositoryProvider.overrideWithValue(lobby),
         realtimeClientProvider.overrideWith((ref) {
           final client = RealtimeClient(
             url: Uri.parse('ws://test/v1/ws'),
@@ -438,12 +542,24 @@ class TestApp {
       ],
     );
     addTearDown(container.dispose);
-    return TestApp._(container, p, auth, sessions, profiles, matches, sockets);
+    return TestApp._(
+      container,
+      p,
+      auth,
+      sessions,
+      profiles,
+      matches,
+      sockets,
+      social,
+      lobby,
+    );
   }
 
   final ProviderContainer container;
   final SharedPreferences prefs;
   final FakeMatchRepository matches;
+  final FakeSocialRepository social;
+  final FakeLobbyRepository lobby;
 
   /// Every WebSocket the app opened, newest last.
   final List<FakeSocket> sockets;

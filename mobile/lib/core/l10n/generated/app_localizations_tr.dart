@@ -419,6 +419,145 @@ class AppLocalizationsTr extends AppLocalizations {
   String get resumeMatch => 'Maça dön';
 
   @override
+  String get homeFriends => 'Arkadaşlar';
+
+  @override
+  String get homeChallenges => 'Meydan okumalar';
+
+  @override
+  String get friendsTab => 'Arkadaşlar';
+
+  @override
+  String get requestsTab => 'İstekler';
+
+  @override
+  String get friendsEmpty =>
+      'Henüz arkadaşın yok. Kullanıcı adı ya da arkadaş koduyla ekleyebilirsin.';
+
+  @override
+  String get requestsEmpty => 'Bekleyen istek yok.';
+
+  @override
+  String get friendsUpgrade => 'Arkadaş eklemek için hesabını bağla.';
+
+  @override
+  String friendCode(String code) {
+    return 'Arkadaş kodun: $code';
+  }
+
+  @override
+  String get copied => 'Kopyalandı';
+
+  @override
+  String get addFriend => 'Arkadaş ekle';
+
+  @override
+  String get addByUsername => 'Kullanıcı adı';
+
+  @override
+  String get addByCode => 'Arkadaş kodu';
+
+  @override
+  String get send => 'Gönder';
+
+  @override
+  String get friendRequestSent => 'Arkadaşlık isteği gönderildi.';
+
+  @override
+  String get friendAdded => 'Artık arkadaşsınız!';
+
+  @override
+  String get online => 'Çevrimiçi';
+
+  @override
+  String get incomingLabel => 'Gelen';
+
+  @override
+  String get outgoingLabel => 'Giden';
+
+  @override
+  String get accept => 'Kabul et';
+
+  @override
+  String get decline => 'Reddet';
+
+  @override
+  String get withdraw => 'Geri çek';
+
+  @override
+  String get unfriend => 'Arkadaşlıktan çıkar';
+
+  @override
+  String get blockUser => 'Engelle';
+
+  @override
+  String blockConfirm(String name) {
+    return '$name engellensin mi? Arkadaşlığınız ve bekleyen istekler sona erer.';
+  }
+
+  @override
+  String get challengeAction => 'Meydan oku';
+
+  @override
+  String challengeTitle(String name) {
+    return '$name adlı oyuncuya meydan oku';
+  }
+
+  @override
+  String get challengeSent => 'Meydan okuma gönderildi.';
+
+  @override
+  String get matchTypeQuickDuel => 'Hızlı Düello';
+
+  @override
+  String get matchTypeSuddenDeath => 'Ani Ölüm';
+
+  @override
+  String get matchTypeMarathon => 'Maraton';
+
+  @override
+  String get challengesTitle => 'Meydan okumalar';
+
+  @override
+  String get challengesEmpty => 'Bekleyen meydan okuma yok.';
+
+  @override
+  String challengeFrom(String name) {
+    return '$name sana meydan okudu';
+  }
+
+  @override
+  String challengeTo(String name) {
+    return '$name adlı oyuncuya';
+  }
+
+  @override
+  String challengeReceived(String name) {
+    return '$name sana meydan okudu!';
+  }
+
+  @override
+  String get challengeAccepted => 'Meydan okuman kabul edildi!';
+
+  @override
+  String get view => 'Gör';
+
+  @override
+  String get playNow => 'Oyna';
+
+  @override
+  String get rematchButton => 'Rövanş';
+
+  @override
+  String get rematchWaiting => 'Rakibin bekleniyor…';
+
+  @override
+  String get rematchOffered => 'Rakibin rövanş istiyor!';
+
+  @override
+  String get rematchDeclined => 'Rövanş olmadı.';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.';
 

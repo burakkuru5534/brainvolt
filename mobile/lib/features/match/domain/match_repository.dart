@@ -75,10 +75,16 @@ class MatchResult {
     this.isDraw = false,
     this.endReason,
     this.cancelReason,
+    this.origin = '',
+    this.endedAt,
   });
 
   final String id;
   final String status;
+
+  /// matchmaking / challenge / private_room / rematch / …
+  final String origin;
+  final DateTime? endedAt;
   final List<int> scores;
   final List<ResultPlayer> players;
   final List<ResultRound> rounds;

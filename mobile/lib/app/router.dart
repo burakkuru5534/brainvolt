@@ -11,11 +11,13 @@ import '../features/auth/presentation/splash_screen.dart';
 import '../features/auth/presentation/verify_email_screen.dart';
 import '../features/content/presentation/credits_screen.dart';
 import '../features/home/presentation/home_screen.dart';
+import '../features/lobby/presentation/challenges_screen.dart';
 import '../features/match/presentation/match_screen.dart';
 import '../features/match/presentation/queue_screen.dart';
 import '../features/match/presentation/result_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/settings_screen.dart';
+import '../features/social/presentation/friends_screen.dart';
 import 'session_controller.dart';
 
 part 'router.g.dart';
@@ -33,6 +35,8 @@ abstract final class Routes {
   static const emailSignIn = '/account/email-sign-in';
   static const verifyEmail = '/account/verify-email';
   static const credits = '/credits';
+  static const friends = '/friends';
+  static const challenges = '/challenges';
   static const play = '/play';
   static const practice = '/play?practice=1';
   static String match(String id) => '/match/$id';
@@ -111,6 +115,14 @@ GoRouter router(Ref ref) {
       GoRoute(
         path: Routes.verifyEmail,
         builder: (context, state) => const VerifyEmailScreen(),
+      ),
+      GoRoute(
+        path: Routes.friends,
+        builder: (context, state) => const FriendsScreen(),
+      ),
+      GoRoute(
+        path: Routes.challenges,
+        builder: (context, state) => const ChallengesScreen(),
       ),
       GoRoute(
         path: Routes.credits,

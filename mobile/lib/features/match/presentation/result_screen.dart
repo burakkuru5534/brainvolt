@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../app/router.dart';
 import '../../../app/session_controller.dart';
 import '../../../core/l10n/l10n.dart';
 import '../data/match_providers.dart';
 import '../domain/match_repository.dart';
+import 'play_controllers.dart';
 import 'play_error_text.dart';
 
 part 'result_screen.g.dart';
@@ -74,6 +77,13 @@ class ResultScreen extends ConsumerWidget {
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.displaySmall,
         ),
+        if (r.status == 'completed' &&
+            r.origin != 'private_room' &&
+            (r.endedAt
+                    ?.add(const Duration(seconds: 30))
+                    .isAfter(DateTime.now()) ??
+                false))
+          _Rematch(matchId: r.id),
         const SizedBox(height: 16),
         for (final round in r.rounds)
           Card(
@@ -92,6 +102,59 @@ class ResultScreen extends ConsumerWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Rematch offer: ask, see the opponent's answer, go to the new match.
+class _Rematch extends ConsumerWidget {
+  const _Rematch({required this.matchId});
+
+  final String matchId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    ref.listen(rematchControllerProvider(matchId), (_, next) {
+      if (next.newMatchId case final id?) {
+        context.go(Routes.match(id));
+      }
+    });
+    final s = ref.watch(rematchControllerProvider(matchId));
+    final ctrl = ref.read(rematchControllerProvider(matchId).notifier);
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        children: [
+          if (s.declined)
+            Text(l10n.rematchDeclined)
+          else if (s.asked)
+            Text(l10n.rematchWaiting, key: const Key('rematch-waiting'))
+          else ...[
+            if (s.othersAccepted) Text(l10n.rematchOffered),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                FilledButton.icon(
+                  key: const Key('rematch'),
+                  icon: const Icon(Icons.replay),
+                  onPressed: () =>
+                      ctrl.respond(accept: true).catchError((Object _) {}),
+                  label: Text(l10n.rematchButton),
+                ),
+                if (s.othersAccepted) ...[
+                  const SizedBox(width: 8),
+                  TextButton(
+                    onPressed: () =>
+                        ctrl.respond(accept: false).catchError((Object _) {}),
+                    child: Text(l10n.decline),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

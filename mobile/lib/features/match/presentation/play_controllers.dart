@@ -191,3 +191,71 @@ class MatchController extends _$MatchController {
 
   Future<void> leave() => _rt.send('match.leave', {'match_id': matchId});
 }
+
+/// The rematch offer of a finished match (websocket.md rematch.*).
+class RematchState {
+  const RematchState({
+    this.asked = false,
+    this.othersAccepted = false,
+    this.newMatchId,
+    this.declined = false,
+  });
+
+  /// This player asked for the rematch.
+  final bool asked;
+
+  /// Another participant asked for it.
+  final bool othersAccepted;
+  final String? newMatchId;
+  final bool declined;
+}
+
+/// "Play again" on the result screen: everyone accepts within 30 s of the
+/// end → game creates the rematch (rematch.result carries its id).
+@riverpod
+class RematchController extends _$RematchController {
+  @override
+  RematchState build(String matchId) {
+    final rt = ref.watch(realtimeClientProvider)..start();
+    final me = switch (ref.read(sessionControllerProvider).value) {
+      SignedIn(:final session) => session.user.id,
+      _ => '',
+    };
+    final sub = rt.frames.listen((f) {
+      if (f.data['match_id'] != matchId) {
+        return;
+      }
+      if (f.type == 'rematch.offer') {
+        final ids = (f.data['accepted_user_ids'] as List?) ?? const [];
+        state = RematchState(
+          asked: state.asked || ids.contains(me),
+          othersAccepted: ids.any((id) => id != me),
+        );
+      } else if (f.type == 'rematch.result') {
+        state = f.data['accepted'] == true
+            ? RematchState(
+                asked: true,
+                newMatchId: f.data['new_match_id'] as String?,
+              )
+            : const RematchState(declined: true);
+      }
+    });
+    ref.onDispose(() => unawaited(sub.cancel()));
+    return const RematchState();
+  }
+
+  Future<void> respond({required bool accept}) async {
+    if (accept) {
+      state = RematchState(asked: true, othersAccepted: state.othersAccepted);
+    }
+    try {
+      await ref.read(realtimeClientProvider).send('rematch.respond', {
+        'match_id': matchId,
+        'accept': accept,
+      });
+    } on RealtimeError {
+      state = const RematchState(declined: true);
+      rethrow;
+    }
+  }
+}

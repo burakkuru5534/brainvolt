@@ -7,6 +7,8 @@ import '../../../app/providers.dart';
 import '../../../app/router.dart';
 import '../../../app/session_controller.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/realtime/realtime_client.dart';
+import '../../../core/realtime/realtime_providers.dart';
 import '../../auth/domain/session.dart';
 import '../../match/data/match_providers.dart';
 import '../../profile/domain/avatars.dart';
@@ -15,6 +17,15 @@ import '../../profile/domain/avatars.dart';
 final currentMatchProvider = FutureProvider.autoDispose<String?>(
   (ref) => ref.watch(matchRepositoryProvider).currentMatch(),
 );
+
+/// Challenge events for the caller (websocket.md §5.2): home shows them in
+/// a snack bar wherever the player is in the app's main screen.
+final lobbyEventsProvider = StreamProvider.autoDispose<ServerFrame>((ref) {
+  final rt = ref.watch(realtimeClientProvider)..start();
+  return rt.frames.where(
+    (f) => f.type == 'challenge.received' || f.type == 'challenge.updated',
+  );
+});
 
 /// Home screen: greets the player, nudges guests and unverified accounts to
 /// secure their progress, and starts a Quick Duel (more modes join with
@@ -30,10 +41,54 @@ class HomeScreen extends ConsumerWidget {
       SignedIn(:final session) => session,
       _ => null,
     };
+    ref.listen(lobbyEventsProvider, (_, next) {
+      final f = next.value;
+      if (f == null) {
+        return;
+      }
+      final messenger = ScaffoldMessenger.of(context);
+      if (f.type == 'challenge.received') {
+        final c = (f.data['challenge'] as Map?)?.cast<String, dynamic>();
+        final from = (c?['challenger'] as Map?)?['display_name'] as String?;
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(l10n.challengeReceived(from ?? '')),
+            action: SnackBarAction(
+              label: l10n.view,
+              onPressed: () => context.push(Routes.challenges),
+            ),
+          ),
+        );
+      } else if (f.data['status'] == 'started' &&
+          f.data['match_id'] is String) {
+        final id = f.data['match_id'] as String;
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(l10n.challengeAccepted),
+            action: SnackBarAction(
+              label: l10n.playNow,
+              onPressed: () => context.go(Routes.match(id)),
+            ),
+          ),
+        );
+      }
+    });
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: [
+          IconButton(
+            key: const Key('open-challenges'),
+            tooltip: l10n.homeChallenges,
+            icon: const Icon(Icons.sports_kabaddi),
+            onPressed: () => context.push(Routes.challenges),
+          ),
+          IconButton(
+            key: const Key('open-friends'),
+            tooltip: l10n.homeFriends,
+            icon: const Icon(Icons.people),
+            onPressed: () => context.push(Routes.friends),
+          ),
           IconButton(
             key: const Key('open-settings'),
             tooltip: l10n.settingsTitle,

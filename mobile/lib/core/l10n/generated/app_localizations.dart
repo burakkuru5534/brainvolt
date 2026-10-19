@@ -830,6 +830,258 @@ abstract class AppLocalizations {
   /// **'Maça dön'**
   String get resumeMatch;
 
+  /// Home: open the friends screen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşlar'**
+  String get homeFriends;
+
+  /// Home: open the challenges screen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Meydan okumalar'**
+  String get homeChallenges;
+
+  /// Friends screen tab: friends.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşlar'**
+  String get friendsTab;
+
+  /// Friends screen tab: friend requests.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstekler'**
+  String get requestsTab;
+
+  /// Friends list is empty.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz arkadaşın yok. Kullanıcı adı ya da arkadaş koduyla ekleyebilirsin.'**
+  String get friendsEmpty;
+
+  /// No friend requests.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekleyen istek yok.'**
+  String get requestsEmpty;
+
+  /// Guests cannot have friends (D-016).
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş eklemek için hesabını bağla.'**
+  String get friendsUpgrade;
+
+  /// The caller's friend invite code.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş kodun: {code}'**
+  String friendCode(String code);
+
+  /// Snack bar after copying a code.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kopyalandı'**
+  String get copied;
+
+  /// Add friend dialog title / button.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş ekle'**
+  String get addFriend;
+
+  /// Add friend: by username.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanıcı adı'**
+  String get addByUsername;
+
+  /// Add friend: by friend code.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş kodu'**
+  String get addByCode;
+
+  /// Generic send button.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönder'**
+  String get send;
+
+  /// After sending a friend request.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşlık isteği gönderildi.'**
+  String get friendRequestSent;
+
+  /// A friend request made a friendship at once.
+  ///
+  /// In tr, this message translates to:
+  /// **'Artık arkadaşsınız!'**
+  String get friendAdded;
+
+  /// Friend is online.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çevrimiçi'**
+  String get online;
+
+  /// Incoming requests / challenges.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gelen'**
+  String get incomingLabel;
+
+  /// Sent requests / challenges.
+  ///
+  /// In tr, this message translates to:
+  /// **'Giden'**
+  String get outgoingLabel;
+
+  /// Accept button.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kabul et'**
+  String get accept;
+
+  /// Decline button.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reddet'**
+  String get decline;
+
+  /// Withdraw an own request or challenge.
+  ///
+  /// In tr, this message translates to:
+  /// **'Geri çek'**
+  String get withdraw;
+
+  /// Friend menu: unfriend.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşlıktan çıkar'**
+  String get unfriend;
+
+  /// Friend menu: block.
+  ///
+  /// In tr, this message translates to:
+  /// **'Engelle'**
+  String get blockUser;
+
+  /// Block confirmation.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} engellensin mi? Arkadaşlığınız ve bekleyen istekler sona erer.'**
+  String blockConfirm(String name);
+
+  /// Friend menu: send a challenge.
+  ///
+  /// In tr, this message translates to:
+  /// **'Meydan oku'**
+  String get challengeAction;
+
+  /// Challenge dialog title.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} adlı oyuncuya meydan oku'**
+  String challengeTitle(String name);
+
+  /// After sending a challenge.
+  ///
+  /// In tr, this message translates to:
+  /// **'Meydan okuma gönderildi.'**
+  String get challengeSent;
+
+  /// Match type name.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hızlı Düello'**
+  String get matchTypeQuickDuel;
+
+  /// Match type name.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ani Ölüm'**
+  String get matchTypeSuddenDeath;
+
+  /// Match type name.
+  ///
+  /// In tr, this message translates to:
+  /// **'Maraton'**
+  String get matchTypeMarathon;
+
+  /// Challenges screen title.
+  ///
+  /// In tr, this message translates to:
+  /// **'Meydan okumalar'**
+  String get challengesTitle;
+
+  /// No challenges.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekleyen meydan okuma yok.'**
+  String get challengesEmpty;
+
+  /// Incoming challenge line.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} sana meydan okudu'**
+  String challengeFrom(String name);
+
+  /// Outgoing challenge line.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} adlı oyuncuya'**
+  String challengeTo(String name);
+
+  /// Snack bar for challenge.received.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} sana meydan okudu!'**
+  String challengeReceived(String name);
+
+  /// Snack bar when the target accepted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Meydan okuman kabul edildi!'**
+  String get challengeAccepted;
+
+  /// Snack bar action: open the screen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gör'**
+  String get view;
+
+  /// Snack bar action: go to the match.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyna'**
+  String get playNow;
+
+  /// Result screen: ask for a rematch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rövanş'**
+  String get rematchButton;
+
+  /// Rematch asked, waiting.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rakibin bekleniyor…'**
+  String get rematchWaiting;
+
+  /// The opponent asked for a rematch.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rakibin rövanş istiyor!'**
+  String get rematchOffered;
+
+  /// Rematch declined or failed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rövanş olmadı.'**
+  String get rematchDeclined;
+
   /// Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md).
   ///
   /// In tr, this message translates to:

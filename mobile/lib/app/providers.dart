@@ -32,3 +32,7 @@ String appVersion(Ref ref) =>
 @Riverpod(keepAlive: true)
 String devicePlatform(Ref ref) =>
     defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
+
+/// Riverpod retry policy of the app: never retry failed providers
+/// automatically (`ProviderScope.retry`).
+Duration? noRetry(int retryCount, Object error) => null;
