@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 	"testing"
 	"time"
 
@@ -67,6 +68,9 @@ func TestProgressionFromMatches(t *testing.T) {
 		r.get("streak", "current") != 1.0 || r.get("streak", "played_today") != true || r.get("badges") != 2.0 {
 		t.Fatalf("progress %s", r.raw)
 	}
+	if r := x.do(http.MethodGet, "/v1/me/progress", tokA, nil); r.get("wins") != 1.0 || r.get("matches") != 1.0 {
+		t.Fatalf("stats %s", r.raw)
+	}
 	if r := x.do(http.MethodGet, "/v1/me/progress", tokB, nil); r.get("xp_total") != 25.0 || r.get("level") != 1.0 {
 		t.Fatalf("loser progress %s", r.raw)
 	}
@@ -97,14 +101,14 @@ func TestProgressionFromMatches(t *testing.T) {
 	if r.code != 200 || len(daily) != 3 || len(weekly) != 3 || r.get("rerolls_left") != 1.0 {
 		t.Fatalf("quests %s", r.raw)
 	}
-	moved := false
-	for _, q := range daily {
-		if q, _ := q.(map[string]any); q["progress"].(float64) > 0 {
-			moved = true
+	// The day's quests are drawn per day: every quest a Quick Duel win
+	// counts for has moved, the others have not.
+	for _, q := range append(slices.Clone(daily), weekly...) {
+		q, _ := q.(map[string]any)
+		counts := slices.Contains([]any{"play_matches", "win_matches", "correct_answers", "win_streak"}, q["objective"])
+		if moved := q["progress"].(float64) > 0; moved != counts {
+			t.Fatalf("quest %v progress %v", q["code"], q["progress"])
 		}
-	}
-	if !moved {
-		t.Fatalf("no quest progress %s", r.raw)
 	}
 	first, _ := daily[0].(map[string]any)
 	second, _ := daily[1].(map[string]any)

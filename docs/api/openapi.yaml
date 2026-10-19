@@ -1476,8 +1476,12 @@ components:
                     type: integer
                 level_xp:
                     type: integer
+                matches:
+                    type: integer
                 streak:
                     $ref: '#/components/schemas/Streak'
+                wins:
+                    type: integer
                 xp_total:
                     type: integer
             required:
@@ -1485,7 +1489,9 @@ components:
                 - level
                 - level_size
                 - level_xp
+                - matches
                 - streak
+                - wins
                 - xp_total
             type: object
         PublicProfile:

@@ -352,6 +352,22 @@ func (q *Queries) GetProgress(ctx context.Context, userID uuid.UUID) (Progressio
 	return i, err
 }
 
+const getStats = `-- name: GetStats :one
+SELECT matches, wins FROM progression.user_stats WHERE user_id = $1
+`
+
+type GetStatsRow struct {
+	Matches int32
+	Wins    int32
+}
+
+func (q *Queries) GetStats(ctx context.Context, userID uuid.UUID) (GetStatsRow, error) {
+	row := q.db.QueryRow(ctx, getStats, userID)
+	var i GetStatsRow
+	err := row.Scan(&i.Matches, &i.Wins)
+	return i, err
+}
+
 const getStreak = `-- name: GetStreak :one
 
 SELECT user_id, current_days, longest_days, last_play_day, updated_at FROM progression.play_streaks WHERE user_id = $1

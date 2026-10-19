@@ -114,3 +114,6 @@ RETURNING count;
 
 -- name: RerollCount :one
 SELECT coalesce((SELECT count FROM progression.quest_rerolls WHERE user_id = @user_id AND day = @day), 0)::int;
+
+-- name: GetStats :one
+SELECT matches, wins FROM progression.user_stats WHERE user_id = @user_id;

@@ -86,6 +86,9 @@ type Progress struct {
 	LevelSize int64  `json:"level_size"`
 	Streak    Streak `json:"streak"`
 	Badges    int    `json:"badges"`
+	// Matches and Wins count every completed match (Home stats).
+	Matches int `json:"matches"`
+	Wins    int `json:"wins"`
 }
 
 // Streak is the play streak as shown today.
@@ -112,6 +115,14 @@ func (s *Service) Progress(ctx context.Context, user uuid.UUID) (Progress, error
 	out.LevelXP = out.XPTotal - domain.LevelStart(out.Level)
 	if out.Level < domain.MaxLevel {
 		out.LevelSize = domain.LevelStart(out.Level+1) - domain.LevelStart(out.Level)
+	}
+	stats, err := q.GetStats(ctx, user)
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+	case err != nil:
+		return Progress{}, err
+	default:
+		out.Matches, out.Wins = int(stats.Matches), int(stats.Wins)
 	}
 	st, err := loadStreak(ctx, q, user)
 	if err != nil {
