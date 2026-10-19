@@ -29,6 +29,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/domain/scoring"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/store/sqlc"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/team"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
@@ -72,6 +73,13 @@ type Users interface {
 	User(ctx context.Context, id uuid.UUID) (identity.User, error)
 }
 
+// Teams is what game needs from team: a persistent team's members and a
+// couple's partners.
+type Teams interface {
+	TeamInfo(ctx context.Context, id uuid.UUID) (team.Info, error)
+	CoupleInfo(ctx context.Context, id uuid.UUID) (team.CoupleInfo, error)
+}
+
 // SeasonProvider returns the active ranked season (ranking, Phase 7);
 // ok = false → NO_ACTIVE_SEASON.
 type SeasonProvider interface {
@@ -109,9 +117,11 @@ type Deps struct {
 	Cards     Cards
 	Seasons   SeasonProvider
 	Sanctions SanctionChecker
-	Events    *events.Bus
-	Clock     clock.Clock
-	Logger    *slog.Logger
+	// Teams checks team lineups and couples (team); nil refuses them.
+	Teams  Teams
+	Events *events.Bus
+	Clock  clock.Clock
+	Logger *slog.Logger
 	// Random is the engine's random source (crypto-random when nil).
 	Random engine.Random
 }
@@ -158,6 +168,10 @@ type CreateRequest struct {
 	OriginRef *uuid.UUID
 	// Parent is the previous match of a rematch or revenge.
 	Parent *uuid.UUID
+	// Teams / Couples name the persistent team or couple a side plays as
+	// (nil = a temporary side, D-016a). A couple match needs both couples.
+	Teams   [2]*uuid.UUID
+	Couples [2]*uuid.UUID
 }
 
 // Created is a new match in `waiting` with the engine output of T1.
@@ -306,8 +320,8 @@ func (s *Service) contextRules(ctx context.Context, cfg config.Config, req Creat
 	fail := func(id, desc string) error {
 		return modeNotAllowed([]config.Violation{{RuleID: id, Description: desc}})
 	}
-	if cfg.Format == domain.FormatCouple {
-		return fail("R16", "couple sides need active couples (Couple Contest arrives in Phase 6)")
+	if err := s.sideRules(ctx, cfg, req); err != nil {
+		return err
 	}
 	if cfg.CategoryMode == domain.CreatorQuiz {
 		return fail("R14", "creator quizzes arrive in Phase 8")
@@ -327,6 +341,59 @@ func (s *Service) contextRules(ctx context.Context, cfg config.Config, req Creat
 		}
 		if !ok {
 			return fail("R12", "unknown or inactive category")
+		}
+	}
+	return nil
+}
+
+// sideRules checks persistent sides: a team side fields current members
+// of an active team (the lineup is fixed now), a couple side is exactly an
+// active couple (R16); both sides of a couple match are couples, and a
+// team or couple never meets itself.
+func (s *Service) sideRules(ctx context.Context, cfg config.Config, req CreateRequest) error {
+	fail := func(desc string) error {
+		return modeNotAllowed([]config.Violation{{RuleID: "R16", Description: desc}})
+	}
+	couple := cfg.Format == domain.FormatCouple
+	for side := range 2 {
+		if couple != (req.Couples[side] != nil) {
+			return fail("couple matches are played by two couples, and only they")
+		}
+		if req.Teams[side] != nil && (couple || !cfg.Format.IsTeam()) {
+			return fail("a persistent team plays team formats only")
+		}
+	}
+	if (req.Teams[0] != nil && req.Teams[1] != nil && *req.Teams[0] == *req.Teams[1]) ||
+		(couple && *req.Couples[0] == *req.Couples[1]) {
+		return fail("a team or couple cannot play itself")
+	}
+	if (couple || req.Teams[0] != nil || req.Teams[1] != nil) && s.d.Teams == nil {
+		return fail("teams are not available here")
+	}
+	for side, members := range req.Sides {
+		users := make([]uuid.UUID, len(members))
+		for i, m := range members {
+			users[i] = m.UserID
+		}
+		if id := req.Teams[side]; id != nil {
+			t, err := s.d.Teams.TeamInfo(ctx, *id)
+			if err != nil {
+				return err
+			}
+			for _, u := range users {
+				if !t.Active || !slices.Contains(t.Members, u) {
+					return fail("the lineup must be current members of an active team")
+				}
+			}
+		}
+		if id := req.Couples[side]; id != nil {
+			c, err := s.d.Teams.CoupleInfo(ctx, *id)
+			if err != nil {
+				return err
+			}
+			if !c.Active || len(users) != 2 || !slices.Contains(users, c.Users[0]) || !slices.Contains(users, c.Users[1]) {
+				return fail("a couple side is exactly the partners of an active couple")
+			}
 		}
 	}
 	return nil
@@ -527,7 +594,9 @@ func (s *Service) insert(ctx context.Context, m *engine.Match, cfg config.Config
 			return err
 		}
 		for side := int16(1); side <= 2; side++ {
-			if err := q.InsertSide(ctx, sqlc.InsertSideParams{MatchID: m.ID, SideNo: side}); err != nil {
+			if err := q.InsertSide(ctx, sqlc.InsertSideParams{
+				MatchID: m.ID, SideNo: side, TeamID: req.Teams[side-1], CoupleID: req.Couples[side-1],
+			}); err != nil {
 				return err
 			}
 		}

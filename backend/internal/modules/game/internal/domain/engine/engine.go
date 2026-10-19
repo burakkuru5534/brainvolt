@@ -816,7 +816,9 @@ func (m *Match) Lock(user uuid.UUID, round int, option uuid.UUID, now int64) (Ou
 	}
 	m.Round.locks[p.Side-1] = &teammode.Lock{UserID: user, OptionID: option, ResponseMS: timing.ResponseMS(now, m.Round.ShowAtMS, p.RTTMS)}
 	m.Round.answers[user] = answer{option: option, receivedMS: now, responseMS: m.Round.locks[p.Side-1].ResponseMS}
-	m.emit(&o, "round.answer_received", everyone, map[string]any{"round_no": round, "user_id": user, "side_no": p.Side})
+	m.emit(&o, "round.answer_received", everyone, map[string]any{
+		"round_no": round, "user_id": user, "side_no": p.Side, "option_id": option, "locked": true,
+	})
 	if m.allAnswered() {
 		m.lock(&o, now)
 	}

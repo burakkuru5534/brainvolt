@@ -118,6 +118,44 @@ func (m *Match) AnswerOf(user uuid.UUID) (uuid.UUID, bool) {
 	return a.option, ok
 }
 
+// SideRound is what one side sees of the open round (Shared Answer): the
+// latest proposal per member, in seat order, and the locked option.
+func (m *Match) SideRound(side int) (proposals []teammode.Proposal, locked *uuid.UUID) {
+	if m.Round == nil || side < 1 || side > 2 {
+		return nil, nil
+	}
+	latest := map[uuid.UUID]teammode.Proposal{}
+	for _, p := range m.Round.proposals[side-1] {
+		latest[p.UserID] = p
+	}
+	for _, member := range m.side(side) {
+		if p, ok := latest[member.UserID]; ok {
+			proposals = append(proposals, p)
+		}
+	}
+	if l := m.Round.locks[side-1]; l != nil {
+		locked = &l.OptionID
+	}
+	return proposals, locked
+}
+
+// ExpectedAnswerers are who may submit in the open round.
+func (m *Match) ExpectedAnswerers() []uuid.UUID { return m.expectedAnswerers() }
+
+// Answered lists who submitted in the open round.
+func (m *Match) Answered() []uuid.UUID {
+	if m.Round == nil {
+		return nil
+	}
+	var out []uuid.UUID
+	for _, p := range m.Participants {
+		if _, ok := m.Round.answers[p.UserID]; ok {
+			out = append(out, p.UserID)
+		}
+	}
+	return out
+}
+
 // Participant returns a participant's state, or nil.
 func (m *Match) Participant(user uuid.UUID) *Participant { return m.participant(user) }
 

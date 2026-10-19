@@ -5,6 +5,9 @@
 package team
 
 import (
+	"context"
+
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
@@ -55,4 +58,25 @@ func New(d Deps) *Module {
 // Register adds team's routes.
 func (m *Module) Register(s *httpserver.Server, ident *identity.Module, idem *idempotency.Store) {
 	transport.New(m.svc, ident, idem).Register(s)
+}
+
+// Info is a team's state and current members.
+type Info = service.TeamInfo
+
+// CoupleInfo is a couple's state and partners.
+type CoupleInfo = service.CoupleInfo
+
+// TeamInfo returns a team's state and current members (game lineups).
+func (m *Module) TeamInfo(ctx context.Context, id uuid.UUID) (Info, error) {
+	return m.svc.TeamInfo(ctx, id)
+}
+
+// CoupleInfo returns a couple's state and partners.
+func (m *Module) CoupleInfo(ctx context.Context, id uuid.UUID) (CoupleInfo, error) {
+	return m.svc.CoupleInfo(ctx, id)
+}
+
+// ActiveCoupleOf returns a user's active couple.
+func (m *Module) ActiveCoupleOf(ctx context.Context, user uuid.UUID) (CoupleInfo, bool, error) {
+	return m.svc.ActiveCoupleOf(ctx, user)
 }

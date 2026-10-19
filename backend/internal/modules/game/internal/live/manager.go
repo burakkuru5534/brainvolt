@@ -227,7 +227,8 @@ func (m *Manager) Start(ctx context.Context, match *engine.Match, out engine.Out
 	}
 	mt := &meta{MatchID: match.ID, Texts: texts, Cards: cards, Seats: seats, Summary: map[string]any{
 		"match_type": match.Config.MatchType, "format": match.Config.Format, "category_mode": match.Config.CategoryMode,
-		"question_count": match.Derived.QuestionCount, "answer_window_ms": match.Derived.AnswerWindowMS,
+		"team_answer_mode": match.Config.TeamMode,
+		"question_count":   match.Derived.QuestionCount, "answer_window_ms": match.Derived.AnswerWindowMS,
 	}, Bots: bots}
 	mt.addCategories(qs)
 	metaJSON, err := json.Marshal(mt)
@@ -353,11 +354,12 @@ func (m *Manager) Handle(ctx context.Context, c realtime.Client, msg realtime.Me
 		cmd.Kind = kindReady
 	case "match.leave":
 		cmd.Kind = kindLeave
-	case "match.answer":
+	case "match.answer", "match.propose", "match.lock":
 		if p.RoundNo <= 0 || p.OptionID == uuid.Nil {
 			return apierror.New(apierror.MalformedRequest)
 		}
-		cmd.Kind, cmd.Round, cmd.Option = kindAnswer, p.RoundNo, p.OptionID
+		cmd.Kind = map[string]string{"match.answer": kindAnswer, "match.propose": kindPropose, "match.lock": kindLock}[msg.Type]
+		cmd.Round, cmd.Option = p.RoundNo, p.OptionID
 	case "match.pick_category":
 		if p.RoundNo <= 0 || p.CategoryID == uuid.Nil {
 			return apierror.New(apierror.MalformedRequest)

@@ -21,6 +21,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/team"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
@@ -122,6 +123,7 @@ type Deps struct {
 	Realtime  *realtime.Module
 	Seasons   SeasonProvider
 	Sanctions SanctionChecker
+	Teams     *team.Module
 	Events    *events.Bus
 	Clock     clock.Clock
 	Logger    *slog.Logger
@@ -139,10 +141,14 @@ type Module struct {
 // New builds the module and, with a realtime gateway, registers the
 // match.* intents, match stream resume, disconnect and RTT hooks.
 func New(d Deps) *Module {
-	svc := service.New(service.Deps{
+	sd := service.Deps{
 		DB: d.DB, Redis: d.Redis, Questions: d.Content, Users: d.Identity, Cards: d.Profiles, Seasons: d.Seasons,
 		Sanctions: d.Sanctions, Events: d.Events, Clock: d.Clock, Logger: d.Logger,
-	})
+	}
+	if d.Teams != nil {
+		sd.Teams = d.Teams
+	}
+	svc := service.New(sd)
 	m := &Module{svc: svc, identity: d.Identity}
 	if d.Realtime != nil {
 		m.live = live.New(live.Deps{

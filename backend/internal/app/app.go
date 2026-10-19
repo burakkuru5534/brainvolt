@@ -195,7 +195,7 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	tm := team.New(team.Deps{DB: d.db, Identity: ident, Profiles: prof, Social: soc, Events: d.bus, Clock: d.clock})
 	tm.Register(srv, ident, d.idem)
 	g := game.New(game.Deps{
-		DB: d.db, Redis: d.rdb, Content: cont, Identity: ident, Profiles: prof, Realtime: rt,
+		DB: d.db, Redis: d.rdb, Content: cont, Identity: ident, Profiles: prof, Realtime: rt, Teams: tm,
 		Events: d.bus, Clock: d.clock, Logger: d.logger, Instance: d.instance,
 	})
 	g.Register(srv, ident)

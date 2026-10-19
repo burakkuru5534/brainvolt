@@ -143,7 +143,7 @@ No pong for **3 consecutive pings** (in match: 6 s; outside: 60 s) → server tr
 | `round.pre_round` | `{round_no, picker_side_no, picker_user_id?, categories: [{id, name}], allowed_category_ids, pick_deadline_at}` | Mixed Battle; names in the recipient's locale; `allowed_category_ids` leave out a 4th pick in a row; `match.snapshot` carries the same as `pre_round` |
 | `round.category_picked` | `{round_no, category_id}` | |
 | `round.started` | `{round_no, question: {id, prompt, category?}, options: [{id, text}] (shuffled), show_at, deadline_at, answering_user_ids}` | text in the recipient's locale; `category` omitted in Blind Challenge; **never** the correct option |
-| `round.answer_received` | `{round_no, user_id}` (opponents) / `{round_no, user_id, option_id}` (own) | |
+| `round.answer_received` | `{round_no, user_id}` (others) / `{round_no, user_id, option_id}` (own) | a Shared Answer lock carries `{side_no, option_id, locked: true}` and shows the option to the whole side; the snapshot's `round` adds `answering_user_ids`, `answered_user_ids` and, in Shared Answer, the own side's `proposals` and `locked_option_id` |
 | `round.proposals` | `{round_no, proposals: [{user_id, option_id}]}` | own side only, Shared Answer |
 | `round.locked` | `{round_no}` | |
 | `round.revealed` | `{round_no, correct_option_id, explanation?, category, answers: [{user_id, option_id, response_ms, correct, points: {base, speed, streak, sync?}}], sides: [{side_no, correct, points, score}]}` | |

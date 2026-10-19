@@ -24,6 +24,8 @@ const (
 	kindReady      = "ready"
 	kindAnswer     = "answer"
 	kindPick       = "pick"
+	kindPropose    = "propose"
+	kindLock       = "lock"
 	kindLeave      = "leave"
 	kindDisconnect = "disconnect"
 	kindRTT        = "rtt"
@@ -131,6 +133,10 @@ func (o *owner) handle(ctx context.Context, c command) {
 		out, err = o.match.Answer(user, c.Round, c.Option, now)
 	case kindPick:
 		out, err = o.match.Pick(user, c.Round, c.Option, now)
+	case kindPropose:
+		out, err = o.match.Propose(user, c.Round, c.Option, now)
+	case kindLock:
+		out, err = o.match.Lock(user, c.Round, c.Option, now)
 	case kindLeave:
 		out, err = o.match.Leave(user, now)
 	case kindDisconnect:

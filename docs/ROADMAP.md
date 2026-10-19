@@ -346,7 +346,7 @@ Goal: two players finish a live 1v1 match on their phones: the WebSocket gateway
 ### 4.5 Tests & docs
 - [x] 4.5.1 Backend WebSocket end-to-end (two clients play a match; reconnect; takeover), mobile unit/widget tests with a fake socket, docs and decision log
 
-## Phase 5 — Matchmaking & Social System  `[~]`
+## Phase 5 — Matchmaking & Social System  `[x]`
 Goal: players find each other — friends, blocks, direct challenges, invite codes, private rooms, rematch, persistent teams and couples — and the queue pairs by rating with expanding ranges for every 1v1 mode. Team and couple **matches** come in Phase 6 (the profiles are created here). Owner list: MMR queue, expanding ranges, friends, direct challenges, invite codes, private rooms, team profiles, couple profiles, rematch flows.
 
 ### 5.1 Social (`social`)
@@ -374,15 +374,23 @@ Goal: players find each other — friends, blocks, direct challenges, invite cod
 ### 5.6 Tests & docs
 - [x] 5.6.1 Backend integration/e2e, mobile tests, docs, decision log
 
-## Phase 6 — Team Matches & Couple Contest  `[ ]`
-- [ ] 2v2 team matches
-- [ ] 3v3 team matches
-- [ ] 4v4 team matches
-- [ ] Team membership & management
-- [ ] Team answer mechanics (all three modes, live)
-- [ ] Aggregated team scoring
-- [ ] Team result screens
-- [ ] Couple Contest rules & flow
+## Phase 6 — Team Matches & Couple Contest  `[~]`
+Goal: 2v2, 3v3, 4v4 and couple matches played live with all three team answer modes, from rooms, challenges and matchmaking (temporary sides, parties, persistent teams, couples). The engine already implements the modes and aggregated scoring (Phase 3). Owner list: 2v2/3v3/4v4 team matches, team membership & management (Phase 5), team answer mechanics (all three modes, live), aggregated team scoring, team result screens, Couple Contest rules & flow.
+
+### 6.1 Game
+- [x] 6.1.1 Sides with a persistent team or a couple (`match_sides.team_id / couple_id`; lineup = current members; couple sides = an active couple, R16); team module read API
+- [x] 6.1.2 Live Shared Answer (`match.propose`, `match.lock`), Individual Turns and Fast Team Round over WebSocket; snapshot with own side's proposals, lock and turn holders
+
+### 6.2 Lobby & matchmaking
+- [ ] 6.2.1 Rooms and challenges in every format and team mode (team/couple challenges with lineups)
+- [ ] 6.2.2 Team queues (Fast Team Round + average, D-053): solo tickets fill temporary sides, parties of friends, persistent team and couple tickets
+
+### 6.3 Mobile
+- [ ] 6.3.1 Team match screen (sides, teammates, proposals and lock, turn holder, answered marks) and team result screen
+- [ ] 6.3.2 Format and team mode pickers (rooms, challenges, queue); queue as a party, a team or a couple
+
+### 6.4 Tests & docs
+- [ ] 6.4.1 Backend e2e for each mode and origin, mobile tests, docs, decision log
 
 ## Phase 7 — Ranked Seasons & Leaderboards  `[ ]`
 - [ ] MMR (skill)

@@ -109,6 +109,8 @@ func (m *meta) text(q uuid.UUID, locale string) content.QuestionText {
 
 func str(v any) string { s, _ := v.(string); return s }
 
+func num(v any) int { f, _ := v.(float64); return int(f) }
+
 // render builds the frame one participant receives for a stored event
 // (websocket.md §5.2): texts in their language, the own answer only for
 // the sender, and events meant for another audience reduced to their
@@ -150,7 +152,9 @@ func (m *meta) render(e stored, r recipient) wsserver.Outbound {
 		ids, _ := d["categories"].([]any)
 		d["categories"] = m.categoryList(ids, r.Locale)
 	case "round.answer_received":
-		if str(d["user_id"]) != r.UserID.String() {
+		// The own answer only; a Shared Answer lock is the whole side's.
+		ownSide := d["locked"] == true && num(d["side_no"]) == r.Side
+		if str(d["user_id"]) != r.UserID.String() && !ownSide {
 			delete(d, "option_id")
 		}
 	case "round.revealed":
@@ -194,7 +198,7 @@ func (m *meta) snapshot(match *engine.Match, r recipient, ts int64) wsserver.Out
 	}
 	d := map[string]any{
 		"match_id": m.MatchID, "status": match.Status, "phase": match.Phase, "round_no": match.RoundNo,
-		"match_type": match.Config.MatchType, "format": match.Config.Format,
+		"match_type": match.Config.MatchType, "format": match.Config.Format, "team_answer_mode": match.Config.TeamMode,
 		"question_count": match.Derived.QuestionCount, "answer_window_ms": match.Derived.AnswerWindowMS,
 		"ready_deadline_at": match.ReadyDeadMS, "participants": parts, "sides": sides,
 	}
@@ -215,6 +219,19 @@ func (m *meta) snapshot(match *engine.Match, r recipient, ts int64) wsserver.Out
 		round := map[string]any{"round_no": rd.No, "question": q, "options": opts, "show_at": rd.ShowAtMS, "deadline_at": rd.DeadlineMS}
 		if opt, ok := match.AnswerOf(r.UserID); ok {
 			round["own_option_id"] = opt
+		}
+		round["answering_user_ids"], round["answered_user_ids"] = match.ExpectedAnswerers(), match.Answered()
+		if match.Config.TeamMode == domain.SharedAnswer {
+			// Own side only: teammates' live proposals and the lock (D-035).
+			proposals, locked := match.SideRound(r.Side)
+			list := make([]map[string]any, 0, len(proposals))
+			for _, p := range proposals {
+				list = append(list, map[string]any{"user_id": p.UserID, "option_id": p.OptionID})
+			}
+			round["proposals"] = list
+			if locked != nil {
+				round["locked_option_id"] = *locked
+			}
 		}
 		d["round"] = round
 	}
