@@ -257,7 +257,11 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (*Created, erro
 		season = &id
 	}
 
-	questions, err := s.selectQuestions(ctx, cfg, d, locales, seats, now)
+	users := make([]uuid.UUID, len(seats))
+	for i, st := range seats {
+		users[i] = st.UserID
+	}
+	questions, err := s.selectQuestions(ctx, cfg, d, locales, users, selection{}, now)
 	if err != nil {
 		return nil, err
 	}
@@ -353,9 +357,16 @@ func (s *Service) revengeRule(ctx context.Context, req CreateRequest, parent *sq
 	return nil
 }
 
+// selection continues an open-ended match: the round its batch starts
+// after and the questions it already holds.
+type selection struct {
+	after   int
+	exclude []uuid.UUID
+}
+
 // selectQuestions turns the configuration into a content selection
 // (match-types §2, category-modes §2–§7).
-func (s *Service) selectQuestions(ctx context.Context, cfg config.Config, d config.Derived, locales []string, seats []engine.Seat, now time.Time) ([]engine.Question, error) {
+func (s *Service) selectQuestions(ctx context.Context, cfg config.Config, d config.Derived, locales []string, users []uuid.UUID, more selection, now time.Time) ([]engine.Question, error) {
 	t := matchtype.For(cfg.MatchType)
 	if cfg.RankedLength {
 		t = matchtype.RankedLengthQuickDuel()
@@ -367,20 +378,16 @@ func (s *Service) selectQuestions(ctx context.Context, cfg config.Config, d conf
 	curve := func(k int) []int {
 		out := make([]int, k)
 		for i := range out {
-			out[i] = t.Difficulty(i + 1)
+			out[i] = t.Difficulty(more.after + i + 1)
 		}
 		return out
-	}
-	users := make([]uuid.UUID, len(seats))
-	for i, st := range seats {
-		users[i] = st.UserID
 	}
 	recent, err := sqlc.New(s.d.DB).RecentQuestionIDs(ctx, sqlc.RecentQuestionIDsParams{UserIds: users, Since: now.Add(-NoRepeatWindow)})
 	if err != nil {
 		return nil, err
 	}
 	base := content.SelectRequest{
-		Locales: locales, MultipleChoiceOnly: d.QuestionRules.MultipleChoiceOnly, Exclude: recent,
+		Locales: locales, MultipleChoiceOnly: d.QuestionRules.MultipleChoiceOnly, Exclude: append(recent, more.exclude...),
 		Rules: content.SelectRules{Difficulties: curve(n), MaxPerCategory: d.QuestionRules.MaxPerCategory, MaxTrueFalsePercent: d.QuestionRules.MaxTrueFalsePercent},
 	}
 	var picked []content.SelectedQuestion

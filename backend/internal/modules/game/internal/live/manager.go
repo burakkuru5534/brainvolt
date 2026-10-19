@@ -57,6 +57,7 @@ func instChannel(instance string) string { return redis.Key("game", "ch", "inst"
 type Persister interface {
 	Apply(ctx context.Context, m *engine.Match, out engine.Output) error
 	Spare(ctx context.Context, m *engine.Match) ([]engine.Question, error)
+	More(ctx context.Context, m *engine.Match) ([]engine.Question, error)
 	CancelOrphan(ctx context.Context, id uuid.UUID) error
 }
 
@@ -181,6 +182,7 @@ func (m *Manager) Start(ctx context.Context, match *engine.Match, out engine.Out
 		"match_type": match.Config.MatchType, "format": match.Config.Format, "category_mode": match.Config.CategoryMode,
 		"question_count": match.Derived.QuestionCount, "answer_window_ms": match.Derived.AnswerWindowMS,
 	}, Bots: bots}
+	mt.addCategories(qs)
 	metaJSON, err := json.Marshal(mt)
 	if err != nil {
 		return err
@@ -283,9 +285,10 @@ func (m *Manager) Run(ctx context.Context) error {
 
 // intent is the payload of match.* intents (websocket.md §5.1).
 type intent struct {
-	MatchID  uuid.UUID `json:"match_id"`
-	RoundNo  int       `json:"round_no"`
-	OptionID uuid.UUID `json:"option_id"`
+	MatchID    uuid.UUID `json:"match_id"`
+	RoundNo    int       `json:"round_no"`
+	OptionID   uuid.UUID `json:"option_id"`
+	CategoryID uuid.UUID `json:"category_id"`
 }
 
 // Handle routes a match.* intent to the owner; the owner answers it.
@@ -308,6 +311,11 @@ func (m *Manager) Handle(ctx context.Context, c realtime.Client, msg realtime.Me
 			return apierror.New(apierror.MalformedRequest)
 		}
 		cmd.Kind, cmd.Round, cmd.Option = kindAnswer, p.RoundNo, p.OptionID
+	case "match.pick_category":
+		if p.RoundNo <= 0 || p.CategoryID == uuid.Nil {
+			return apierror.New(apierror.MalformedRequest)
+		}
+		cmd.Kind, cmd.Round, cmd.Option = kindPick, p.RoundNo, p.CategoryID
 	default:
 		return apierror.New(apierror.MalformedRequest).With("reason", "unknown_intent")
 	}
@@ -527,6 +535,7 @@ func (m *Manager) addTexts(ctx context.Context, mt *meta, match *engine.Match, q
 		mt.Texts = map[uuid.UUID]map[string]content.QuestionText{}
 	}
 	maps.Copy(mt.Texts, texts)
+	mt.addCategories(qs)
 	b, err := json.Marshal(mt)
 	if err != nil {
 		return err

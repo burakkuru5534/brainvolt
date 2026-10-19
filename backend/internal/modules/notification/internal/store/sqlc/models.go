@@ -303,6 +303,51 @@ type IdentityUserRole struct {
 	GrantedAt time.Time
 }
 
+type LobbyChallenge struct {
+	ID                 uuid.UUID
+	Kind               string
+	ChallengerUserID   uuid.UUID
+	ChallengerTeamID   *uuid.UUID
+	ChallengerCoupleID *uuid.UUID
+	TargetUserID       *uuid.UUID
+	TargetTeamID       *uuid.UUID
+	TargetCoupleID     *uuid.UUID
+	MatchConfig        []byte
+	ParentMatchID      *uuid.UUID
+	Status             string
+	MatchID            *uuid.UUID
+	CreatedAt          time.Time
+	ExpiresAt          time.Time
+	RespondedAt        *time.Time
+}
+
+type LobbyInviteCode struct {
+	Code       string
+	TargetKind string
+	TargetID   uuid.UUID
+	CreatedBy  uuid.UUID
+	MaxUses    *int32
+	UseCount   int32
+	ExpiresAt  time.Time
+	RevokedAt  *time.Time
+	CreatedAt  time.Time
+}
+
+type LobbyRoom struct {
+	ID                uuid.UUID
+	HostUserID        uuid.UUID
+	Status            string
+	MatchConfig       []byte
+	CreatorQuizID     *uuid.UUID
+	FriendsOfHostOnly bool
+	CurrentMatchID    *uuid.UUID
+	MatchesPlayed     int32
+	CreatedAt         time.Time
+	LastActivityAt    time.Time
+	ClosedAt          *time.Time
+	CloseReason       *string
+}
+
 type NotificationDevice struct {
 	ID             uuid.UUID
 	UserID         uuid.UUID

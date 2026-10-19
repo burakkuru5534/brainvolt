@@ -430,3 +430,64 @@ func TestCreateGuards(t *testing.T) {
 		t.Fatalf("new match after cancel: %v", err)
 	}
 }
+
+// Sudden Death asks for more questions after its first batch; More
+// continues with questions the match has not used (match-types §3.3).
+func TestMoreContinuesSuddenDeath(t *testing.T) {
+	f := newFixture(t)
+	a, b := f.user(), f.user()
+	c, err := f.duel(config.Config{MatchType: domain.SuddenDeath, Format: domain.Format1v1, Origin: domain.Challenge}, a, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := c.Match
+	f.apply(m, c.Output)
+	now := m.CreatedMS
+	for _, u := range []uuid.UUID{a, b} {
+		o, err := m.Ready(u, now)
+		if err != nil {
+			t.Fatal(err)
+		}
+		f.apply(m, o)
+	}
+	now = m.StartsAtMS
+	f.apply(m, m.Fire(engine.Timer{Kind: engine.TimerStart}, now))
+	asked := map[uuid.UUID]bool{}
+	var need int
+	for m.Status == domain.StatusInProgress && need == 0 {
+		r := m.Round
+		asked[r.Question.ID] = true
+		now = r.ShowAtMS + 2_000
+		for _, u := range []uuid.UUID{a, b} {
+			o, err := m.Answer(u, r.No, r.Question.Correct, now)
+			if err != nil {
+				t.Fatal(err)
+			}
+			f.apply(m, o)
+		}
+		now += engine.RevealMS
+		o := m.Fire(engine.Timer{Kind: engine.TimerReveal, Round: r.No}, now)
+		f.apply(m, o)
+		need = o.NeedQuestions
+	}
+	if need == 0 || len(asked) != 10 {
+		t.Fatalf("no more questions asked after %d rounds (status %s)", len(asked), m.Status)
+	}
+	more, err := f.svc.More(t.Context(), m)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(more) != need {
+		t.Fatalf("%d more questions, want %d", len(more), need)
+	}
+	for _, q := range more {
+		if asked[q.ID] {
+			t.Fatalf("question %s repeated", q.ID)
+		}
+	}
+	o := m.AddQuestions(more, now)
+	f.apply(m, o)
+	if m.Round == nil || m.Round.No != 11 || asked[m.Round.Question.ID] {
+		t.Fatalf("round after more: %+v", m.Round)
+	}
+}

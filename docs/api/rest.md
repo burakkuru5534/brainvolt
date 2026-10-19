@@ -65,17 +65,17 @@
 ## 6. lobby (rooms, challenges, invite codes)
 | Method | Path | Auth | Idem | Ph | Purpose |
 |---|---|---|---|---|---|
-| POST | `/v1/rooms` | any | ✓ | 4 | Create private room `{match_config, creator_quiz_id?}` → room + invite code. |
-| GET | `/v1/rooms/{id}` | member | — | 4 | Room state (live updates via WS). |
-| PATCH | `/v1/rooms/{id}` | host | — | 4 | Change config (`If-Match`). |
-| POST | `/v1/rooms/join` | any | — | 4 | `{code}` → join (friends-of-host rule for unverified quizzes, D-023). |
-| POST | `/v1/rooms/{id}/leave` | member | — | 4 | Leave / host closes. |
+| POST | `/v1/rooms` | any | ✓ | 5 | Create private room `{match_config}` → room + invite code; the caller leaves a previous room. `creator_quiz_id` arrives with Phase 8; formats other than 1v1 with Phase 6. |
+| GET | `/v1/rooms/{id}` | member | — | 5 | Room state (live updates via WS). |
+| PATCH | `/v1/rooms/{id}` | host | — | 5 | Change config (`If-Match: <room version>`, optional); ready flags reset. |
+| POST | `/v1/rooms/join` | any | — | 5 | `{code}` → join (friends-of-host rule for unverified quizzes, D-023). |
+| POST | `/v1/rooms/{id}/leave` | member | — | 5 | Leave; the host leaving (or the last member) closes the room. |
 | POST | `/v1/challenges` | any | ✓ | 5 | Direct challenge `{target_user_id|target_team_id|target_couple_id, match_config}`. |
 | POST | `/v1/matches/{id}/revenge` | loser side | ✓ | 8 | Revenge challenge `{home_category_id}` (D-045). |
 | GET | `/v1/challenges?box=in|out` | any | — | 5 | Pending challenges. |
 | POST | `/v1/challenges/{id}/accept` · `/decline` · `/cancel` | target / challenger | — | 5 | Respond. |
-| GET | `/v1/invite-codes/{code}` | any | — | 4 | Resolve a code (what it opens) before joining. |
-| POST | `/v1/invite-codes` | full / any per kind | ✓ | 5 | Create codes for friend / team / couple invites. |
+| GET | `/v1/invite-codes/{code}` | any | — | 5 | Resolve a code (what it opens) before joining. |
+| POST | `/v1/invite-codes` | full / any per kind | ✓ | 5 | `{kind}`: `friend` returns the caller's friend code (one per user, 7 days; the app resolves it and sends a friend request with `via: invite_code`); team / couple kinds come with the team module. |
 
 ## 7. social
 | Method | Path | Auth | Idem | Ph | Purpose |

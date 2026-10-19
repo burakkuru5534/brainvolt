@@ -44,3 +44,6 @@ SELECT user_id FROM profile.profiles WHERE username = $1;
 
 -- name: PrivacyOf :many
 SELECT user_id, challenges_from, show_online_status, allow_friend_requests FROM profile.settings WHERE user_id = ANY(@ids::uuid[]);
+
+-- name: LocalesOf :many
+SELECT user_id, locale FROM profile.profiles WHERE user_id = ANY(@ids::uuid[]);

@@ -1,0 +1,276 @@
+package app
+
+import (
+	"encoding/json"
+	"net/http"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/google/uuid"
+
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/lobby"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
+)
+
+var quickDuel = map[string]any{"match_type": "quick_duel", "format": "1v1"}
+
+// leaveMatch cancels a match in waiting: every participant joins and leaves.
+func leaveMatch(t *testing.T, id string, ws ...*wsClient) {
+	t.Helper()
+	for _, w := range ws {
+		w.answer(w.send("match.join", map[string]any{"match_id": id}))
+	}
+	if f := ws[0].answer(ws[0].send("match.leave", map[string]any{"match_id": id})); f["t"] != "sys.ack" {
+		t.Fatalf("leave %v", f)
+	}
+	ws[0].find("match.cancelled", func(f map[string]any) bool { return f["t"] == "match.cancelled" && data(f)["match_id"] == id })
+}
+
+// Invite codes and direct challenges (schema-social §3.1–§3.2).
+func TestCodesAndChallenges(t *testing.T) {
+	x := newE2E(t)
+	tokA, a, _ := x.fullUser()
+	tokB, b, _ := x.fullUser()
+	tokC, c, _ := x.fullUser()
+	guest, _ := x.signedIn()
+	x.seedQuestions(a)
+
+	// Friend codes: full accounts only, one per user; resolving shows the user.
+	want(t, "guest code", x.post("/v1/invite-codes", guest, map[string]any{"kind": "friend"}), 403, "ACCOUNT_UPGRADE_REQUIRED")
+	want(t, "bad kind", x.post("/v1/invite-codes", tokA, map[string]any{"kind": "team"}), 400, "VALIDATION_FAILED")
+	r := x.post("/v1/invite-codes", tokA, map[string]any{"kind": "friend"})
+	code := str(r.get("code"))
+	if r.code != 200 || len(code) != 6 {
+		t.Fatalf("friend code %s", r.raw)
+	}
+	if again := x.post("/v1/invite-codes", tokA, map[string]any{"kind": "friend"}); again.get("code") != code {
+		t.Fatalf("second code %s", again.raw)
+	}
+	res := x.do(http.MethodGet, "/v1/invite-codes/"+strings.ToLower(code), tokB, nil)
+	if res.code != 200 || res.get("kind") != "friend" || res.get("user", "user_id") != a.String() {
+		t.Fatalf("resolve %s", res.raw)
+	}
+	want(t, "unknown code", x.do(http.MethodGet, "/v1/invite-codes/ZZZZZ2", tokB, nil), 404, "INVITE_CODE_INVALID")
+	want(t, "malformed code", x.do(http.MethodGet, "/v1/invite-codes/O0O0O0", tokB, nil), 404, "INVITE_CODE_INVALID")
+	want(t, "friend by code", x.post("/v1/friend-requests", tokB, map[string]any{"to_user_id": a, "via": "invite_code"}), 201, "")
+
+	wa, _ := x.auth(tokA, "inst-a", nil)
+	wb, _ := x.auth(tokB, "inst-b", nil)
+
+	// Sending: rules, one pending per pair, the target is told.
+	want(t, "self", x.post("/v1/challenges", tokA, map[string]any{"target_user_id": a, "match_config": quickDuel}), 400, "VALIDATION_FAILED")
+	want(t, "team format", x.post("/v1/challenges", tokA, map[string]any{"target_user_id": b, "match_config": map[string]any{"match_type": "quick_duel", "format": "2v2"}}), 422, "MODE_NOT_ALLOWED")
+	want(t, "challenges off", x.do(http.MethodPatch, "/v1/me/settings", tokC, map[string]any{"challenges_from": "nobody"}), 200, "")
+	want(t, "to nobody", x.post("/v1/challenges", tokA, map[string]any{"target_user_id": c, "match_config": quickDuel}), 403, "CHALLENGES_DISABLED")
+	want(t, "friends only", x.do(http.MethodPatch, "/v1/me/settings", tokC, map[string]any{"challenges_from": "friends"}), 200, "")
+	want(t, "not a friend", x.post("/v1/challenges", tokA, map[string]any{"target_user_id": c, "match_config": quickDuel}), 403, "CHALLENGES_DISABLED")
+	want(t, "C blocks A", x.do(http.MethodPost, "/v1/blocks", tokC, map[string]any{"user_id": a}), 204, "")
+	want(t, "blocked", x.post("/v1/challenges", tokA, map[string]any{"target_user_id": c, "match_config": quickDuel}), 403, "BLOCKED")
+
+	r = x.post("/v1/challenges", tokA, map[string]any{"target_user_id": b, "match_config": quickDuel})
+	want(t, "challenge", r, 201, "")
+	first := str(r.get("id"))
+	if r.get("status") != "pending" || r.get("target", "user_id") != b.String() || r.get("match_config", "origin") != "challenge" {
+		t.Fatalf("challenge %s", r.raw)
+	}
+	if got := data(wb.next("challenge.received")); got["challenge"].(map[string]any)["id"] != first {
+		t.Fatalf("challenge.received %v", got)
+	}
+	want(t, "pending pair", x.post("/v1/challenges", tokB, map[string]any{"target_user_id": a, "match_config": quickDuel}), 409, "REQUEST_PENDING")
+	in := x.do(http.MethodGet, "/v1/challenges?box=in", tokB, nil)
+	if list := in.get("challenges").([]any); len(list) != 1 || list[0].(map[string]any)["id"] != first {
+		t.Fatalf("inbox %s", in.raw)
+	}
+	want(t, "challenger cannot accept", x.do(http.MethodPost, "/v1/challenges/"+first+"/accept", tokA, nil), 404, "NOT_FOUND")
+	r = x.do(http.MethodPost, "/v1/challenges/"+first+"/cancel", tokA, nil)
+	if r.code != 200 || r.get("status") != "cancelled" {
+		t.Fatalf("cancel %s", r.raw)
+	}
+	if u := data(wb.next("challenge.updated")); u["status"] != "cancelled" {
+		t.Fatalf("updated %v", u)
+	}
+	want(t, "accept cancelled", x.do(http.MethodPost, "/v1/challenges/"+first+"/accept", tokB, nil), 409, "MATCH_STATE_INVALID")
+
+	// An expired challenge cannot be accepted.
+	r = x.post("/v1/challenges", tokA, map[string]any{"target_user_id": b, "match_config": quickDuel})
+	old := str(r.get("id"))
+	if _, err := x.db.Exec(t.Context(), `UPDATE lobby.challenges SET expires_at = now() - interval '1 second' WHERE id = $1`, old); err != nil {
+		t.Fatal(err)
+	}
+	want(t, "expired", x.do(http.MethodPost, "/v1/challenges/"+old+"/accept", tokB, nil), 410, "CHALLENGE_EXPIRED")
+
+	// Accepting creates the match; both players get it.
+	r = x.post("/v1/challenges", tokA, map[string]any{"target_user_id": b, "match_config": quickDuel})
+	id := str(r.get("id"))
+	r = x.do(http.MethodPost, "/v1/challenges/"+id+"/accept", tokB, nil)
+	matchID := str(r.get("match_id"))
+	if r.code != 200 || r.get("status") != "started" || matchID == "" {
+		t.Fatalf("accept %s", r.raw)
+	}
+	for _, w := range []*wsClient{wa, wb} {
+		w.find("match.created", func(f map[string]any) bool { return f["t"] == "match.created" && data(f)["match_id"] == matchID })
+		w.find("challenge.updated", func(f map[string]any) bool { return f["t"] == "challenge.updated" && data(f)["match_id"] == matchID })
+	}
+
+	// The match is cancelled before it starts → the challenge failed.
+	leaveMatch(t, matchID, wa, wb)
+	payload, _ := json.Marshal(game.MatchCancelled{MatchID: uuid.MustParse(matchID), Reason: "participant_left_before_start", Origin: game.OriginChallenge})
+	if err := lobby.OnMatchCancelled(x.db)(t.Context(), events.Envelope{Name: game.EventMatchCancelled, Payload: payload}); err != nil {
+		t.Fatal(err)
+	}
+	var status string
+	if err := x.db.QueryRow(t.Context(), `SELECT status FROM lobby.challenges WHERE id = $1`, id).Scan(&status); err != nil || status != "failed" {
+		t.Fatalf("challenge after cancel %q %v", status, err)
+	}
+}
+
+// Private rooms (schema-social §3.3) and rematch (D-027).
+func TestRoomsAndRematch(t *testing.T) {
+	x := newE2E(t)
+	tokH, h := x.signedIn()
+	tokP, p := x.signedIn()
+	tokQ, _ := x.signedIn()
+	x.seedQuestions(h)
+	wh, _ := x.auth(tokH, "inst-h", nil)
+	wp, _ := x.auth(tokP, "inst-p", nil)
+
+	r := x.post("/v1/rooms", tokH, map[string]any{"match_config": quickDuel})
+	want(t, "create", r, 201, "")
+	roomID, code := str(r.get("id")), str(r.get("code"))
+	if r.get("status") != "open" || r.get("capacity") != float64(2) || len(r.get("members").([]any)) != 1 || len(code) != 6 {
+		t.Fatalf("room %s", r.raw)
+	}
+	res := x.do(http.MethodGet, "/v1/invite-codes/"+code, tokP, nil)
+	if res.get("kind") != "room" || res.get("room", "member_count") != float64(1) || res.get("room", "host", "user_id") != h.String() {
+		t.Fatalf("resolve %s", res.raw)
+	}
+	r = x.do(http.MethodPost, "/v1/rooms/join", tokP, map[string]any{"code": strings.ToLower(code)})
+	if r.code != 200 || len(r.get("members").([]any)) != 2 {
+		t.Fatalf("join %s", r.raw)
+	}
+	st := data(wh.find("room.state with 2", func(f map[string]any) bool {
+		return f["t"] == "room.state" && len(data(f)["room"].(map[string]any)["members"].([]any)) == 2
+	}))
+	version := st["room"].(map[string]any)["version"].(float64)
+	want(t, "full", x.do(http.MethodPost, "/v1/rooms/join", tokQ, map[string]any{"code": code}), 409, "ROOM_FULL")
+	want(t, "outsider get", x.do(http.MethodGet, "/v1/rooms/"+roomID, tokQ, nil), 404, "NOT_FOUND")
+	want(t, "member get", x.do(http.MethodGet, "/v1/rooms/"+roomID, tokP, nil), 200, "")
+
+	// Config: host only, If-Match version.
+	sd := map[string]any{"match_config": map[string]any{"match_type": "marathon", "format": "1v1"}}
+	want(t, "patch by member", x.do(http.MethodPatch, "/v1/rooms/"+roomID, tokP, sd), 403, "FORBIDDEN")
+	want(t, "stale version", x.do(http.MethodPatch, "/v1/rooms/"+roomID, tokH, sd, "If-Match", "1"), 409, "VERSION_CONFLICT")
+	want(t, "patch", x.do(http.MethodPatch, "/v1/rooms/"+roomID, tokH, map[string]any{"match_config": quickDuel}, "If-Match", jsonNum(version)), 200, "")
+
+	// Seats: members move themselves to free seats only.
+	if f := wp.answer(wp.send("room.update_seat", map[string]any{"room_id": roomID, "side_no": 1, "seat_no": 1})); data(f)["code"] != "VALIDATION_FAILED" {
+		t.Fatalf("taken seat %v", f)
+	}
+
+	// Start: everyone but the host ready.
+	if f := wh.answer(wh.send("room.start", map[string]any{"room_id": roomID})); data(f)["code"] != "MATCH_STATE_INVALID" {
+		t.Fatalf("start unready %v", f)
+	}
+	if f := wp.answer(wp.send("room.ready", map[string]any{"room_id": roomID})); f["t"] != "sys.ack" {
+		t.Fatalf("ready %v", f)
+	}
+	if f := wp.answer(wp.send("room.start", map[string]any{"room_id": roomID})); data(f)["code"] != "FORBIDDEN" {
+		t.Fatalf("member start %v", f)
+	}
+	if f := wh.answer(wh.send("room.start", map[string]any{"room_id": roomID})); f["t"] != "sys.ack" {
+		t.Fatalf("start %v", f)
+	}
+	matchID := str(data(wp.next("room.match_starting"))["match_id"])
+	wh.next("room.match_starting")
+	if g := x.do(http.MethodGet, "/v1/rooms/"+roomID, tokH, nil); g.get("status") != "in_match" || g.get("match_id") != matchID {
+		t.Fatalf("in match %s", g.raw)
+	}
+
+	// After the match the room is open again for the next one.
+	leaveMatch(t, matchID, wh, wp)
+	if f := wh.answer(wh.send("room.join", map[string]any{"room_id": roomID})); f["t"] != "sys.ack" {
+		t.Fatalf("room.join %v", f)
+	}
+	open := wh.find("open room.state", func(f map[string]any) bool {
+		return f["t"] == "room.state" && data(f)["room"].(map[string]any)["status"] == "open"
+	})
+	if rm := data(open)["room"].(map[string]any); rm["match_id"] != nil {
+		t.Fatalf("reset %v", rm)
+	}
+
+	// Rematch works on completed non-room matches within 30 s.
+	re := wh.send("rematch.respond", map[string]any{"match_id": matchID, "accept": true})
+	if f := wh.answer(re); data(f)["code"] != "MATCH_STATE_INVALID" {
+		t.Fatalf("rematch of a cancelled room match %v", f)
+	}
+	c, err := x.mods.game.Start(t.Context(), game.CreateRequest{
+		Config: game.Config{MatchType: "quick_duel", Format: "1v1", Origin: "challenge"},
+		Sides:  [2][]game.Member{{{UserID: h, Locale: "tr"}}, {{UserID: p, Locale: "en"}}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	parent := c.Match.ID.String()
+	leaveMatch(t, parent, wh, wp)
+	// Pretend it was played to the end.
+	if _, err := x.db.Exec(t.Context(), `UPDATE game.matches SET status = 'completed', cancel_reason = NULL, end_reason = 'all_rounds_played', ended_at = now() WHERE id = $1`, c.Match.ID); err != nil {
+		t.Fatal(err)
+	}
+	tokQws, _ := x.auth(tokQ, "inst-q", nil)
+	if f := tokQws.answer(tokQws.send("rematch.respond", map[string]any{"match_id": parent, "accept": true})); data(f)["code"] != "NOT_A_PARTICIPANT" {
+		t.Fatalf("outsider rematch %v", f)
+	}
+	if f := wh.answer(wh.send("rematch.respond", map[string]any{"match_id": parent, "accept": true})); f["t"] != "sys.ack" {
+		t.Fatalf("rematch accept %v", f)
+	}
+	offer := data(wp.next("rematch.offer"))
+	if ids := offer["accepted_user_ids"].([]any); len(ids) != 1 || ids[0] != h.String() {
+		t.Fatalf("offer %v", offer)
+	}
+	wp.answer(wp.send("rematch.respond", map[string]any{"match_id": parent, "accept": true}))
+	result := data(wh.find("rematch.result", func(f map[string]any) bool { return f["t"] == "rematch.result" }))
+	next := str(result["new_match_id"])
+	if result["accepted"] != true || next == "" {
+		t.Fatalf("rematch result %v", result)
+	}
+	var origin, parentID string
+	if err := x.db.QueryRow(t.Context(), `SELECT origin, parent_match_id::text FROM game.matches WHERE id = $1`, next).Scan(&origin, &parentID); err != nil || origin != "rematch" || parentID != parent {
+		t.Fatalf("rematch row %q %q %v", origin, parentID, err)
+	}
+	leaveMatch(t, next, wh, wp)
+
+	// Too late: the window closed.
+	if _, err := x.db.Exec(t.Context(), `UPDATE game.matches SET ended_at = now() - interval '1 minute' WHERE id = $1`, c.Match.ID); err != nil {
+		t.Fatal(err)
+	}
+	x.rdb.Del(t.Context(), "lobby:rematch:"+parent+":started")
+	if f := wh.answer(wh.send("rematch.respond", map[string]any{"match_id": parent, "accept": true})); data(f)["code"] != "CHALLENGE_EXPIRED" {
+		t.Fatalf("late rematch %v", f)
+	}
+
+	// The host leaving closes the room; the code stops working.
+	want(t, "leave", x.do(http.MethodPost, "/v1/rooms/"+roomID+"/leave", tokH, nil), 204, "")
+	wp.find("room.closed", func(f map[string]any) bool { return f["t"] == "room.closed" && data(f)["reason"] == "host_closed" })
+	want(t, "closed code", x.do(http.MethodPost, "/v1/rooms/join", tokQ, map[string]any{"code": code}), 410, "INVITE_CODE_EXPIRED")
+	want(t, "closed room", x.do(http.MethodGet, "/v1/rooms/"+roomID, tokP, nil), 410, "ROOM_CLOSED")
+}
+
+func jsonNum(v float64) string { b, _ := json.Marshal(v); return string(b) }
+
+// Idle rooms close after 15 minutes (D-027).
+func TestIdleRoomCloses(t *testing.T) {
+	x := newE2E(t)
+	tok, _ := x.signedIn()
+	r := x.post("/v1/rooms", tok, map[string]any{"match_config": quickDuel})
+	id := str(r.get("id"))
+	if _, err := x.db.Exec(t.Context(), `UPDATE lobby.rooms SET last_activity_at = $2 WHERE id = $1`, id, time.Now().Add(-20*time.Minute)); err != nil {
+		t.Fatal(err)
+	}
+	x.mods.lobby.Sweep(t.Context())
+	var status, reason string
+	if err := x.db.QueryRow(t.Context(), `SELECT status, close_reason FROM lobby.rooms WHERE id = $1`, id).Scan(&status, &reason); err != nil || status != "closed" || reason != "idle" {
+		t.Fatalf("idle room %q %q %v", status, reason, err)
+	}
+}

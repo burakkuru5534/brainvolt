@@ -536,10 +536,13 @@ func (m *Match) preRound(o *Output, now int64) {
 	m.Phase = PhasePreRound
 	m.emit(o, "round.pre_round", everyone, map[string]any{
 		"round_no": m.RoundNo, "picker_side_no": side, "picker_user_id": m.Round.Picker,
-		"categories": m.Config.CategoryIDs, "pick_deadline_at": m.Round.PickDeadMS,
+		"categories": m.Config.CategoryIDs, "allowed_category_ids": m.allowedPicks(), "pick_deadline_at": m.Round.PickDeadMS,
 	})
 	o.Timers = append(o.Timers, Timer{Kind: TimerPick, Round: m.RoundNo, AtMS: m.Round.PickDeadMS})
 }
+
+// AllowedPicks are the categories the picker may choose now.
+func (m *Match) AllowedPicks() []uuid.UUID { return m.allowedPicks() }
 
 // allowedPicks are the match categories that would not make a 4th
 // consecutive pick of the same category.

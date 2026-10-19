@@ -58,6 +58,19 @@ type MatchCancelled = service.MatchCancelled
 // MatchStarted is the payload of game.MatchStarted.
 type MatchStarted = service.MatchStarted
 
+// Summary is a match's state and seating.
+type Summary = service.Summary
+
+// Seated is one participant of a Summary.
+type Seated = service.Seated
+
+// Origins of matches created by other modules.
+const (
+	OriginChallenge   = domain.Challenge
+	OriginPrivateRoom = domain.PrivateRoom
+	OriginRematch     = domain.Rematch
+)
+
 // SeasonProvider is implemented by ranking (Phase 7); until then ranked
 // matches play in the preseason (D-064).
 type SeasonProvider = service.SeasonProvider
@@ -160,6 +173,11 @@ func (m *Module) Practice(ctx context.Context, user uuid.UUID, locale string) (*
 		return nil, err
 	}
 	return c, nil
+}
+
+// Summary returns a match's state and participants.
+func (m *Module) Summary(ctx context.Context, id uuid.UUID) (Summary, error) {
+	return m.svc.Summary(ctx, id)
 }
 
 // LiveMatch returns the user's live match, if any.

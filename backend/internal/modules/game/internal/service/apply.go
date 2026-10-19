@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/domain"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/domain/engine"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/store/sqlc"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/postgres"
 )
 
@@ -394,4 +396,31 @@ func (s *Service) Spare(ctx context.Context, m *engine.Match) ([]engine.Question
 		}
 	}
 	return out, nil
+}
+
+// More selects the next batch of an open-ended match (Sudden Death,
+// match-types §3.3) with the same rules, continuing the difficulty curve
+// after the current round. An empty result means the pool ran dry.
+func (s *Service) More(ctx context.Context, m *engine.Match) ([]engine.Question, error) {
+	users := make([]uuid.UUID, 0, len(m.Participants))
+	locales := map[string]bool{}
+	for _, p := range m.Participants {
+		users = append(users, p.UserID)
+		locales[p.Locale] = true
+	}
+	ls := make([]string, 0, len(locales))
+	for l := range locales {
+		ls = append(ls, l)
+	}
+	held := m.Questions()
+	exclude := make([]uuid.UUID, len(held))
+	for i, q := range held {
+		exclude[i] = q.ID
+	}
+	qs, err := s.selectQuestions(ctx, m.Config, m.Derived, ls, users, selection{after: m.RoundNo, exclude: exclude}, s.d.Clock.Now())
+	var e *apierror.Error
+	if errors.As(err, &e) && e.Code == apierror.NotEnoughQuestions {
+		return nil, nil
+	}
+	return qs, err
 }

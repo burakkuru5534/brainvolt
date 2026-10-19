@@ -31,7 +31,8 @@ func New(svc *service.Service, ident *identity.Module, idem *idempotency.Store, 
 type SendRequest struct {
 	ToUserID *uuid.UUID `json:"to_user_id,omitempty"`
 	Username *string    `json:"username,omitempty"`
-	// Via: search (default), profile or post_match.
+	// Via: search (default), profile, post_match or invite_code (a friend
+	// code resolved with GET /v1/invite-codes/{code}).
 	Via string `json:"via,omitempty"`
 }
 
@@ -148,7 +149,7 @@ func (t *Transport) send(w http.ResponseWriter, r *http.Request) error {
 	if via == "" {
 		via = service.ViaSearch
 	}
-	if via != service.ViaSearch && via != service.ViaProfile && via != service.ViaPostMatch {
+	if via != service.ViaSearch && via != service.ViaProfile && via != service.ViaPostMatch && via != service.ViaInviteCode {
 		f.Add("via", "enum")
 	}
 	if err := f.Err(); err != nil {

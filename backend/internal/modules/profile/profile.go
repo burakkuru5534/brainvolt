@@ -46,6 +46,11 @@ func (m *Module) PrivacyOf(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]
 	return m.svc.PrivacyOf(ctx, ids)
 }
 
+// LocalesOf returns users' content languages (match texts).
+func (m *Module) LocalesOf(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]string, error) {
+	return m.svc.LocalesOf(ctx, ids)
+}
+
 // UserIDByUsername finds a user by username (NOT_FOUND).
 func (m *Module) UserIDByUsername(ctx context.Context, username string) (uuid.UUID, error) {
 	return m.svc.UserIDByUsername(ctx, username)

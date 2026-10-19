@@ -248,3 +248,44 @@ func (s *Service) Current(ctx context.Context, user uuid.UUID) (Current, error) 
 	}
 	return Current{Match: &CurrentMatch{ID: id, Status: domain.Status(m.Status), Stream: "match:" + id.String()}}, nil
 }
+
+// Summary is what other modules read about a match: its state and seating
+// (lobby: rematch, rooms after a match).
+type Summary struct {
+	ID           uuid.UUID
+	Status       domain.Status
+	Origin       domain.Origin
+	OriginRef    *uuid.UUID
+	EndedAt      *time.Time
+	Participants []Seated
+}
+
+// Seated is one participant of a Summary.
+type Seated struct {
+	UserID uuid.UUID
+	Side   int
+	Seat   int
+	Locale string
+}
+
+// Summary returns a match's state and participants.
+func (s *Service) Summary(ctx context.Context, id uuid.UUID) (Summary, error) {
+	q := sqlc.New(s.d.DB)
+	m, err := q.GetMatch(ctx, id)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return Summary{}, apierror.New(apierror.MatchNotFound)
+	}
+	if err != nil {
+		return Summary{}, err
+	}
+	ps, err := q.ListParticipants(ctx, id)
+	if err != nil {
+		return Summary{}, err
+	}
+	out := Summary{ID: id, Status: domain.Status(m.Status), Origin: domain.Origin(m.Origin), OriginRef: m.OriginRef, EndedAt: m.EndedAt}
+	for i := range ps {
+		p := &ps[i]
+		out.Participants = append(out.Participants, Seated{UserID: p.UserID, Side: int(p.SideNo), Seat: int(p.SeatNo), Locale: p.Locale})
+	}
+	return out, nil
+}

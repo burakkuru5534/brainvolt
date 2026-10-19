@@ -304,3 +304,19 @@ func (s *Service) PrivacyOf(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID
 	}
 	return out, nil
 }
+
+// LocalesOf returns users' content languages (tr for unknown users).
+func (s *Service) LocalesOf(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]string, error) {
+	rows, err := sqlc.New(s.db).LocalesOf(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[uuid.UUID]string, len(ids))
+	for _, id := range ids {
+		out[id] = "tr"
+	}
+	for _, r := range rows {
+		out[r.UserID] = r.Locale
+	}
+	return out, nil
+}

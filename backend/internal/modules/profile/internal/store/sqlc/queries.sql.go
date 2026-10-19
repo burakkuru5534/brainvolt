@@ -125,6 +125,35 @@ func (q *Queries) InsertSettings(ctx context.Context, arg InsertSettingsParams) 
 	return err
 }
 
+const localesOf = `-- name: LocalesOf :many
+SELECT user_id, locale FROM profile.profiles WHERE user_id = ANY($1::uuid[])
+`
+
+type LocalesOfRow struct {
+	UserID uuid.UUID
+	Locale string
+}
+
+func (q *Queries) LocalesOf(ctx context.Context, ids []uuid.UUID) ([]LocalesOfRow, error) {
+	rows, err := q.db.Query(ctx, localesOf, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []LocalesOfRow{}
+	for rows.Next() {
+		var i LocalesOfRow
+		if err := rows.Scan(&i.UserID, &i.Locale); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const privacyOf = `-- name: PrivacyOf :many
 SELECT user_id, challenges_from, show_online_status, allow_friend_requests FROM profile.settings WHERE user_id = ANY($1::uuid[])
 `

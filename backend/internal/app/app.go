@@ -26,6 +26,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/content"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/lobby"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/matchmaking"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/notification"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
@@ -137,7 +138,7 @@ func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, 
 	mods := registerModules(srv, moduleDeps{db: db, rdb: rdb, verifier: verifier, bus: bus, limiter: limiter,
 		idem: idempotency.New(rdb, logger), clock: clk, logger: logger, instance: ids.New().String(), env: cfg.Env})
 
-	a := New(RoleAPI, logger, srv, mods.realtime, mods.game, mods.matchmaking)
+	a := New(RoleAPI, logger, srv, mods.realtime, mods.game, mods.matchmaking, mods.lobby)
 	a.closers = append(a.closers, db.Close, func() { _ = sqlDB.Close() }, func() { _ = rdb.Close() })
 	return a, nil
 }
@@ -167,6 +168,7 @@ type modules struct {
 	social      *social.Module
 	game        *game.Module
 	matchmaking *matchmaking.Module
+	lobby       *lobby.Module
 }
 
 // registerModules builds the modules and their routes. The wiring follows
@@ -197,7 +199,12 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 		Redis: d.rdb, Game: g, Realtime: rt, Clock: d.clock, Logger: d.logger, Practice: d.env == config.EnvDev,
 	})
 	mm.Register(srv, ident, d.idem)
-	return modules{identity: ident, profile: prof, content: cont, realtime: rt, social: soc, game: g, matchmaking: mm}
+	lob := lobby.New(lobby.Deps{
+		DB: d.db, Redis: d.rdb, Identity: ident, Profiles: prof, Social: soc, Game: g, Realtime: rt,
+		Events: d.bus, Clock: d.clock, Logger: d.logger,
+	})
+	lob.Register(srv, ident, d.idem)
+	return modules{identity: ident, profile: prof, content: cont, realtime: rt, social: soc, game: g, matchmaking: mm, lobby: lob}
 }
 
 // newBus returns the event bus with every subscription. The API and the
@@ -209,6 +216,8 @@ func newBus(db *pgxpool.Pool) *events.Bus {
 	// content counts answer statistics of completed matches (schema-content §5).
 	stats := content.New(db, clock.Real{}, bus)
 	bus.Subscribe(game.EventMatchCompleted, content.SubscriberMatchStats, stats.OnMatchCompleted)
+	// lobby marks challenges whose match was cancelled as failed (schema-social §3.1).
+	bus.Subscribe(game.EventMatchCancelled, lobby.SubscriberChallengeFailed, lobby.OnMatchCancelled(db))
 	return bus
 }
 

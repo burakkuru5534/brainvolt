@@ -25,6 +25,45 @@ type meta struct {
 	Summary map[string]any `json:"summary"`
 	// Bots are development practice opponents played by the owner (D-066).
 	Bots []uuid.UUID `json:"bots,omitempty"`
+	// Categories are the category names per locale (Mixed Battle picks).
+	Categories map[uuid.UUID]map[string]string `json:"categories,omitempty"`
+}
+
+// addCategories records the category names of questions whose texts are
+// loaded.
+func (m *meta) addCategories(qs []engine.Question) {
+	for _, q := range qs {
+		for locale, t := range m.Texts[q.ID] {
+			if t.Category == "" {
+				continue
+			}
+			if m.Categories == nil {
+				m.Categories = map[uuid.UUID]map[string]string{}
+			}
+			if m.Categories[q.CategoryID] == nil {
+				m.Categories[q.CategoryID] = map[string]string{}
+			}
+			m.Categories[q.CategoryID][locale] = t.Category
+		}
+	}
+}
+
+// categoryList names categories in the recipient's locale.
+func (m *meta) categoryList(ids []any, locale string) []map[string]any {
+	out := make([]map[string]any, 0, len(ids))
+	for _, v := range ids {
+		id, _ := uuid.Parse(str(v))
+		names := m.Categories[id]
+		name, ok := names[locale]
+		if !ok {
+			for _, n := range names {
+				name = n
+				break
+			}
+		}
+		out = append(out, map[string]any{"id": id, "name": name})
+	}
+	return out
 }
 
 // stored is one match-stream event as kept in game:{m}:events.
@@ -107,6 +146,9 @@ func (m *meta) render(e stored, r recipient) wsserver.Outbound {
 		delete(d, "question_id")
 		delete(d, "category_id")
 		delete(d, "subcategory_id")
+	case "round.pre_round":
+		ids, _ := d["categories"].([]any)
+		d["categories"] = m.categoryList(ids, r.Locale)
 	case "round.answer_received":
 		if str(d["user_id"]) != r.UserID.String() {
 			delete(d, "option_id")
@@ -175,6 +217,16 @@ func (m *meta) snapshot(match *engine.Match, r recipient, ts int64) wsserver.Out
 			round["own_option_id"] = opt
 		}
 		d["round"] = round
+	}
+	if rd := match.Round; rd != nil && match.Phase == engine.PhasePreRound {
+		ids := make([]any, len(match.Config.CategoryIDs))
+		for i, c := range match.Config.CategoryIDs {
+			ids[i] = c.String()
+		}
+		d["pre_round"] = map[string]any{
+			"round_no": rd.No, "picker_side_no": rd.PickerSide, "picker_user_id": rd.Picker,
+			"categories": m.categoryList(ids, r.Locale), "allowed_category_ids": match.AllowedPicks(), "pick_deadline_at": rd.PickDeadMS,
+		}
 	}
 	if res := match.Result(); res != nil {
 		d["result"] = map[string]any{

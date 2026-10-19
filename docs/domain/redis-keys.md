@@ -78,11 +78,12 @@ Online status is hidden from others when `profile.settings.show_online_status = 
 
 | Key | Type | Content | TTL |
 |---|---|---|---|
-| `lobby:{r:<room_id>}:room` | HASH | host, status, config JSON, `version` (optimistic concurrency), creator_quiz_id, friends_of_host_only | **15 min** idle, refreshed on activity (D-027) |
-| `lobby:{r:<room_id>}:members` | HASH | user_id → JSON {side, seat, ready, joined_ms} | same |
+| `lobby:{r:<room_id>}:room` | STRING | the whole live room as JSON: host, status, config, `version` (optimistic concurrency with WATCH/MULTI; also the `room:<id>` stream seq), code, current match, members {user_id, side, seat, ready, locale} (D-067) | **1 h**, refreshed on every change; the idle sweep (15 min without activity in `lobby.rooms.last_activity_at`, D-027) closes rooms, not the TTL |
 | `lobby:user:<user_id>:room` | STRING | the user's current room | same as room |
-| `lobby:code:<CODE>` | STRING | cached JSON {target_kind, target_id}; Postgres `lobby.invite_codes` is authoritative | until code expiry (max **24 h** cache) |
-| `lobby:rematch:<match_id>` | HASH | user_id → accepted flag | **30 s** (D-027) |
+| `lobby:rematch:<match_id>` | HASH | user_id → accepted flag | until 30 s after the match ended (D-027) |
+| `lobby:rematch:<match_id>:started` | STRING | guard: the rematch was created once | 30 s |
+
+Invite codes are read from Postgres (`lobby.invite_codes`); a `lobby:code:` cache is not needed at launch volumes (D-067).
 
 ---
 

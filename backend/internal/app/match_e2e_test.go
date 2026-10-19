@@ -369,3 +369,65 @@ func TestPracticeAgainstBot(t *testing.T) {
 		t.Fatalf("result %s", v.raw)
 	}
 }
+
+// Mixed Battle (D-043): before each round the picker chooses one of the
+// three categories; the others may not, and the round's question comes
+// from the picked category.
+func TestLiveMixedBattlePick(t *testing.T) {
+	x := newE2E(t)
+	tokA, a := x.signedIn()
+	tokB, b := x.signedIn()
+	x.seedQuestions(a)
+	rows, err := x.db.Query(t.Context(), `SELECT id FROM content.categories ORDER BY sort_order LIMIT 3`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cats []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			t.Fatal(err)
+		}
+		cats = append(cats, id)
+	}
+	rows.Close()
+	wa, _ := x.auth(tokA, "inst-a", nil)
+	wb, _ := x.auth(tokB, "inst-b", nil)
+	c, err := x.mods.game.Start(t.Context(), game.CreateRequest{
+		Config: game.Config{MatchType: "quick_duel", Format: "1v1", Origin: "challenge", CategoryMode: "mixed_battle", CategoryIDs: cats},
+		Sides:  [2][]game.Member{{{UserID: a, Locale: "tr"}}, {{UserID: b, Locale: "en"}}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	id := c.Match.ID.String()
+	for _, w := range []*wsClient{wa, wb} {
+		w.answer(w.send("match.join", map[string]any{"match_id": id}))
+		w.send("match.ready", map[string]any{"match_id": id})
+	}
+	pre := data(wa.findIn(10*time.Second, "round.pre_round", func(f map[string]any) bool { return f["t"] == "round.pre_round" }))
+	wb.next("round.pre_round")
+	named := pre["categories"].([]any)
+	if len(named) != 3 || str(named[0].(map[string]any)["name"]) == "" || len(pre["allowed_category_ids"].([]any)) != 3 {
+		t.Fatalf("pre_round %v", pre)
+	}
+	picker, other := wa, wb
+	if pre["picker_user_id"] != a.String() {
+		picker, other = wb, wa
+	}
+	pick := map[string]any{"match_id": id, "round_no": 1, "category_id": cats[1]}
+	if f := other.answer(other.send("match.pick_category", pick)); data(f)["code"] != "PICK_NOT_ALLOWED" {
+		t.Fatalf("pick by the other player %v", f)
+	}
+	if f := picker.answer(picker.send("match.pick_category", pick)); f["t"] != "sys.ack" {
+		t.Fatalf("pick %v", f)
+	}
+	if d := data(other.next("round.category_picked")); d["category_id"] != cats[1].String() {
+		t.Fatalf("category_picked %v", d)
+	}
+	started := data(other.next("round.started"))
+	if cat, _ := started["question"].(map[string]any)["category"].(map[string]any); cat == nil || cat["id"] != cats[1].String() {
+		t.Fatalf("round.started %v", started)
+	}
+	wa.answer(wa.send("match.leave", map[string]any{"match_id": id}))
+}

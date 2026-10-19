@@ -23,6 +23,7 @@ const (
 	kindJoin       = "join"
 	kindReady      = "ready"
 	kindAnswer     = "answer"
+	kindPick       = "pick"
 	kindLeave      = "leave"
 	kindDisconnect = "disconnect"
 	kindRTT        = "rtt"
@@ -37,7 +38,8 @@ type command struct {
 	Client realtime.Client `json:"client"`
 	Re     string          `json:"re,omitempty"`
 	Round  int             `json:"round,omitempty"`
-	Option uuid.UUID       `json:"option,omitempty"`
+	// Option is the answer option, or the category of a pick.
+	Option uuid.UUID `json:"option,omitempty"`
 	// AtMS is when the intent was read from the socket (timing.md §5).
 	AtMS  int64        `json:"at_ms,omitempty"`
 	RTT   int          `json:"rtt,omitempty"`
@@ -127,6 +129,8 @@ func (o *owner) handle(ctx context.Context, c command) {
 		out, err = o.match.Ready(user, now)
 	case kindAnswer:
 		out, err = o.match.Answer(user, c.Round, c.Option, now)
+	case kindPick:
+		out, err = o.match.Pick(user, c.Round, c.Option, now)
 	case kindLeave:
 		out, err = o.match.Leave(user, now)
 	case kindDisconnect:
@@ -185,7 +189,25 @@ func (o *owner) commit(ctx context.Context, out engine.Output, now int64) error 
 	o.deliver(ctx, out.Events, now)
 	o.arm(out.Timers, now)
 	o.playBots(out.Events)
+	if out.NeedQuestions > 0 {
+		return o.commit(ctx, o.more(ctx, now), now)
+	}
 	return nil
+}
+
+// more answers NeedQuestions (Sudden Death): the next batch with its
+// texts, or none when the pool ran dry or failed, which ends the match by
+// score (match-types §3.3).
+func (o *owner) more(ctx context.Context, now int64) engine.Output {
+	qs, err := o.m.d.Persister.More(ctx, o.match)
+	if err == nil {
+		err = o.m.addTexts(ctx, o.meta, o.match, qs)
+	}
+	if err != nil {
+		o.m.d.Logger.ErrorContext(ctx, "game: loading more questions failed", "match_id", o.match.ID, "error", err)
+		qs = nil
+	}
+	return o.match.AddQuestions(qs, now)
 }
 
 func (o *owner) persist(ctx context.Context, out engine.Output) error {

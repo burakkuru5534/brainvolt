@@ -93,10 +93,10 @@ No pong for **3 consecutive pings** (in match: 6 s; outside: 60 s) → server tr
 | `sys.pong` | `{ts, client_ts}` | after ping | §4 |
 | `sys.subscribe` / `sys.unsubscribe` | `{stream, from_seq?}` | any | e.g. open a chat channel; server checks permission |
 | `presence.set` | `{status: online\|away}` | any | app foreground/background |
-| `room.join` | `{room_id}` | member | subscribe to room stream (joining by code is REST) |
-| `room.update_seat` | `{side_no, seat_no}` | room `open` | host can move anyone, members only themselves |
+| `room.join` | `{room_id}` | member | sends `room.state` to this session (joining by code is REST); after a match it also returns the room to `open` |
+| `room.update_seat` | `{room_id, side_no, seat_no, user_id?}` | room `open` | to an empty seat; host can move anyone (`user_id`), members only themselves |
 | `room.ready` / `room.unready` | `{room_id}` | room `open` | |
-| `room.start` | `{room_id}` | host, all ready | lobby asks game to create the match |
+| `room.start` | `{room_id}` | host, every seat taken, everyone but the host ready | lobby asks game to create the match |
 | `match.join` | `{match_id}` | participant | takes the seat on this socket (§2) |
 | `match.ready` | `{match_id}` | `waiting` | auto-sent in private rooms (match-lifecycle §4) |
 | `match.leave` | `{match_id}` | any live state | confirm dialog on client; final (edge-cases §3) |
@@ -123,17 +123,15 @@ No pong for **3 consecutive pings** (in match: 6 s; outside: 60 s) → server tr
 | `notify` | `{inbox_id, category, kind, params, deep_link}` — in-app toast for an inbox item |
 | `mm.status` | `{ticket_id, state: searching\|found\|expired\|cancelled, range, wait_ms}` |
 | `mm.match_found` | `{match_id, ready_deadline_at}` |
-| `challenge.received` / `challenge.updated` | challenge summary / new status |
+| `challenge.received` / `challenge.updated` | `{challenge}` (as `GET /v1/challenges`) / `{challenge_id, status, match_id?}` |
 | `sanction.applied` | `{kind, ends_at}` |
 
 **Room stream (`room:<id>`)**
 | Type | Payload |
 |---|---|
-| `room.state` | full room (members, seats, ready flags, config, version) |
-| `room.member_joined` / `member_left` / `member_updated` | member delta |
-| `room.config_changed` | new config + version |
-| `room.match_starting` | `{match_id}` |
-| `room.closed` | `{reason}` |
+| `room.state` | `{room}`: full room (members with cards, seats, ready flags, config, status, code, version = seq). Sent after **every** change (D-067: rooms are small, no deltas) |
+| `room.match_starting` | `{room_id, match_id}` |
+| `room.closed` | `{room_id, reason}` (`host_closed` / `all_left` / `idle`) |
 
 **Match stream (`match:<id>`)**
 | Type | Payload | Notes |
@@ -142,7 +140,7 @@ No pong for **3 consecutive pings** (in match: 6 s; outside: 60 s) → server tr
 | `match.participant_ready` | `{user_id}` | |
 | `match.starting` | `{starts_at}` | 3 s countdown |
 | `match.started` | `{started_at}` | |
-| `round.pre_round` | `{round_no, picker_side_no, picker_user_id?, categories[], pick_deadline_at}` | Mixed Battle |
+| `round.pre_round` | `{round_no, picker_side_no, picker_user_id?, categories: [{id, name}], allowed_category_ids, pick_deadline_at}` | Mixed Battle; names in the recipient's locale; `allowed_category_ids` leave out a 4th pick in a row; `match.snapshot` carries the same as `pre_round` |
 | `round.category_picked` | `{round_no, category_id}` | |
 | `round.started` | `{round_no, question: {id, prompt, category?}, options: [{id, text}] (shuffled), show_at, deadline_at, answering_user_ids}` | text in the recipient's locale; `category` omitted in Blind Challenge; **never** the correct option |
 | `round.answer_received` | `{round_no, user_id}` (opponents) / `{round_no, user_id, option_id}` (own) | |
@@ -157,7 +155,7 @@ No pong for **3 consecutive pings** (in match: 6 s; outside: 60 s) → server tr
 | `match.awards` | `{xp, level_up?, sp_delta?, league?, badges?, quest_progress?}` | personal, once ranking/progression processed |
 | `match.cancelled` | `{reason}` | |
 | `match.quick_chat` | `{user_id, phrase_id}` | |
-| `rematch.offer` / `rematch.result` | offer state / `{accepted, match_id?}` | |
+| `rematch.offer` / `rematch.result` | `{match_id, accepted_user_ids, expires_at}` / `{match_id, accepted, new_match_id?, declined_by?, reason?}` | personal deliveries (no stream seq); the window ends 30 s after the match ended |
 
 **Daily run stream (`daily:<run_id>`)** — same round events as a match with `run_id` and `position` instead of `match_id` / `round_no`: `daily.question`, `daily.answer_received`, `daily.revealed`, `daily.completed {correct_count, total_time_ms, score, rank?}`, `daily.voided {reason}`.
 
