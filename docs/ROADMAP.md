@@ -27,7 +27,7 @@ Standard game rules, retention periods, default limits and small details are dec
 | 2 | Question & Category System | [x] |
 | 3 | Game Engine | [x] |
 | 4 | Real-time 1v1 | [~] |
-| 5 | Matchmaking & Social System | [ ] |
+| 5 | Matchmaking & Social System | [~] |
 | 6 | Team Matches & Couple Contest | [ ] |
 | 7 | Ranked Seasons & Leaderboards | [ ] |
 | 8 | Special Modes & Content Moderation | [ ] |
@@ -342,16 +342,33 @@ Goal: two players finish a live 1v1 match on their phones: the WebSocket gateway
 ### 4.5 Tests & docs
 - [x] 4.5.1 Backend WebSocket end-to-end (two clients play a match; reconnect; takeover), mobile unit/widget tests with a fake socket, docs and decision log
 
-## Phase 5 — Matchmaking & Social System  `[ ]`
-- [ ] MMR-based matchmaking queue
-- [ ] Expanding search ranges
-- [ ] Friends
-- [ ] Direct challenges
-- [ ] Invite codes
-- [ ] Private rooms
-- [ ] Team profiles
-- [ ] Couple profiles
-- [ ] Rematch flows
+## Phase 5 — Matchmaking & Social System  `[~]`
+Goal: players find each other — friends, blocks, direct challenges, invite codes, private rooms, rematch, persistent teams and couples — and the queue pairs by rating with expanding ranges for every 1v1 mode. Team and couple **matches** come in Phase 6 (the profiles are created here). Owner list: MMR queue, expanding ranges, friends, direct challenges, invite codes, private rooms, team profiles, couple profiles, rematch flows.
+
+### 5.1 Social (`social`)
+- [x] 5.1.1 Schema `social` (friend requests, friendships, blocks) + `GET /v1/profiles/by-username/{username}`
+- [x] 5.1.2 Friend requests (by user id, username, friend invite code), accept/decline/cancel, unfriend, caps & expiry; blocks everywhere; `AreFriends` / `FriendIDs` / `IsBlocked`; friends list with presence
+
+### 5.2 Lobby (`lobby`)
+- [ ] 5.2.1 Schema `lobby` (invite codes, rooms, challenges); invite codes (create, resolve)
+- [ ] 5.2.2 Direct challenges (send with `challenges_from` and blocks, accept → match, decline/cancel/expire)
+- [ ] 5.2.3 Private rooms: create/join by code, seats, ready, start, back to open after the match, idle close; room stream over WebSocket
+- [ ] 5.2.4 Rematch from the results screen (30 s, all accept)
+
+### 5.3 Matchmaking
+- [ ] 5.3.1 Rating-based queues per match type × format × category mode (`RatingReader`, default rating until Phase 7), expanding search range, blocks respected, ready-flow re-queue, leaver cooldown
+
+### 5.4 Teams & couples (`team`)
+- [ ] 5.4.1 Schema `team`; teams (create, invite friends, accept, leave, kick, captain, disband) and couples (request, accept, decline, dissolve, cooldown)
+
+### 5.5 Mobile
+- [ ] 5.5.1 Friends (search by username, requests, list with presence, unfriend, block)
+- [ ] 5.5.2 Challenges (send from a friend/profile, inbox, accept → match) and rematch on the result screen
+- [ ] 5.5.3 Private rooms (create, share code, join by code, seats, ready, start) and mode picker for the queue
+- [ ] 5.5.4 Teams & couple screens
+
+### 5.6 Tests & docs
+- [ ] 5.6.1 Backend integration/e2e, mobile tests, docs, decision log
 
 ## Phase 6 — Team Matches & Couple Contest  `[ ]`
 - [ ] 2v2 team matches

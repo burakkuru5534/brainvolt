@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -268,6 +269,38 @@ func (s *Service) Cards(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]Car
 	out := make(map[uuid.UUID]Card, len(rows))
 	for _, r := range rows {
 		out[r.UserID] = Card{UserID: r.UserID, Username: r.Username, DisplayName: r.DisplayName, AvatarID: r.AvatarID, CountryCode: r.CountryCode}
+	}
+	return out, nil
+}
+
+// UserIDByUsername finds a user by username (case-insensitive; NOT_FOUND).
+func (s *Service) UserIDByUsername(ctx context.Context, username string) (uuid.UUID, error) {
+	id, err := sqlc.New(s.db).UserIDByUsername(ctx, strings.ToLower(strings.TrimPrefix(strings.TrimSpace(username), "@")))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return uuid.Nil, apierror.New(apierror.NotFound)
+	}
+	return id, err
+}
+
+// Privacy is the part of a user's settings other modules enforce.
+type Privacy struct {
+	ChallengesFrom      string // everyone | friends | nobody
+	ShowOnlineStatus    bool
+	AllowFriendRequests bool
+}
+
+// PrivacyOf returns the privacy settings of users (defaults for missing ones).
+func (s *Service) PrivacyOf(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]Privacy, error) {
+	rows, err := sqlc.New(s.db).PrivacyOf(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[uuid.UUID]Privacy, len(ids))
+	for _, id := range ids {
+		out[id] = Privacy{ChallengesFrom: "everyone", ShowOnlineStatus: true, AllowFriendRequests: true}
+	}
+	for _, r := range rows {
+		out[r.UserID] = Privacy{ChallengesFrom: r.ChallengesFrom, ShowOnlineStatus: r.ShowOnlineStatus, AllowFriendRequests: r.AllowFriendRequests}
 	}
 	return out, nil
 }

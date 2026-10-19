@@ -30,6 +30,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/notification"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/social"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/config"
@@ -163,6 +164,7 @@ type modules struct {
 	profile     *profile.Module
 	content     *content.Module
 	realtime    *realtime.Module
+	social      *social.Module
 	game        *game.Module
 	matchmaking *matchmaking.Module
 }
@@ -184,6 +186,8 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	cont.Register(srv, ident, d.idem)
 	rt := realtime.New(realtime.Deps{Redis: d.rdb, Auth: ident, Clock: d.clock, Logger: d.logger, Instance: d.instance})
 	rt.Register(srv)
+	soc := social.New(social.Deps{DB: d.db, Identity: ident, Profiles: prof, Presence: rt, Events: d.bus, Clock: d.clock})
+	soc.Register(srv, ident, d.idem)
 	g := game.New(game.Deps{
 		DB: d.db, Redis: d.rdb, Content: cont, Identity: ident, Profiles: prof, Realtime: rt,
 		Events: d.bus, Clock: d.clock, Logger: d.logger, Instance: d.instance,
@@ -193,7 +197,7 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 		Redis: d.rdb, Game: g, Realtime: rt, Clock: d.clock, Logger: d.logger, Practice: d.env == config.EnvDev,
 	})
 	mm.Register(srv, ident, d.idem)
-	return modules{identity: ident, profile: prof, content: cont, realtime: rt, game: g, matchmaking: mm}
+	return modules{identity: ident, profile: prof, content: cont, realtime: rt, social: soc, game: g, matchmaking: mm}
 }
 
 // newBus returns the event bus with every subscription. The API and the

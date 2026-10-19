@@ -38,3 +38,9 @@ WHERE user_id = @user_id;
 
 -- name: PublicCards :many
 SELECT user_id, username, display_name, avatar_id, country_code FROM profile.profiles WHERE user_id = ANY(@ids::uuid[]);
+
+-- name: UserIDByUsername :one
+SELECT user_id FROM profile.profiles WHERE username = $1;
+
+-- name: PrivacyOf :many
+SELECT user_id, challenges_from, show_online_status, allow_friend_requests FROM profile.settings WHERE user_id = ANY(@ids::uuid[]);

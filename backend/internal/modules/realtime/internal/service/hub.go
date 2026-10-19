@@ -422,11 +422,26 @@ func (h *Hub) Reply(ctx context.Context, c Client, re string, err error) error {
 	return h.Send(ctx, Target{User: c.UserID, Session: c.SessionID}, h.replyFrame(ctx, c.Locale, re, err))
 }
 
-// Online reports whether the user has a session on this instance.
-func (h *Hub) Online(user uuid.UUID) bool {
+// Online reports whether the user has a session on any instance seen in
+// the last 60 s (presence, redis-keys §4).
+func (h *Hub) Online(ctx context.Context, user uuid.UUID) bool {
 	h.mu.Lock()
-	defer h.mu.Unlock()
-	return len(h.byUser[user]) > 0
+	local := len(h.byUser[user]) > 0
+	h.mu.Unlock()
+	if local {
+		return true
+	}
+	all, err := h.d.Redis.HGetAll(ctx, presenceKey(user)).Result()
+	if err != nil {
+		return false
+	}
+	cutoff := h.d.Clock.Now().Add(-PresenceTTL).UnixMilli()
+	for _, seen := range all {
+		if ms, _ := strconv.ParseInt(seen, 10, 64); ms >= cutoff {
+			return true
+		}
+	}
+	return false
 }
 
 // prefixOf returns the routing prefix of a message type ("match.answer" → "match").

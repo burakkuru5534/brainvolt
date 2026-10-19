@@ -125,6 +125,42 @@ func (q *Queries) InsertSettings(ctx context.Context, arg InsertSettingsParams) 
 	return err
 }
 
+const privacyOf = `-- name: PrivacyOf :many
+SELECT user_id, challenges_from, show_online_status, allow_friend_requests FROM profile.settings WHERE user_id = ANY($1::uuid[])
+`
+
+type PrivacyOfRow struct {
+	UserID              uuid.UUID
+	ChallengesFrom      string
+	ShowOnlineStatus    bool
+	AllowFriendRequests bool
+}
+
+func (q *Queries) PrivacyOf(ctx context.Context, ids []uuid.UUID) ([]PrivacyOfRow, error) {
+	rows, err := q.db.Query(ctx, privacyOf, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []PrivacyOfRow{}
+	for rows.Next() {
+		var i PrivacyOfRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.ChallengesFrom,
+			&i.ShowOnlineStatus,
+			&i.AllowFriendRequests,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const publicCards = `-- name: PublicCards :many
 SELECT user_id, username, display_name, avatar_id, country_code FROM profile.profiles WHERE user_id = ANY($1::uuid[])
 `
@@ -230,6 +266,17 @@ func (q *Queries) UpdateSettings(ctx context.Context, arg UpdateSettingsParams) 
 		arg.UserID,
 	)
 	return err
+}
+
+const userIDByUsername = `-- name: UserIDByUsername :one
+SELECT user_id FROM profile.profiles WHERE username = $1
+`
+
+func (q *Queries) UserIDByUsername(ctx context.Context, username string) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, userIDByUsername, username)
+	var user_id uuid.UUID
+	err := row.Scan(&user_id)
+	return user_id, err
 }
 
 const usernameTaken = `-- name: UsernameTaken :one

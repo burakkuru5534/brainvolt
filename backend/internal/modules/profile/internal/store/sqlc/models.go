@@ -339,3 +339,26 @@ type ProfileSetting struct {
 	HapticsEnabled      bool
 	UpdatedAt           time.Time
 }
+
+type SocialBlock struct {
+	BlockerID uuid.UUID
+	BlockedID uuid.UUID
+	CreatedAt time.Time
+}
+
+type SocialFriendRequest struct {
+	ID          uuid.UUID
+	FromUserID  uuid.UUID
+	ToUserID    uuid.UUID
+	Via         string
+	Status      string
+	CreatedAt   time.Time
+	RespondedAt *time.Time
+	ExpiresAt   time.Time
+}
+
+type SocialFriendship struct {
+	UserID    uuid.UUID
+	FriendID  uuid.UUID
+	CreatedAt time.Time
+}

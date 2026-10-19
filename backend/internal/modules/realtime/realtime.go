@@ -9,6 +9,8 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/google/uuid"
+
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime/internal/service"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime/internal/transport"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
@@ -101,6 +103,9 @@ var ErrDeferred = service.ErrDeferred
 func (m *Module) Reply(ctx context.Context, c Client, re string, err error) error {
 	return m.hub.Reply(ctx, c, re, err)
 }
+
+// Online reports whether a user is connected on any instance.
+func (m *Module) Online(ctx context.Context, user uuid.UUID) bool { return m.hub.Online(ctx, user) }
 
 // Name implements the app component interface.
 func (m *Module) Name() string { return "realtime" }

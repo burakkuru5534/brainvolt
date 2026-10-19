@@ -8,6 +8,8 @@ import (
 	"slices"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile/internal/domain"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile/internal/service"
@@ -82,6 +84,10 @@ func (t *Transport) Register(s *httpserver.Server) {
 	}))
 	s.Handle("GET /v1/profiles/{user_id}", a(t.publicProfile), httpserver.WithDoc(httpserver.Doc{
 		Tag: "profile", Auth: "any", Summary: "Public profile of a user (no email)", Response: service.PublicProfile{},
+		Errors: []apierror.Code{apierror.NotFound, apierror.AccountSuspended, apierror.AccountDeletionPending},
+	}))
+	s.Handle("GET /v1/profiles/by-username/{username}", a(t.byUsername), httpserver.WithDoc(httpserver.Doc{
+		Tag: "profile", Auth: "any", Summary: "Public profile by username (friend search)", Response: service.PublicProfile{},
 		Errors: []apierror.Code{apierror.NotFound, apierror.AccountSuspended, apierror.AccountDeletionPending},
 	}))
 }
@@ -210,11 +216,23 @@ func (t *Transport) patchSettings(w http.ResponseWriter, r *http.Request) error 
 	return httpserver.WriteJSON(w, http.StatusOK, st)
 }
 
+func (t *Transport) byUsername(w http.ResponseWriter, r *http.Request) error {
+	id, err := t.svc.UserIDByUsername(r.Context(), r.PathValue("username"))
+	if err != nil {
+		return err
+	}
+	return t.writePublic(w, r, id)
+}
+
 func (t *Transport) publicProfile(w http.ResponseWriter, r *http.Request) error {
 	id, err := ids.Parse(r.PathValue("user_id"))
 	if err != nil {
 		return apierror.New(apierror.NotFound)
 	}
+	return t.writePublic(w, r, id)
+}
+
+func (t *Transport) writePublic(w http.ResponseWriter, r *http.Request, id uuid.UUID) error {
 	ctx := r.Context()
 	// Deleted accounts are invisible (conventions.md §7: never leak existence).
 	u, err := t.ident.User(ctx, id)

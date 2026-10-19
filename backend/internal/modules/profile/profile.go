@@ -37,6 +37,20 @@ func (m *Module) Cards(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]Card
 	return m.svc.Cards(ctx, ids)
 }
 
+// Privacy is the part of a user's settings other modules enforce.
+type Privacy = service.Privacy
+
+// PrivacyOf returns users' privacy settings (challenges_from, online
+// status visibility, friend requests).
+func (m *Module) PrivacyOf(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]Privacy, error) {
+	return m.svc.PrivacyOf(ctx, ids)
+}
+
+// UserIDByUsername finds a user by username (NOT_FOUND).
+func (m *Module) UserIDByUsername(ctx context.Context, username string) (uuid.UUID, error) {
+	return m.svc.UserIDByUsername(ctx, username)
+}
+
 // Register adds profile's routes; ident authenticates them.
 func (m *Module) Register(s *httpserver.Server, ident *identity.Module, limiter *ratelimit.Limiter) {
 	transport.New(m.svc, ident, limiter).Register(s)
