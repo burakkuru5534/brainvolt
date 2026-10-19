@@ -1082,6 +1082,312 @@ abstract class AppLocalizations {
   /// **'Rövanş olmadı.'**
   String get rematchDeclined;
 
+  /// Home: open the mode picker.
+  ///
+  /// In tr, this message translates to:
+  /// **'Diğer modlar'**
+  String get playModes;
+
+  /// Mode picker title.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mod seç'**
+  String get modesTitle;
+
+  /// Match type name.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dereceli'**
+  String get matchTypeRanked;
+
+  /// Mode picker: category mode.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kategori modu'**
+  String get categoryModeLabel;
+
+  /// No category mode (mixed questions).
+  ///
+  /// In tr, this message translates to:
+  /// **'Standart'**
+  String get categoryModeNone;
+
+  /// Category mode name.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kör Meydan Okuma'**
+  String get categoryModeBlind;
+
+  /// Category mode name.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kategori Ustası'**
+  String get categoryModeMaster;
+
+  /// Category mode name.
+  ///
+  /// In tr, this message translates to:
+  /// **'Karışık Savaş'**
+  String get categoryModeMixed;
+
+  /// Category Master: the category.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kategori'**
+  String get categoryLabel;
+
+  /// Mode picker: join the queue.
+  ///
+  /// In tr, this message translates to:
+  /// **'Rakip ara'**
+  String get startSearch;
+
+  /// Mixed Battle: the player picks.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir kategori seç'**
+  String get pickCategory;
+
+  /// Mixed Battle: the other player picks.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} kategori seçiyor…'**
+  String opponentPicking(String name);
+
+  /// Private room button / title.
+  ///
+  /// In tr, this message translates to:
+  /// **'Özel oda'**
+  String get privateRoom;
+
+  /// Create a private room.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oda kur'**
+  String get createRoom;
+
+  /// Join a room by code.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kodla katıl'**
+  String get joinRoom;
+
+  /// Room code field.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oda kodu'**
+  String get roomCodeLabel;
+
+  /// The room's invite code.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oda kodu: {code}'**
+  String roomCode(String code);
+
+  /// A side of the room.
+  ///
+  /// In tr, this message translates to:
+  /// **'Taraf {no}'**
+  String sideLabel(int no);
+
+  /// Empty seat in a room.
+  ///
+  /// In tr, this message translates to:
+  /// **'Boş koltuk — buraya geç'**
+  String get emptySeat;
+
+  /// Room host.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kurucu'**
+  String get host;
+
+  /// Room: ready.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hazır'**
+  String get readyLabel;
+
+  /// Room: not ready.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hazır değil'**
+  String get notReady;
+
+  /// Room host: start.
+  ///
+  /// In tr, this message translates to:
+  /// **'Maçı başlat'**
+  String get startMatch;
+
+  /// Room is not full yet.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyuncu bekleniyor…'**
+  String get roomWaitingPlayers;
+
+  /// Leave a room.
+  ///
+  /// In tr, this message translates to:
+  /// **'Odadan çık'**
+  String get leaveRoom;
+
+  /// The room is gone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oda kapandı.'**
+  String get roomClosed;
+
+  /// Result screen: back to the private room.
+  ///
+  /// In tr, this message translates to:
+  /// **'Odaya dön'**
+  String get backToRoom;
+
+  /// Home: teams and couple.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takımlar'**
+  String get homeTeams;
+
+  /// Guests cannot have teams (D-016a).
+  ///
+  /// In tr, this message translates to:
+  /// **'Takım kurmak ve çift olmak için hesabını bağla.'**
+  String get teamsUpgrade;
+
+  /// Teams screen: couple section.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çift profili'**
+  String get coupleSection;
+
+  /// No couple.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir çift profilin yok.'**
+  String get noCouple;
+
+  /// Ask a friend to form a couple.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çift ol'**
+  String get requestCouple;
+
+  /// Couple without a name.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} ile çift'**
+  String coupleWith(String name);
+
+  /// Couple request pending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Onay bekleniyor'**
+  String get couplePending;
+
+  /// Couple is active.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aktif'**
+  String get coupleActive;
+
+  /// Dissolve the couple.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çifti boz'**
+  String get dissolveCouple;
+
+  /// Teams screen: invites.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takım davetleri'**
+  String get teamInvites;
+
+  /// Teams screen: own teams.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takımlarım'**
+  String get myTeams;
+
+  /// No teams.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz bir takımın yok.'**
+  String get teamsEmpty;
+
+  /// Create a team.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takım kur'**
+  String get createTeam;
+
+  /// Team name field.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takım adı'**
+  String get teamName;
+
+  /// Team tag field.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kısaltma (2–4)'**
+  String get teamTag;
+
+  /// Team captain.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaptan'**
+  String get captain;
+
+  /// Hand over the captaincy.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaptan yap'**
+  String get makeCaptain;
+
+  /// Kick a member.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takımdan çıkar'**
+  String get kick;
+
+  /// Invite a friend to the team.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş davet et'**
+  String get inviteToTeam;
+
+  /// Team invite sent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Davet gönderildi.'**
+  String get teamInviteSent;
+
+  /// Leave a team.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takımdan ayrıl'**
+  String get leaveTeam;
+
+  /// Disband a team.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takımı dağıt'**
+  String get disbandTeam;
+
+  /// Disband confirmation.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takım dağıtılsın mı? Bu geri alınamaz.'**
+  String get disbandConfirm;
+
+  /// Pick a friend dialog.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş seç'**
+  String get pickFriend;
+
   /// Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md).
   ///
   /// In tr, this message translates to:

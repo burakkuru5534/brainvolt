@@ -6,6 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../app/router.dart';
 import '../../../app/session_controller.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../lobby/presentation/room_controller.dart';
 import '../data/match_providers.dart';
 import '../domain/match_repository.dart';
 import 'play_controllers.dart';
@@ -36,7 +37,7 @@ class ResultScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.resultTitle)),
       body: switch (result) {
-        AsyncData(:final value) => _body(context, value, me),
+        AsyncData(:final value) => _body(context, ref, value, me),
         AsyncError(:final error) => Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -54,7 +55,7 @@ class ResultScreen extends ConsumerWidget {
     );
   }
 
-  Widget _body(BuildContext context, MatchResult r, String me) {
+  Widget _body(BuildContext context, WidgetRef ref, MatchResult r, String me) {
     final l10n = context.l10n;
     final mySide =
         r.players.where((p) => p.userId == me).firstOrNull?.side ?? 1;
@@ -84,6 +85,17 @@ class ResultScreen extends ConsumerWidget {
                     .isAfter(DateTime.now()) ??
                 false))
           _Rematch(matchId: r.id),
+        if (r.origin == 'private_room')
+          if (ref.watch(currentRoomProvider) case final room?)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: FilledButton.icon(
+                key: const Key('back-to-room'),
+                icon: const Icon(Icons.meeting_room),
+                onPressed: () => context.go(Routes.room(room)),
+                label: Text(l10n.backToRoom),
+              ),
+            ),
         const SizedBox(height: 16),
         for (final round in r.rounds)
           Card(

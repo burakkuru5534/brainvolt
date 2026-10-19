@@ -54,6 +54,54 @@ class Challenge {
   final String? matchId;
 }
 
+/// A member of a private room.
+class RoomMember {
+  const RoomMember({
+    required this.card,
+    required this.side,
+    required this.seat,
+    required this.ready,
+    required this.isHost,
+  });
+
+  final UserCard card;
+  final int side;
+  final int seat;
+  final bool ready;
+  final bool isHost;
+}
+
+/// A private room (rest.md §6, websocket.md room.state).
+class Room {
+  const Room({
+    required this.id,
+    required this.status,
+    required this.version,
+    required this.hostUserId,
+    required this.code,
+    required this.matchType,
+    required this.capacity,
+    required this.members,
+    this.categoryMode,
+    this.matchId,
+  });
+
+  final String id;
+
+  /// open / starting / in_match.
+  final String status;
+  final int version;
+  final String hostUserId;
+  final String code;
+  final String matchType;
+  final String? categoryMode;
+  final int capacity;
+  final List<RoomMember> members;
+  final String? matchId;
+
+  bool get full => members.length >= capacity;
+}
+
 /// Challenge actions.
 enum ChallengeAction { accept, decline, cancel }
 
@@ -67,4 +115,14 @@ abstract interface class LobbyRepository {
   Future<List<Challenge>> challenges({required bool incoming});
 
   Future<Challenge> respondChallenge(String id, ChallengeAction action);
+
+  /// Creates a room hosted by the caller (who leaves a previous room).
+  Future<Room> createRoom(MatchType type, {String? categoryMode});
+
+  /// Joins the room of an invite code.
+  Future<Room> joinRoom(String code);
+
+  Future<Room> room(String id);
+
+  Future<void> leaveRoom(String id);
 }

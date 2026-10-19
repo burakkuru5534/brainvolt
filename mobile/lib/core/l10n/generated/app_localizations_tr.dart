@@ -558,6 +558,167 @@ class AppLocalizationsTr extends AppLocalizations {
   String get rematchDeclined => 'Rövanş olmadı.';
 
   @override
+  String get playModes => 'Diğer modlar';
+
+  @override
+  String get modesTitle => 'Mod seç';
+
+  @override
+  String get matchTypeRanked => 'Dereceli';
+
+  @override
+  String get categoryModeLabel => 'Kategori modu';
+
+  @override
+  String get categoryModeNone => 'Standart';
+
+  @override
+  String get categoryModeBlind => 'Kör Meydan Okuma';
+
+  @override
+  String get categoryModeMaster => 'Kategori Ustası';
+
+  @override
+  String get categoryModeMixed => 'Karışık Savaş';
+
+  @override
+  String get categoryLabel => 'Kategori';
+
+  @override
+  String get startSearch => 'Rakip ara';
+
+  @override
+  String get pickCategory => 'Bir kategori seç';
+
+  @override
+  String opponentPicking(String name) {
+    return '$name kategori seçiyor…';
+  }
+
+  @override
+  String get privateRoom => 'Özel oda';
+
+  @override
+  String get createRoom => 'Oda kur';
+
+  @override
+  String get joinRoom => 'Kodla katıl';
+
+  @override
+  String get roomCodeLabel => 'Oda kodu';
+
+  @override
+  String roomCode(String code) {
+    return 'Oda kodu: $code';
+  }
+
+  @override
+  String sideLabel(int no) {
+    return 'Taraf $no';
+  }
+
+  @override
+  String get emptySeat => 'Boş koltuk — buraya geç';
+
+  @override
+  String get host => 'Kurucu';
+
+  @override
+  String get readyLabel => 'Hazır';
+
+  @override
+  String get notReady => 'Hazır değil';
+
+  @override
+  String get startMatch => 'Maçı başlat';
+
+  @override
+  String get roomWaitingPlayers => 'Oyuncu bekleniyor…';
+
+  @override
+  String get leaveRoom => 'Odadan çık';
+
+  @override
+  String get roomClosed => 'Oda kapandı.';
+
+  @override
+  String get backToRoom => 'Odaya dön';
+
+  @override
+  String get homeTeams => 'Takımlar';
+
+  @override
+  String get teamsUpgrade => 'Takım kurmak ve çift olmak için hesabını bağla.';
+
+  @override
+  String get coupleSection => 'Çift profili';
+
+  @override
+  String get noCouple => 'Bir çift profilin yok.';
+
+  @override
+  String get requestCouple => 'Çift ol';
+
+  @override
+  String coupleWith(String name) {
+    return '$name ile çift';
+  }
+
+  @override
+  String get couplePending => 'Onay bekleniyor';
+
+  @override
+  String get coupleActive => 'Aktif';
+
+  @override
+  String get dissolveCouple => 'Çifti boz';
+
+  @override
+  String get teamInvites => 'Takım davetleri';
+
+  @override
+  String get myTeams => 'Takımlarım';
+
+  @override
+  String get teamsEmpty => 'Henüz bir takımın yok.';
+
+  @override
+  String get createTeam => 'Takım kur';
+
+  @override
+  String get teamName => 'Takım adı';
+
+  @override
+  String get teamTag => 'Kısaltma (2–4)';
+
+  @override
+  String get captain => 'Kaptan';
+
+  @override
+  String get makeCaptain => 'Kaptan yap';
+
+  @override
+  String get kick => 'Takımdan çıkar';
+
+  @override
+  String get inviteToTeam => 'Arkadaş davet et';
+
+  @override
+  String get teamInviteSent => 'Davet gönderildi.';
+
+  @override
+  String get leaveTeam => 'Takımdan ayrıl';
+
+  @override
+  String get disbandTeam => 'Takımı dağıt';
+
+  @override
+  String get disbandConfirm => 'Takım dağıtılsın mı? Bu geri alınamaz.';
+
+  @override
+  String get pickFriend => 'Arkadaş seç';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.';
 

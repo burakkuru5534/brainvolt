@@ -6,15 +6,21 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../core/l10n/l10n.dart';
+import '../domain/match_repository.dart';
 import 'play_controllers.dart';
 import 'play_error_text.dart';
 
 /// Looking for an opponent (or starting a practice match), then straight
 /// to the match screen.
 class QueueScreen extends ConsumerStatefulWidget {
-  const QueueScreen({this.practice = false, super.key});
+  const QueueScreen({
+    this.practice = false,
+    this.mode = const QueueMode(),
+    super.key,
+  });
 
   final bool practice;
+  final QueueMode mode;
 
   @override
   ConsumerState<QueueScreen> createState() => _QueueScreenState();
@@ -32,7 +38,7 @@ class _QueueScreenState extends ConsumerState<QueueScreen> {
 
   Future<void> _search() => ref
       .read(queueControllerProvider.notifier)
-      .search(practice: widget.practice);
+      .search(practice: widget.practice, mode: widget.mode);
 
   @override
   void dispose() {

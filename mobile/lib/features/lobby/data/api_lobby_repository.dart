@@ -22,6 +22,32 @@ Challenge challengeFromJson(Map<String, dynamic> j) => Challenge(
   matchId: j['match_id'] as String?,
 );
 
+/// Parses a room of the API (REST and room.state).
+Room roomFromJson(Map<String, dynamic> j) {
+  final cfg = _map(j['match_config']);
+  return Room(
+    id: j['id'] as String,
+    status: j['status'] as String,
+    version: (j['version'] as num?)?.toInt() ?? 0,
+    hostUserId: j['host_user_id'] as String,
+    code: j['code'] as String? ?? '',
+    matchType: cfg['match_type'] as String? ?? '',
+    categoryMode: cfg['category_mode'] as String?,
+    capacity: (j['capacity'] as num?)?.toInt() ?? 2,
+    matchId: j['match_id'] as String?,
+    members: [
+      for (final m in _maps(j['members']))
+        RoomMember(
+          card: UserCard.fromJson(m),
+          side: (m['side_no'] as num).toInt(),
+          seat: (m['seat_no'] as num).toInt(),
+          ready: m['ready'] == true,
+          isHost: m['is_host'] == true,
+        ),
+    ],
+  );
+}
+
 /// [LobbyRepository] over the REST API.
 class ApiLobbyRepository implements LobbyRepository {
   const ApiLobbyRepository(this.api);
@@ -79,4 +105,33 @@ class ApiLobbyRepository implements LobbyRepository {
     final j = await api.postJson('/v1/challenges/$id/${action.name}');
     return challengeFromJson(j!);
   }
+
+  @override
+  Future<Room> createRoom(MatchType type, {String? categoryMode}) async {
+    final j = await api.postJson(
+      '/v1/rooms',
+      body: {
+        'match_config': {
+          'match_type': type.wire,
+          'format': '1v1',
+          'category_mode': ?categoryMode,
+        },
+      },
+      idempotencyKey: const Uuid().v7(),
+    );
+    return roomFromJson(j!);
+  }
+
+  @override
+  Future<Room> joinRoom(String code) async {
+    final j = await api.postJson('/v1/rooms/join', body: {'code': code.trim()});
+    return roomFromJson(j!);
+  }
+
+  @override
+  Future<Room> room(String id) async =>
+      roomFromJson(await api.getJson('/v1/rooms/$id'));
+
+  @override
+  Future<void> leaveRoom(String id) => api.postJson('/v1/rooms/$id/leave');
 }

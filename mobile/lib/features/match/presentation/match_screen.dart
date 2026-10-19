@@ -138,6 +138,11 @@ class _MatchScreenState extends ConsumerState<MatchScreen> {
                       style: Theme.of(context).textTheme.displayLarge,
                     ),
                   ),
+                  MatchPhase.preRound => _PickView(
+                    state: state,
+                    now: now,
+                    onPick: (id) => _run(() => _ctrl.pick(id)),
+                  ),
                   MatchPhase.question || MatchPhase.reveal =>
                     state.round == null
                         ? const Center(child: CircularProgressIndicator())
@@ -395,6 +400,61 @@ class _End extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Mixed Battle: the picker chooses the next category, the others wait.
+class _PickView extends StatelessWidget {
+  const _PickView({
+    required this.state,
+    required this.now,
+    required this.onPick,
+  });
+
+  final MatchState state;
+  final int now;
+  final void Function(String id) onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final pre = state.preRound;
+    if (pre == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final mine = pre.pickerUserId == state.myUserId;
+    final picker = state.players
+        .where((p) => p.userId == pre.pickerUserId)
+        .firstOrNull;
+    final left = ((pre.deadlineAt - now) / 1000).ceil().clamp(0, 99);
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          mine
+              ? l10n.pickCategory
+              : l10n.opponentPicking(picker?.displayName ?? ''),
+          key: const Key('pre-round'),
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 8),
+        Text('$left', textAlign: TextAlign.center),
+        const SizedBox(height: 16),
+        for (final (id, name) in pre.categories)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: FilledButton.tonal(
+              key: Key('pick-$id'),
+              onPressed: mine && pre.allowed.contains(id)
+                  ? () => onPick(id)
+                  : null,
+              child: Text(name),
+            ),
+          ),
+      ],
     );
   }
 }

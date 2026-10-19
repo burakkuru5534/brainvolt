@@ -22,6 +22,8 @@ import 'package:brainvolt/features/profile/domain/me.dart';
 import 'package:brainvolt/features/profile/domain/profile_repository.dart';
 import 'package:brainvolt/features/social/data/social_providers.dart';
 import 'package:brainvolt/features/social/domain/social_repository.dart';
+import 'package:brainvolt/features/team/data/team_providers.dart';
+import 'package:brainvolt/features/team/domain/team_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -316,6 +318,12 @@ class FakeContentRepository implements ContentRepository {
 
   @override
   Future<List<Credit>> credits() async => sources;
+
+  @override
+  Future<List<CategoryInfo>> categories() async => const [
+    CategoryInfo('cat-history', 'Tarih'),
+    CategoryInfo('cat-science', 'Bilim'),
+  ];
 }
 
 /// The game and matchmaking endpoints in memory.
@@ -328,8 +336,17 @@ class FakeMatchRepository implements MatchRepository {
   MatchResult? matchResult;
 
   @override
-  Future<QueueTicket> enqueue({bool practice = false}) async {
-    calls.add(practice ? 'enqueue:practice' : 'enqueue');
+  Future<QueueTicket> enqueue({
+    bool practice = false,
+    QueueMode mode = const QueueMode(),
+  }) async {
+    calls.add(
+      practice
+          ? 'enqueue:practice'
+          : mode.isDefault
+          ? 'enqueue'
+          : 'enqueue:${mode.matchType}:${mode.categoryMode}:${mode.categoryId}',
+    );
     return ticket;
   }
 
@@ -434,6 +451,117 @@ class FakeLobbyRepository implements LobbyRepository {
     calls.add('${action.name}:$id');
     return responded!;
   }
+
+  /// What creating or joining a room gives.
+  Room room1 = const Room(
+    id: 'r1',
+    status: 'open',
+    version: 1,
+    hostUserId: 'user-guest-1',
+    code: 'ROOM23',
+    matchType: 'quick_duel',
+    capacity: 2,
+    members: [],
+  );
+
+  @override
+  Future<Room> createRoom(MatchType type, {String? categoryMode}) async {
+    calls.add('createRoom:${type.wire}');
+    return room1;
+  }
+
+  @override
+  Future<Room> joinRoom(String code) async {
+    calls.add('joinRoom:$code');
+    return room1;
+  }
+
+  @override
+  Future<Room> room(String id) async => room1;
+
+  @override
+  Future<void> leaveRoom(String id) async => calls.add('leaveRoom:$id');
+}
+
+/// Teams and couples in memory.
+class FakeTeamRepository implements TeamRepository {
+  final calls = <String>[];
+  List<Team> teams = [];
+  List<TeamInvite> pendingInvites = [];
+  Couple? couple;
+
+  @override
+  Future<List<Team>> myTeams() async => teams;
+
+  @override
+  Future<Team> team(String id) async => teams.firstWhere((t) => t.id == id);
+
+  @override
+  Future<Team> createTeam({
+    required String name,
+    required String tag,
+    required String emblemId,
+  }) async {
+    calls.add('create:$name:$tag:$emblemId');
+    final t = Team(
+      id: 't${teams.length + 1}',
+      name: name,
+      tag: tag,
+      emblemId: emblemId,
+      captainUserId: 'user-guest-1',
+      members: const [],
+    );
+    teams = [...teams, t];
+    return t;
+  }
+
+  @override
+  Future<void> invite(String teamId, String userId) async =>
+      calls.add('invite:$teamId:$userId');
+
+  @override
+  Future<List<TeamInvite>> invites() async => pendingInvites;
+
+  @override
+  Future<void> respondInvite(String inviteId, {required bool accept}) async {
+    calls.add('${accept ? 'accept' : 'decline'}:$inviteId');
+    pendingInvites = [];
+  }
+
+  @override
+  Future<void> teamAction(String teamId, TeamAction action) async =>
+      calls.add('${action.name}:$teamId');
+
+  @override
+  Future<void> kick(String teamId, String userId) async =>
+      calls.add('kick:$teamId:$userId');
+
+  @override
+  Future<void> makeCaptain(String teamId, String userId) async =>
+      calls.add('captain:$teamId:$userId');
+
+  @override
+  Future<Couple?> myCouple() async => couple;
+
+  @override
+  Future<Couple> requestCouple(String partnerUserId) async {
+    calls.add('couple:$partnerUserId');
+    return couple = Couple(
+      id: 'cp1',
+      status: 'pending',
+      requestedBy: 'user-guest-1',
+      partners: [
+        const UserCard(userId: 'user-guest-1', displayName: 'Ben'),
+        UserCard(userId: partnerUserId, displayName: 'Ali'),
+      ],
+    );
+  }
+
+  @override
+  Future<Couple> respondCouple(String coupleId, String action) async {
+    calls.add('$action:$coupleId');
+    return couple!;
+  }
 }
 
 /// A WebSocket whose server side the test drives.
@@ -486,6 +614,7 @@ class TestApp {
     this.sockets,
     this.social,
     this.lobby,
+    this.teams,
   );
 
   /// [ageConfirmed] skips the age gate; [user] is an already signed-in user.
@@ -505,6 +634,7 @@ class TestApp {
     final matches = FakeMatchRepository();
     final social = FakeSocialRepository();
     final lobby = FakeLobbyRepository();
+    final teams = FakeTeamRepository();
     final sockets = <FakeSocket>[];
     final container = ProviderContainer(
       retry: noRetry,
@@ -525,6 +655,7 @@ class TestApp {
         matchRepositoryProvider.overrideWithValue(matches),
         socialRepositoryProvider.overrideWithValue(social),
         lobbyRepositoryProvider.overrideWithValue(lobby),
+        teamRepositoryProvider.overrideWithValue(teams),
         realtimeClientProvider.overrideWith((ref) {
           final client = RealtimeClient(
             url: Uri.parse('ws://test/v1/ws'),
@@ -552,6 +683,7 @@ class TestApp {
       sockets,
       social,
       lobby,
+      teams,
     );
   }
 
@@ -560,6 +692,7 @@ class TestApp {
   final FakeMatchRepository matches;
   final FakeSocialRepository social;
   final FakeLobbyRepository lobby;
+  final FakeTeamRepository teams;
 
   /// Every WebSocket the app opened, newest last.
   final List<FakeSocket> sockets;

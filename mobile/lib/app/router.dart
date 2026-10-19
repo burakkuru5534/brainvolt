@@ -12,12 +12,16 @@ import '../features/auth/presentation/verify_email_screen.dart';
 import '../features/content/presentation/credits_screen.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/lobby/presentation/challenges_screen.dart';
+import '../features/lobby/presentation/room_screen.dart';
+import '../features/match/domain/match_repository.dart';
 import '../features/match/presentation/match_screen.dart';
+import '../features/match/presentation/mode_picker_screen.dart';
 import '../features/match/presentation/queue_screen.dart';
 import '../features/match/presentation/result_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/settings_screen.dart';
 import '../features/social/presentation/friends_screen.dart';
+import '../features/team/presentation/teams_screen.dart';
 import 'session_controller.dart';
 
 part 'router.g.dart';
@@ -37,8 +41,20 @@ abstract final class Routes {
   static const credits = '/credits';
   static const friends = '/friends';
   static const challenges = '/challenges';
+  static const modes = '/modes';
+  static const teams = '/teams';
+  static String room(String id) => '/rooms/$id';
+  static String team(String id) => '/teams/$id';
   static const play = '/play';
   static const practice = '/play?practice=1';
+  static String playMode(QueueMode m) => Uri(
+    path: play,
+    queryParameters: {
+      'type': m.matchType,
+      'mode': ?m.categoryMode,
+      'cat': ?m.categoryId,
+    },
+  ).toString();
   static String match(String id) => '/match/$id';
   static String matchResult(String id) => '/match/$id/result';
 }
@@ -125,13 +141,40 @@ GoRouter router(Ref ref) {
         builder: (context, state) => const ChallengesScreen(),
       ),
       GoRoute(
+        path: Routes.modes,
+        builder: (context, state) => const ModePickerScreen(),
+      ),
+      GoRoute(
+        path: Routes.teams,
+        builder: (context, state) => const TeamsScreen(),
+      ),
+      GoRoute(
+        path: '/teams/:id',
+        builder: (context, state) =>
+            TeamScreen(teamId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/rooms/:id',
+        builder: (context, state) =>
+            RoomScreen(roomId: state.pathParameters['id']!),
+      ),
+      GoRoute(
         path: Routes.credits,
         builder: (context, state) => const CreditsScreen(),
       ),
       GoRoute(
         path: Routes.play,
-        builder: (context, state) =>
-            QueueScreen(practice: state.uri.queryParameters['practice'] == '1'),
+        builder: (context, state) {
+          final q = state.uri.queryParameters;
+          return QueueScreen(
+            practice: q['practice'] == '1',
+            mode: QueueMode(
+              matchType: q['type'] ?? 'quick_duel',
+              categoryMode: q['mode'],
+              categoryId: q['cat'],
+            ),
+          );
+        },
       ),
       GoRoute(
         path: '/match/:id',

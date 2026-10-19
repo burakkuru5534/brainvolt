@@ -10,6 +10,7 @@ import '../../../core/l10n/l10n.dart';
 import '../../../core/realtime/realtime_client.dart';
 import '../../../core/realtime/realtime_providers.dart';
 import '../../auth/domain/session.dart';
+import '../../lobby/presentation/room_screen.dart';
 import '../../match/data/match_providers.dart';
 import '../../profile/domain/avatars.dart';
 
@@ -150,6 +151,27 @@ class HomeScreen extends ConsumerWidget {
                       onPressed: () => context.push(Routes.play),
                       label: Text(l10n.playQuickDuel),
                     ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    key: const Key('play-modes'),
+                    icon: const Icon(Icons.tune),
+                    onPressed: () => context.push(Routes.modes),
+                    label: Text(l10n.playModes),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    key: const Key('private-room'),
+                    icon: const Icon(Icons.meeting_room),
+                    onPressed: () => showRoomSheet(context, ref),
+                    label: Text(l10n.privateRoom),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    key: const Key('open-teams'),
+                    icon: const Icon(Icons.groups),
+                    onPressed: () => context.push(Routes.teams),
+                    label: Text(l10n.homeTeams),
+                  ),
                   if (ref.watch(appConfigProvider).flavor == Flavor.dev) ...[
                     const SizedBox(height: 12),
                     OutlinedButton.icon(

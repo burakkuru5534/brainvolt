@@ -15,12 +15,17 @@ class ApiMatchRepository implements MatchRepository {
   final ApiClient api;
 
   @override
-  Future<QueueTicket> enqueue({bool practice = false}) async {
+  Future<QueueTicket> enqueue({
+    bool practice = false,
+    QueueMode mode = const QueueMode(),
+  }) async {
     final j = await api.postJson(
       '/v1/matchmaking/tickets',
       body: {
-        'match_type': 'quick_duel',
+        'match_type': mode.matchType,
         'format': '1v1',
+        'category_mode': ?mode.categoryMode,
+        'category_id': ?mode.categoryId,
         if (practice) 'practice': true,
       },
       idempotencyKey: const Uuid().v7(),

@@ -13,6 +13,9 @@ enum MatchPhase {
   /// Everyone is ready; the 3 s countdown runs.
   countdown,
 
+  /// Mixed Battle: a player picks the next round's category.
+  preRound,
+
   /// A question is open.
   question,
 
@@ -142,6 +145,28 @@ class RoundState {
   );
 }
 
+/// A Mixed Battle category pick (round.pre_round, D-043).
+@immutable
+class PreRound {
+  const PreRound({
+    required this.roundNo,
+    required this.pickerUserId,
+    required this.categories,
+    required this.allowed,
+    required this.deadlineAt,
+  });
+
+  final int roundNo;
+  final String? pickerUserId;
+
+  /// (id, name) of the match's three categories.
+  final List<(String, String)> categories;
+
+  /// The ids the picker may choose now (no 4th pick in a row).
+  final Set<String> allowed;
+  final int deadlineAt;
+}
+
 @immutable
 class MatchState {
   const MatchState({
@@ -154,6 +179,7 @@ class MatchState {
     this.players = const [],
     this.scores = const [0, 0],
     this.round,
+    this.preRound,
     this.endReason,
     this.cancelReason,
     this.winnerSide,
@@ -173,6 +199,7 @@ class MatchState {
   /// Side 1 and side 2 totals.
   final List<int> scores;
   final RoundState? round;
+  final PreRound? preRound;
   final String? endReason;
   final String? cancelReason;
   final int? winnerSide;
@@ -201,6 +228,8 @@ class MatchState {
     List<int>? scores,
     RoundState? round,
     bool clearRound = false,
+    PreRound? preRound,
+    bool clearPreRound = false,
     String? endReason,
     String? cancelReason,
     int? winnerSide,
@@ -217,6 +246,7 @@ class MatchState {
     players: players ?? this.players,
     scores: scores ?? this.scores,
     round: clearRound ? null : (round ?? this.round),
+    preRound: clearPreRound ? null : (preRound ?? this.preRound),
     endReason: endReason ?? this.endReason,
     cancelReason: cancelReason ?? this.cancelReason,
     winnerSide: winnerSide ?? this.winnerSide,

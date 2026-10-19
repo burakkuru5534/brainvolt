@@ -1,6 +1,22 @@
 /// REST side of playing (rest.md §4–§5).
 library;
 
+/// What to queue for (rest.md §5): a match type and an optional category
+/// mode (category_master with a top-level [categoryId]).
+class QueueMode {
+  const QueueMode({
+    this.matchType = 'quick_duel',
+    this.categoryMode,
+    this.categoryId,
+  });
+
+  final String matchType;
+  final String? categoryMode;
+  final String? categoryId;
+
+  bool get isDefault => matchType == 'quick_duel' && categoryMode == null;
+}
+
 /// A queue ticket; [matchId] is set when a practice match started at once.
 class QueueTicket {
   const QueueTicket({required this.id, required this.state, this.matchId});
@@ -95,8 +111,12 @@ class MatchResult {
 }
 
 abstract interface class MatchRepository {
-  /// Joins the Quick Duel queue, or starts a practice match (dev).
-  Future<QueueTicket> enqueue({bool practice = false});
+  /// Joins a queue (Quick Duel by default), or starts a practice match
+  /// (dev).
+  Future<QueueTicket> enqueue({
+    bool practice = false,
+    QueueMode mode = const QueueMode(),
+  });
 
   /// Leaves the queue (harmless when not queued).
   Future<void> leaveQueue();

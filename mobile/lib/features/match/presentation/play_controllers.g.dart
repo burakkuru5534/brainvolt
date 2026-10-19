@@ -50,7 +50,7 @@ final class QueueControllerProvider
   }
 }
 
-String _$queueControllerHash() => r'602dd5b7d21f34ff9214907afc80f0bf1caaf511';
+String _$queueControllerHash() => r'6735a9f7e5a31b8840d0b62bb0742c6bf1be1349';
 
 /// Looking for an opponent (rest.md §5, websocket.md mm.*). The match is
 /// announced by mm.match_found; /v1/matches/current is polled as well in
@@ -130,7 +130,7 @@ final class MatchControllerProvider
   }
 }
 
-String _$matchControllerHash() => r'9bc721183223e10388651b14a3bd59e58361660c';
+String _$matchControllerHash() => r'5db8644494157a942ef61e39f0254f5b41869b72';
 
 /// One live match: joins it on every (re)connect, folds the match stream
 /// into [MatchState] and sends the player's intents.

@@ -16,4 +16,16 @@ class ApiContentRepository implements ContentRepository {
         Credit.fromJson(s as Map<String, dynamic>),
     ];
   }
+
+  @override
+  Future<List<CategoryInfo>> categories() async {
+    final json = await api.getJson('/v1/categories');
+    return [
+      for (final c in json['categories'] as List<dynamic>)
+        CategoryInfo(
+          (c as Map<String, dynamic>)['id'] as String,
+          c['name'] as String? ?? '',
+        ),
+    ];
+  }
 }

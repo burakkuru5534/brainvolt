@@ -7,6 +7,7 @@ import '../../../core/realtime/realtime_client.dart';
 import '../../../core/realtime/realtime_providers.dart';
 import '../data/match_providers.dart';
 import '../domain/match_reducer.dart';
+import '../domain/match_repository.dart';
 import '../domain/match_state.dart';
 
 part 'play_controllers.g.dart';
@@ -51,7 +52,10 @@ class QueueController extends _$QueueController {
     return const QueueIdle();
   }
 
-  Future<void> search({bool practice = false}) async {
+  Future<void> search({
+    bool practice = false,
+    QueueMode mode = const QueueMode(),
+  }) async {
     final rt = ref.read(realtimeClientProvider)..start();
     final repo = ref.read(matchRepositoryProvider);
     _stopWatching();
@@ -70,7 +74,7 @@ class QueueController extends _$QueueController {
     });
     state = QueueSearching(DateTime.now());
     try {
-      final t = await repo.enqueue(practice: practice);
+      final t = await repo.enqueue(practice: practice, mode: mode);
       if (t.matchId != null) {
         _found(t.matchId!);
         return;
@@ -190,6 +194,19 @@ class MatchController extends _$MatchController {
   }
 
   Future<void> leave() => _rt.send('match.leave', {'match_id': matchId});
+
+  /// Picks the next round's category (Mixed Battle, the picker only).
+  Future<void> pick(String categoryId) {
+    final pre = state.preRound;
+    if (pre == null) {
+      return Future.value();
+    }
+    return _rt.send('match.pick_category', {
+      'match_id': matchId,
+      'round_no': pre.roundNo,
+      'category_id': categoryId,
+    });
+  }
 }
 
 /// The rematch offer of a finished match (websocket.md rematch.*).

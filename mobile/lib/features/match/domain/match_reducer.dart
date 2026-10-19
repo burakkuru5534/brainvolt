@@ -47,8 +47,26 @@ MatchPhase _phaseOf(String? status, String? phase) => switch (status) {
   'ready' => MatchPhase.countdown,
   'completed' => MatchPhase.completed,
   'cancelled' => MatchPhase.cancelled,
-  _ => phase == 'reveal' ? MatchPhase.reveal : MatchPhase.question,
+  _ => switch (phase) {
+    'reveal' => MatchPhase.reveal,
+    'pre_round' => MatchPhase.preRound,
+    _ => MatchPhase.question,
+  },
 };
+
+PreRound _preRound(Map<String, dynamic> d) => PreRound(
+  roundNo: _int(d['round_no']),
+  pickerUserId: _str(d['picker_user_id']),
+  categories: [
+    for (final c in _maps(d['categories']))
+      (c['id'] as String, _str(c['name']) ?? ''),
+  ],
+  allowed: {
+    for (final id in (d['allowed_category_ids'] as List?) ?? const [])
+      id as String,
+  },
+  deadlineAt: _int(d['pick_deadline_at']),
+);
 
 /// Applies one match-stream event to the state (websocket.md §5.2).
 /// `match.snapshot` replaces everything (client rule: discard local
@@ -86,6 +104,9 @@ MatchState reduce(MatchState s, ServerFrame f) {
             ),
         ],
         round: round,
+        preRound: d['pre_round'] is Map
+            ? _preRound((d['pre_round'] as Map).cast<String, dynamic>())
+            : null,
         endReason: _str(result?['end_reason']),
         cancelReason: _str(result?['cancel_reason']),
         winnerSide: result == null ? null : _int(result['winner_side_no']),
@@ -107,8 +128,20 @@ MatchState reduce(MatchState s, ServerFrame f) {
       return s.copyWith(
         players: [for (final p in s.players) p.copyWith(status: 'playing')],
       );
+    case 'round.pre_round':
+      return s.copyWith(
+        phase: MatchPhase.preRound,
+        preRound: _preRound(d),
+        clearRound: true,
+      );
+    case 'round.category_picked':
+      return s.copyWith(clearPreRound: true);
     case 'round.started':
-      return s.copyWith(phase: MatchPhase.question, round: _round(d));
+      return s.copyWith(
+        phase: MatchPhase.question,
+        round: _round(d),
+        clearPreRound: true,
+      );
     case 'round.answer_received':
       final r = s.round;
       if (r == null || r.roundNo != _int(d['round_no'])) {

@@ -559,6 +559,168 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rematchDeclined => 'No rematch this time.';
 
   @override
+  String get playModes => 'More modes';
+
+  @override
+  String get modesTitle => 'Choose a mode';
+
+  @override
+  String get matchTypeRanked => 'Ranked';
+
+  @override
+  String get categoryModeLabel => 'Category mode';
+
+  @override
+  String get categoryModeNone => 'Standard';
+
+  @override
+  String get categoryModeBlind => 'Blind Challenge';
+
+  @override
+  String get categoryModeMaster => 'Category Master';
+
+  @override
+  String get categoryModeMixed => 'Mixed Battle';
+
+  @override
+  String get categoryLabel => 'Category';
+
+  @override
+  String get startSearch => 'Find an opponent';
+
+  @override
+  String get pickCategory => 'Pick a category';
+
+  @override
+  String opponentPicking(String name) {
+    return '$name is picking a category…';
+  }
+
+  @override
+  String get privateRoom => 'Private room';
+
+  @override
+  String get createRoom => 'Create room';
+
+  @override
+  String get joinRoom => 'Join with code';
+
+  @override
+  String get roomCodeLabel => 'Room code';
+
+  @override
+  String roomCode(String code) {
+    return 'Room code: $code';
+  }
+
+  @override
+  String sideLabel(int no) {
+    return 'Side $no';
+  }
+
+  @override
+  String get emptySeat => 'Empty seat — move here';
+
+  @override
+  String get host => 'Host';
+
+  @override
+  String get readyLabel => 'Ready';
+
+  @override
+  String get notReady => 'Not ready';
+
+  @override
+  String get startMatch => 'Start the match';
+
+  @override
+  String get roomWaitingPlayers => 'Waiting for players…';
+
+  @override
+  String get leaveRoom => 'Leave the room';
+
+  @override
+  String get roomClosed => 'The room was closed.';
+
+  @override
+  String get backToRoom => 'Back to the room';
+
+  @override
+  String get homeTeams => 'Teams';
+
+  @override
+  String get teamsUpgrade =>
+      'Link your account to create teams and form a couple.';
+
+  @override
+  String get coupleSection => 'Couple profile';
+
+  @override
+  String get noCouple => 'You have no couple profile.';
+
+  @override
+  String get requestCouple => 'Form a couple';
+
+  @override
+  String coupleWith(String name) {
+    return 'Couple with $name';
+  }
+
+  @override
+  String get couplePending => 'Waiting for an answer';
+
+  @override
+  String get coupleActive => 'Active';
+
+  @override
+  String get dissolveCouple => 'Break up';
+
+  @override
+  String get teamInvites => 'Team invites';
+
+  @override
+  String get myTeams => 'My teams';
+
+  @override
+  String get teamsEmpty => 'You have no team yet.';
+
+  @override
+  String get createTeam => 'Create team';
+
+  @override
+  String get teamName => 'Team name';
+
+  @override
+  String get teamTag => 'Tag (2–4)';
+
+  @override
+  String get captain => 'Captain';
+
+  @override
+  String get makeCaptain => 'Make captain';
+
+  @override
+  String get kick => 'Remove from team';
+
+  @override
+  String get inviteToTeam => 'Invite a friend';
+
+  @override
+  String get teamInviteSent => 'Invite sent.';
+
+  @override
+  String get leaveTeam => 'Leave the team';
+
+  @override
+  String get disbandTeam => 'Disband the team';
+
+  @override
+  String get disbandConfirm => 'Disband the team? This cannot be undone.';
+
+  @override
+  String get pickFriend => 'Pick a friend';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Your account is being deleted. You can only cancel the deletion.';
 

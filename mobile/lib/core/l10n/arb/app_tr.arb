@@ -751,6 +751,230 @@
   "@rematchDeclined": {
     "description": "Rematch declined or failed."
   },
+  "playModes": "Diğer modlar",
+  "@playModes": {
+    "description": "Home: open the mode picker."
+  },
+  "modesTitle": "Mod seç",
+  "@modesTitle": {
+    "description": "Mode picker title."
+  },
+  "matchTypeRanked": "Dereceli",
+  "@matchTypeRanked": {
+    "description": "Match type name."
+  },
+  "categoryModeLabel": "Kategori modu",
+  "@categoryModeLabel": {
+    "description": "Mode picker: category mode."
+  },
+  "categoryModeNone": "Standart",
+  "@categoryModeNone": {
+    "description": "No category mode (mixed questions)."
+  },
+  "categoryModeBlind": "Kör Meydan Okuma",
+  "@categoryModeBlind": {
+    "description": "Category mode name."
+  },
+  "categoryModeMaster": "Kategori Ustası",
+  "@categoryModeMaster": {
+    "description": "Category mode name."
+  },
+  "categoryModeMixed": "Karışık Savaş",
+  "@categoryModeMixed": {
+    "description": "Category mode name."
+  },
+  "categoryLabel": "Kategori",
+  "@categoryLabel": {
+    "description": "Category Master: the category."
+  },
+  "startSearch": "Rakip ara",
+  "@startSearch": {
+    "description": "Mode picker: join the queue."
+  },
+  "pickCategory": "Bir kategori seç",
+  "@pickCategory": {
+    "description": "Mixed Battle: the player picks."
+  },
+  "opponentPicking": "{name} kategori seçiyor…",
+  "@opponentPicking": {
+    "description": "Mixed Battle: the other player picks.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "privateRoom": "Özel oda",
+  "@privateRoom": {
+    "description": "Private room button / title."
+  },
+  "createRoom": "Oda kur",
+  "@createRoom": {
+    "description": "Create a private room."
+  },
+  "joinRoom": "Kodla katıl",
+  "@joinRoom": {
+    "description": "Join a room by code."
+  },
+  "roomCodeLabel": "Oda kodu",
+  "@roomCodeLabel": {
+    "description": "Room code field."
+  },
+  "roomCode": "Oda kodu: {code}",
+  "@roomCode": {
+    "description": "The room's invite code.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "sideLabel": "Taraf {no}",
+  "@sideLabel": {
+    "description": "A side of the room.",
+    "placeholders": {
+      "no": {
+        "type": "int"
+      }
+    }
+  },
+  "emptySeat": "Boş koltuk — buraya geç",
+  "@emptySeat": {
+    "description": "Empty seat in a room."
+  },
+  "host": "Kurucu",
+  "@host": {
+    "description": "Room host."
+  },
+  "readyLabel": "Hazır",
+  "@readyLabel": {
+    "description": "Room: ready."
+  },
+  "notReady": "Hazır değil",
+  "@notReady": {
+    "description": "Room: not ready."
+  },
+  "startMatch": "Maçı başlat",
+  "@startMatch": {
+    "description": "Room host: start."
+  },
+  "roomWaitingPlayers": "Oyuncu bekleniyor…",
+  "@roomWaitingPlayers": {
+    "description": "Room is not full yet."
+  },
+  "leaveRoom": "Odadan çık",
+  "@leaveRoom": {
+    "description": "Leave a room."
+  },
+  "roomClosed": "Oda kapandı.",
+  "@roomClosed": {
+    "description": "The room is gone."
+  },
+  "backToRoom": "Odaya dön",
+  "@backToRoom": {
+    "description": "Result screen: back to the private room."
+  },
+  "homeTeams": "Takımlar",
+  "@homeTeams": {
+    "description": "Home: teams and couple."
+  },
+  "teamsUpgrade": "Takım kurmak ve çift olmak için hesabını bağla.",
+  "@teamsUpgrade": {
+    "description": "Guests cannot have teams (D-016a)."
+  },
+  "coupleSection": "Çift profili",
+  "@coupleSection": {
+    "description": "Teams screen: couple section."
+  },
+  "noCouple": "Bir çift profilin yok.",
+  "@noCouple": {
+    "description": "No couple."
+  },
+  "requestCouple": "Çift ol",
+  "@requestCouple": {
+    "description": "Ask a friend to form a couple."
+  },
+  "coupleWith": "{name} ile çift",
+  "@coupleWith": {
+    "description": "Couple without a name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "couplePending": "Onay bekleniyor",
+  "@couplePending": {
+    "description": "Couple request pending."
+  },
+  "coupleActive": "Aktif",
+  "@coupleActive": {
+    "description": "Couple is active."
+  },
+  "dissolveCouple": "Çifti boz",
+  "@dissolveCouple": {
+    "description": "Dissolve the couple."
+  },
+  "teamInvites": "Takım davetleri",
+  "@teamInvites": {
+    "description": "Teams screen: invites."
+  },
+  "myTeams": "Takımlarım",
+  "@myTeams": {
+    "description": "Teams screen: own teams."
+  },
+  "teamsEmpty": "Henüz bir takımın yok.",
+  "@teamsEmpty": {
+    "description": "No teams."
+  },
+  "createTeam": "Takım kur",
+  "@createTeam": {
+    "description": "Create a team."
+  },
+  "teamName": "Takım adı",
+  "@teamName": {
+    "description": "Team name field."
+  },
+  "teamTag": "Kısaltma (2–4)",
+  "@teamTag": {
+    "description": "Team tag field."
+  },
+  "captain": "Kaptan",
+  "@captain": {
+    "description": "Team captain."
+  },
+  "makeCaptain": "Kaptan yap",
+  "@makeCaptain": {
+    "description": "Hand over the captaincy."
+  },
+  "kick": "Takımdan çıkar",
+  "@kick": {
+    "description": "Kick a member."
+  },
+  "inviteToTeam": "Arkadaş davet et",
+  "@inviteToTeam": {
+    "description": "Invite a friend to the team."
+  },
+  "teamInviteSent": "Davet gönderildi.",
+  "@teamInviteSent": {
+    "description": "Team invite sent."
+  },
+  "leaveTeam": "Takımdan ayrıl",
+  "@leaveTeam": {
+    "description": "Leave a team."
+  },
+  "disbandTeam": "Takımı dağıt",
+  "@disbandTeam": {
+    "description": "Disband a team."
+  },
+  "disbandConfirm": "Takım dağıtılsın mı? Bu geri alınamaz.",
+  "@disbandConfirm": {
+    "description": "Disband confirmation."
+  },
+  "pickFriend": "Arkadaş seç",
+  "@pickFriend": {
+    "description": "Pick a friend dialog."
+  },
   "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
   "@error_ACCOUNT_DELETION_PENDING": {
     "description": "Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md)."
