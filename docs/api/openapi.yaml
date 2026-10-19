@@ -121,6 +121,15 @@ components:
             properties:
                 challenger:
                     $ref: '#/components/schemas/Card'
+                challenger_couple_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                challenger_side:
+                    items:
+                        $ref: '#/components/schemas/Card'
+                    type: array
                 created_at:
                     format: date-time
                     type: string
@@ -143,8 +152,18 @@ components:
                     type: string
                 target:
                     $ref: '#/components/schemas/Card'
+                target_couple_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                target_side:
+                    items:
+                        $ref: '#/components/schemas/Card'
+                    type: array
             required:
                 - challenger
+                - challenger_side
                 - created_at
                 - expires_at
                 - id
@@ -152,17 +171,24 @@ components:
                 - match_config
                 - status
                 - target
+                - target_side
             type: object
         ChallengeRequest:
             properties:
                 match_config:
                     $ref: '#/components/schemas/Config'
+                target_couple_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
                 target_user_id:
                     format: uuid
-                    type: string
+                    type:
+                        - string
+                        - "null"
             required:
                 - match_config
-                - target_user_id
             type: object
         Challenges:
             properties:
@@ -2161,7 +2187,7 @@ paths:
                     description: 'Error codes: UNAVAILABLE'
             security:
                 - firebase: []
-            summary: Direct challenge (1v1 until Phase 6); the target gets challenge.received
+            summary: 'Direct challenge: a user (1v1) or a couple (couple format); the targets get challenge.received'
             tags:
                 - lobby
             x-auth: any

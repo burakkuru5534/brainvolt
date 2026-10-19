@@ -20,6 +20,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/social"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/team"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
@@ -44,6 +45,7 @@ type Deps struct {
 	Identity *identity.Module
 	Profiles *profile.Module
 	Social   *social.Module
+	Teams    *team.Module
 	Game     *game.Module
 	Realtime *realtime.Module
 	Events   *events.Bus
@@ -61,7 +63,7 @@ type Module struct {
 // and the room stream's resume.
 func New(d Deps) *Module {
 	svc := service.New(service.Deps{
-		DB: d.DB, Redis: d.Redis, Users: d.Identity, Profiles: d.Profiles, Social: d.Social, Game: d.Game,
+		DB: d.DB, Redis: d.Redis, Users: d.Identity, Profiles: d.Profiles, Social: d.Social, Teams: d.Teams, Game: d.Game,
 		RT: d.Realtime, Events: d.Events, Clock: d.Clock, Logger: d.Logger,
 	})
 	m := &Module{svc: svc}

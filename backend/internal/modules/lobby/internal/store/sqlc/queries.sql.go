@@ -237,19 +237,23 @@ func (q *Queries) IdleRooms(ctx context.Context, before time.Time) ([]IdleRoomsR
 
 const insertChallenge = `-- name: InsertChallenge :exec
 
-INSERT INTO lobby.challenges (id, kind, challenger_user_id, target_user_id, match_config, parent_match_id, created_at, expires_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO lobby.challenges (id, kind, challenger_user_id, challenger_couple_id, target_user_id, target_couple_id,
+  match_config, parent_match_id, created_at, expires_at)
+VALUES ($1, $2, $3, $4, $5, $6,
+  $7, $8, $9, $10)
 `
 
 type InsertChallengeParams struct {
-	ID               uuid.UUID
-	Kind             string
-	ChallengerUserID uuid.UUID
-	TargetUserID     *uuid.UUID
-	MatchConfig      []byte
-	ParentMatchID    *uuid.UUID
-	Now              time.Time
-	ExpiresAt        time.Time
+	ID                 uuid.UUID
+	Kind               string
+	ChallengerUserID   uuid.UUID
+	ChallengerCoupleID *uuid.UUID
+	TargetUserID       *uuid.UUID
+	TargetCoupleID     *uuid.UUID
+	MatchConfig        []byte
+	ParentMatchID      *uuid.UUID
+	Now                time.Time
+	ExpiresAt          time.Time
 }
 
 // ---------- Challenges ----------
@@ -258,7 +262,9 @@ func (q *Queries) InsertChallenge(ctx context.Context, arg InsertChallengeParams
 		arg.ID,
 		arg.Kind,
 		arg.ChallengerUserID,
+		arg.ChallengerCoupleID,
 		arg.TargetUserID,
+		arg.TargetCoupleID,
 		arg.MatchConfig,
 		arg.ParentMatchID,
 		arg.Now,
@@ -323,18 +329,19 @@ func (q *Queries) InsertRoom(ctx context.Context, arg InsertRoomParams) error {
 
 const listIncomingChallenges = `-- name: ListIncomingChallenges :many
 SELECT id, kind, challenger_user_id, challenger_team_id, challenger_couple_id, target_user_id, target_team_id, target_couple_id, match_config, parent_match_id, status, match_id, created_at, expires_at, responded_at FROM lobby.challenges
-WHERE target_user_id = $1::uuid AND status = 'pending' AND expires_at > $2
+WHERE (target_user_id = $1::uuid OR target_couple_id = $2::uuid) AND status = 'pending' AND expires_at > $3
 ORDER BY created_at DESC
 LIMIT 100
 `
 
 type ListIncomingChallengesParams struct {
-	UserID uuid.UUID
-	Now    time.Time
+	UserID   uuid.UUID
+	CoupleID uuid.UUID
+	Now      time.Time
 }
 
 func (q *Queries) ListIncomingChallenges(ctx context.Context, arg ListIncomingChallengesParams) ([]LobbyChallenge, error) {
-	rows, err := q.db.Query(ctx, listIncomingChallenges, arg.UserID, arg.Now)
+	rows, err := q.db.Query(ctx, listIncomingChallenges, arg.UserID, arg.CoupleID, arg.Now)
 	if err != nil {
 		return nil, err
 	}
@@ -371,18 +378,19 @@ func (q *Queries) ListIncomingChallenges(ctx context.Context, arg ListIncomingCh
 
 const listOutgoingChallenges = `-- name: ListOutgoingChallenges :many
 SELECT id, kind, challenger_user_id, challenger_team_id, challenger_couple_id, target_user_id, target_team_id, target_couple_id, match_config, parent_match_id, status, match_id, created_at, expires_at, responded_at FROM lobby.challenges
-WHERE challenger_user_id = $1 AND status = 'pending' AND expires_at > $2
+WHERE (challenger_user_id = $1::uuid OR challenger_couple_id = $2::uuid) AND status = 'pending' AND expires_at > $3
 ORDER BY created_at DESC
 LIMIT 100
 `
 
 type ListOutgoingChallengesParams struct {
-	UserID uuid.UUID
-	Now    time.Time
+	UserID   uuid.UUID
+	CoupleID uuid.UUID
+	Now      time.Time
 }
 
 func (q *Queries) ListOutgoingChallenges(ctx context.Context, arg ListOutgoingChallengesParams) ([]LobbyChallenge, error) {
-	rows, err := q.db.Query(ctx, listOutgoingChallenges, arg.UserID, arg.Now)
+	rows, err := q.db.Query(ctx, listOutgoingChallenges, arg.UserID, arg.CoupleID, arg.Now)
 	if err != nil {
 		return nil, err
 	}
@@ -434,6 +442,28 @@ type PendingChallengeBetweenParams struct {
 // A pending, unexpired direct challenge between two users (either way).
 func (q *Queries) PendingChallengeBetween(ctx context.Context, arg PendingChallengeBetweenParams) (bool, error) {
 	row := q.db.QueryRow(ctx, pendingChallengeBetween, arg.Now, arg.A, arg.B)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const pendingCoupleChallengeBetween = `-- name: PendingCoupleChallengeBetween :one
+SELECT EXISTS (
+  SELECT 1 FROM lobby.challenges
+  WHERE status = 'pending' AND kind = 'direct' AND expires_at > $1
+    AND ((challenger_couple_id = $2::uuid AND target_couple_id = $3::uuid) OR (challenger_couple_id = $3::uuid AND target_couple_id = $2::uuid))
+)
+`
+
+type PendingCoupleChallengeBetweenParams struct {
+	Now time.Time
+	A   uuid.UUID
+	B   uuid.UUID
+}
+
+// A pending couple challenge between two couples (either way).
+func (q *Queries) PendingCoupleChallengeBetween(ctx context.Context, arg PendingCoupleChallengeBetweenParams) (bool, error) {
+	row := q.db.QueryRow(ctx, pendingCoupleChallengeBetween, arg.Now, arg.A, arg.B)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err

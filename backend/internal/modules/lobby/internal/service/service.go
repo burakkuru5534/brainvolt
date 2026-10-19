@@ -15,6 +15,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/team"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
@@ -46,6 +47,12 @@ type Social interface {
 	IsBlocked(ctx context.Context, a, b uuid.UUID) (bool, error)
 }
 
+// Teams is what lobby needs from team (couples).
+type Teams interface {
+	ActiveCoupleOf(ctx context.Context, user uuid.UUID) (team.CoupleInfo, bool, error)
+	CoupleInfo(ctx context.Context, id uuid.UUID) (team.CoupleInfo, error)
+}
+
 // Game is what lobby needs from game.
 type Game interface {
 	Start(ctx context.Context, r game.CreateRequest) (*game.Created, error)
@@ -64,6 +71,7 @@ type Deps struct {
 	Users    Users
 	Profiles Profiles
 	Social   Social
+	Teams    Teams
 	Game     Game
 	RT       Realtime
 	Events   *events.Bus
@@ -109,12 +117,8 @@ func (s *Service) activeUser(ctx context.Context, id uuid.UUID) error {
 	return nil
 }
 
-// checkConfig validates a configuration for an origin of lobby. Team and
-// couple formats arrive with Phase 6.
+// checkConfig validates a configuration for an origin of lobby.
 func checkConfig(c game.Config) error {
-	if c.Format != "1v1" {
-		return apierror.New(apierror.ModeNotAllowed).With("reason", "format_not_available_yet")
-	}
 	if vs := game.ValidateConfig(c); len(vs) > 0 {
 		return apierror.New(apierror.ModeNotAllowed).With("rule_id", vs[0].RuleID).With("violations", vs)
 	}

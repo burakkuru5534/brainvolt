@@ -39,10 +39,13 @@ type CodeRequest struct {
 	Kind string `json:"kind"`
 }
 
-// ChallengeRequest is the body of POST /v1/challenges.
+// ChallengeRequest is the body of POST /v1/challenges: exactly one of
+// target_user_id (1v1) and target_couple_id (couple format, sent by a
+// partner of an active couple).
 type ChallengeRequest struct {
-	TargetUserID uuid.UUID   `json:"target_user_id"`
-	MatchConfig  game.Config `json:"match_config"`
+	TargetUserID   *uuid.UUID  `json:"target_user_id,omitempty"`
+	TargetCoupleID *uuid.UUID  `json:"target_couple_id,omitempty"`
+	MatchConfig    game.Config `json:"match_config"`
 }
 
 // Challenges is GET /v1/challenges.
@@ -73,7 +76,7 @@ func (t *Transport) Register(s *httpserver.Server) {
 	}))
 	s.Handle("POST /v1/challenges", t.ident.Auth(t.idem.Wrap(idempotency.Required, t.challenge)), httpserver.WithDoc(httpserver.Doc{
 		Tag: "lobby", Auth: "any", Idempotency: true, Status: http.StatusCreated,
-		Summary: "Direct challenge (1v1 until Phase 6); the target gets challenge.received",
+		Summary: "Direct challenge: a user (1v1) or a couple (couple format); the targets get challenge.received",
 		Request: ChallengeRequest{}, Response: service.Challenge{},
 		Errors: []apierror.Code{apierror.ValidationFailed, apierror.NotFound, apierror.Blocked, apierror.ChallengesDisabled, apierror.RequestPending,
 			apierror.RateLimited, apierror.ModeNotAllowed, apierror.IdempotencyKeyReused, apierror.IdempotencyInProgress},
@@ -161,10 +164,7 @@ func (t *Transport) challenge(w http.ResponseWriter, r *http.Request) error {
 	if err := httpserver.DecodeJSON(r, &req); err != nil {
 		return err
 	}
-	if req.TargetUserID == uuid.Nil {
-		return apierror.Validation(apierror.FieldError{Field: "target_user_id", Rule: "required"})
-	}
-	c, err := t.svc.Challenge(r.Context(), me(r), req.TargetUserID, req.MatchConfig)
+	c, err := t.svc.Challenge(r.Context(), me(r), service.ChallengeTarget{User: req.TargetUserID, Couple: req.TargetCoupleID}, req.MatchConfig)
 	if err != nil {
 		return err
 	}

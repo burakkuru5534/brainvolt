@@ -204,7 +204,7 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	})
 	mm.Register(srv, ident, d.idem)
 	lob := lobby.New(lobby.Deps{
-		DB: d.db, Redis: d.rdb, Identity: ident, Profiles: prof, Social: soc, Game: g, Realtime: rt,
+		DB: d.db, Redis: d.rdb, Identity: ident, Profiles: prof, Social: soc, Teams: tm, Game: g, Realtime: rt,
 		Events: d.bus, Clock: d.clock, Logger: d.logger,
 	})
 	lob.Register(srv, ident, d.idem)

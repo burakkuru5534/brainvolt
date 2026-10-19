@@ -274,3 +274,106 @@ func TestIdleRoomCloses(t *testing.T) {
 		t.Fatalf("idle room %q %q %v", status, reason, err)
 	}
 }
+
+// Team rooms (Phase 6): a 2v2 room fills, readies and starts; a couple
+// room needs real couples on both sides.
+func TestTeamRooms(t *testing.T) {
+	x := newE2E(t)
+	var toks [4]string
+	var users [4]uuid.UUID
+	var ws [4]*wsClient
+	for i := range 4 {
+		toks[i], users[i] = x.signedIn()
+	}
+	x.seedQuestions(users[0])
+	for i := range 4 {
+		ws[i], _ = x.auth(toks[i], "inst-"+string(rune('a'+i)), nil)
+	}
+	cfg := map[string]any{"match_type": "quick_duel", "format": "2v2", "team_answer_mode": "fast_team_round"}
+	want(t, "team mode needed", x.post("/v1/rooms", toks[0], map[string]any{"match_config": map[string]any{"match_type": "quick_duel", "format": "2v2"}}), 422, "MODE_NOT_ALLOWED")
+	r := x.post("/v1/rooms", toks[0], map[string]any{"match_config": cfg})
+	want(t, "create", r, 201, "")
+	roomID, code := str(r.get("id")), str(r.get("code"))
+	if r.get("capacity") != float64(4) {
+		t.Fatalf("capacity %s", r.raw)
+	}
+	for i := 1; i < 4; i++ {
+		want(t, "join", x.do(http.MethodPost, "/v1/rooms/join", toks[i], map[string]any{"code": code}), 200, "")
+		ws[i].answer(ws[i].send("room.ready", map[string]any{"room_id": roomID}))
+	}
+	if f := ws[0].answer(ws[0].send("room.start", map[string]any{"room_id": roomID})); f["t"] != "sys.ack" {
+		t.Fatalf("start %v", f)
+	}
+	matchID := str(data(ws[3].next("room.match_starting"))["match_id"])
+	var format, mode string
+	if err := x.db.QueryRow(t.Context(), `SELECT format, team_answer_mode FROM game.matches WHERE id = $1`, matchID).Scan(&format, &mode); err != nil || format != "2v2" || mode != "fast_team_round" {
+		t.Fatalf("match %q %q %v", format, mode, err)
+	}
+	leaveMatch(t, matchID, ws[0], ws[1], ws[2], ws[3])
+
+	// Couple format with players who are not couples → R16 at start.
+	want(t, "to couple", x.do(http.MethodPatch, "/v1/rooms/"+roomID, toks[0], map[string]any{
+		"match_config": map[string]any{"match_type": "quick_duel", "format": "couple", "team_answer_mode": "fast_team_round"},
+	}), 200, "")
+	ws[0].answer(ws[0].send("room.join", map[string]any{"room_id": roomID}))
+	for i := 1; i < 4; i++ {
+		ws[i].answer(ws[i].send("room.ready", map[string]any{"room_id": roomID}))
+	}
+	if f := ws[0].answer(ws[0].send("room.start", map[string]any{"room_id": roomID})); data(f)["code"] != "MODE_NOT_ALLOWED" {
+		t.Fatalf("couple start %v", f)
+	}
+}
+
+// Couple challenges (Couple Contest): a partner challenges another
+// couple; both target partners see it, either accepts, the match is a
+// couple match.
+func TestCoupleChallenge(t *testing.T) {
+	x := newE2E(t)
+	var toks [4]string
+	var users [4]uuid.UUID
+	var ws [4]*wsClient
+	for i := range 4 {
+		toks[i], users[i], _ = x.fullUser()
+		ws[i], _ = x.auth(toks[i], "inst-"+string(rune('a'+i)), nil)
+	}
+	x.seedQuestions(users[0])
+	couple := func(a, b int) string {
+		x.befriend(toks[a], users[b], toks[b])
+		r := x.post("/v1/couples", toks[a], map[string]any{"partner_user_id": users[b]})
+		want(t, "accept couple", x.do(http.MethodPost, "/v1/couples/"+str(r.get("id"))+"/accept", toks[b], nil), 200, "")
+		return str(r.get("id"))
+	}
+	couple(0, 1)
+	theirs := couple(2, 3)
+	cfg := map[string]any{"match_type": "quick_duel", "format": "couple", "team_answer_mode": "fast_team_round"}
+	want(t, "user target couple format", x.post("/v1/challenges", toks[0], map[string]any{"target_user_id": users[2], "match_config": cfg}), 422, "MODE_NOT_ALLOWED")
+	r := x.post("/v1/challenges", toks[0], map[string]any{"target_couple_id": theirs, "match_config": cfg})
+	want(t, "couple challenge", r, 201, "")
+	id := str(r.get("id"))
+	if len(r.get("target_side").([]any)) != 2 || len(r.get("challenger_side").([]any)) != 2 {
+		t.Fatalf("challenge %s", r.raw)
+	}
+	for _, i := range []int{2, 3} {
+		ws[i].next("challenge.received")
+	}
+	in := x.do(http.MethodGet, "/v1/challenges?box=in", toks[3], nil)
+	if list := in.get("challenges").([]any); len(list) != 1 {
+		t.Fatalf("partner inbox %s", in.raw)
+	}
+	want(t, "challenger's partner cannot accept", x.do(http.MethodPost, "/v1/challenges/"+id+"/accept", toks[1], nil), 404, "NOT_FOUND")
+	r = x.do(http.MethodPost, "/v1/challenges/"+id+"/accept", toks[3], nil)
+	matchID := str(r.get("match_id"))
+	if r.code != 200 || matchID == "" {
+		t.Fatalf("accept %s", r.raw)
+	}
+	var n int
+	if err := x.db.QueryRow(t.Context(), `SELECT count(*) FROM game.match_sides WHERE match_id = $1 AND couple_id IS NOT NULL`, matchID).Scan(&n); err != nil || n != 2 {
+		t.Fatalf("couple sides %d %v", n, err)
+	}
+	for i := range 4 {
+		ws[i].find("challenge.updated", func(f map[string]any) bool {
+			return f["t"] == "challenge.updated" && data(f)["match_id"] == matchID
+		})
+	}
+	leaveMatch(t, matchID, ws[0], ws[1], ws[2], ws[3])
+}

@@ -55,8 +55,10 @@ LIMIT 100;
 -- ---------- Challenges ----------
 
 -- name: InsertChallenge :exec
-INSERT INTO lobby.challenges (id, kind, challenger_user_id, target_user_id, match_config, parent_match_id, created_at, expires_at)
-VALUES (@id, @kind, @challenger_user_id, @target_user_id, @match_config, sqlc.narg(parent_match_id), @now, @expires_at);
+INSERT INTO lobby.challenges (id, kind, challenger_user_id, challenger_couple_id, target_user_id, target_couple_id,
+  match_config, parent_match_id, created_at, expires_at)
+VALUES (@id, @kind, @challenger_user_id, sqlc.narg(challenger_couple_id), sqlc.narg(target_user_id), sqlc.narg(target_couple_id),
+  @match_config, sqlc.narg(parent_match_id), @now, @expires_at);
 
 -- name: GetChallenge :one
 SELECT * FROM lobby.challenges WHERE id = @id;
@@ -77,18 +79,26 @@ SELECT EXISTS (
     AND ((challenger_user_id = @a::uuid AND target_user_id = @b::uuid) OR (challenger_user_id = @b::uuid AND target_user_id = @a::uuid))
 );
 
+-- A pending couple challenge between two couples (either way).
+-- name: PendingCoupleChallengeBetween :one
+SELECT EXISTS (
+  SELECT 1 FROM lobby.challenges
+  WHERE status = 'pending' AND kind = 'direct' AND expires_at > @now
+    AND ((challenger_couple_id = @a::uuid AND target_couple_id = @b::uuid) OR (challenger_couple_id = @b::uuid AND target_couple_id = @a::uuid))
+);
+
 -- name: ChallengesSentSince :one
 SELECT count(*) FROM lobby.challenges WHERE challenger_user_id = @user_id AND created_at >= @since;
 
 -- name: ListIncomingChallenges :many
 SELECT * FROM lobby.challenges
-WHERE target_user_id = @user_id::uuid AND status = 'pending' AND expires_at > @now
+WHERE (target_user_id = @user_id::uuid OR target_couple_id = @couple_id::uuid) AND status = 'pending' AND expires_at > @now
 ORDER BY created_at DESC
 LIMIT 100;
 
 -- name: ListOutgoingChallenges :many
 SELECT * FROM lobby.challenges
-WHERE challenger_user_id = @user_id AND status = 'pending' AND expires_at > @now
+WHERE (challenger_user_id = @user_id::uuid OR challenger_couple_id = @couple_id::uuid) AND status = 'pending' AND expires_at > @now
 ORDER BY created_at DESC
 LIMIT 100;
 

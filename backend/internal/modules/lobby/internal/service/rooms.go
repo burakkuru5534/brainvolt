@@ -369,6 +369,10 @@ func (s *Service) CurrentRoom(ctx context.Context, user uuid.UUID) (uuid.UUID, b
 // UpdateRoomConfig changes the match configuration (host, room open);
 // version, when given, must be the current one. Ready flags reset.
 func (s *Service) UpdateRoomConfig(ctx context.Context, user, id uuid.UUID, cfg game.Config, version *int64) (Room, error) {
+	// A finished match returns the room to open first.
+	if _, err := s.refresh(ctx, id); err != nil {
+		return Room{}, err
+	}
 	cfg.Origin = game.OriginPrivateRoom
 	if err := checkConfig(cfg); err != nil {
 		return Room{}, err
@@ -564,6 +568,10 @@ type RoomClosed struct {
 // MoveSeat moves a member to an empty seat: the host moves anyone, others
 // only themselves. The moved member is no longer ready.
 func (s *Service) MoveSeat(ctx context.Context, user, id, who uuid.UUID, side, seat int) error {
+	// A finished match returns the room to open first.
+	if _, err := s.refresh(ctx, id); err != nil {
+		return err
+	}
 	_, err := s.update(ctx, id, func(r *room) error {
 		if r.member(user) == nil {
 			return apierror.New(apierror.NotFound)
@@ -595,6 +603,10 @@ func (s *Service) MoveSeat(ctx context.Context, user, id, who uuid.UUID, side, s
 
 // SetReady sets the caller's ready flag (room open).
 func (s *Service) SetReady(ctx context.Context, user, id uuid.UUID, ready bool) error {
+	// A finished match returns the room to open first.
+	if _, err := s.refresh(ctx, id); err != nil {
+		return err
+	}
 	_, err := s.update(ctx, id, func(r *room) error {
 		m := r.member(user)
 		if m == nil {
@@ -617,6 +629,10 @@ func (s *Service) SetReady(ctx context.Context, user, id uuid.UUID, ready bool) 
 // match, then `in_match`; members get room.match_starting and the match
 // stream's match.created.
 func (s *Service) StartRoom(ctx context.Context, user, id uuid.UUID) (uuid.UUID, error) {
+	// A finished match returns the room to open first.
+	if _, err := s.refresh(ctx, id); err != nil {
+		return uuid.Nil, err
+	}
 	r, err := s.update(ctx, id, func(r *room) error {
 		if r.member(user) == nil {
 			return apierror.New(apierror.NotFound)
@@ -649,7 +665,15 @@ func (s *Service) StartRoom(ctx context.Context, user, id uuid.UUID) (uuid.UUID,
 	for _, m := range r.Members {
 		sides[m.Side-1][m.Seat-1] = game.Member{UserID: m.UserID, Locale: m.Locale}
 	}
-	c, startErr := s.d.Game.Start(ctx, game.CreateRequest{Config: r.Config, Sides: sides, OriginRef: &r.ID})
+	req := game.CreateRequest{Config: r.Config, Sides: sides, OriginRef: &r.ID}
+	var startErr error
+	if r.Config.Format == "couple" {
+		req.Couples, startErr = s.couplesOf(ctx, sides)
+	}
+	var c *game.Created
+	if startErr == nil {
+		c, startErr = s.d.Game.Start(ctx, req)
+	}
 	_, err = s.update(context.WithoutCancel(ctx), id, func(r *room) error {
 		if r.Status != RoomStarting {
 			return errNoChange
@@ -671,6 +695,27 @@ func (s *Service) StartRoom(ctx context.Context, user, id uuid.UUID) (uuid.UUID,
 		s.send(ctx, m.UserID, realtime.Frame{T: "room.match_starting", S: roomStream(id), D: map[string]any{"room_id": id, "match_id": c.Match.ID}})
 	}
 	return c.Match.ID, nil
+}
+
+// couplesOf finds the active couple of each side of a couple room: the
+// two seats of a side must be partners (R16).
+func (s *Service) couplesOf(ctx context.Context, sides [2][]game.Member) ([2]*uuid.UUID, error) {
+	var out [2]*uuid.UUID
+	for i, side := range sides {
+		if len(side) != 2 {
+			return out, apierror.New(apierror.ModeNotAllowed).With("rule_id", "R16")
+		}
+		c, ok, err := s.d.Teams.ActiveCoupleOf(ctx, side[0].UserID)
+		if err != nil {
+			return out, err
+		}
+		if !ok || !slices.Contains(c.Users[:], side[1].UserID) {
+			return out, apierror.New(apierror.ModeNotAllowed).With("rule_id", "R16").With("reason", "side_not_a_couple").With("side_no", i+1)
+		}
+		id := c.ID
+		out[i] = &id
+	}
+	return out, nil
 }
 
 // SweepRooms closes rooms idle for 15 minutes; a room whose match is
