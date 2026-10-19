@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/config.dart';
+import '../../../app/providers.dart';
 import '../../../app/session_controller.dart';
 import '../../../core/l10n/l10n.dart';
 import 'error_text.dart';
@@ -35,6 +37,16 @@ class SplashScreen extends ConsumerWidget {
                   errorText(l10n, error) ?? l10n.errorUnknown,
                   textAlign: TextAlign.center,
                 ),
+                // Development builds show the technical cause as well.
+                if (ref.watch(appConfigProvider).flavor == Flavor.dev) ...[
+                  const SizedBox(height: 8),
+                  SelectableText(
+                    '$error',
+                    key: const Key('splash-error-detail'),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
                 const SizedBox(height: 16),
                 FilledButton(
                   key: const Key('splash-retry'),

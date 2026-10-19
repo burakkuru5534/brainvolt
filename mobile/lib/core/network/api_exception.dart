@@ -14,6 +14,7 @@ class ApiException implements Exception {
     this.details = const {},
     this.requestId,
     this.retryAfter,
+    this.debugInfo,
   });
 
   /// Builds an [ApiException] from a dio failure.
@@ -44,7 +45,18 @@ class ApiException implements Exception {
       DioExceptionType.connectionError => networkCode,
       _ => unknownCode,
     };
-    return ApiException(code: code, status: response?.statusCode);
+    final body = '${response?.data ?? ''}';
+    return ApiException(
+      code: code,
+      status: response?.statusCode,
+      debugInfo: [
+        e.type.name,
+        '${e.requestOptions.method} ${e.requestOptions.uri}',
+        ?e.message,
+        if (e.error != null) '${e.error}',
+        if (body.isNotEmpty) body.substring(0, body.length.clamp(0, 200)),
+      ].join(' | '),
+    );
   }
 
   /// The server could not be reached.
@@ -65,6 +77,10 @@ class ApiException implements Exception {
   final String? requestId;
   final Duration? retryAfter;
 
+  /// What went wrong when no error envelope arrived (dio type, URL, cause,
+  /// start of the body); shown on the splash screen of dev builds only.
+  final String? debugInfo;
+
   /// Text to show the user: the app's own translation for known codes, else
   /// the server's message, else a generic text.
   String localizedMessage(AppLocalizations l) => switch (code) {
@@ -80,5 +96,6 @@ class ApiException implements Exception {
 
   @override
   String toString() =>
-      'ApiException($code, status: $status, request: $requestId)';
+      'ApiException($code, status: $status, request: $requestId'
+      '${debugInfo == null ? '' : ', $debugInfo'})';
 }
