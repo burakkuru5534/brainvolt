@@ -10,6 +10,8 @@ import '../features/auth/presentation/email_auth_screen.dart';
 import '../features/auth/presentation/splash_screen.dart';
 import '../features/auth/presentation/verify_email_screen.dart';
 import '../features/content/presentation/credits_screen.dart';
+import '../features/daily/presentation/daily_run_screen.dart';
+import '../features/daily/presentation/daily_screen.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/lobby/presentation/challenges_screen.dart';
 import '../features/lobby/presentation/room_screen.dart';
@@ -49,6 +51,8 @@ abstract final class Routes {
   static const leaderboards = '/leaderboards';
   static const quests = '/quests';
   static const badges = '/badges';
+  static const daily = '/daily';
+  static String dailyRun(String id) => '/daily/runs/$id';
   static String room(String id) => '/rooms/$id';
   static String team(String id) => '/teams/$id';
   static const play = '/play';
@@ -116,6 +120,15 @@ GoRouter router(Ref ref) {
       GoRoute(
         path: Routes.home,
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: Routes.daily,
+        builder: (context, state) => const DailyScreen(),
+      ),
+      GoRoute(
+        path: '/daily/runs/:id',
+        builder: (context, state) =>
+            DailyRunScreen(runId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: Routes.leaderboards,

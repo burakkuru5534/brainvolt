@@ -1772,6 +1772,108 @@ abstract class AppLocalizations {
   /// **'Rövanş'**
   String get revengeLabel;
 
+  /// Daily Challenge title
+  ///
+  /// In tr, this message translates to:
+  /// **'Günün Meydan Okuması'**
+  String get dailyTitle;
+
+  /// Daily Challenge explanation
+  ///
+  /// In tr, this message translates to:
+  /// **'Herkes aynı 10 soruyu cevaplar. Günde bir resmi deneme hakkın var; sonrası pratik.'**
+  String get dailyIntro;
+
+  /// Start the official run
+  ///
+  /// In tr, this message translates to:
+  /// **'Başla'**
+  String get dailyStart;
+
+  /// Resume a running daily run
+  ///
+  /// In tr, this message translates to:
+  /// **'Devam et'**
+  String get dailyResume;
+
+  /// Start a practice run
+  ///
+  /// In tr, this message translates to:
+  /// **'Pratik yap'**
+  String get dailyPractice;
+
+  /// No daily set
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugünün soruları henüz hazır değil.'**
+  String get dailyNotAvailable;
+
+  /// Daily result
+  ///
+  /// In tr, this message translates to:
+  /// **'{correct}/10 doğru · {seconds} sn'**
+  String dailyResult(int correct, String seconds);
+
+  /// Place on the daily board
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıralaman: #{rank}'**
+  String dailyRank(int rank);
+
+  /// Daily board section
+  ///
+  /// In tr, this message translates to:
+  /// **'Günün tablosu'**
+  String get dailyBoardTitle;
+
+  /// Daily question counter
+  ///
+  /// In tr, this message translates to:
+  /// **'Soru {position}/{total}'**
+  String dailyQuestionOf(int position, int total);
+
+  /// Practice run marker
+  ///
+  /// In tr, this message translates to:
+  /// **'Pratik'**
+  String get dailyPracticeLabel;
+
+  /// Daily run finished
+  ///
+  /// In tr, this message translates to:
+  /// **'Tamamlandı!'**
+  String get dailyDone;
+
+  /// Back button
+  ///
+  /// In tr, this message translates to:
+  /// **'Günün meydan okumasına dön'**
+  String get dailyBack;
+
+  /// Voided run
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu deneme sayılmadı.'**
+  String get dailyVoided;
+
+  /// Daily reveal
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğru!'**
+  String get dailyCorrect;
+
+  /// Daily reveal
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanlış'**
+  String get dailyWrong;
+
+  /// Daily reveal
+  ///
+  /// In tr, this message translates to:
+  /// **'Süre doldu'**
+  String get dailyTimeout;
+
   /// Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md).
   ///
   /// In tr, this message translates to:

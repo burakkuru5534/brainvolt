@@ -13,6 +13,8 @@ import 'package:brainvolt/features/auth/domain/session_repository.dart';
 import 'package:brainvolt/features/content/data/content_providers.dart';
 import 'package:brainvolt/features/content/domain/content_repository.dart';
 import 'package:brainvolt/features/content/domain/credit.dart';
+import 'package:brainvolt/features/daily/data/daily_providers.dart';
+import 'package:brainvolt/features/daily/domain/daily_repository.dart';
 import 'package:brainvolt/features/lobby/data/lobby_providers.dart';
 import 'package:brainvolt/features/lobby/domain/lobby_repository.dart';
 import 'package:brainvolt/features/match/data/match_providers.dart';
@@ -651,6 +653,28 @@ class FakeProgressRepository implements ProgressRepository {
   Future<MatchAwards> awards(String matchId) async => matchAwards;
 }
 
+class FakeDailyRepository implements DailyRepository {
+  DailyToday todayValue = const DailyToday(
+    day: '2026-10-20',
+    available: true,
+    practiceAllowed: false,
+  );
+  DailyBoard boardValue = const DailyBoard(entries: []);
+  final started = <String>[];
+
+  @override
+  Future<DailyToday> today() async => todayValue;
+
+  @override
+  Future<DailyRun> start(String kind) async {
+    started.add(kind);
+    return DailyRun(id: 'run-$kind', kind: kind, status: 'in_progress');
+  }
+
+  @override
+  Future<DailyBoard> board(String day, String scope) async => boardValue;
+}
+
 class FakeSocket implements SocketConnection {
   final _in = StreamController<dynamic>();
   final sent = <Map<String, dynamic>>[];
@@ -702,6 +726,7 @@ class TestApp {
     this.lobby,
     this.teams,
     this.progress,
+    this.daily,
   );
 
   /// [ageConfirmed] skips the age gate; [user] is an already signed-in user.
@@ -723,6 +748,7 @@ class TestApp {
     final lobby = FakeLobbyRepository();
     final teams = FakeTeamRepository();
     final progress = FakeProgressRepository();
+    final daily = FakeDailyRepository();
     final sockets = <FakeSocket>[];
     final container = ProviderContainer(
       retry: noRetry,
@@ -745,6 +771,7 @@ class TestApp {
         lobbyRepositoryProvider.overrideWithValue(lobby),
         teamRepositoryProvider.overrideWithValue(teams),
         progressRepositoryProvider.overrideWithValue(progress),
+        dailyRepositoryProvider.overrideWithValue(daily),
         realtimeClientProvider.overrideWith((ref) {
           final client = RealtimeClient(
             url: Uri.parse('ws://test/v1/ws'),
@@ -774,6 +801,7 @@ class TestApp {
       lobby,
       teams,
       progress,
+      daily,
     );
   }
 
@@ -784,6 +812,7 @@ class TestApp {
   final FakeLobbyRepository lobby;
   final FakeTeamRepository teams;
   final FakeProgressRepository progress;
+  final FakeDailyRepository daily;
 
   /// Every WebSocket the app opened, newest last.
   final List<FakeSocket> sockets;

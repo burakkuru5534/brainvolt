@@ -947,6 +947,64 @@ class AppLocalizationsEn extends AppLocalizations {
   String get revengeLabel => 'Revenge';
 
   @override
+  String get dailyTitle => 'Daily Challenge';
+
+  @override
+  String get dailyIntro =>
+      'Everyone answers the same 10 questions. One official attempt a day; after that, practice.';
+
+  @override
+  String get dailyStart => 'Start';
+
+  @override
+  String get dailyResume => 'Resume';
+
+  @override
+  String get dailyPractice => 'Practice';
+
+  @override
+  String get dailyNotAvailable => 'Today\'s questions aren\'t ready yet.';
+
+  @override
+  String dailyResult(int correct, String seconds) {
+    return '$correct/10 correct · $seconds s';
+  }
+
+  @override
+  String dailyRank(int rank) {
+    return 'Your place: #$rank';
+  }
+
+  @override
+  String get dailyBoardTitle => 'Today\'s board';
+
+  @override
+  String dailyQuestionOf(int position, int total) {
+    return 'Question $position of $total';
+  }
+
+  @override
+  String get dailyPracticeLabel => 'Practice';
+
+  @override
+  String get dailyDone => 'Finished!';
+
+  @override
+  String get dailyBack => 'Back to the Daily Challenge';
+
+  @override
+  String get dailyVoided => 'This attempt didn\'t count.';
+
+  @override
+  String get dailyCorrect => 'Correct!';
+
+  @override
+  String get dailyWrong => 'Wrong';
+
+  @override
+  String get dailyTimeout => 'Time\'s up';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Your account is being deleted. You can only cancel the deletion.';
 

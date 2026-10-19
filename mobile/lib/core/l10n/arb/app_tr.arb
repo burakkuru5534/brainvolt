@@ -1322,6 +1322,95 @@
   "@revengeLabel": {
     "description": "Revenge challenge label"
   },
+  "dailyTitle": "Günün Meydan Okuması",
+  "@dailyTitle": {
+    "description": "Daily Challenge title"
+  },
+  "dailyIntro": "Herkes aynı 10 soruyu cevaplar. Günde bir resmi deneme hakkın var; sonrası pratik.",
+  "@dailyIntro": {
+    "description": "Daily Challenge explanation"
+  },
+  "dailyStart": "Başla",
+  "@dailyStart": {
+    "description": "Start the official run"
+  },
+  "dailyResume": "Devam et",
+  "@dailyResume": {
+    "description": "Resume a running daily run"
+  },
+  "dailyPractice": "Pratik yap",
+  "@dailyPractice": {
+    "description": "Start a practice run"
+  },
+  "dailyNotAvailable": "Bugünün soruları henüz hazır değil.",
+  "@dailyNotAvailable": {
+    "description": "No daily set"
+  },
+  "dailyResult": "{correct}/10 doğru · {seconds} sn",
+  "@dailyResult": {
+    "description": "Daily result",
+    "placeholders": {
+      "correct": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "dailyRank": "Sıralaman: #{rank}",
+  "@dailyRank": {
+    "description": "Place on the daily board",
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyBoardTitle": "Günün tablosu",
+  "@dailyBoardTitle": {
+    "description": "Daily board section"
+  },
+  "dailyQuestionOf": "Soru {position}/{total}",
+  "@dailyQuestionOf": {
+    "description": "Daily question counter",
+    "placeholders": {
+      "position": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "dailyPracticeLabel": "Pratik",
+  "@dailyPracticeLabel": {
+    "description": "Practice run marker"
+  },
+  "dailyDone": "Tamamlandı!",
+  "@dailyDone": {
+    "description": "Daily run finished"
+  },
+  "dailyBack": "Günün meydan okumasına dön",
+  "@dailyBack": {
+    "description": "Back button"
+  },
+  "dailyVoided": "Bu deneme sayılmadı.",
+  "@dailyVoided": {
+    "description": "Voided run"
+  },
+  "dailyCorrect": "Doğru!",
+  "@dailyCorrect": {
+    "description": "Daily reveal"
+  },
+  "dailyWrong": "Yanlış",
+  "@dailyWrong": {
+    "description": "Daily reveal"
+  },
+  "dailyTimeout": "Süre doldu",
+  "@dailyTimeout": {
+    "description": "Daily reveal"
+  },
   "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
   "@error_ACCOUNT_DELETION_PENDING": {
     "description": "Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md)."

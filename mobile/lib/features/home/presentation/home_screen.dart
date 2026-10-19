@@ -157,6 +157,13 @@ class HomeScreen extends ConsumerWidget {
                         label: Text(l10n.playQuickDuel),
                       ),
                     const SizedBox(height: 12),
+                    FilledButton.tonalIcon(
+                      key: const Key('open-daily'),
+                      icon: const Icon(Icons.today),
+                      onPressed: () => context.push(Routes.daily),
+                      label: Text(l10n.dailyTitle),
+                    ),
+                    const SizedBox(height: 12),
                     OutlinedButton.icon(
                       key: const Key('play-modes'),
                       icon: const Icon(Icons.tune),

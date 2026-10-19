@@ -945,6 +945,64 @@ class AppLocalizationsTr extends AppLocalizations {
   String get revengeLabel => 'Rövanş';
 
   @override
+  String get dailyTitle => 'Günün Meydan Okuması';
+
+  @override
+  String get dailyIntro =>
+      'Herkes aynı 10 soruyu cevaplar. Günde bir resmi deneme hakkın var; sonrası pratik.';
+
+  @override
+  String get dailyStart => 'Başla';
+
+  @override
+  String get dailyResume => 'Devam et';
+
+  @override
+  String get dailyPractice => 'Pratik yap';
+
+  @override
+  String get dailyNotAvailable => 'Bugünün soruları henüz hazır değil.';
+
+  @override
+  String dailyResult(int correct, String seconds) {
+    return '$correct/10 doğru · $seconds sn';
+  }
+
+  @override
+  String dailyRank(int rank) {
+    return 'Sıralaman: #$rank';
+  }
+
+  @override
+  String get dailyBoardTitle => 'Günün tablosu';
+
+  @override
+  String dailyQuestionOf(int position, int total) {
+    return 'Soru $position/$total';
+  }
+
+  @override
+  String get dailyPracticeLabel => 'Pratik';
+
+  @override
+  String get dailyDone => 'Tamamlandı!';
+
+  @override
+  String get dailyBack => 'Günün meydan okumasına dön';
+
+  @override
+  String get dailyVoided => 'Bu deneme sayılmadı.';
+
+  @override
+  String get dailyCorrect => 'Doğru!';
+
+  @override
+  String get dailyWrong => 'Yanlış';
+
+  @override
+  String get dailyTimeout => 'Süre doldu';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.';
 
