@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:brainvolt/app/app.dart';
 import 'package:brainvolt/app/router.dart';
 import 'package:brainvolt/core/realtime/realtime_providers.dart';
+import 'package:brainvolt/core/widgets/bv.dart';
 import 'package:brainvolt/features/auth/domain/auth_repository.dart';
 import 'package:brainvolt/features/social/domain/social_repository.dart';
 import 'package:brainvolt/features/team/domain/team_repository.dart';
@@ -68,7 +69,7 @@ void main() {
     await tester.tap(find.byKey(const Key('mode-category_master')));
     await tester.pumpAndSettle();
     final search = find.byKey(const Key('mode-search'));
-    expect(tester.widget<ButtonStyleButton>(search).onPressed, isNull);
+    expect(tester.widget<GradientButton>(search).onPressed, isNull);
     await tester.tap(find.byKey(const Key('category')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Tarih').last);

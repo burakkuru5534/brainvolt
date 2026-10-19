@@ -1306,6 +1306,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get roomJoinAction => 'Katıl';
 
   @override
+  String get gameModeLabel => 'Oyun modu';
+
+  @override
+  String get queueFinding => 'Sıradaki meydan okuman bulunuyor';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.';
 

@@ -1841,6 +1841,14 @@
   "@roomJoinAction": {
     "description": "Join button"
   },
+  "gameModeLabel": "Oyun modu",
+  "@gameModeLabel": {
+    "description": "Mode picker section"
+  },
+  "queueFinding": "Sıradaki meydan okuman bulunuyor",
+  "@queueFinding": {
+    "description": "Queue subtitle"
+  },
   "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
   "@error_ACCOUNT_DELETION_PENDING": {
     "description": "Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md)."

@@ -2438,6 +2438,18 @@ abstract class AppLocalizations {
   /// **'Katıl'**
   String get roomJoinAction;
 
+  /// Mode picker section
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyun modu'**
+  String get gameModeLabel;
+
+  /// Queue subtitle
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıradaki meydan okuman bulunuyor'**
+  String get queueFinding;
+
   /// Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md).
   ///
   /// In tr, this message translates to:

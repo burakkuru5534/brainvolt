@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/session_controller.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/widgets/bv.dart';
 import '../../content/data/content_providers.dart';
 import '../../content/domain/content_repository.dart';
 import '../../social/data/social_providers.dart';
@@ -115,15 +116,16 @@ class _ModePickerScreenState extends ConsumerState<ModePickerScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Wrap(
-            spacing: 8,
+          SectionTitle(l10n.gameModeLabel),
+          _Grid(
             children: [
               for (final e in types.entries)
-                ChoiceChip(
+                ChoiceTile(
                   key: Key('type-${e.key}'),
-                  label: Text(e.value),
+                  icon: _typeIcons[e.key]!,
+                  label: e.value,
                   selected: _type == e.key,
-                  onSelected: (_) => setState(() {
+                  onTap: () => setState(() {
                     _type = e.key;
                     if (e.key == 'ranked') {
                       _mode = null;
@@ -132,47 +134,52 @@ class _ModePickerScreenState extends ConsumerState<ModePickerScreen> {
                 ),
             ],
           ),
-          const SizedBox(height: 24),
-          Text(
-            l10n.categoryModeLabel,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
+          SectionTitle(l10n.categoryModeLabel),
+          _Grid(
             children: [
               for (final e in modes.entries)
-                ChoiceChip(
-                  key: Key('mode-${e.key ?? 'none'}'),
-                  label: Text(e.value),
-                  selected: _mode == e.key,
-                  onSelected: ranked && e.key != null
-                      ? null
-                      : (_) => setState(() => _mode = e.key),
+                Opacity(
+                  opacity: ranked && e.key != null ? 0.45 : 1,
+                  child: ChoiceTile(
+                    key: Key('mode-${e.key ?? 'none'}'),
+                    icon: _modeIcons[e.key]!,
+                    label: e.value,
+                    selected: _mode == e.key,
+                    onTap: ranked && e.key != null
+                        ? null
+                        : () => setState(() => _mode = e.key),
+                  ),
                 ),
             ],
           ),
-          const SizedBox(height: 24),
-          Text(
-            l10n.formatLabel,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: [
-              for (final f in formats)
-                ChoiceChip(
-                  key: Key('format-$f'),
-                  label: Text(formatName(l10n, f)),
-                  selected: _format == f,
-                  onSelected: (_) => setState(() {
-                    _format = f;
-                    _party = const [];
-                    _team = null;
-                  }),
-                ),
-            ],
+          SectionTitle(l10n.formatLabel),
+          SizedBox(
+            height: 84,
+            child: Row(
+              children: [
+                for (final (i, f) in formats.indexed) ...[
+                  if (i > 0) const SizedBox(width: 8),
+                  Expanded(
+                    child: ChoiceTile(
+                      key: Key('format-$f'),
+                      icon: f == 'couple'
+                          ? Icons.favorite
+                          : f == '1v1'
+                          ? Icons.people_alt
+                          : Icons.groups,
+                      label: formatName(l10n, f),
+                      vertical: true,
+                      selected: _format == f,
+                      onTap: () => setState(() {
+                        _format = f;
+                        _party = const [];
+                        _team = null;
+                      }),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
           if (teamFormat) ...[
             const SizedBox(height: 16),
@@ -223,9 +230,10 @@ class _ModePickerScreenState extends ConsumerState<ModePickerScreen> {
             ),
           ],
           const SizedBox(height: 32),
-          FilledButton.icon(
+          GradientButton(
             key: const Key('mode-search'),
-            icon: const Icon(Icons.search),
+            icon: Icons.search,
+            label: l10n.startSearch,
             onPressed: (needsCategory && _category == null) || !lineupOk
                 ? null
                 : () => context.pushReplacement(
@@ -240,12 +248,43 @@ class _ModePickerScreenState extends ConsumerState<ModePickerScreen> {
                       ),
                     ),
                   ),
-            label: Text(l10n.startSearch),
           ),
         ],
       ),
     );
   }
+}
+
+const _typeIcons = {
+  'quick_duel': Icons.bolt,
+  'ranked': Icons.emoji_events,
+  'sudden_death': Icons.whatshot,
+  'marathon': Icons.directions_run,
+};
+
+const _modeIcons = <String?, IconData>{
+  null: Icons.layers,
+  'blind_challenge': Icons.visibility_off,
+  'mixed_battle': Icons.shuffle,
+  'category_master': Icons.workspace_premium,
+};
+
+/// Two choice tiles per row.
+class _Grid extends StatelessWidget {
+  const _Grid({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => GridView.count(
+    crossAxisCount: 2,
+    shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
+    mainAxisSpacing: 10,
+    crossAxisSpacing: 10,
+    childAspectRatio: 2.6,
+    children: children,
+  );
 }
 
 /// Picks up to [max] players for the party.

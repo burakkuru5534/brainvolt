@@ -390,6 +390,8 @@
   "roomJoinWithCode": "Join with code",
   "roomCodeHint": "Enter room code",
   "roomJoinAction": "Join",
+  "gameModeLabel": "Game mode",
+  "queueFinding": "Finding your next challenge",
   "error_ACCOUNT_DELETION_PENDING": "Your account is being deleted. You can only cancel the deletion.",
   "error_ACCOUNT_SUSPENDED": "Your account is suspended.",
   "error_ACCOUNT_UPGRADE_REQUIRED": "Upgrade your account to do this.",

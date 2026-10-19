@@ -1307,6 +1307,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roomJoinAction => 'Join';
 
   @override
+  String get gameModeLabel => 'Game mode';
+
+  @override
+  String get queueFinding => 'Finding your next challenge';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Your account is being deleted. You can only cancel the deletion.';
 

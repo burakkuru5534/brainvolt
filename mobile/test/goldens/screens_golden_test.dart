@@ -53,7 +53,10 @@ void main() {
       );
       await tester.pumpAndSettle();
       t.container.read(routerProvider).go(route);
-      await tester.pumpAndSettle();
+      // Some screens animate forever (the queue radar).
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
       return t;
     }
 
@@ -69,6 +72,28 @@ void main() {
         find.byType(BrainVoltApp),
         matchesGoldenFile('home_${mode.name}.png'),
       );
+      await finish(tester, t);
+    });
+
+    testWidgets('modes ${mode.name}', (tester) async {
+      final t = await launch(tester, Routes.modes);
+      await expectLater(
+        find.byType(BrainVoltApp),
+        matchesGoldenFile('modes_${mode.name}.png'),
+      );
+      await finish(tester, t);
+    });
+
+    testWidgets('queue ${mode.name}', (tester) async {
+      final t = await launch(tester, Routes.play);
+      await tester.pump(const Duration(milliseconds: 700));
+      await expectLater(
+        find.byType(BrainVoltApp),
+        matchesGoldenFile('queue_${mode.name}.png'),
+      );
+      await tester.tap(find.byKey(const Key('queue-cancel')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
       await finish(tester, t);
     });
 
