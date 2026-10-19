@@ -13,7 +13,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get appTitle => 'BrainVolt';
 
   @override
-  String get homeWelcome => 'Bilgi yarışmasına hoş geldin!';
+  String get homeWelcome => 'Bugün bilgini sınamaya hazır mısın?';
 
   @override
   String get settingsTitle => 'Ayarlar';
@@ -1238,6 +1238,72 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get homeQuizzes => 'Quizler';
+
+  @override
+  String get settingsTheme => 'Görünüm';
+
+  @override
+  String get themeSystem => 'Sistem';
+
+  @override
+  String get themeLight => 'Açık';
+
+  @override
+  String get themeDark => 'Koyu';
+
+  @override
+  String get homeQuickDuelSub => 'Sıradaki rakibini bul';
+
+  @override
+  String get homeModesSub => 'Tüm modları keşfet';
+
+  @override
+  String get homeRoomSub => 'Oda kur ya da katıl';
+
+  @override
+  String get homeTeamsSub => 'Birlikte oyna, kazan';
+
+  @override
+  String get homeDailySub => 'Günün 10 sorusu';
+
+  @override
+  String get homeQuizzesSub => 'Oyuncuların quizleri';
+
+  @override
+  String get homePracticeSub => 'Tek başına pratik yap';
+
+  @override
+  String get homeTotalWins => 'Toplam galibiyet';
+
+  @override
+  String get homeCurrentRank => 'Mevcut lig';
+
+  @override
+  String get homeNoRank => 'Sıralamasız';
+
+  @override
+  String get roomSheetTitle => 'Özel Oda';
+
+  @override
+  String get roomSheetSub => 'Nasıl oynamak istediğini seç';
+
+  @override
+  String get roomQuickDuelSub => 'Arkadaşlarınla klasik maç';
+
+  @override
+  String get roomSuddenDeathSub => 'Tek hata her şeyi değiştirir';
+
+  @override
+  String get roomMarathonSub => 'Uzun soluklu yarış';
+
+  @override
+  String get roomJoinWithCode => 'Kodla katıl';
+
+  @override
+  String get roomCodeHint => 'Oda kodunu gir';
+
+  @override
+  String get roomJoinAction => 'Katıl';
 
   @override
   String get error_ACCOUNT_DELETION_PENDING =>

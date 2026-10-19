@@ -280,7 +280,6 @@ void main() {
     };
     await tester.tap(find.byKey(const Key('private-room')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('join-room')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('room-code-input')), 'room23');
     // The join broadcast arrives while the home screen is still open.

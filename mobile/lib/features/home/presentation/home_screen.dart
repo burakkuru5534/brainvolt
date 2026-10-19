@@ -6,9 +6,11 @@ import '../../../app/config.dart';
 import '../../../app/providers.dart';
 import '../../../app/router.dart';
 import '../../../app/session_controller.dart';
+import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/realtime/realtime_client.dart';
 import '../../../core/realtime/realtime_providers.dart';
+import '../../../core/widgets/bv.dart';
 import '../../auth/domain/session.dart';
 import '../../lobby/presentation/room_screen.dart';
 import '../../match/data/match_providers.dart';
@@ -29,10 +31,9 @@ final lobbyEventsProvider = StreamProvider.autoDispose<ServerFrame>((ref) {
   );
 });
 
-/// Home screen: greets the player, nudges guests and unverified accounts to
-/// secure their progress, and starts a Quick Duel (more modes join with
-/// their phases). Development builds also offer a practice match against
-/// the server's bot (D-066).
+/// Home (D-085): logo bar, greeting hero with level and mascot, the Quick
+/// Duel call to action, mode tiles, shortcuts and stats. Development
+/// builds also offer a practice match against the server's bot (D-066).
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -75,140 +76,344 @@ class HomeScreen extends ConsumerWidget {
         );
       }
     });
+    final resume = ref.watch(currentMatchProvider).value;
+    final dev = ref.watch(appConfigProvider).flavor == Flavor.dev;
+    const gap = SizedBox(height: 14);
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.appTitle),
-        actions: [
-          IconButton(
-            key: const Key('open-challenges'),
-            tooltip: l10n.homeChallenges,
-            icon: const Icon(Icons.sports_kabaddi),
-            onPressed: () => context.push(Routes.challenges),
-          ),
-          IconButton(
-            key: const Key('open-friends'),
-            tooltip: l10n.homeFriends,
-            icon: const Icon(Icons.people),
-            onPressed: () => context.push(Routes.friends),
-          ),
-          IconButton(
-            key: const Key('open-settings'),
-            tooltip: l10n.settingsTitle,
-            icon: const Icon(Icons.settings),
-            onPressed: () => context.push(Routes.settings),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          if (session?.tier == Tier.guest)
-            _Banner(
-              key: const Key('guest-banner'),
-              text: l10n.homeGuestBanner,
-              action: l10n.linkAccountAction,
-              onPressed: () => context.push(Routes.account),
-            )
-          else if (session?.flags.emailVerificationRequired ?? false)
-            _Banner(
-              key: const Key('verify-banner'),
-              text: l10n.homeVerifyBanner,
-              action: l10n.verifyAction,
-              onPressed: () => context.push(Routes.verifyEmail),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          children: [
+            _TopBar(avatar: session?.profile.avatarId),
+            if (session?.tier == Tier.guest)
+              _Banner(
+                key: const Key('guest-banner'),
+                text: l10n.homeGuestBanner,
+                action: l10n.linkAccountAction,
+                onPressed: () => context.push(Routes.account),
+              )
+            else if (session?.flags.emailVerificationRequired ?? false)
+              _Banner(
+                key: const Key('verify-banner'),
+                text: l10n.homeVerifyBanner,
+                action: l10n.verifyAction,
+                onPressed: () => context.push(Routes.verifyEmail),
+              ),
+            const SizedBox(height: 12),
+            _Hero(
+              name: session?.profile.displayName,
+              avatar: session?.profile.avatarId,
             ),
+            gap,
+            if (resume != null)
+              _QuickDuel(
+                key: const Key('resume-match'),
+                title: l10n.resumeMatch,
+                subtitle: l10n.homeQuickDuelSub,
+                icon: Icons.play_arrow,
+                onTap: () => context.go(Routes.match(resume)),
+              )
+            else
+              _QuickDuel(
+                key: const Key('play-quick-duel'),
+                title: l10n.playQuickDuel,
+                subtitle: l10n.homeQuickDuelSub,
+                icon: Icons.bolt,
+                onTap: () => context.push(Routes.play),
+              ),
+            gap,
+            _Tiles(
+              tiles: [
+                _Tile(
+                  const Key('play-modes'),
+                  Icons.grid_view_rounded,
+                  l10n.playModes,
+                  l10n.homeModesSub,
+                  () => context.push(Routes.modes),
+                ),
+                _Tile(
+                  const Key('private-room'),
+                  Icons.lock_outline,
+                  l10n.privateRoom,
+                  l10n.homeRoomSub,
+                  () => showRoomSheet(context, ref),
+                ),
+                _Tile(
+                  const Key('open-teams'),
+                  Icons.groups_outlined,
+                  l10n.homeTeams,
+                  l10n.homeTeamsSub,
+                  () => context.push(Routes.teams),
+                ),
+              ],
+            ),
+            gap,
+            _Tiles(
+              tiles: [
+                _Tile(
+                  const Key('open-daily'),
+                  Icons.today,
+                  l10n.dailyTitle,
+                  l10n.homeDailySub,
+                  () => context.push(Routes.daily),
+                ),
+                _Tile(
+                  const Key('open-quizzes'),
+                  Icons.edit_note,
+                  l10n.homeQuizzes,
+                  l10n.homeQuizzesSub,
+                  () => context.push(Routes.quizzes),
+                ),
+              ],
+            ),
+            if (dev) ...[
+              gap,
+              ActionCard(
+                key: const Key('play-practice'),
+                icon: Icons.smart_toy_outlined,
+                title: l10n.playPractice,
+                subtitle: l10n.homePracticeSub,
+                onTap: () => context.push(Routes.practice),
+              ),
+            ],
+            gap,
+            if (session != null) ...[const StatsRow(), gap],
+            _Tiles(
+              height: 86,
+              tiles: [
+                _Tile(
+                  const Key('open-leaderboards'),
+                  Icons.leaderboard,
+                  l10n.leaderboardsTitle,
+                  null,
+                  () => context.push(Routes.leaderboards),
+                ),
+                _Tile(
+                  const Key('open-quests'),
+                  Icons.flag,
+                  l10n.questsTitle,
+                  null,
+                  () => context.push(Routes.quests),
+                ),
+                _Tile(
+                  const Key('open-badges'),
+                  Icons.workspace_premium,
+                  l10n.badgesTitle,
+                  null,
+                  () => context.push(Routes.badges),
+                ),
+                _Tile(
+                  const Key('open-friends'),
+                  Icons.people,
+                  l10n.homeFriends,
+                  null,
+                  () => context.push(Routes.friends),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TopBar extends StatelessWidget {
+  const _TopBar({this.avatar});
+
+  final String? avatar;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    Widget round(Key key, String tip, IconData icon, String route) => Padding(
+      padding: const EdgeInsets.only(left: 8),
+      child: BvCard(
+        key: key,
+        radius: 28,
+        padding: const EdgeInsets.all(10),
+        onTap: () => context.push(route),
+        child: Tooltip(
+          message: tip,
+          child: Icon(icon, color: BvColors.of(context).badgeInk),
+        ),
+      ),
+    );
+    return Row(
+      children: [
+        const Expanded(
+          child: Align(alignment: Alignment.centerLeft, child: BrandLogo()),
+        ),
+        round(
+          const Key('open-challenges'),
+          l10n.homeChallenges,
+          Icons.sports_kabaddi,
+          Routes.challenges,
+        ),
+        round(
+          const Key('open-settings'),
+          l10n.settingsTitle,
+          Icons.settings,
+          Routes.settings,
+        ),
+        const SizedBox(width: 8),
+        InkWell(
+          key: const Key('open-profile'),
+          customBorder: const CircleBorder(),
+          onTap: () => context.push(Routes.profile),
+          child: AvatarBubble(avatarFor(avatar ?? ''), size: 48, online: true),
+        ),
+      ],
+    );
+  }
+}
+
+/// The greeting card with the level line and the mascot (the player's
+/// avatar until the mascot artwork arrives, D-085).
+class _Hero extends StatelessWidget {
+  const _Hero({this.name, this.avatar});
+
+  final String? name;
+  final String? avatar;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final bv = BvColors.of(context);
+    final text = Theme.of(context).textTheme;
+    return BvCard(
+      padding: const EdgeInsets.fromLTRB(20, 18, 12, 18),
+      child: Row(
+        children: [
           Expanded(
-            child: Center(
-              // Scrolls when a dialog's keyboard leaves little room.
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (session != null) ...[
-                      Text(
-                        avatarFor(session.profile.avatarId),
-                        style: const TextStyle(fontSize: 64),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        l10n.homeGreeting(session.profile.displayName),
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 8),
-                      const ProgressCard(),
-                    ],
-                    Text(
-                      l10n.homeWelcome,
-                      style: Theme.of(context).textTheme.headlineSmall,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 32),
-                    if (ref.watch(currentMatchProvider).value case final id?)
-                      FilledButton.icon(
-                        key: const Key('resume-match'),
-                        icon: const Icon(Icons.play_arrow),
-                        onPressed: () => context.go(Routes.match(id)),
-                        label: Text(l10n.resumeMatch),
-                      )
-                    else
-                      FilledButton.icon(
-                        key: const Key('play-quick-duel'),
-                        icon: const Icon(Icons.bolt),
-                        onPressed: () => context.push(Routes.play),
-                        label: Text(l10n.playQuickDuel),
-                      ),
-                    const SizedBox(height: 12),
-                    FilledButton.tonalIcon(
-                      key: const Key('open-daily'),
-                      icon: const Icon(Icons.today),
-                      onPressed: () => context.push(Routes.daily),
-                      label: Text(l10n.dailyTitle),
-                    ),
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      key: const Key('play-modes'),
-                      icon: const Icon(Icons.tune),
-                      onPressed: () => context.push(Routes.modes),
-                      label: Text(l10n.playModes),
-                    ),
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      key: const Key('private-room'),
-                      icon: const Icon(Icons.meeting_room),
-                      onPressed: () => showRoomSheet(context, ref),
-                      label: Text(l10n.privateRoom),
-                    ),
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      key: const Key('open-quizzes'),
-                      icon: const Icon(Icons.edit_note),
-                      onPressed: () => context.push(Routes.quizzes),
-                      label: Text(l10n.homeQuizzes),
-                    ),
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      key: const Key('open-teams'),
-                      icon: const Icon(Icons.groups),
-                      onPressed: () => context.push(Routes.teams),
-                      label: Text(l10n.homeTeams),
-                    ),
-                    if (ref.watch(appConfigProvider).flavor == Flavor.dev) ...[
-                      const SizedBox(height: 12),
-                      OutlinedButton.icon(
-                        key: const Key('play-practice'),
-                        icon: const Icon(Icons.smart_toy_outlined),
-                        onPressed: () => context.push(Routes.practice),
-                        label: Text(l10n.playPractice),
-                      ),
-                    ],
-                  ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (name != null)
+                  Text(l10n.homeGreeting(name!), style: text.headlineSmall),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.homeWelcome,
+                  style: text.bodyMedium?.copyWith(color: bv.muted),
+                ),
+                const SizedBox(height: 14),
+                if (name != null) const LevelSummary(),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Stack(
+            alignment: Alignment.topCenter,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 22),
+                child: AvatarBubble(
+                  avatarFor(avatar ?? 'penguin'),
+                  size: 96,
+                  ring: false,
                 ),
               ),
-            ),
+              const Text('👑', style: TextStyle(fontSize: 34)),
+            ],
           ),
         ],
       ),
     );
   }
+}
+
+class _QuickDuel extends StatelessWidget {
+  const _QuickDuel({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+    super.key,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final bv = BvColors.of(context);
+    return BvCard(
+      gradient: bv.gradient,
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+      child: Row(
+        children: [
+          IconBadge(icon, size: 64, onGradient: true),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title.toUpperCase(),
+                  style: weighted(
+                    const TextStyle(
+                      fontSize: 24,
+                      color: Colors.white,
+                      fontFamily: brandFont,
+                    ),
+                    FontWeight.w900,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Colors.white70, fontSize: 15),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.chevron_right, color: Colors.white, size: 30),
+        ],
+      ),
+    );
+  }
+}
+
+class _Tile {
+  const _Tile(this.key, this.icon, this.title, this.subtitle, this.onTap);
+
+  final Key key;
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final VoidCallback onTap;
+}
+
+class _Tiles extends StatelessWidget {
+  const _Tiles({required this.tiles, this.height = 132});
+
+  final List<_Tile> tiles;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    height: height,
+    child: Row(
+      children: [
+        for (final (i, t) in tiles.indexed) ...[
+          if (i > 0) const SizedBox(width: 10),
+          Expanded(
+            child: ChoiceTile(
+              key: t.key,
+              icon: t.icon,
+              label: t.title,
+              subtitle: t.subtitle,
+              selected: false,
+              vertical: true,
+              onTap: t.onTap,
+            ),
+          ),
+        ],
+      ],
+    ),
+  );
 }
 
 class _Banner extends StatelessWidget {
@@ -224,8 +429,16 @@ class _Banner extends StatelessWidget {
   final VoidCallback onPressed;
 
   @override
-  Widget build(BuildContext context) => MaterialBanner(
-    content: Text(text),
-    actions: [TextButton(onPressed: onPressed, child: Text(action))],
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 12),
+    child: BvCard(
+      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+      child: Row(
+        children: [
+          Expanded(child: Text(text)),
+          TextButton(onPressed: onPressed, child: Text(action)),
+        ],
+      ),
+    ),
   );
 }

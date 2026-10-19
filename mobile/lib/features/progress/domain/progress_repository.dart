@@ -22,6 +22,8 @@ class Progress {
     required this.longestStreak,
     required this.playedToday,
     required this.badges,
+    this.matches = 0,
+    this.wins = 0,
   });
 
   factory Progress.fromJson(Map<String, dynamic> j) {
@@ -35,6 +37,8 @@ class Progress {
       longestStreak: _int(s['longest']),
       playedToday: s['played_today'] == true,
       badges: _int(j['badges']),
+      matches: _int(j['matches']),
+      wins: _int(j['wins']),
     );
   }
 
@@ -46,6 +50,10 @@ class Progress {
   final int longestStreak;
   final bool playedToday;
   final int badges;
+
+  /// Every completed match and win.
+  final int matches;
+  final int wins;
 }
 
 /// A season standing (GET /v1/standings/{kind}/{id}).

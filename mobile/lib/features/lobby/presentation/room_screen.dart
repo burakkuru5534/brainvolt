@@ -7,7 +7,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/session_controller.dart';
+import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/widgets/bv.dart';
 import '../../match/presentation/format_picker.dart';
 import '../../match/presentation/match_type_name.dart';
 import '../../match/presentation/play_error_text.dart';
@@ -16,33 +18,14 @@ import '../data/lobby_providers.dart';
 import '../domain/lobby_repository.dart';
 import 'room_controller.dart';
 
-/// Creates a room or joins one by code, then opens it.
+/// The Private Room sheet (D-085): a card per match type creates a room,
+/// the code field joins one; either way the room opens.
 Future<void> showRoomSheet(BuildContext context, WidgetRef ref) async {
   final l10n = context.l10n;
   final choice = await showModalBottomSheet<String>(
     context: context,
-    builder: (context) => SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final t in MatchType.values)
-            ListTile(
-              key: Key('create-room-${t.wire}'),
-              leading: const Icon(Icons.add_home),
-              title: Text(
-                '${l10n.createRoom} · ${matchTypeName(l10n, t.wire)}',
-              ),
-              onTap: () => Navigator.pop(context, t.wire),
-            ),
-          ListTile(
-            key: const Key('join-room'),
-            leading: const Icon(Icons.login),
-            title: Text(l10n.joinRoom),
-            onTap: () => Navigator.pop(context, 'join'),
-          ),
-        ],
-      ),
-    ),
+    isScrollControlled: true,
+    builder: (context) => const _RoomSheet(),
   );
   if (choice == null || !context.mounted) {
     return;
@@ -51,12 +34,8 @@ Future<void> showRoomSheet(BuildContext context, WidgetRef ref) async {
   final messenger = ScaffoldMessenger.of(context);
   try {
     final Room room;
-    if (choice == 'join') {
-      final code = await _askCode(context);
-      if (code == null) {
-        return;
-      }
-      room = await repo.joinRoom(code);
+    if (choice.startsWith('code:')) {
+      room = await repo.joinRoom(choice.substring(5));
     } else {
       final format = await pickFormat(context);
       if (format == null) {
@@ -76,50 +55,107 @@ Future<void> showRoomSheet(BuildContext context, WidgetRef ref) async {
   }
 }
 
-Future<String?> _askCode(BuildContext context) =>
-    showDialog<String>(context: context, builder: (_) => const _CodeDialog());
-
-/// Asks for a room code; owns its text controller so it outlives the
-/// closing animation.
-class _CodeDialog extends StatefulWidget {
-  const _CodeDialog();
+/// Pops a match type's wire name, or `code:<code>` to join.
+class _RoomSheet extends StatefulWidget {
+  const _RoomSheet();
 
   @override
-  State<_CodeDialog> createState() => _CodeDialogState();
+  State<_RoomSheet> createState() => _RoomSheetState();
 }
 
-class _CodeDialogState extends State<_CodeDialog> {
-  final _text = TextEditingController();
+class _RoomSheetState extends State<_RoomSheet> {
+  final _code = TextEditingController();
 
   @override
   void dispose() {
-    _text.dispose();
+    _code.dispose();
     super.dispose();
+  }
+
+  void _join() {
+    final code = _code.text.trim();
+    if (code.isNotEmpty) {
+      Navigator.pop(context, 'code:$code');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return AlertDialog(
-      title: Text(l10n.joinRoom),
-      content: TextField(
-        key: const Key('room-code-input'),
-        controller: _text,
-        autofocus: true,
-        textCapitalization: TextCapitalization.characters,
-        decoration: InputDecoration(labelText: l10n.roomCodeLabel),
+    final text = Theme.of(context).textTheme;
+    final bv = BvColors.of(context);
+    final options = {
+      MatchType.quickDuel: (Icons.add_home_rounded, l10n.roomQuickDuelSub),
+      MatchType.suddenDeath: (Icons.bolt, l10n.roomSuddenDeathSub),
+      MatchType.marathon: (Icons.emoji_events_outlined, l10n.roomMarathonSub),
+    };
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          0,
+          16,
+          16 + MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.roomSheetTitle,
+                textAlign: TextAlign.center,
+                style: text.headlineMedium,
+              ),
+              Text(
+                l10n.roomSheetSub,
+                textAlign: TextAlign.center,
+                style: text.bodyLarge?.copyWith(color: bv.muted),
+              ),
+              const SizedBox(height: 16),
+              for (final t in MatchType.values) ...[
+                ActionCard(
+                  key: Key('create-room-${t.wire}'),
+                  icon: options[t]?.$1 ?? Icons.add_home_rounded,
+                  title: '${l10n.createRoom} — ${matchTypeName(l10n, t.wire)}',
+                  subtitle: options[t]?.$2,
+                  onTap: () => Navigator.pop(context, t.wire),
+                ),
+                const SizedBox(height: 12),
+              ],
+              const SizedBox(height: 8),
+              Text(l10n.roomJoinWithCode, style: text.titleLarge),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      key: const Key('room-code-input'),
+                      controller: _code,
+                      textCapitalization: TextCapitalization.characters,
+                      onSubmitted: (_) => _join(),
+                      decoration: InputDecoration(
+                        hintText: l10n.roomCodeHint,
+                        prefixIcon: Icon(Icons.key_rounded, color: bv.badgeInk),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: 120,
+                    child: GradientButton(
+                      key: const Key('room-code-join'),
+                      label: l10n.roomJoinAction,
+                      height: 56,
+                      onPressed: _join,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l10n.cancel),
-        ),
-        FilledButton(
-          key: const Key('room-code-join'),
-          onPressed: () => Navigator.pop(context, _text.text.trim()),
-          child: Text(l10n.joinRoom),
-        ),
-      ],
     );
   }
 }

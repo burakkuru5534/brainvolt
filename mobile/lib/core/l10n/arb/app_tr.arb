@@ -4,7 +4,7 @@
   "@appTitle": {
     "description": "App name shown in the task switcher and app bar."
   },
-  "homeWelcome": "Bilgi yarışmasına hoş geldin!",
+  "homeWelcome": "Bugün bilgini sınamaya hazır mısın?",
   "@homeWelcome": {
     "description": "Greeting on the home screen."
   },
@@ -1752,6 +1752,94 @@
   "homeQuizzes": "Quizler",
   "@homeQuizzes": {
     "description": "Home button to quizzes"
+  },
+  "settingsTheme": "Görünüm",
+  "@settingsTheme": {
+    "description": "Theme section title"
+  },
+  "themeSystem": "Sistem",
+  "@themeSystem": {
+    "description": "Follow the device theme"
+  },
+  "themeLight": "Açık",
+  "@themeLight": {
+    "description": "Light theme"
+  },
+  "themeDark": "Koyu",
+  "@themeDark": {
+    "description": "Dark theme"
+  },
+  "homeQuickDuelSub": "Sıradaki rakibini bul",
+  "@homeQuickDuelSub": {
+    "description": "Quick Duel hero subtitle"
+  },
+  "homeModesSub": "Tüm modları keşfet",
+  "@homeModesSub": {
+    "description": "More modes tile subtitle"
+  },
+  "homeRoomSub": "Oda kur ya da katıl",
+  "@homeRoomSub": {
+    "description": "Private room tile subtitle"
+  },
+  "homeTeamsSub": "Birlikte oyna, kazan",
+  "@homeTeamsSub": {
+    "description": "Teams tile subtitle"
+  },
+  "homeDailySub": "Günün 10 sorusu",
+  "@homeDailySub": {
+    "description": "Daily tile subtitle"
+  },
+  "homeQuizzesSub": "Oyuncuların quizleri",
+  "@homeQuizzesSub": {
+    "description": "Quizzes tile subtitle"
+  },
+  "homePracticeSub": "Tek başına pratik yap",
+  "@homePracticeSub": {
+    "description": "Practice row subtitle"
+  },
+  "homeTotalWins": "Toplam galibiyet",
+  "@homeTotalWins": {
+    "description": "Stats label"
+  },
+  "homeCurrentRank": "Mevcut lig",
+  "@homeCurrentRank": {
+    "description": "Stats label"
+  },
+  "homeNoRank": "Sıralamasız",
+  "@homeNoRank": {
+    "description": "No league yet"
+  },
+  "roomSheetTitle": "Özel Oda",
+  "@roomSheetTitle": {
+    "description": "Room sheet title"
+  },
+  "roomSheetSub": "Nasıl oynamak istediğini seç",
+  "@roomSheetSub": {
+    "description": "Room sheet subtitle"
+  },
+  "roomQuickDuelSub": "Arkadaşlarınla klasik maç",
+  "@roomQuickDuelSub": {
+    "description": "Room option subtitle"
+  },
+  "roomSuddenDeathSub": "Tek hata her şeyi değiştirir",
+  "@roomSuddenDeathSub": {
+    "description": "Room option subtitle"
+  },
+  "roomMarathonSub": "Uzun soluklu yarış",
+  "@roomMarathonSub": {
+    "description": "Room option subtitle"
+  },
+  "roomJoinWithCode": "Kodla katıl",
+  "@roomJoinWithCode": {
+    "description": "Join section title"
+  },
+  "roomCodeHint": "Oda kodunu gir",
+  "@roomCodeHint": {
+    "description": "Code field hint"
+  },
+  "roomJoinAction": "Katıl",
+  "@roomJoinAction": {
+    "description": "Join button"
   },
   "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
   "@error_ACCOUNT_DELETION_PENDING": {

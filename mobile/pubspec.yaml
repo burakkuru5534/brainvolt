@@ -47,3 +47,9 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true # gen-l10n (l10n.yaml)
+  # Nunito (SIL Open Font License, assets/fonts/Nunito-OFL.txt), variable
+  # weight: styles set the wght axis through `weighted` (app/theme.dart).
+  fonts:
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-Variable.ttf

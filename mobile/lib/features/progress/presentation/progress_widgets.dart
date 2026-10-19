@@ -6,8 +6,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/session_controller.dart';
+import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/realtime/realtime_providers.dart';
+import '../../../core/widgets/bv.dart';
 import '../data/progress_providers.dart';
 import '../domain/progress_repository.dart';
 
@@ -46,91 +48,141 @@ String placementName(AppLocalizations l10n, String league, int division) {
   return '$name ${const {1: 'I', 2: 'II', 3: 'III'}[division] ?? ''}'.trim();
 }
 
-/// Home's progress card: level and XP bar, league and SP, play streak,
-/// with shortcuts to leaderboards, quests and badges.
-class ProgressCard extends ConsumerWidget {
-  const ProgressCard({super.key});
+/// Home's level line: level chip, XP bar and play streak.
+class LevelSummary extends ConsumerWidget {
+  const LevelSummary({this.onGradient = false, super.key});
+
+  /// White text for the dark hero card.
+  final bool onGradient;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final progress = ref.watch(myProgressProvider).value;
+    final bv = BvColors.of(context);
+    if (progress == null) {
+      return const SizedBox(height: 32);
+    }
+    final small = Theme.of(context).textTheme.labelMedium;
+    return Column(
+      key: const Key('progress-card'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: bv.badge,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.bolt, size: 16, color: bv.badgeInk),
+                  Text(
+                    l10n.levelLabel(progress.level),
+                    style: small?.copyWith(color: bv.badgeInk),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: LinearProgressIndicator(
+                value: progress.levelSize == 0
+                    ? 1
+                    : progress.levelXp / progress.levelSize,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            Text(
+              '🔥 ${l10n.streakDays(progress.streak)}',
+              key: const Key('progress-streak'),
+              style: small?.copyWith(color: bv.muted),
+            ),
+            const Spacer(),
+            Text(
+              l10n.xpProgress(progress.levelXp, progress.levelSize),
+              style: small?.copyWith(color: bv.muted),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Home's stats: total wins and the current league.
+class StatsRow extends ConsumerWidget {
+  const StatsRow({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final progress = ref.watch(myProgressProvider).value;
     final standing = ref.watch(myStandingProvider).value;
-    final theme = Theme.of(context);
-    return Card(
-      key: const Key('progress-card'),
-      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (progress != null) ...[
-              Row(
-                children: [
-                  Text(
-                    l10n.levelLabel(progress.level),
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  const Spacer(),
-                  Text(
-                    '🔥 ${l10n.streakDays(progress.streak)}',
-                    key: const Key('progress-streak'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              LinearProgressIndicator(
-                value: progress.levelSize == 0
-                    ? 1
-                    : progress.levelXp / progress.levelSize,
-              ),
-              const SizedBox(height: 4),
-              Align(
-                alignment: AlignmentDirectional.centerEnd,
-                child: Text(
-                  l10n.xpProgress(progress.levelXp, progress.levelSize),
-                  style: theme.textTheme.bodySmall,
-                ),
-              ),
-            ],
-            if (standing != null)
-              Row(
-                children: [
-                  const Icon(Icons.military_tech, size: 20),
-                  const SizedBox(width: 4),
-                  Text(
-                    placementName(l10n, standing.league, standing.division),
-                    key: const Key('progress-league'),
-                  ),
-                  const Spacer(),
-                  Text(l10n.seasonPoints(standing.seasonPoints)),
-                ],
-              ),
-            const SizedBox(height: 4),
-            Wrap(
-              spacing: 8,
-              alignment: WrapAlignment.center,
+    final bv = BvColors.of(context);
+    final text = Theme.of(context).textTheme;
+    Widget stat(
+      IconData icon,
+      Color color,
+      String label,
+      String value,
+      Key key, [
+      String? extra,
+    ]) => Expanded(
+      child: Row(
+        children: [
+          Icon(icon, size: 40, color: color),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextButton.icon(
-                  key: const Key('open-leaderboards'),
-                  icon: const Icon(Icons.leaderboard),
-                  onPressed: () => context.push(Routes.leaderboards),
-                  label: Text(l10n.leaderboardsTitle),
+                Text(label.toUpperCase(), style: text.labelSmall),
+                Text(
+                  value,
+                  key: key,
+                  style: text.headlineSmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                TextButton.icon(
-                  key: const Key('open-quests'),
-                  icon: const Icon(Icons.flag),
-                  onPressed: () => context.push(Routes.quests),
-                  label: Text(l10n.questsTitle),
-                ),
-                TextButton.icon(
-                  key: const Key('open-badges'),
-                  icon: const Icon(Icons.workspace_premium),
-                  onPressed: () => context.push(Routes.badges),
-                  label: Text(l10n.badgesTitle),
-                ),
+                if (extra != null) Text(extra, style: text.labelSmall),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+    return BvCard(
+      onTap: () => context.push(Routes.leaderboards),
+      child: IntrinsicHeight(
+        child: Row(
+          children: [
+            stat(
+              Icons.emoji_events,
+              const Color(0xFFF5B301),
+              l10n.homeTotalWins,
+              '${progress?.wins ?? 0}',
+              const Key('progress-wins'),
+            ),
+            VerticalDivider(color: bv.cardBorder, width: 24),
+            stat(
+              Icons.shield,
+              bv.badgeInk,
+              l10n.homeCurrentRank,
+              standing == null
+                  ? l10n.homeNoRank
+                  : placementName(l10n, standing.league, standing.division),
+              const Key('progress-league'),
+              standing == null
+                  ? null
+                  : l10n.seasonPoints(standing.seasonPoints),
             ),
           ],
         ),

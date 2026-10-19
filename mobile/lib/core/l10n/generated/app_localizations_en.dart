@@ -13,7 +13,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'BrainVolt';
 
   @override
-  String get homeWelcome => 'Welcome to the quiz!';
+  String get homeWelcome => 'Ready to test your knowledge today?';
 
   @override
   String get settingsTitle => 'Settings';
@@ -1239,6 +1239,72 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeQuizzes => 'Quizzes';
+
+  @override
+  String get settingsTheme => 'Appearance';
+
+  @override
+  String get themeSystem => 'System';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get homeQuickDuelSub => 'Find your next opponent';
+
+  @override
+  String get homeModesSub => 'Explore all modes';
+
+  @override
+  String get homeRoomSub => 'Create or join a game';
+
+  @override
+  String get homeTeamsSub => 'Team up & win';
+
+  @override
+  String get homeDailySub => 'Today\'s 10 questions';
+
+  @override
+  String get homeQuizzesSub => 'Made by players';
+
+  @override
+  String get homePracticeSub => 'Sharpen your skills in a solo match';
+
+  @override
+  String get homeTotalWins => 'Total wins';
+
+  @override
+  String get homeCurrentRank => 'Current rank';
+
+  @override
+  String get homeNoRank => 'Unranked';
+
+  @override
+  String get roomSheetTitle => 'Private Room';
+
+  @override
+  String get roomSheetSub => 'Choose how you want to play';
+
+  @override
+  String get roomQuickDuelSub => 'Challenge friends in a classic match';
+
+  @override
+  String get roomSuddenDeathSub => 'One mistake can change everything';
+
+  @override
+  String get roomMarathonSub => 'Compete through many rounds';
+
+  @override
+  String get roomJoinWithCode => 'Join with code';
+
+  @override
+  String get roomCodeHint => 'Enter room code';
+
+  @override
+  String get roomJoinAction => 'Join';
 
   @override
   String get error_ACCOUNT_DELETION_PENDING =>

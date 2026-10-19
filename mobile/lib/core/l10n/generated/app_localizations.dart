@@ -107,7 +107,7 @@ abstract class AppLocalizations {
   /// Greeting on the home screen.
   ///
   /// In tr, this message translates to:
-  /// **'Bilgi yarışmasına hoş geldin!'**
+  /// **'Bugün bilgini sınamaya hazır mısın?'**
   String get homeWelcome;
 
   /// Title of the settings screen.
@@ -2305,6 +2305,138 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Quizler'**
   String get homeQuizzes;
+
+  /// Theme section title
+  ///
+  /// In tr, this message translates to:
+  /// **'Görünüm'**
+  String get settingsTheme;
+
+  /// Follow the device theme
+  ///
+  /// In tr, this message translates to:
+  /// **'Sistem'**
+  String get themeSystem;
+
+  /// Light theme
+  ///
+  /// In tr, this message translates to:
+  /// **'Açık'**
+  String get themeLight;
+
+  /// Dark theme
+  ///
+  /// In tr, this message translates to:
+  /// **'Koyu'**
+  String get themeDark;
+
+  /// Quick Duel hero subtitle
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıradaki rakibini bul'**
+  String get homeQuickDuelSub;
+
+  /// More modes tile subtitle
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm modları keşfet'**
+  String get homeModesSub;
+
+  /// Private room tile subtitle
+  ///
+  /// In tr, this message translates to:
+  /// **'Oda kur ya da katıl'**
+  String get homeRoomSub;
+
+  /// Teams tile subtitle
+  ///
+  /// In tr, this message translates to:
+  /// **'Birlikte oyna, kazan'**
+  String get homeTeamsSub;
+
+  /// Daily tile subtitle
+  ///
+  /// In tr, this message translates to:
+  /// **'Günün 10 sorusu'**
+  String get homeDailySub;
+
+  /// Quizzes tile subtitle
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyuncuların quizleri'**
+  String get homeQuizzesSub;
+
+  /// Practice row subtitle
+  ///
+  /// In tr, this message translates to:
+  /// **'Tek başına pratik yap'**
+  String get homePracticeSub;
+
+  /// Stats label
+  ///
+  /// In tr, this message translates to:
+  /// **'Toplam galibiyet'**
+  String get homeTotalWins;
+
+  /// Stats label
+  ///
+  /// In tr, this message translates to:
+  /// **'Mevcut lig'**
+  String get homeCurrentRank;
+
+  /// No league yet
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıralamasız'**
+  String get homeNoRank;
+
+  /// Room sheet title
+  ///
+  /// In tr, this message translates to:
+  /// **'Özel Oda'**
+  String get roomSheetTitle;
+
+  /// Room sheet subtitle
+  ///
+  /// In tr, this message translates to:
+  /// **'Nasıl oynamak istediğini seç'**
+  String get roomSheetSub;
+
+  /// Room option subtitle
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşlarınla klasik maç'**
+  String get roomQuickDuelSub;
+
+  /// Room option subtitle
+  ///
+  /// In tr, this message translates to:
+  /// **'Tek hata her şeyi değiştirir'**
+  String get roomSuddenDeathSub;
+
+  /// Room option subtitle
+  ///
+  /// In tr, this message translates to:
+  /// **'Uzun soluklu yarış'**
+  String get roomMarathonSub;
+
+  /// Join section title
+  ///
+  /// In tr, this message translates to:
+  /// **'Kodla katıl'**
+  String get roomJoinWithCode;
+
+  /// Code field hint
+  ///
+  /// In tr, this message translates to:
+  /// **'Oda kodunu gir'**
+  String get roomCodeHint;
+
+  /// Join button
+  ///
+  /// In tr, this message translates to:
+  /// **'Katıl'**
+  String get roomJoinAction;
 
   /// Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md).
   ///

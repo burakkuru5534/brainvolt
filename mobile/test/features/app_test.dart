@@ -70,7 +70,7 @@ void main() {
     testWidgets('is skipped once confirmed', (tester) async {
       await launch(tester);
       expect(find.text('13 yaşından büyüğüm'), findsNothing);
-      expect(find.text('Bilgi yarışmasına hoş geldin!'), findsOneWidget);
+      expect(find.text('Bugün bilgini sınamaya hazır mısın?'), findsOneWidget);
     });
   });
 
@@ -82,7 +82,7 @@ void main() {
     expect(find.text('Sunucuya bağlanamadık.'), findsOneWidget);
 
     await tapKey(tester, 'splash-retry');
-    expect(find.text('Bilgi yarışmasına hoş geldin!'), findsOneWidget);
+    expect(find.text('Bugün bilgini sınamaya hazır mısın?'), findsOneWidget);
   });
 
   group('guest upgrade', () {
@@ -186,7 +186,7 @@ void main() {
 
     await tapKey(tester, 'cancel-deletion');
     expect(t.sessions.calls, contains('cancelDeletion'));
-    expect(find.text('Bilgi yarışmasına hoş geldin!'), findsOneWidget);
+    expect(find.text('Bugün bilgini sınamaya hazır mısın?'), findsOneWidget);
   });
 
   group('settings (1.8.6)', () {

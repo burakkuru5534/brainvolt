@@ -1,0 +1,6 @@
+# Screenshot (golden) tests are a visual reference for the redesign
+# (D-085): run them on demand, e.g.
+#   flutter test --run-skipped --tags golden [--update-goldens]
+tags:
+  golden:
+    skip: "visual reference; run with --run-skipped --tags golden"
