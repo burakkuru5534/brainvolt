@@ -1,10 +1,13 @@
 package engine
 
 import (
+	"slices"
+
 	"github.com/google/uuid"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/domain"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/domain/outcome"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
 )
 
 // Result is a terminal match state for the final Postgres transaction
@@ -40,6 +43,7 @@ type ParticipantResult struct {
 	Answered     int
 	Disconnects  int
 	AwayMS       int
+	Rejects      int
 }
 
 // Result returns the terminal result, or nil while the match is live.
@@ -66,6 +70,7 @@ func (m *Match) snapshotResult(now int64) *Result {
 		r.Participants = append(r.Participants, ParticipantResult{
 			UserID: p.UserID, Side: p.Side, Status: p.Status, Contribution: p.Contribution,
 			Correct: p.Correct, Answered: p.Answered, Disconnects: p.Disconnects, AwayMS: p.AwayMS,
+			Rejects: p.Rejects,
 		})
 	}
 	return r
@@ -255,6 +260,19 @@ func (m *Match) Reconnect(user uuid.UUID, now int64) Output {
 func (m *Match) RTT(user uuid.UUID, rttMS int) {
 	if p := m.participant(user); p != nil {
 		p.RTTMS = rttMS
+	}
+}
+
+// Rejected counts a refused submission of a participant when err is one
+// a well-behaved client does not cause (anti-cheat, schema-moderation §4).
+func (m *Match) Rejected(user uuid.UUID, err error) {
+	e := apierror.From(err)
+	if e == nil {
+		return
+	}
+	counted := []apierror.Code{apierror.AnswerLate, apierror.AnswerDuplicate, apierror.NotYourTurn, apierror.AnswerInvalidOption}
+	if p := m.participant(user); p != nil && slices.Contains(counted, e.Code) {
+		p.Rejects++
 	}
 }
 

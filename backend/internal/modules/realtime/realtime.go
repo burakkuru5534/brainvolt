@@ -37,6 +37,9 @@ type Frame = wsserver.Outbound
 // DisconnectFunc runs when a session's socket closes.
 type DisconnectFunc = service.DisconnectFunc
 
+// ViolationFunc runs when a session is closed for a protocol violation.
+type ViolationFunc = service.ViolationFunc
+
 // PongFunc receives a session's RTT estimate after every pong.
 type PongFunc = service.PongFunc
 
@@ -84,6 +87,9 @@ func (m *Module) OnDisconnect(fn DisconnectFunc) { m.hub.OnDisconnect(fn) }
 
 // OnPong registers an RTT listener.
 func (m *Module) OnPong(fn PongFunc) { m.hub.OnPong(fn) }
+
+// OnViolation registers a protocol violation listener.
+func (m *Module) OnViolation(fn ViolationFunc) { m.hub.OnViolation(fn) }
 
 // OnLive registers a contributor to sys.welcome.live.
 func (m *Module) OnLive(fn LiveFunc) { m.hub.OnLive(fn) }

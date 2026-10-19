@@ -19,6 +19,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/domain/engine"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/live"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/service"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/store/sqlc"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/transport"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
@@ -131,6 +132,14 @@ type SeasonProvider = service.SeasonProvider
 // SanctionChecker is implemented by moderation (Phase 8); until then
 // nobody is blocked (D-064).
 type SanctionChecker = service.SanctionChecker
+
+// ServerVoids counts a user's matches the server cancelled
+// (server_error, integrity_violation) since a time: moderation's
+// repeated-voids signal reads it (D-084).
+func ServerVoids(ctx context.Context, db *pgxpool.Pool, user uuid.UUID, since time.Time) (int, error) {
+	n, err := sqlc.New(db).ServerVoidsOf(ctx, sqlc.ServerVoidsOfParams{UserID: user, Since: &since})
+	return int(n), err
+}
 
 // ValidateConfig returns every mode-matrix violation of c after the
 // transformations (no parent).

@@ -164,6 +164,45 @@ func (q *Queries) DailyAnswers(ctx context.Context, runID uuid.UUID) ([]GameDail
 	return items, nil
 }
 
+const fastCorrectAnswers = `-- name: FastCorrectAnswers :many
+SELECT a.user_id, count(*)::int AS fast, min(a.response_ms)::int AS fastest_ms
+FROM game.answers a
+JOIN game.match_rounds r ON r.match_id = a.match_id AND r.round_no = a.round_no
+JOIN game.match_participants p ON p.match_id = a.match_id AND p.user_id = a.user_id
+JOIN content.question_translations t ON t.question_id = r.question_id AND t.locale = p.locale
+WHERE a.match_id = $1 AND a.is_correct AND a.option_id IS NOT NULL
+  AND a.response_ms < 300 + 15 * char_length(t.prompt)
+GROUP BY a.user_id
+`
+
+type FastCorrectAnswersRow struct {
+	UserID    uuid.UUID
+	Fast      int32
+	FastestMs int32
+}
+
+// Correct answers faster than a reading-time floor for the prompt in the
+// player's language: 300 ms + 15 ms per character (schema-moderation §8.5).
+func (q *Queries) FastCorrectAnswers(ctx context.Context, matchID uuid.UUID) ([]FastCorrectAnswersRow, error) {
+	rows, err := q.db.Query(ctx, fastCorrectAnswers, matchID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FastCorrectAnswersRow{}
+	for rows.Next() {
+		var i FastCorrectAnswersRow
+		if err := rows.Scan(&i.UserID, &i.Fast, &i.FastestMs); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getDailyRun = `-- name: GetDailyRun :one
 SELECT id, day, user_id, set_id, locale, kind, status, account_tier_at_start, ruleset_version, started_at, completed_at, correct_count, total_time_ms, score, disconnects FROM game.daily_runs WHERE id = $1
 `
@@ -885,6 +924,27 @@ func (q *Queries) RoundStats(ctx context.Context, matchID uuid.UUID) ([]RoundSta
 		return nil, err
 	}
 	return items, nil
+}
+
+const serverVoidsOf = `-- name: ServerVoidsOf :one
+SELECT count(*)::int FROM game.matches m
+JOIN game.match_participants p ON p.match_id = m.id
+WHERE p.user_id = $1 AND m.status = 'cancelled'
+  AND m.cancel_reason IN ('server_error', 'integrity_violation') AND m.ended_at >= $2
+`
+
+type ServerVoidsOfParams struct {
+	UserID uuid.UUID
+	Since  *time.Time
+}
+
+// Matches of a user cancelled by the server (server_error or
+// integrity_violation) since @since (anti-cheat).
+func (q *Queries) ServerVoidsOf(ctx context.Context, arg ServerVoidsOfParams) (int32, error) {
+	row := q.db.QueryRow(ctx, serverVoidsOf, arg.UserID, arg.Since)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const setMatchStatus = `-- name: SetMatchStatus :exec

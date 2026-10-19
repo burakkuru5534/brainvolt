@@ -134,6 +134,26 @@ WHERE r.match_id = $1
 GROUP BY r.round_no, sc.category_id
 ORDER BY r.round_no;
 
+-- Correct answers faster than a reading-time floor for the prompt in the
+-- player's language: 300 ms + 15 ms per character (schema-moderation §8.5).
+-- name: FastCorrectAnswers :many
+SELECT a.user_id, count(*)::int AS fast, min(a.response_ms)::int AS fastest_ms
+FROM game.answers a
+JOIN game.match_rounds r ON r.match_id = a.match_id AND r.round_no = a.round_no
+JOIN game.match_participants p ON p.match_id = a.match_id AND p.user_id = a.user_id
+JOIN content.question_translations t ON t.question_id = r.question_id AND t.locale = p.locale
+WHERE a.match_id = $1 AND a.is_correct AND a.option_id IS NOT NULL
+  AND a.response_ms < 300 + 15 * char_length(t.prompt)
+GROUP BY a.user_id;
+
+-- Matches of a user cancelled by the server (server_error or
+-- integrity_violation) since @since (anti-cheat).
+-- name: ServerVoidsOf :one
+SELECT count(*)::int FROM game.matches m
+JOIN game.match_participants p ON p.match_id = m.id
+WHERE p.user_id = @user_id AND m.status = 'cancelled'
+  AND m.cancel_reason IN ('server_error', 'integrity_violation') AND m.ended_at >= @since;
+
 -- name: SideEntities :many
 SELECT side_no, team_id, couple_id FROM game.match_sides WHERE match_id = $1 ORDER BY side_no;
 

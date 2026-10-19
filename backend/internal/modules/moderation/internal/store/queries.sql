@@ -108,3 +108,26 @@ WHERE a.id = @id FOR UPDATE OF a;
 
 -- name: DecideAppeal :exec
 UPDATE moderation.appeals SET status = @status, decided_by = @decided_by, decided_at = @now, decision_note = sqlc.narg(note) WHERE id = @id;
+
+-- ---------- Cheat signals ----------
+
+-- A signal of this kind for the user: for the match, or since @since
+-- when there is no match (de-duplication).
+-- name: SignalExists :one
+SELECT EXISTS (
+  SELECT 1 FROM moderation.cheat_signals
+  WHERE user_id = @user_id AND kind = @kind
+    AND ((sqlc.narg(match_id)::uuid IS NOT NULL AND match_id = sqlc.narg(match_id)::uuid)
+         OR (sqlc.narg(match_id)::uuid IS NULL AND detected_at >= @since::timestamptz))
+);
+
+-- name: InsertSignal :exec
+INSERT INTO moderation.cheat_signals (id, user_id, match_id, kind, severity, details, case_id, detected_at)
+VALUES (@id, @user_id, sqlc.narg(match_id), @kind, @severity, @details, @case_id, @now);
+
+-- name: BumpCaseSignal :exec
+UPDATE moderation.cases SET signal_count = signal_count + 1, priority = priority + @weight WHERE id = @id;
+
+-- Serializes a user's signal writes (de-duplication races).
+-- name: LockUser :exec
+SELECT pg_advisory_xact_lock(hashtextextended('moderation:' || @user_id::text, 0));

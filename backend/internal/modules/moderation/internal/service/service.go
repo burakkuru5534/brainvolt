@@ -43,6 +43,8 @@ type Deps struct {
 	Questions Questions
 	Events    *events.Bus
 	Clock     clock.Clock
+	// ServerVoids counts a user's server-cancelled matches (game).
+	ServerVoids func(ctx context.Context, user uuid.UUID, since time.Time) (int, error)
 }
 
 // Service implements moderation.

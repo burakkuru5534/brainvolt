@@ -85,6 +85,9 @@ type Participant struct {
 	Contribution   int
 	Correct        int
 	Answered       int
+	// Rejects counts refused submissions (late, duplicate, not one's turn,
+	// foreign option): an anti-cheat signal (schema-moderation §4).
+	Rejects int
 }
 
 // SideState is one side's running totals.

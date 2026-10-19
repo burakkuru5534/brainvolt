@@ -133,6 +133,9 @@ func (h *Hub) Serve(ctx context.Context, conn *wsserver.Conn, locale i18n.Locale
 			var ce *wsserver.CloseError
 			if errors.As(err, &ce) {
 				s.close(ce.Code, ce.Reason)
+				for _, fn := range h.onViolation {
+					fn(context.WithoutCancel(ctx), s.client.UserID, ce.Reason)
+				}
 			} else {
 				s.close(wsserver.CloseNormal, "")
 			}

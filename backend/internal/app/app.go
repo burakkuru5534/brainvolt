@@ -204,6 +204,8 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	tm.Register(srv, ident, d.idem)
 	mod := moderation.New(moderation.Deps{DB: d.db, Identity: ident, Content: cont, Events: d.bus, Clock: d.clock, Logger: d.logger})
 	mod.Register(srv, ident, d.idem)
+	// Sockets closed for malformed messages or flooding are cheat signals (D-084).
+	rt.OnViolation(mod.ProtocolViolation)
 	rk := ranking.New(ranking.Deps{DB: d.db, Redis: d.rdb, Profiles: prof, Teams: tm, Social: soc, Clock: d.clock, Logger: d.logger})
 	rk.Register(srv, ident)
 	prog := progression.New(progression.Deps{DB: d.db, Ranking: rk, Clock: d.clock, Logger: d.logger})
@@ -273,6 +275,10 @@ func newBus(db *pgxpool.Pool, rdb *redis.Client, logger *slog.Logger) *events.Bu
 	// Daily Challenge: the daily board and the run's XP / streak / quest (D-040).
 	bus.Subscribe(game.EventDailyRunCompleted, ranking.SubscriberDailyBoard, rk.OnDailyRunCompleted)
 	bus.Subscribe(game.EventDailyRunCompleted, progression.SubscriberDailyRewards, prog.OnDailyRunCompleted)
+	// moderation: anti-cheat signals from matches (schema-moderation §4, D-084).
+	mod := moderation.New(moderation.Deps{DB: db, Clock: clock.Real{}, Logger: logger})
+	bus.Subscribe(game.EventMatchCompleted, moderation.SubscriberMatchSignals, mod.OnMatchCompleted)
+	bus.Subscribe(game.EventMatchCancelled, moderation.SubscriberVoidSignals, mod.OnMatchCancelled)
 	return bus
 }
 

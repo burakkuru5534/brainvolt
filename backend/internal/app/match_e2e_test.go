@@ -166,6 +166,19 @@ func TestLiveQuickDuel(t *testing.T) {
 	if v, _ := x.rdb.Exists(t.Context(), "game:user:"+a.String()+":live").Result(); v != 0 {
 		t.Fatal("live lock not released")
 	}
+	// Anti-cheat measures (D-084): A answered every round at show time, so
+	// each correct answer is under the reading-time floor.
+	var correctA, fastA int
+	if err := x.db.QueryRow(t.Context(), `
+		SELECT (SELECT count(*) FROM game.answers WHERE match_id = $1 AND user_id = $2 AND is_correct),
+		       (j.args->'event'->'payload'->'participants'->0->>'fast_correct')::int
+		FROM river_job j WHERE j.args->'event'->>'name' = 'game.MatchCompleted' AND j.args->'event'->'payload'->>'match_id' = $1::text
+		  AND j.args->'event'->'payload'->'participants'->0->>'user_id' = $2::text LIMIT 1`, c.Match.ID, a).Scan(&correctA, &fastA); err != nil {
+		t.Fatal(err)
+	}
+	if fastA != correctA {
+		t.Fatalf("fast_correct %d, correct %d", fastA, correctA)
+	}
 }
 
 // findWithin is find with a longer wait (takeover needs the lease to expire).

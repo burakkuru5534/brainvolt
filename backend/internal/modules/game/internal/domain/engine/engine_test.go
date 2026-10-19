@@ -307,6 +307,27 @@ func TestRD03RD04RD05Submissions(t *testing.T) {
 	}
 }
 
+// Refused submissions a normal client does not cause count toward the
+// rejected_submission_burst signal; state errors do not (D-084).
+func TestRejectedSubmissionsCounted(t *testing.T) {
+	h := newHarness(t, duel(domain.QuickDuel), 7)
+	h.start()
+	h.at(h.m.Round.ShowAtMS + 500)
+	for _, opt := range []uuid.UUID{uuid.New(), h.correct(), h.wrong()} {
+		_, err := h.m.Answer(h.a(), 1, opt, h.now)
+		h.m.Rejected(h.a(), err)
+	}
+	_, err := h.m.Answer(h.a(), 2, h.correct(), h.now)
+	h.m.Rejected(h.a(), err)
+	h.m.Rejected(h.a(), nil)
+	if got := h.m.Participant(h.a()).Rejects; got != 2 { // invalid option + duplicate
+		t.Fatalf("rejects %d", got)
+	}
+	if h.m.Participant(h.b()).Rejects != 0 {
+		t.Fatal("other participant counted")
+	}
+}
+
 func TestRD06CorrectOptionNeverBeforeReveal(t *testing.T) {
 	h := newHarness(t, duel(domain.Ranked), 10)
 	h.start()

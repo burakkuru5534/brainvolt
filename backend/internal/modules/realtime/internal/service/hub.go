@@ -69,6 +69,9 @@ type (
 	// PongFunc receives a session's RTT estimate (median of its last 10
 	// samples) after every pong (timing.md §3).
 	PongFunc func(c Client, rttMS int)
+	// ViolationFunc runs when a session is closed for a protocol violation
+	// or flooding (anti-cheat signal, D-084).
+	ViolationFunc func(ctx context.Context, user uuid.UUID, reason string)
 	// LiveFunc adds what the user is part of to sys.welcome.live.
 	LiveFunc func(ctx context.Context, user uuid.UUID) (map[string]any, error)
 	// ResumeFunc sends a resuming session the events of stream after
@@ -109,6 +112,7 @@ type Hub struct {
 	resumers     map[string]ResumeFunc
 	onDisconnect []DisconnectFunc
 	onPong       []PongFunc
+	onViolation  []ViolationFunc
 	live         []LiveFunc
 }
 
@@ -132,6 +136,9 @@ func (h *Hub) OnDisconnect(fn DisconnectFunc) { h.onDisconnect = append(h.onDisc
 
 // OnPong registers an RTT listener.
 func (h *Hub) OnPong(fn PongFunc) { h.onPong = append(h.onPong, fn) }
+
+// OnViolation registers a protocol violation listener.
+func (h *Hub) OnViolation(fn ViolationFunc) { h.onViolation = append(h.onViolation, fn) }
 
 // OnLive registers a contributor to sys.welcome.live.
 func (h *Hub) OnLive(fn LiveFunc) { h.live = append(h.live, fn) }

@@ -143,7 +143,8 @@ CREATE TABLE moderation.cheat_signals (
                  'team_collusion',              -- side members feeding results / intentional losses
                  'reconnect_abuse',             -- disconnect patterns used to dodge losses
                  'multi_account',               -- several accounts on one installation trading wins
-                 'abnormal_rating_gain')),
+                 'abnormal_rating_gain',
+                 'repeated_server_voids')),       -- 3+ server-cancelled matches in 7 days (D-084)
   severity     smallint    NOT NULL CHECK (severity BETWEEN 1 AND 5),
   details      jsonb       NOT NULL,             -- measured values + threshold used, for reviewer
   case_id      uuid        REFERENCES moderation.cases(id),
@@ -211,6 +212,8 @@ Effects of sanction kinds:
 | **Correct** | moderation → game / ranking | `match_void` (admin) → `game` sets the match as voided and emits `game.MatchVoided` → ranking removes that match's SP / leaderboard points (compensating ledger rows); **ratings are not recomputed retroactively** — the cheater gets a `ranked_ban` and their season standing is reset; affected honest opponents keep their results (P). |
 
 Signals never change a match result automatically.
+
+**Implemented in Phase 8.5 (D-084):** `game` measures per participant at completion — refused submissions (late, duplicate, not one's turn, foreign option) and correct answers under the reading-time floor (300 ms + 15 ms per prompt character in the player's language) — and puts them on `game.MatchCompleted`. The worker's `moderation` subscribers record `superhuman_response_time` (≥ 2 such answers, severity = count, max 5), `rejected_submission_burst` (≥ 5 refusals) and, on `game.MatchCancelled` with `server_error` / `integrity_violation`, `repeated_server_voids` (≥ 3 in 7 days). The gateway reports sockets closed for a malformed message or flooding as `protocol_violation` (once an hour per user). Every signal joins the user's open case (opening one), raising its priority by the severity; one signal per user, kind and match.
 
 `game` schema addition (applied to `schema-game.md` in this task): `game.matches.voided_at timestamptz`, `void_reason text`, `voided_by uuid`; event `game.MatchVoided`.
 

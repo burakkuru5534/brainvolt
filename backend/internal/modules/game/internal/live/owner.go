@@ -152,6 +152,8 @@ func (o *owner) handle(ctx context.Context, c command) {
 	}
 	if err == nil {
 		err = o.commit(ctx, out, now)
+	} else if c.Kind == kindAnswer || c.Kind == kindPick || c.Kind == kindPropose || c.Kind == kindLock {
+		o.match.Rejected(user, err)
 	}
 	if c.Re != "" {
 		if rerr := o.m.d.RT.Reply(ctx, c.Client, c.Re, err); rerr != nil {

@@ -48,6 +48,11 @@ type ParticipantPayload struct {
 	Contribution int                      `json:"contribution"`
 	Disconnects  int                      `json:"disconnects"`
 	AwayMS       int                      `json:"away_ms"`
+	// Anti-cheat measures (schema-moderation §4): refused submissions and
+	// correct answers under the reading-time floor, with the fastest one.
+	Rejects     int `json:"rejects"`
+	FastCorrect int `json:"fast_correct"`
+	FastestMS   int `json:"fastest_ms,omitempty"`
 }
 
 // MatchCompleted is the payload of game.MatchCompleted (schema-game §4):
@@ -302,11 +307,21 @@ func (s *Service) finishTx(ctx context.Context, tx pgx.Tx, q *sqlc.Queries, m *e
 	for i := range ps {
 		tier[ps[i].UserID] = ps[i].AccountTierAtStart
 	}
+	fast, err := q.FastCorrectAnswers(ctx, m.ID)
+	if err != nil {
+		return err
+	}
 	for _, p := range r.Participants {
-		payload.Participants = append(payload.Participants, ParticipantPayload{
+		pp := ParticipantPayload{
 			UserID: p.UserID, SideNo: p.Side, TierAtStart: tier[p.UserID], Status: p.Status, Correct: p.Correct,
-			Answered: p.Answered, Contribution: p.Contribution, Disconnects: p.Disconnects, AwayMS: p.AwayMS,
-		})
+			Answered: p.Answered, Contribution: p.Contribution, Disconnects: p.Disconnects, AwayMS: p.AwayMS, Rejects: p.Rejects,
+		}
+		for _, f := range fast {
+			if f.UserID == p.UserID {
+				pp.FastCorrect, pp.FastestMS = int(f.Fast), int(f.FastestMs)
+			}
+		}
+		payload.Participants = append(payload.Participants, pp)
 	}
 	stats, err := q.RoundStats(ctx, m.ID)
 	if err != nil {

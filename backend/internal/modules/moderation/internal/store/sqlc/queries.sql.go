@@ -68,6 +68,20 @@ func (q *Queries) BumpCase(ctx context.Context, arg BumpCaseParams) error {
 	return err
 }
 
+const bumpCaseSignal = `-- name: BumpCaseSignal :exec
+UPDATE moderation.cases SET signal_count = signal_count + 1, priority = priority + $1 WHERE id = $2
+`
+
+type BumpCaseSignalParams struct {
+	Weight int32
+	ID     uuid.UUID
+}
+
+func (q *Queries) BumpCaseSignal(ctx context.Context, arg BumpCaseSignalParams) error {
+	_, err := q.db.Exec(ctx, bumpCaseSignal, arg.Weight, arg.ID)
+	return err
+}
+
 const caseReasonCount = `-- name: CaseReasonCount :one
 SELECT count(*)::int FROM moderation.reports WHERE case_id = $1 AND reason = $2
 `
@@ -530,6 +544,36 @@ func (q *Queries) InsertSanction(ctx context.Context, arg InsertSanctionParams) 
 	return err
 }
 
+const insertSignal = `-- name: InsertSignal :exec
+INSERT INTO moderation.cheat_signals (id, user_id, match_id, kind, severity, details, case_id, detected_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+`
+
+type InsertSignalParams struct {
+	ID       uuid.UUID
+	UserID   uuid.UUID
+	MatchID  *uuid.UUID
+	Kind     string
+	Severity int16
+	Details  []byte
+	CaseID   *uuid.UUID
+	Now      time.Time
+}
+
+func (q *Queries) InsertSignal(ctx context.Context, arg InsertSignalParams) error {
+	_, err := q.db.Exec(ctx, insertSignal,
+		arg.ID,
+		arg.UserID,
+		arg.MatchID,
+		arg.Kind,
+		arg.Severity,
+		arg.Details,
+		arg.CaseID,
+		arg.Now,
+	)
+	return err
+}
+
 const liftSanction = `-- name: LiftSanction :exec
 UPDATE moderation.sanctions SET lifted_at = $1, lifted_by = $2 WHERE id = $3 AND lifted_at IS NULL
 `
@@ -542,6 +586,16 @@ type LiftSanctionParams struct {
 
 func (q *Queries) LiftSanction(ctx context.Context, arg LiftSanctionParams) error {
 	_, err := q.db.Exec(ctx, liftSanction, arg.Now, arg.LiftedBy, arg.ID)
+	return err
+}
+
+const lockUser = `-- name: LockUser :exec
+SELECT pg_advisory_xact_lock(hashtextextended('moderation:' || $1::text, 0))
+`
+
+// Serializes a user's signal writes (de-duplication races).
+func (q *Queries) LockUser(ctx context.Context, userID string) error {
+	_, err := q.db.Exec(ctx, lockUser, userID)
 	return err
 }
 
@@ -705,6 +759,38 @@ type SetCaseReviewParams struct {
 func (q *Queries) SetCaseReview(ctx context.Context, arg SetCaseReviewParams) error {
 	_, err := q.db.Exec(ctx, setCaseReview, arg.AssignedTo, arg.ID)
 	return err
+}
+
+const signalExists = `-- name: SignalExists :one
+
+SELECT EXISTS (
+  SELECT 1 FROM moderation.cheat_signals
+  WHERE user_id = $1 AND kind = $2
+    AND (($3::uuid IS NOT NULL AND match_id = $3::uuid)
+         OR ($3::uuid IS NULL AND detected_at >= $4::timestamptz))
+)
+`
+
+type SignalExistsParams struct {
+	UserID  uuid.UUID
+	Kind    string
+	MatchID *uuid.UUID
+	Since   time.Time
+}
+
+// ---------- Cheat signals ----------
+// A signal of this kind for the user: for the match, or since @since
+// when there is no match (de-duplication).
+func (q *Queries) SignalExists(ctx context.Context, arg SignalExistsParams) (bool, error) {
+	row := q.db.QueryRow(ctx, signalExists,
+		arg.UserID,
+		arg.Kind,
+		arg.MatchID,
+		arg.Since,
+	)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const targetActions = `-- name: TargetActions :many
