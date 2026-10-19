@@ -37,6 +37,15 @@ const (
 // Config is a match configuration (mode-matrix.md).
 type Config = config.Config
 
+// MatchType is a configuration's match type.
+type MatchType = domain.MatchType
+
+// Format is a configuration's format.
+type Format = domain.Format
+
+// CategoryMode is a configuration's category mode.
+type CategoryMode = domain.CategoryMode
+
 // Violation is a broken mode-matrix rule.
 type Violation = config.Violation
 
@@ -58,11 +67,29 @@ type MatchCancelled = service.MatchCancelled
 // MatchStarted is the payload of game.MatchStarted.
 type MatchStarted = service.MatchStarted
 
+// Ended is a finished match as its live owner saw it.
+type Ended = live.Ended
+
+// EndedParticipant is a participant's final state.
+type EndedParticipant = live.EndedParticipant
+
 // Summary is a match's state and seating.
 type Summary = service.Summary
 
 // Seated is one participant of a Summary.
 type Seated = service.Seated
+
+// Values other modules compare with.
+const (
+	OriginMatchmaking     = domain.Matchmaking
+	StatusCancelled       = domain.StatusCancelled
+	StatusCompleted       = domain.StatusCompleted
+	CancelNotAllReady     = domain.CancelNotAllReady
+	CancelLeftBeforeStart = domain.CancelLeftBeforeStart
+	ParticipantReady      = domain.PReady
+	ParticipantLeft       = domain.PLeft
+	ParticipantForfeited  = domain.PForfeited
+)
 
 // Origins of matches created by other modules.
 const (
@@ -173,6 +200,19 @@ func (m *Module) Practice(ctx context.Context, user uuid.UUID, locale string) (*
 		return nil, err
 	}
 	return c, nil
+}
+
+// OnEnd registers fn for matches finishing on this instance (completed or
+// cancelled), called after the live state is cleaned up.
+func (m *Module) OnEnd(fn func(ctx context.Context, e Ended)) {
+	if m.live != nil {
+		m.live.OnEnd(fn)
+	}
+}
+
+// CategoryExists reports an active top-level category (R12).
+func (m *Module) CategoryExists(ctx context.Context, id uuid.UUID) (bool, error) {
+	return m.svc.CategoryExists(ctx, id)
 }
 
 // Summary returns a match's state and participants.

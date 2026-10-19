@@ -27,9 +27,9 @@ func Register(s *httpserver.Server, svc *service.Service, ident *identity.Module
 		return httpserver.WriteJSON(w, http.StatusCreated, t)
 	})), httpserver.WithDoc(httpserver.Doc{
 		Tag: "matchmaking", Auth: "any", Idempotency: true, Status: http.StatusCreated,
-		Summary: "Join the Quick Duel 1v1 queue (Phase 4: first come, first served); practice starts a match against the development bot",
+		Summary: "Join the queue of a 1v1 configuration (paired by rating, widening range); practice starts a match against the development bot",
 		Request: service.Request{}, Response: service.Ticket{},
-		Errors: []apierror.Code{apierror.ModeNotAllowed, apierror.AlreadyQueued, apierror.AlreadyInMatch, apierror.ValidationFailed,
+		Errors: []apierror.Code{apierror.ModeNotAllowed, apierror.AlreadyQueued, apierror.AlreadyInMatch, apierror.ValidationFailed, apierror.QueueCooldown,
 			apierror.NotEnoughQuestions, apierror.IdempotencyKeyReused, apierror.IdempotencyInProgress},
 	}))
 	s.Handle("GET /v1/matchmaking/tickets/current", ident.Auth(func(w http.ResponseWriter, r *http.Request) error {
@@ -40,7 +40,7 @@ func Register(s *httpserver.Server, svc *service.Service, ident *identity.Module
 		}
 		return httpserver.WriteJSON(w, http.StatusOK, t)
 	}), httpserver.WithDoc(httpserver.Doc{
-		Tag: "matchmaking", Auth: "any", Summary: "The caller's queue ticket and waiting time",
+		Tag: "matchmaking", Auth: "any", Summary: "The caller's queue ticket, waiting time and current search range",
 		Response: service.Ticket{}, Errors: []apierror.Code{apierror.NotFound},
 	}))
 	s.Handle("DELETE /v1/matchmaking/tickets/current", ident.Auth(func(w http.ResponseWriter, r *http.Request) error {

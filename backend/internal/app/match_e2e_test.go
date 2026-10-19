@@ -280,7 +280,8 @@ func TestQueuePairsPlayers(t *testing.T) {
 	wa, _ := x.auth(tokA, "inst-a", nil)
 	wb, _ := x.auth(tokB, "inst-b", nil)
 
-	want(t, "unsupported mode", x.post("/v1/matchmaking/tickets", tokA, map[string]any{"match_type": "ranked", "format": "1v1"}), 422, "MODE_NOT_ALLOWED")
+	want(t, "ranked has no category mode", x.post("/v1/matchmaking/tickets", tokA, map[string]any{"match_type": "ranked", "format": "1v1", "category_mode": "blind_challenge"}), 422, "MODE_NOT_ALLOWED")
+	want(t, "team formats later", x.post("/v1/matchmaking/tickets", tokA, map[string]any{"match_type": "quick_duel", "format": "2v2"}), 422, "MODE_NOT_ALLOWED")
 	r := x.post("/v1/matchmaking/tickets", tokA, map[string]any{"match_type": "quick_duel", "format": "1v1"})
 	want(t, "ticket", r, 201, "")
 	if r.get("state") != "searching" {
@@ -430,4 +431,40 @@ func TestLiveMixedBattlePick(t *testing.T) {
 		t.Fatalf("round.started %v", started)
 	}
 	wa.answer(wa.send("match.leave", map[string]any{"match_id": id}))
+}
+
+// Ranked and Mixed Battle queues: Ranked creates a rated match;
+// matchmade Mixed Battle gets three server-picked categories (R13).
+func TestRankedAndMixedQueues(t *testing.T) {
+	x := newE2E(t)
+	tokA, a := x.signedIn()
+	tokB, _ := x.signedIn()
+	x.seedQuestions(a)
+	wa, _ := x.auth(tokA, "inst-a", nil)
+	wb, _ := x.auth(tokB, "inst-b", nil)
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	go func() { _ = x.mods.matchmaking.Run(ctx) }()
+
+	for _, req := range []map[string]any{
+		{"match_type": "ranked", "format": "1v1"},
+		{"match_type": "quick_duel", "format": "1v1", "category_mode": "mixed_battle"},
+	} {
+		r := x.post("/v1/matchmaking/tickets", tokA, req)
+		if r.code != 201 || r.get("range") == nil {
+			t.Fatalf("ticket %v: %s", req, r.raw)
+		}
+		want(t, "ticket B", x.post("/v1/matchmaking/tickets", tokB, req), 201, "")
+		id := str(data(wa.findWithin(5*time.Second, "mm.match_found"))["match_id"])
+		wb.findWithin(5*time.Second, "mm.match_found")
+		var rated bool
+		var cats int
+		if err := x.db.QueryRow(t.Context(), `SELECT is_rated, coalesce(jsonb_array_length(config_extra->'category_ids'), 0) FROM game.matches WHERE id = $1`, id).Scan(&rated, &cats); err != nil {
+			t.Fatal(err)
+		}
+		if rated != (req["match_type"] == "ranked") || (req["category_mode"] == "mixed_battle" && cats != 3) {
+			t.Fatalf("%v: rated %v, %d categories", req, rated, cats)
+		}
+		leaveMatch(t, id, wa, wb)
+	}
 }

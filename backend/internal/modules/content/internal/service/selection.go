@@ -115,6 +115,12 @@ func (s *Service) CategoryExists(ctx context.Context, id uuid.UUID) (bool, error
 	return sqlc.New(s.db).CategoryIsTopLevel(ctx, id)
 }
 
+// ActiveCategoryIDs lists the active top-level categories (server-picked
+// Mixed Battle categories in matchmaking, R13).
+func (s *Service) ActiveCategoryIDs(ctx context.Context) ([]uuid.UUID, error) {
+	return sqlc.New(s.db).ActiveCategoryIDs(ctx)
+}
+
 // AnswerStat is one (question, locale) line of a completed match.
 type AnswerStat struct {
 	QuestionID    uuid.UUID `json:"question_id"`

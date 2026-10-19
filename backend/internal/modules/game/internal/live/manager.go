@@ -99,6 +99,53 @@ type Manager struct {
 
 	mu     sync.Mutex
 	owners map[uuid.UUID]*owner
+	ended  []EndFunc
+}
+
+// Ended is a match that just reached completed or cancelled, as the
+// owning instance saw it (matchmaking: re-queue, cooldowns).
+type Ended struct {
+	MatchID      uuid.UUID
+	Origin       domain.Origin
+	Status       domain.Status
+	CancelReason domain.CancelReason
+	Participants []EndedParticipant
+}
+
+// EndedParticipant is a participant's final state.
+type EndedParticipant struct {
+	UserID uuid.UUID
+	Locale string
+	Status domain.ParticipantStatus
+}
+
+// EndFunc is called once per finished match on the instance that owned it.
+type EndFunc func(ctx context.Context, e Ended)
+
+// OnEnd registers fn for finished matches; register before matches start.
+func (m *Manager) OnEnd(fn EndFunc) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.ended = append(m.ended, fn)
+}
+
+func (m *Manager) notifyEnded(ctx context.Context, match *engine.Match) {
+	m.mu.Lock()
+	fns := m.ended
+	m.mu.Unlock()
+	if len(fns) == 0 {
+		return
+	}
+	e := Ended{MatchID: match.ID, Origin: match.Config.Origin, Status: match.Status}
+	if r := match.Result(); r != nil {
+		e.CancelReason = r.CancelReason
+	}
+	for _, p := range match.Participants {
+		e.Participants = append(e.Participants, EndedParticipant{UserID: p.UserID, Locale: p.Locale, Status: p.Status})
+	}
+	for _, fn := range fns {
+		fn(ctx, e)
+	}
 }
 
 // New returns a manager; its owners run until Close.

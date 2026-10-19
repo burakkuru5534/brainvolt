@@ -52,12 +52,16 @@
 
 | Key | Type | Content | TTL |
 |---|---|---|---|
+| `mm:queues` | SET | every queue name used so far (the matcher walks them) | none |
 | `mm:q:<queue>` | ZSET | ticket_id → rating (for range search) | none (members removed when matched/expired) |
-| `mm:t:<ticket_id>` | HASH | user ids (party), rating, rd, bucket, locales, enqueued_ms, current search range, block list snapshot | **10 min** (P) |
+| `mm:t:<ticket_id>` | STRING | ticket JSON: user, locale, request, rating, rd, enqueued_ms, block list snapshot (the search range is computed from the wait, D-068) | **10 min** (P) |
 | `mm:user:<user_id>` | STRING | ticket id — one ticket per user | **10 min** |
 | `mm:lock:<queue>` | STRING | lease: only one matcher loop per queue across instances | **5 s**, renewed |
+| `mm:m:<match_id>` | HASH | user_id → ticket JSON of a new matchmade match, to re-queue its ready players if the ready check fails (D-034) | **2 min** |
+| `mm:missed:<user_id>` / `mm:leaves:<user_id>` | ZSET | missed ready checks / matchmade matches left (timestamps) | 30 min / 24 h |
+| `mm:cooldown:<user_id>` | STRING | queue cooldown (3 missed ready checks → 5 min; 2nd leave in 24 h → 5 min, 3rd+ → 15 min) | the cooldown |
 
-`<queue>` = `<match_type>:<format>:<bucket>:<locale_group>`, e.g. `ranked:1v1:solo:tr`, `quick_duel:3v3:team:mixed`.
+`<queue>` = mode-matrix §3.4: `<match_type>:<format>:<rating_bucket or casual>:<category_mode or default>:<category_id or ->:<locale_group>`, e.g. `ranked:1v1:solo:default:-:any`. Questions exist in both languages, so the locale group is always `any` (D-068).
 
 ---
 

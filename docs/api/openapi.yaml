@@ -953,6 +953,13 @@ components:
             type: object
         Request:
             properties:
+                category_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                category_mode:
+                    type: string
                 format:
                     type: string
                 match_type:
@@ -1379,6 +1386,13 @@ components:
             type: object
         Ticket:
             properties:
+                category_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                category_mode:
+                    type: string
                 enqueued_at:
                     format: date-time
                     type: string
@@ -1394,6 +1408,10 @@ components:
                         - "null"
                 match_type:
                     type: string
+                range:
+                    type:
+                        - integer
+                        - "null"
                 state:
                     type: string
                 wait_ms:
@@ -1403,6 +1421,7 @@ components:
                 - format
                 - id
                 - match_type
+                - range
                 - state
                 - wait_ms
             type: object
@@ -3079,7 +3098,7 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/ErrorEnvelope'
-                    description: 'Error codes: ALREADY_IN_MATCH, ALREADY_QUEUED, IDEMPOTENCY_KEY_REUSED, IDEMPOTENT_REQUEST_IN_PROGRESS'
+                    description: 'Error codes: ALREADY_IN_MATCH, ALREADY_QUEUED, IDEMPOTENCY_KEY_REUSED, IDEMPOTENT_REQUEST_IN_PROGRESS, QUEUE_COOLDOWN'
                 "422":
                     content:
                         application/json:
@@ -3106,7 +3125,7 @@ paths:
                     description: 'Error codes: UNAVAILABLE'
             security:
                 - firebase: []
-            summary: 'Join the Quick Duel 1v1 queue (Phase 4: first come, first served); practice starts a match against the development bot'
+            summary: Join the queue of a 1v1 configuration (paired by rating, widening range); practice starts a match against the development bot
             tags:
                 - matchmaking
             x-auth: any
@@ -3217,7 +3236,7 @@ paths:
                     description: 'Error codes: UNAVAILABLE'
             security:
                 - firebase: []
-            summary: The caller's queue ticket and waiting time
+            summary: The caller's queue ticket, waiting time and current search range
             tags:
                 - matchmaking
             x-auth: any

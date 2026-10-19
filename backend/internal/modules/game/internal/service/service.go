@@ -63,6 +63,7 @@ var PreseasonID = uuid.MustParse("01a14f8e-0000-7000-8000-000000000001")
 type Questions interface {
 	Select(ctx context.Context, r content.SelectRequest) ([]content.SelectedQuestion, error)
 	CategoryExists(ctx context.Context, id uuid.UUID) (bool, error)
+	ActiveCategoryIDs(ctx context.Context) ([]uuid.UUID, error)
 	Texts(ctx context.Context, ids []uuid.UUID, locales []string) (map[uuid.UUID]map[string]content.QuestionText, error)
 }
 
@@ -198,6 +199,21 @@ func (s *Service) Create(ctx context.Context, req CreateRequest) (*Created, erro
 	}
 	if vs := config.Validate(cfg); len(vs) > 0 {
 		return nil, modeNotAllowed(vs)
+	}
+	if cfg.CategoryMode == domain.MixedBattle && len(cfg.CategoryIDs) == 0 {
+		// Matchmaking: the server picks the three categories (R13).
+		all, err := s.d.Questions.ActiveCategoryIDs(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if len(all) < 3 {
+			return nil, apierror.New(apierror.NotEnoughQuestions).With("reason", "categories")
+		}
+		for i := range 3 {
+			j := i + s.d.Random.Intn(len(all)-i)
+			all[i], all[j] = all[j], all[i]
+		}
+		cfg.CategoryIDs = all[:3]
 	}
 	if err := s.contextRules(ctx, cfg, req, parent, now); err != nil {
 		return nil, err

@@ -58,9 +58,9 @@
 ## 5. matchmaking
 | Method | Path | Auth | Idem | Ph | Purpose |
 |---|---|---|---|---|---|
-| POST | `/v1/matchmaking/tickets` | any | ✓ | 4–5 | Phase 4: `{match_type: quick_duel, format: 1v1, practice?}` only (first-come pairing; `practice` = dev bot, D-066). Phase 5: queue `{match_type, format, team_answer_mode?, category_mode?, category_id?, party_user_ids?, team_id?, couple_id?}` → ticket. Errors: sanctions, cooldown, already queued/in match. |
+| POST | `/v1/matchmaking/tickets` | any | ✓ | 4–5 | Phase 4: `{match_type: quick_duel, format: 1v1, practice?}` only (first-come pairing; `practice` = dev bot, D-066). Phase 5: `{match_type, format: 1v1, category_mode?, category_id?}` → ticket with `range` (rating search range, null = anyone; D-068); `party_user_ids`, `team_id`, `couple_id` and team formats come with Phase 6. Errors: sanctions, `QUEUE_COOLDOWN` (with `Retry-After`), already queued/in match. |
 | DELETE | `/v1/matchmaking/tickets/current` | any | — | 4 | Leave queue. |
-| GET | `/v1/matchmaking/tickets/current` | any | — | 4 | Status, current search range, estimated wait. |
+| GET | `/v1/matchmaking/tickets/current` | any | — | 4 | Status, waiting time, current search range. |
 
 ## 6. lobby (rooms, challenges, invite codes)
 | Method | Path | Auth | Idem | Ph | Purpose |

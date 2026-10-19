@@ -13,6 +13,30 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const activeCategoryIDs = `-- name: ActiveCategoryIDs :many
+SELECT id FROM content.categories WHERE is_active ORDER BY sort_order, slug
+`
+
+func (q *Queries) ActiveCategoryIDs(ctx context.Context) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, activeCategoryIDs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const addQuestionStats = `-- name: AddQuestionStats :exec
 INSERT INTO content.question_stats (question_id, locale, times_asked, times_correct, times_timed_out, sum_response_ms, last_asked_at)
 VALUES ($1, $2, $3, $4, $5, $6, $7)

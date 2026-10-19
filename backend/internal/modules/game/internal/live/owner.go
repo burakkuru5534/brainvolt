@@ -374,4 +374,5 @@ func (o *owner) finish(ctx context.Context) {
 	}
 	o.m.releaseLease(ctx, id)
 	o.m.forget(o)
+	o.m.notifyEnded(ctx, o.match)
 }

@@ -58,7 +58,7 @@ Layer 5  ranking   progression   moderation   notification   (event consumers)
 | realtime | identity |
 | game | identity, profile, content, realtime, team, commerce |
 | lobby | identity, profile, social, team, game, realtime |
-| matchmaking | identity, profile, team, game, realtime, ranking* |
+| matchmaking | identity, profile, team, game, realtime, ranking*, social* |
 | tournament | identity, profile, team, game, realtime |
 | creator | identity, profile, content |
 | chat | identity, profile, team, realtime |
@@ -67,7 +67,7 @@ Layer 5  ranking   progression   moderation   notification   (event consumers)
 | moderation | identity, profile, content, game, creator, chat |
 | notification | identity, profile, social, team |
 
-\* **matchmaking → ranking** (and **identity → game** for the guest-cleanup `ActivityReader`, see `schema-identity.md` §6) are the upward reads: matchmaking needs a player's current rating to place them in a queue. It goes through a narrow read-only interface (`ranking.RatingReader`) declared in matchmaking and **implemented** by ranking, wired in `internal/app`. matchmaking never imports ranking's package directly, so there is no import cycle.
+\* **matchmaking → ranking** (and **identity → game** for the guest-cleanup `ActivityReader`, see `schema-identity.md` §6) are the upward reads: matchmaking needs a player's current rating to place them in a queue. It goes through a narrow read-only interface (`ranking.RatingReader`) declared in matchmaking and **implemented** by ranking, wired in `internal/app`. matchmaking never imports ranking's package directly, so there is no import cycle. **matchmaking → social*** is the same pattern for the block list (`matchmaking.BlockReader`, implemented by social): social sits in the same layer and is not imported.
 
 **Rules**
 1. **No cycles.** If two modules need each other, one side defines an interface and `internal/app` wires the implementation (same pattern as `RatingReader`).

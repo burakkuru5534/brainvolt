@@ -289,3 +289,8 @@ func (s *Service) Summary(ctx context.Context, id uuid.UUID) (Summary, error) {
 	}
 	return out, nil
 }
+
+// CategoryExists reports an active top-level category (content).
+func (s *Service) CategoryExists(ctx context.Context, id uuid.UUID) (bool, error) {
+	return s.d.Questions.CategoryExists(ctx, id)
+}

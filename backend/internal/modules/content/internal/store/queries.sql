@@ -239,6 +239,9 @@ SELECT question_id, id, position, is_correct FROM content.options
 WHERE question_id = ANY(@ids::uuid[])
 ORDER BY question_id, position;
 
+-- name: ActiveCategoryIDs :many
+SELECT id FROM content.categories WHERE is_active ORDER BY sort_order, slug;
+
 -- name: CategoryIsTopLevel :one
 SELECT EXISTS (SELECT 1 FROM content.categories WHERE id = $1 AND is_active);
 
