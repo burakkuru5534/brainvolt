@@ -323,6 +323,21 @@ func (s *Service) forget(ctx context.Context, firebaseUID string) {
 	}
 }
 
+// SetStatus suspends (StatusSuspended) or restores (StatusActive) an
+// account for moderation; the principal cache is cleared so the next
+// request sees it.
+func (s *Service) SetStatus(ctx context.Context, user uuid.UUID, status domain.Status) error {
+	fuid, err := sqlc.New(s.d.DB).SetUserStatus(ctx, sqlc.SetUserStatusParams{ID: user, Status: string(status), Now: s.d.Clock.Now()})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return apierror.New(apierror.NotFound)
+	}
+	if err != nil {
+		return err
+	}
+	s.forget(ctx, fuid)
+	return nil
+}
+
 // SetRole grants (grant = true) or revokes a staff role. user is a
 // BrainVolt user id or a Firebase UID. Used by cmd/admin; the principal
 // cache is cleared so the change applies to the next request.

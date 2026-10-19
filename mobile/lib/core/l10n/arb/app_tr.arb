@@ -1411,6 +1411,123 @@
   "@dailyTimeout": {
     "description": "Daily reveal"
   },
+  "reportQuestion": "Soruyu bildir",
+  "@reportQuestion": {
+    "description": "Report a question"
+  },
+  "reportReasonTitle": "Sorun ne?",
+  "@reportReasonTitle": {
+    "description": "Report reason dialog"
+  },
+  "reportReasonWrongAnswer": "Cevap yanlış",
+  "@reportReasonWrongAnswer": {
+    "description": "Report reason"
+  },
+  "reportReasonAmbiguous": "Belirsiz / birden fazla doğru",
+  "@reportReasonAmbiguous": {
+    "description": "Report reason"
+  },
+  "reportReasonOutdated": "Bilgi güncel değil",
+  "@reportReasonOutdated": {
+    "description": "Report reason"
+  },
+  "reportReasonTypo": "Yazım veya çeviri hatası",
+  "@reportReasonTypo": {
+    "description": "Report reason"
+  },
+  "reportReasonOffensive": "Uygunsuz içerik",
+  "@reportReasonOffensive": {
+    "description": "Report reason"
+  },
+  "reportReasonOther": "Diğer",
+  "@reportReasonOther": {
+    "description": "Report reason"
+  },
+  "reportComment": "Not (isteğe bağlı)",
+  "@reportComment": {
+    "description": "Report comment"
+  },
+  "reportSend": "Gönder",
+  "@reportSend": {
+    "description": "Send report"
+  },
+  "reportSent": "Bildirimin için teşekkürler.",
+  "@reportSent": {
+    "description": "Report sent"
+  },
+  "sanctionsTitle": "Yaptırımlarım",
+  "@sanctionsTitle": {
+    "description": "Sanctions screen"
+  },
+  "sanctionsEmpty": "Hesabında yaptırım yok.",
+  "@sanctionsEmpty": {
+    "description": "No sanctions"
+  },
+  "sanctionWarning": "Uyarı",
+  "@sanctionWarning": {
+    "description": "Sanction kind"
+  },
+  "sanctionChatMute": "Sohbet engeli",
+  "@sanctionChatMute": {
+    "description": "Sanction kind"
+  },
+  "sanctionRankedBan": "Dereceli yasağı",
+  "@sanctionRankedBan": {
+    "description": "Sanction kind"
+  },
+  "sanctionMatchmakingBan": "Eşleştirme yasağı",
+  "@sanctionMatchmakingBan": {
+    "description": "Sanction kind"
+  },
+  "sanctionSocialBan": "Sosyal yasak",
+  "@sanctionSocialBan": {
+    "description": "Sanction kind"
+  },
+  "sanctionSuspension": "Hesap askıya alma",
+  "@sanctionSuspension": {
+    "description": "Sanction kind"
+  },
+  "sanctionUntil": "{date} tarihine kadar",
+  "@sanctionUntil": {
+    "description": "Sanction end",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "sanctionPermanent": "Süresiz",
+  "@sanctionPermanent": {
+    "description": "Permanent sanction"
+  },
+  "sanctionEnded": "Sona erdi",
+  "@sanctionEnded": {
+    "description": "Inactive sanction"
+  },
+  "appealButton": "İtiraz et",
+  "@appealButton": {
+    "description": "Appeal button"
+  },
+  "appealHint": "Neden haksız olduğunu yaz (en az 10 karakter)",
+  "@appealHint": {
+    "description": "Appeal text hint"
+  },
+  "appealSent": "İtirazın alındı.",
+  "@appealSent": {
+    "description": "Appeal sent"
+  },
+  "appealPending": "İtiraz inceleniyor",
+  "@appealPending": {
+    "description": "Appeal status"
+  },
+  "appealAccepted": "İtiraz kabul edildi",
+  "@appealAccepted": {
+    "description": "Appeal status"
+  },
+  "appealRejected": "İtiraz reddedildi",
+  "@appealRejected": {
+    "description": "Appeal status"
+  },
   "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
   "@error_ACCOUNT_DELETION_PENDING": {
     "description": "Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md)."

@@ -1874,6 +1874,174 @@ abstract class AppLocalizations {
   /// **'Süre doldu'**
   String get dailyTimeout;
 
+  /// Report a question
+  ///
+  /// In tr, this message translates to:
+  /// **'Soruyu bildir'**
+  String get reportQuestion;
+
+  /// Report reason dialog
+  ///
+  /// In tr, this message translates to:
+  /// **'Sorun ne?'**
+  String get reportReasonTitle;
+
+  /// Report reason
+  ///
+  /// In tr, this message translates to:
+  /// **'Cevap yanlış'**
+  String get reportReasonWrongAnswer;
+
+  /// Report reason
+  ///
+  /// In tr, this message translates to:
+  /// **'Belirsiz / birden fazla doğru'**
+  String get reportReasonAmbiguous;
+
+  /// Report reason
+  ///
+  /// In tr, this message translates to:
+  /// **'Bilgi güncel değil'**
+  String get reportReasonOutdated;
+
+  /// Report reason
+  ///
+  /// In tr, this message translates to:
+  /// **'Yazım veya çeviri hatası'**
+  String get reportReasonTypo;
+
+  /// Report reason
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygunsuz içerik'**
+  String get reportReasonOffensive;
+
+  /// Report reason
+  ///
+  /// In tr, this message translates to:
+  /// **'Diğer'**
+  String get reportReasonOther;
+
+  /// Report comment
+  ///
+  /// In tr, this message translates to:
+  /// **'Not (isteğe bağlı)'**
+  String get reportComment;
+
+  /// Send report
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönder'**
+  String get reportSend;
+
+  /// Report sent
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimin için teşekkürler.'**
+  String get reportSent;
+
+  /// Sanctions screen
+  ///
+  /// In tr, this message translates to:
+  /// **'Yaptırımlarım'**
+  String get sanctionsTitle;
+
+  /// No sanctions
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesabında yaptırım yok.'**
+  String get sanctionsEmpty;
+
+  /// Sanction kind
+  ///
+  /// In tr, this message translates to:
+  /// **'Uyarı'**
+  String get sanctionWarning;
+
+  /// Sanction kind
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbet engeli'**
+  String get sanctionChatMute;
+
+  /// Sanction kind
+  ///
+  /// In tr, this message translates to:
+  /// **'Dereceli yasağı'**
+  String get sanctionRankedBan;
+
+  /// Sanction kind
+  ///
+  /// In tr, this message translates to:
+  /// **'Eşleştirme yasağı'**
+  String get sanctionMatchmakingBan;
+
+  /// Sanction kind
+  ///
+  /// In tr, this message translates to:
+  /// **'Sosyal yasak'**
+  String get sanctionSocialBan;
+
+  /// Sanction kind
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap askıya alma'**
+  String get sanctionSuspension;
+
+  /// Sanction end
+  ///
+  /// In tr, this message translates to:
+  /// **'{date} tarihine kadar'**
+  String sanctionUntil(String date);
+
+  /// Permanent sanction
+  ///
+  /// In tr, this message translates to:
+  /// **'Süresiz'**
+  String get sanctionPermanent;
+
+  /// Inactive sanction
+  ///
+  /// In tr, this message translates to:
+  /// **'Sona erdi'**
+  String get sanctionEnded;
+
+  /// Appeal button
+  ///
+  /// In tr, this message translates to:
+  /// **'İtiraz et'**
+  String get appealButton;
+
+  /// Appeal text hint
+  ///
+  /// In tr, this message translates to:
+  /// **'Neden haksız olduğunu yaz (en az 10 karakter)'**
+  String get appealHint;
+
+  /// Appeal sent
+  ///
+  /// In tr, this message translates to:
+  /// **'İtirazın alındı.'**
+  String get appealSent;
+
+  /// Appeal status
+  ///
+  /// In tr, this message translates to:
+  /// **'İtiraz inceleniyor'**
+  String get appealPending;
+
+  /// Appeal status
+  ///
+  /// In tr, this message translates to:
+  /// **'İtiraz kabul edildi'**
+  String get appealAccepted;
+
+  /// Appeal status
+  ///
+  /// In tr, this message translates to:
+  /// **'İtiraz reddedildi'**
+  String get appealRejected;
+
   /// Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md).
   ///
   /// In tr, this message translates to:

@@ -37,16 +37,18 @@ type Social = service.Social
 // Deps are the module's collaborators. Practice enables the development
 // bot opponent; only the dev composition sets it.
 type Deps struct {
-	Redis    *redis.Client
-	Ratings  RatingReader
-	Social   Social
-	Teams    *team.Module
-	Profiles *profile.Module
-	Game     *game.Module
-	Realtime *realtime.Module
-	Clock    clock.Clock
-	Logger   *slog.Logger
-	Practice bool
+	Redis   *redis.Client
+	Ratings RatingReader
+	Social  Social
+	// Sanctions keeps sanctioned players out of the queues (moderation).
+	Sanctions game.SanctionChecker
+	Teams     *team.Module
+	Profiles  *profile.Module
+	Game      *game.Module
+	Realtime  *realtime.Module
+	Clock     clock.Clock
+	Logger    *slog.Logger
+	Practice  bool
 }
 
 // Module is the matchmaking module; as an app component it runs the
@@ -59,7 +61,7 @@ type Module struct {
 // cooldowns).
 func New(d Deps) *Module {
 	svc := service.New(service.Deps{
-		Redis: d.Redis, Game: games{d.Game}, Notifier: d.Realtime, Ratings: d.Ratings, Social: d.Social,
+		Redis: d.Redis, Game: games{d.Game}, Notifier: d.Realtime, Ratings: d.Ratings, Social: d.Social, Sanctions: d.Sanctions,
 		Clock: d.Clock, Logger: d.Logger, Practice: d.Practice,
 	})
 	if d.Teams != nil {

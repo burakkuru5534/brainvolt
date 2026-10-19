@@ -29,6 +29,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/lobby"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/matchmaking"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/moderation"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/notification"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/progression"
@@ -142,7 +143,7 @@ func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, 
 	mods := registerModules(srv, moduleDeps{db: db, rdb: rdb, verifier: verifier, bus: bus, limiter: limiter,
 		idem: idempotency.New(rdb, logger), clock: clk, logger: logger, instance: ids.New().String(), env: cfg.Env})
 
-	a := New(RoleAPI, logger, srv, mods.realtime, mods.game, mods.matchmaking, mods.lobby)
+	a := New(RoleAPI, logger, srv, mods.realtime, mods.game, mods.matchmaking, mods.lobby, mods.moderation)
 	a.closers = append(a.closers, db.Close, func() { _ = sqlDB.Close() }, func() { _ = rdb.Close() })
 	return a, nil
 }
@@ -172,6 +173,7 @@ type modules struct {
 	social      *social.Module
 	team        *team.Module
 	ranking     *ranking.Module
+	moderation  *moderation.Module
 	progression *progression.Module
 	game        *game.Module
 	matchmaking *matchmaking.Module
@@ -199,17 +201,19 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	soc.Register(srv, ident, d.idem)
 	tm := team.New(team.Deps{DB: d.db, Identity: ident, Profiles: prof, Social: soc, Events: d.bus, Clock: d.clock})
 	tm.Register(srv, ident, d.idem)
+	mod := moderation.New(moderation.Deps{DB: d.db, Identity: ident, Content: cont, Events: d.bus, Clock: d.clock, Logger: d.logger})
+	mod.Register(srv, ident, d.idem)
 	rk := ranking.New(ranking.Deps{DB: d.db, Redis: d.rdb, Profiles: prof, Teams: tm, Social: soc, Clock: d.clock, Logger: d.logger})
 	rk.Register(srv, ident)
 	prog := progression.New(progression.Deps{DB: d.db, Ranking: rk, Clock: d.clock, Logger: d.logger})
 	prog.Register(srv, ident, d.idem)
 	g := game.New(game.Deps{
-		DB: d.db, Redis: d.rdb, Content: cont, Identity: ident, Profiles: prof, Realtime: rt, Teams: tm, Seasons: rk,
+		DB: d.db, Redis: d.rdb, Content: cont, Identity: ident, Profiles: prof, Realtime: rt, Teams: tm, Seasons: rk, Sanctions: mod,
 		Events: d.bus, Clock: d.clock, Logger: d.logger, Instance: d.instance,
 	})
 	g.Register(srv, ident, d.idem)
 	mm := matchmaking.New(matchmaking.Deps{
-		Redis: d.rdb, Game: g, Realtime: rt, Ratings: ratings{rk}, Social: soc, Teams: tm, Profiles: prof, Clock: d.clock, Logger: d.logger, Practice: d.env == config.EnvDev,
+		Redis: d.rdb, Game: g, Realtime: rt, Ratings: ratings{rk}, Social: soc, Sanctions: mod, Teams: tm, Profiles: prof, Clock: d.clock, Logger: d.logger, Practice: d.env == config.EnvDev,
 	})
 	mm.Register(srv, ident, d.idem)
 	lob := lobby.New(lobby.Deps{
@@ -217,7 +221,7 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 		Events: d.bus, Clock: d.clock, Logger: d.logger,
 	})
 	lob.Register(srv, ident, d.idem)
-	return modules{identity: ident, profile: prof, content: cont, realtime: rt, social: soc, team: tm, ranking: rk, progression: prog, game: g, matchmaking: mm, lobby: lob}
+	return modules{identity: ident, profile: prof, content: cont, realtime: rt, social: soc, team: tm, ranking: rk, moderation: mod, progression: prog, game: g, matchmaking: mm, lobby: lob}
 }
 
 // pusher sends personal messages through realtime (ranking and

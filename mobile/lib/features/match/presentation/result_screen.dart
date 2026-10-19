@@ -8,6 +8,7 @@ import '../../../app/session_controller.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../lobby/data/lobby_providers.dart';
 import '../../lobby/presentation/room_controller.dart';
+import '../../moderation/presentation/report_dialog.dart';
 import '../../profile/domain/avatars.dart';
 import '../../progress/presentation/progress_widgets.dart';
 import '../data/match_providers.dart';
@@ -126,8 +127,25 @@ class ResultScreen extends ConsumerWidget {
               }, style: const TextStyle(fontSize: 24)),
               title: Text('${round.roundNo}. ${round.prompt}'),
               subtitle: Text(l10n.resultCorrectAnswer(round.correctText)),
-              trailing: Text(
-                '+${round.answers.where((a) => a.userId == me).firstOrNull?.points ?? 0}',
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '+${round.answers.where((a) => a.userId == me).firstOrNull?.points ?? 0}',
+                  ),
+                  if (round.questionId.isNotEmpty)
+                    IconButton(
+                      key: Key('report-q-${round.roundNo}'),
+                      tooltip: l10n.reportQuestion,
+                      icon: const Icon(Icons.flag_outlined),
+                      onPressed: () => reportQuestion(
+                        context,
+                        ref,
+                        questionId: round.questionId,
+                        matchId: r.id,
+                      ),
+                    ),
+                ],
               ),
             ),
           ),

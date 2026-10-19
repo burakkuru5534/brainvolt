@@ -42,6 +42,13 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => context.push(Routes.account),
           ),
           ListTile(
+            key: const Key('open-sanctions'),
+            leading: const Icon(Icons.gavel_outlined),
+            title: Text(l10n.sanctionsTitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(Routes.sanctions),
+          ),
+          ListTile(
             key: const Key('open-credits'),
             leading: const Icon(Icons.info_outline),
             title: Text(l10n.creditsTitle),

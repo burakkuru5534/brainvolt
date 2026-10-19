@@ -134,11 +134,13 @@ type Deps struct {
 	Notifier Notifier
 	Ratings  RatingReader
 	Social   Social
-	Teams    Teams
-	Locales  LocaleReader
-	Clock    clock.Clock
-	Logger   *slog.Logger
-	Practice bool
+	// Sanctions keeps sanctioned players out of the queues (moderation).
+	Sanctions game.SanctionChecker
+	Teams     Teams
+	Locales   LocaleReader
+	Clock     clock.Clock
+	Logger    *slog.Logger
+	Practice  bool
 }
 
 // Service is the queue.
@@ -404,6 +406,15 @@ func (s *Service) Enqueue(ctx context.Context, user uuid.UUID, locale string, r 
 		}
 		if _, live := s.d.Game.LiveMatch(ctx, u); live {
 			return Ticket{}, apierror.New(apierror.AlreadyInMatch).With("user_id", u)
+		}
+		if s.d.Sanctions != nil {
+			kind, err := s.d.Sanctions.Blocking(ctx, u, game.MatchType(r.MatchType), game.OriginMatchmaking)
+			if err != nil {
+				return Ticket{}, err
+			}
+			if kind != "" {
+				return Ticket{}, apierror.New(apierror.Sanctioned).With("kind", kind).With("user_id", u)
+			}
 		}
 	}
 	if r.Practice {

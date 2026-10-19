@@ -20,6 +20,7 @@ import '../features/match/presentation/match_screen.dart';
 import '../features/match/presentation/mode_picker_screen.dart';
 import '../features/match/presentation/queue_screen.dart';
 import '../features/match/presentation/result_screen.dart';
+import '../features/moderation/presentation/sanctions_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/settings_screen.dart';
 import '../features/progress/presentation/badges_screen.dart';
@@ -52,6 +53,7 @@ abstract final class Routes {
   static const quests = '/quests';
   static const badges = '/badges';
   static const daily = '/daily';
+  static const sanctions = '/sanctions';
   static String dailyRun(String id) => '/daily/runs/$id';
   static String room(String id) => '/rooms/$id';
   static String team(String id) => '/teams/$id';
@@ -120,6 +122,10 @@ GoRouter router(Ref ref) {
       GoRoute(
         path: Routes.home,
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: Routes.sanctions,
+        builder: (context, state) => const SanctionsScreen(),
       ),
       GoRoute(
         path: Routes.daily,

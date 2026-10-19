@@ -1,5 +1,50 @@
 components:
     schemas:
+        ActionInput:
+            properties:
+                action:
+                    type: string
+                note:
+                    type: string
+                sanction:
+                    oneOf:
+                        - $ref: '#/components/schemas/SanctionInput'
+                        - type: "null"
+                sanction_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+            required:
+                - action
+            type: object
+        ActionView:
+            properties:
+                action:
+                    type: string
+                actor_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                actor_kind:
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                payload:
+                    additionalProperties: {}
+                    type: object
+            required:
+                - action
+                - actor_kind
+                - created_at
+                - id
+                - payload
+            type: object
         AnswerView:
             properties:
                 correct:
@@ -24,6 +69,51 @@ components:
                 - points
                 - response_ms
                 - user_id
+            type: object
+        AppealInput:
+            properties:
+                text:
+                    type: string
+            required:
+                - text
+            type: object
+        AppealView:
+            properties:
+                created_at:
+                    format: date-time
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                reason_code:
+                    type: string
+                sanction_id:
+                    format: uuid
+                    type: string
+                sanction_kind:
+                    type: string
+                text:
+                    type: string
+                user_id:
+                    format: uuid
+                    type: string
+            required:
+                - created_at
+                - id
+                - reason_code
+                - sanction_id
+                - sanction_kind
+                - text
+                - user_id
+            type: object
+        Appeals:
+            properties:
+                appeals:
+                    items:
+                        $ref: '#/components/schemas/AppealView'
+                    type: array
+            required:
+                - appeals
             type: object
         Awards:
             properties:
@@ -194,6 +284,95 @@ components:
                 - display_name
                 - user_id
                 - username
+            type: object
+        Case:
+            properties:
+                assigned_to:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                id:
+                    format: uuid
+                    type: string
+                opened_at:
+                    format: date-time
+                    type: string
+                priority:
+                    type: integer
+                report_count:
+                    type: integer
+                resolution:
+                    type:
+                        - string
+                        - "null"
+                resolution_note:
+                    type:
+                        - string
+                        - "null"
+                resolved_at:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+                signal_count:
+                    type: integer
+                status:
+                    type: string
+                target_id:
+                    format: uuid
+                    type: string
+                target_kind:
+                    type: string
+                target_locale:
+                    type:
+                        - string
+                        - "null"
+            required:
+                - id
+                - opened_at
+                - priority
+                - report_count
+                - signal_count
+                - status
+                - target_id
+                - target_kind
+            type: object
+        CaseDetail:
+            properties:
+                case:
+                    $ref: '#/components/schemas/Case'
+                history:
+                    items:
+                        $ref: '#/components/schemas/ActionView'
+                    type: array
+                reports:
+                    items:
+                        $ref: '#/components/schemas/ReportView'
+                    type: array
+                signals:
+                    items:
+                        $ref: '#/components/schemas/SignalView'
+                    type: array
+            required:
+                - case
+                - history
+                - reports
+                - signals
+            type: object
+        Cases:
+            properties:
+                cases:
+                    items:
+                        $ref: '#/components/schemas/Case'
+                    type: array
+                next_cursor:
+                    type:
+                        - string
+                        - "null"
+            required:
+                - cases
+                - next_cursor
             type: object
         Catalog:
             properties:
@@ -664,6 +843,15 @@ components:
                 - official
                 - practice_allowed
             type: object
+        Decision:
+            properties:
+                accept:
+                    type: boolean
+                note:
+                    type: string
+            required:
+                - accept
+            type: object
         Deletion:
             properties:
                 purge_after:
@@ -784,6 +972,18 @@ components:
                     type: object
             required:
                 - error
+            type: object
+        Filed:
+            properties:
+                case_id:
+                    format: uuid
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+            required:
+                - case_id
+                - id
             type: object
         Friend:
             properties:
@@ -1598,6 +1798,64 @@ components:
                 - checks
                 - status
             type: object
+        ReportInput:
+            properties:
+                comment:
+                    type:
+                        - string
+                        - "null"
+                match_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                reason:
+                    type: string
+                target_id:
+                    format: uuid
+                    type: string
+                target_kind:
+                    type: string
+                target_locale:
+                    type:
+                        - string
+                        - "null"
+            required:
+                - reason
+                - target_id
+                - target_kind
+            type: object
+        ReportView:
+            properties:
+                comment:
+                    type:
+                        - string
+                        - "null"
+                created_at:
+                    format: date-time
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                match_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                reason:
+                    type: string
+                reporter_id:
+                    format: uuid
+                    type: string
+                reporter_tier:
+                    type: string
+            required:
+                - created_at
+                - id
+                - reason
+                - reporter_id
+                - reporter_tier
+            type: object
         Request:
             properties:
                 category_id:
@@ -1845,6 +2103,67 @@ components:
                 - round_no
                 - sides
             type: object
+        Sanction:
+            properties:
+                active:
+                    type: boolean
+                appeal_status:
+                    type:
+                        - string
+                        - "null"
+                ends_at:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+                id:
+                    format: uuid
+                    type: string
+                kind:
+                    type: string
+                lifted_at:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+                reason_code:
+                    type: string
+                starts_at:
+                    format: date-time
+                    type: string
+            required:
+                - active
+                - appeal_status
+                - ends_at
+                - id
+                - kind
+                - lifted_at
+                - reason_code
+                - starts_at
+            type: object
+        SanctionInput:
+            properties:
+                hours:
+                    type:
+                        - integer
+                        - "null"
+                kind:
+                    type: string
+                reason_code:
+                    type: string
+            required:
+                - kind
+                - reason_code
+            type: object
+        Sanctions:
+            properties:
+                sanctions:
+                    items:
+                        $ref: '#/components/schemas/Sanction'
+                    type: array
+            required:
+                - sanctions
+            type: object
         Season:
             properties:
                 ends_at:
@@ -2034,6 +2353,37 @@ components:
                 - result
                 - score
                 - side_no
+            type: object
+        SignalView:
+            properties:
+                details:
+                    additionalProperties: {}
+                    type: object
+                detected_at:
+                    format: date-time
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                kind:
+                    type: string
+                match_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                severity:
+                    type: integer
+                user_id:
+                    format: uuid
+                    type: string
+            required:
+                - details
+                - detected_at
+                - id
+                - kind
+                - severity
+                - user_id
             type: object
         Standing:
             properties:
@@ -2431,6 +2781,372 @@ paths:
             tags:
                 - health
             x-auth: public
+    /v1/admin/appeals:
+        get:
+            operationId: getV1AdminAppeals
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Appeals'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Pending appeals, oldest first
+            tags:
+                - moderation
+            x-auth: mod
+    /v1/admin/appeals/{id}/decide:
+        post:
+            operationId: postV1AdminAppealsIdDecide
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Decision'
+                required: true
+            responses:
+                "204":
+                    description: No Content
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: SELF_REVIEW_FORBIDDEN'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MATCH_STATE_INVALID'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Accept (lifts the sanction) or reject an appeal; not by the sanction's creator
+            tags:
+                - moderation
+            x-auth: mod
+    /v1/admin/cases:
+        get:
+            operationId: getV1AdminCases
+            parameters:
+                - in: query
+                  name: status
+                  required: false
+                  schema:
+                    enum:
+                        - open
+                        - resolved
+                    type: string
+                - description: 1–100, default 50
+                  in: query
+                  name: limit
+                  required: false
+                  schema:
+                    type: integer
+                - in: query
+                  name: cursor
+                  required: false
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Cases'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Review queue, highest priority first (status=open, default, or resolved)
+            tags:
+                - moderation
+            x-auth: mod
+    /v1/admin/cases/{id}:
+        get:
+            operationId: getV1AdminCasesId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CaseDetail'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: A case with its reports, cheat signals and the target's action history
+            tags:
+                - moderation
+            x-auth: mod
+    /v1/admin/cases/{id}/actions:
+        post:
+            operationId: postV1AdminCasesIdActions
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+                - description: Client-generated UUID; repeats within 24 h replay the stored response (conventions.md §9)
+                  in: header
+                  name: Idempotency-Key
+                  required: true
+                  schema:
+                    format: uuid
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ActionInput'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CaseDetail'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: FORBIDDEN, SELF_REVIEW_FORBIDDEN'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: IDEMPOTENCY_KEY_REUSED, IDEMPOTENT_REQUEST_IN_PROGRESS, MATCH_STATE_INVALID'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: 'Act on a case: case_dismiss, question_send_to_review, question_retire (admin), user_warn, user_sanction (permanent: admin), sanction_lift'
+            tags:
+                - moderation
+            x-auth: mod
     /v1/badges:
         get:
             operationId: getV1Badges
@@ -5917,6 +6633,142 @@ paths:
             tags:
                 - progression
             x-auth: any
+    /v1/me/sanctions:
+        get:
+            operationId: getV1MeSanctions
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Sanctions'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: The caller's sanctions and warnings with their appeal state
+            tags:
+                - moderation
+            x-auth: any
+    /v1/me/sanctions/{id}/appeal:
+        post:
+            operationId: postV1MeSanctionsIdAppeal
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+                - description: Client-generated UUID; repeats within 24 h replay the stored response (conventions.md §9)
+                  in: header
+                  name: Idempotency-Key
+                  required: true
+                  schema:
+                    format: uuid
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AppealInput'
+                required: true
+            responses:
+                "204":
+                    description: No Content
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: APPEAL_EXISTS, IDEMPOTENCY_KEY_REUSED, IDEMPOTENT_REQUEST_IN_PROGRESS'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Appeal a sanction (one appeal per sanction; also while suspended)
+            tags:
+                - moderation
+            x-auth: any
     /v1/me/settings:
         get:
             operationId: getV1MeSettings
@@ -6893,6 +7745,80 @@ paths:
             tags:
                 - content
             x-auth: mod
+    /v1/reports:
+        post:
+            operationId: postV1Reports
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+                - description: Client-generated UUID; repeats within 24 h replay the stored response (conventions.md §9)
+                  in: header
+                  name: Idempotency-Key
+                  required: true
+                  schema:
+                    format: uuid
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ReportInput'
+                required: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Filed'
+                    description: Created
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ALREADY_REPORTED, IDEMPOTENCY_KEY_REUSED, IDEMPOTENT_REQUEST_IN_PROGRESS'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED, REPORT_LIMIT_REACHED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Report a question, translation, user, team or couple (one per target, 20 a day; D-030)
+            tags:
+                - moderation
+            x-auth: any
     /v1/rooms:
         post:
             operationId: postV1Rooms

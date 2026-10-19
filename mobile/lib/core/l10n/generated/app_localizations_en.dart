@@ -1005,6 +1005,92 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dailyTimeout => 'Time\'s up';
 
   @override
+  String get reportQuestion => 'Report question';
+
+  @override
+  String get reportReasonTitle => 'What\'s wrong?';
+
+  @override
+  String get reportReasonWrongAnswer => 'The answer is wrong';
+
+  @override
+  String get reportReasonAmbiguous => 'Ambiguous';
+
+  @override
+  String get reportReasonOutdated => 'Outdated';
+
+  @override
+  String get reportReasonTypo => 'Typo or translation error';
+
+  @override
+  String get reportReasonOffensive => 'Offensive content';
+
+  @override
+  String get reportReasonOther => 'Other';
+
+  @override
+  String get reportComment => 'Note (optional)';
+
+  @override
+  String get reportSend => 'Send';
+
+  @override
+  String get reportSent => 'Thanks for your report.';
+
+  @override
+  String get sanctionsTitle => 'My sanctions';
+
+  @override
+  String get sanctionsEmpty => 'No sanctions on your account.';
+
+  @override
+  String get sanctionWarning => 'Warning';
+
+  @override
+  String get sanctionChatMute => 'Chat mute';
+
+  @override
+  String get sanctionRankedBan => 'Ranked ban';
+
+  @override
+  String get sanctionMatchmakingBan => 'Matchmaking ban';
+
+  @override
+  String get sanctionSocialBan => 'Social ban';
+
+  @override
+  String get sanctionSuspension => 'Account suspension';
+
+  @override
+  String sanctionUntil(String date) {
+    return 'Until $date';
+  }
+
+  @override
+  String get sanctionPermanent => 'Permanent';
+
+  @override
+  String get sanctionEnded => 'Ended';
+
+  @override
+  String get appealButton => 'Appeal';
+
+  @override
+  String get appealHint => 'Explain why it\'s unfair (at least 10 characters)';
+
+  @override
+  String get appealSent => 'Your appeal was received.';
+
+  @override
+  String get appealPending => 'Appeal under review';
+
+  @override
+  String get appealAccepted => 'Appeal accepted';
+
+  @override
+  String get appealRejected => 'Appeal rejected';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Your account is being deleted. You can only cancel the deletion.';
 

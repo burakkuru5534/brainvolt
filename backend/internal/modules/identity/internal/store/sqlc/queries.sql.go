@@ -321,6 +321,25 @@ func (q *Queries) SetDeletionRequested(ctx context.Context, arg SetDeletionReque
 	return err
 }
 
+const setUserStatus = `-- name: SetUserStatus :one
+UPDATE identity.users SET status = $1, updated_at = $2 WHERE id = $3 AND status <> 'deleted'
+RETURNING firebase_uid
+`
+
+type SetUserStatusParams struct {
+	Status string
+	Now    time.Time
+	ID     uuid.UUID
+}
+
+// Moderation suspends and restores accounts (schema-identity §5.5).
+func (q *Queries) SetUserStatus(ctx context.Context, arg SetUserStatusParams) (string, error) {
+	row := q.db.QueryRow(ctx, setUserStatus, arg.Status, arg.Now, arg.ID)
+	var firebase_uid string
+	err := row.Scan(&firebase_uid)
+	return firebase_uid, err
+}
+
 const touchUser = `-- name: TouchUser :exec
 UPDATE identity.users SET last_seen_at = $1 WHERE id = $2
 `

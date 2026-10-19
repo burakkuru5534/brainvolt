@@ -899,6 +899,28 @@ func (s *Service) reviewTranslation(ctx context.Context, tx pgx.Tx, q *sqlc.Quer
 	return s.events.PublishTx(ctx, tx, name, now, payload)
 }
 
+// PullToReview moves a verified question back to review (moderation:
+// enough wrong_answer reports or a moderator, D-030), which takes it out
+// of every selection until it is approved again. actor nil = system.
+// Other states are left alone.
+func (s *Service) PullToReview(ctx context.Context, actor *uuid.UUID, id uuid.UUID, reason string) error {
+	now := s.now()
+	return postgres.InTx(ctx, s.db, func(tx pgx.Tx) error {
+		q := sqlc.New(tx)
+		row, err := q.GetQuestionForUpdate(ctx, id)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return apierror.New(apierror.NotFound)
+		}
+		if err != nil || row.VerificationStatus != string(domain.StatusVerified) || row.RetiredAt != nil {
+			return err
+		}
+		if err := q.SetQuestionStatus(ctx, sqlc.SetQuestionStatusParams{ID: id, VerificationStatus: string(domain.StatusInReview), Now: now}); err != nil {
+			return err
+		}
+		return q.InsertVerificationEvent(ctx, event(id, nil, row.VerificationStatus, string(domain.StatusInReview), actor, &reason, row.Revision, now))
+	})
+}
+
 // Retire removes a question from all future selection; repeating it is
 // harmless.
 func (s *Service) Retire(ctx context.Context, actor, id uuid.UUID) error {

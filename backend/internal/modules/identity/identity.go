@@ -154,5 +154,10 @@ func (m *Module) EnsureBot(ctx context.Context, key, displayName, locale string)
 	return m.svc.EnsureBot(ctx, key, displayName, locale)
 }
 
+// SetStatus suspends or restores an account (moderation).
+func (m *Module) SetStatus(ctx context.Context, user uuid.UUID, status Status) error {
+	return m.svc.SetStatus(ctx, user, status)
+}
+
 // User returns the identity view of a user (NOT_FOUND if missing).
 func (m *Module) User(ctx context.Context, id uuid.UUID) (User, error) { return m.svc.User(ctx, id) }

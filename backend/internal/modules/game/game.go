@@ -110,6 +110,9 @@ const (
 	ParticipantForfeited  = domain.PForfeited
 )
 
+// Origin says how a match was created.
+type Origin = domain.Origin
+
 // Origins of matches created by other modules.
 const (
 	OriginChallenge   = domain.Challenge

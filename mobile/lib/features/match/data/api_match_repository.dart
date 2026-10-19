@@ -93,6 +93,7 @@ class ApiMatchRepository implements MatchRepository {
         for (final r in _maps(j['rounds']))
           ResultRound(
             roundNo: _int(r['round_no']),
+            questionId: r['question_id'] as String? ?? '',
             prompt: r['prompt'] as String? ?? '',
             options: {
               for (final o in _maps(r['options']))

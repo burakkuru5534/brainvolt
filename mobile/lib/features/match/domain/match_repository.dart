@@ -81,9 +81,13 @@ class ResultRound {
     required this.correctText,
     required this.answers,
     required this.options,
+    this.questionId = '',
   });
 
   final int roundNo;
+
+  /// The question (reports, schema-moderation).
+  final String questionId;
   final String prompt;
   final String correctText;
   final Map<String, String> options;

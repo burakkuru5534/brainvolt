@@ -283,6 +283,8 @@ func (g *schemaGen) inline(t reflect.Type) (map[string]any, error) {
 		return map[string]any{"type": "object", "additionalProperties": values}, nil
 	case reflect.Struct:
 		return g.object(t)
+	case reflect.Interface:
+		return map[string]any{}, nil // any JSON value (free-form details)
 	default:
 		return nil, fmt.Errorf("unsupported type %s", t)
 	}

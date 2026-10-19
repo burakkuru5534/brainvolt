@@ -73,3 +73,8 @@ ON CONFLICT (user_id, role) DO NOTHING;
 
 -- name: RevokeRole :exec
 DELETE FROM identity.user_roles WHERE user_id = $1 AND role = $2;
+
+-- Moderation suspends and restores accounts (schema-identity §5.5).
+-- name: SetUserStatus :one
+UPDATE identity.users SET status = @status, updated_at = @now WHERE id = @id AND status <> 'deleted'
+RETURNING firebase_uid;

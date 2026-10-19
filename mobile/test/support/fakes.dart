@@ -19,6 +19,8 @@ import 'package:brainvolt/features/lobby/data/lobby_providers.dart';
 import 'package:brainvolt/features/lobby/domain/lobby_repository.dart';
 import 'package:brainvolt/features/match/data/match_providers.dart';
 import 'package:brainvolt/features/match/domain/match_repository.dart';
+import 'package:brainvolt/features/moderation/data/moderation_providers.dart';
+import 'package:brainvolt/features/moderation/domain/moderation_repository.dart';
 import 'package:brainvolt/features/profile/data/profile_providers.dart';
 import 'package:brainvolt/features/profile/domain/me.dart';
 import 'package:brainvolt/features/profile/domain/profile_repository.dart';
@@ -675,6 +677,27 @@ class FakeDailyRepository implements DailyRepository {
   Future<DailyBoard> board(String day, String scope) async => boardValue;
 }
 
+class FakeModerationRepository implements ModerationRepository {
+  final reports = <String>[];
+  final appeals = <String>[];
+  List<Sanction> sanctions = const [];
+
+  @override
+  Future<void> reportQuestion({
+    required String questionId,
+    required String reason,
+    String? matchId,
+    String? comment,
+  }) async => reports.add('$questionId:$reason:$matchId:${comment ?? ''}');
+
+  @override
+  Future<List<Sanction>> mySanctions() async => sanctions;
+
+  @override
+  Future<void> appeal(String sanctionId, String text) async =>
+      appeals.add('$sanctionId:$text');
+}
+
 class FakeSocket implements SocketConnection {
   final _in = StreamController<dynamic>();
   final sent = <Map<String, dynamic>>[];
@@ -727,6 +750,7 @@ class TestApp {
     this.teams,
     this.progress,
     this.daily,
+    this.moderation,
   );
 
   /// [ageConfirmed] skips the age gate; [user] is an already signed-in user.
@@ -749,6 +773,7 @@ class TestApp {
     final teams = FakeTeamRepository();
     final progress = FakeProgressRepository();
     final daily = FakeDailyRepository();
+    final moderation = FakeModerationRepository();
     final sockets = <FakeSocket>[];
     final container = ProviderContainer(
       retry: noRetry,
@@ -772,6 +797,7 @@ class TestApp {
         teamRepositoryProvider.overrideWithValue(teams),
         progressRepositoryProvider.overrideWithValue(progress),
         dailyRepositoryProvider.overrideWithValue(daily),
+        moderationRepositoryProvider.overrideWithValue(moderation),
         realtimeClientProvider.overrideWith((ref) {
           final client = RealtimeClient(
             url: Uri.parse('ws://test/v1/ws'),
@@ -802,6 +828,7 @@ class TestApp {
       teams,
       progress,
       daily,
+      moderation,
     );
   }
 
@@ -813,6 +840,7 @@ class TestApp {
   final FakeTeamRepository teams;
   final FakeProgressRepository progress;
   final FakeDailyRepository daily;
+  final FakeModerationRepository moderation;
 
   /// Every WebSocket the app opened, newest last.
   final List<FakeSocket> sockets;

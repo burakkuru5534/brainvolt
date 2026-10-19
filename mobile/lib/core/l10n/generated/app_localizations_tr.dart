@@ -1003,6 +1003,92 @@ class AppLocalizationsTr extends AppLocalizations {
   String get dailyTimeout => 'Süre doldu';
 
   @override
+  String get reportQuestion => 'Soruyu bildir';
+
+  @override
+  String get reportReasonTitle => 'Sorun ne?';
+
+  @override
+  String get reportReasonWrongAnswer => 'Cevap yanlış';
+
+  @override
+  String get reportReasonAmbiguous => 'Belirsiz / birden fazla doğru';
+
+  @override
+  String get reportReasonOutdated => 'Bilgi güncel değil';
+
+  @override
+  String get reportReasonTypo => 'Yazım veya çeviri hatası';
+
+  @override
+  String get reportReasonOffensive => 'Uygunsuz içerik';
+
+  @override
+  String get reportReasonOther => 'Diğer';
+
+  @override
+  String get reportComment => 'Not (isteğe bağlı)';
+
+  @override
+  String get reportSend => 'Gönder';
+
+  @override
+  String get reportSent => 'Bildirimin için teşekkürler.';
+
+  @override
+  String get sanctionsTitle => 'Yaptırımlarım';
+
+  @override
+  String get sanctionsEmpty => 'Hesabında yaptırım yok.';
+
+  @override
+  String get sanctionWarning => 'Uyarı';
+
+  @override
+  String get sanctionChatMute => 'Sohbet engeli';
+
+  @override
+  String get sanctionRankedBan => 'Dereceli yasağı';
+
+  @override
+  String get sanctionMatchmakingBan => 'Eşleştirme yasağı';
+
+  @override
+  String get sanctionSocialBan => 'Sosyal yasak';
+
+  @override
+  String get sanctionSuspension => 'Hesap askıya alma';
+
+  @override
+  String sanctionUntil(String date) {
+    return '$date tarihine kadar';
+  }
+
+  @override
+  String get sanctionPermanent => 'Süresiz';
+
+  @override
+  String get sanctionEnded => 'Sona erdi';
+
+  @override
+  String get appealButton => 'İtiraz et';
+
+  @override
+  String get appealHint => 'Neden haksız olduğunu yaz (en az 10 karakter)';
+
+  @override
+  String get appealSent => 'İtirazın alındı.';
+
+  @override
+  String get appealPending => 'İtiraz inceleniyor';
+
+  @override
+  String get appealAccepted => 'İtiraz kabul edildi';
+
+  @override
+  String get appealRejected => 'İtiraz reddedildi';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.';
 

@@ -382,6 +382,103 @@ type LobbyRoom struct {
 	CloseReason       *string
 }
 
+type ModerationAction struct {
+	ID         uuid.UUID
+	CaseID     *uuid.UUID
+	ActorKind  string
+	ActorID    *uuid.UUID
+	Action     string
+	TargetKind string
+	TargetID   uuid.UUID
+	Payload    []byte
+	CreatedAt  time.Time
+}
+
+type ModerationAppeal struct {
+	ID           uuid.UUID
+	SanctionID   uuid.UUID
+	UserID       uuid.UUID
+	Text         string
+	Status       string
+	DecidedBy    *uuid.UUID
+	DecidedAt    *time.Time
+	DecisionNote *string
+	CreatedAt    time.Time
+}
+
+type ModerationBlockedTerm struct {
+	ID        uuid.UUID
+	Term      string
+	Locale    *string
+	MatchKind string
+	AppliesTo []string
+	Severity  int16
+	CreatedBy *uuid.UUID
+	CreatedAt time.Time
+}
+
+type ModerationCase struct {
+	ID             uuid.UUID
+	TargetKind     string
+	TargetID       uuid.UUID
+	TargetLocale   *string
+	Status         string
+	Priority       int32
+	ReportCount    int32
+	SignalCount    int32
+	AssignedTo     *uuid.UUID
+	Resolution     *string
+	ResolutionNote *string
+	OpenedAt       time.Time
+	ResolvedAt     *time.Time
+}
+
+type ModerationCheatSignal struct {
+	ID         uuid.UUID
+	UserID     uuid.UUID
+	MatchID    *uuid.UUID
+	Kind       string
+	Severity   int16
+	Details    []byte
+	CaseID     *uuid.UUID
+	DetectedAt time.Time
+}
+
+type ModerationInstallationLink struct {
+	InstallationID string
+	UserID         uuid.UUID
+	FirstSeenAt    time.Time
+	LastSeenAt     time.Time
+}
+
+type ModerationReport struct {
+	ID           uuid.UUID
+	CaseID       uuid.UUID
+	ReporterID   uuid.UUID
+	ReporterTier string
+	TargetKind   string
+	TargetID     uuid.UUID
+	TargetLocale *string
+	MatchID      *uuid.UUID
+	Reason       string
+	Comment      *string
+	CreatedAt    time.Time
+}
+
+type ModerationSanction struct {
+	ID         uuid.UUID
+	UserID     uuid.UUID
+	Kind       string
+	ReasonCode string
+	CaseID     *uuid.UUID
+	StartsAt   time.Time
+	EndsAt     *time.Time
+	LiftedAt   *time.Time
+	LiftedBy   *uuid.UUID
+	CreatedBy  *uuid.UUID
+	CreatedAt  time.Time
+}
+
 type NotificationDevice struct {
 	ID             uuid.UUID
 	UserID         uuid.UUID
