@@ -11,16 +11,23 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/ranking/internal/service"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/ranking/internal/transport"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/social"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/team"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
-// SubscriberMatchResults is ranking's game.MatchCompleted subscription.
-const SubscriberMatchResults = "ranking.match_results"
+// Subscriptions: game.MatchCompleted and identity.AccountTierChanged.
+const (
+	SubscriberMatchResults = "ranking.match_results"
+	SubscriberTierChanged  = "ranking.tier_changed"
+)
 
 // Rating is a rating and its deviation.
 type Rating = service.Rating
@@ -34,6 +41,7 @@ type Deps struct {
 	Redis    *redis.Client
 	Profiles *profile.Module
 	Teams    *team.Module
+	Social   *social.Module
 	Clock    clock.Clock
 	Logger   *slog.Logger
 }
@@ -52,7 +60,15 @@ func New(d Deps) *Module {
 	if d.Teams != nil {
 		sd.Teams = d.Teams
 	}
+	if d.Social != nil {
+		sd.Friends = d.Social
+	}
 	return &Module{svc: service.New(sd)}
+}
+
+// Register adds ranking's routes.
+func (m *Module) Register(s *httpserver.Server, ident *identity.Module) {
+	transport.New(m.svc, ident).Register(s)
 }
 
 // ActiveSeason returns the active season, opening the first one when
@@ -73,4 +89,10 @@ func (m *Module) Rating(ctx context.Context, user uuid.UUID, bucket string) (Rat
 // and leaderboard points.
 func (m *Module) OnMatchCompleted(ctx context.Context, e events.Envelope) error {
 	return m.svc.OnMatchCompleted(ctx, e)
+}
+
+// OnTierChanged consumes identity.AccountTierChanged: an upgraded
+// account's hidden points join the running boards (D-016, D-017).
+func (m *Module) OnTierChanged(ctx context.Context, e events.Envelope) error {
+	return m.svc.OnTierChanged(ctx, e)
 }

@@ -53,6 +53,56 @@ components:
             required:
                 - blocks
             type: object
+        Board:
+            properties:
+                category_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                country:
+                    type:
+                        - string
+                        - "null"
+                ends_at:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+                entity:
+                    type: string
+                entries:
+                    items:
+                        $ref: '#/components/schemas/Entry'
+                    type: array
+                me:
+                    oneOf:
+                        - $ref: '#/components/schemas/Entry'
+                        - type: "null"
+                next_cursor:
+                    type:
+                        - string
+                        - "null"
+                period:
+                    type: string
+                period_id:
+                    type: string
+                scope:
+                    type: string
+                starts_at:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+            required:
+                - entity
+                - entries
+                - me
+                - next_cursor
+                - period
+                - period_id
+                - scope
+            type: object
         Card:
             properties:
                 avatar_id:
@@ -300,6 +350,17 @@ components:
                 - requested_by
                 - status
             type: object
+        CoupleLabel:
+            properties:
+                name:
+                    type: string
+                partners:
+                    items:
+                        $ref: '#/components/schemas/Card'
+                    type: array
+            required:
+                - partners
+            type: object
         CoupleRequest:
             properties:
                 name:
@@ -424,6 +485,32 @@ components:
                 - installation_id
                 - locale
                 - platform
+            type: object
+        Entry:
+            properties:
+                couple:
+                    oneOf:
+                        - $ref: '#/components/schemas/CoupleLabel'
+                        - type: "null"
+                entity_id:
+                    format: uuid
+                    type: string
+                rank:
+                    type: integer
+                score:
+                    type: integer
+                team:
+                    oneOf:
+                        - $ref: '#/components/schemas/Label'
+                        - type: "null"
+                user:
+                    oneOf:
+                        - $ref: '#/components/schemas/Card'
+                        - type: "null"
+            required:
+                - entity_id
+                - rank
+                - score
             type: object
         ErrorEnvelope:
             properties:
@@ -596,6 +683,44 @@ components:
                     type: string
             required:
                 - code
+            type: object
+        Label:
+            properties:
+                emblem_id:
+                    type: string
+                name:
+                    type: string
+                tag:
+                    type: string
+            required:
+                - name
+            type: object
+        League:
+            properties:
+                code:
+                    type: string
+                floors:
+                    items:
+                        type: integer
+                    type: array
+                name:
+                    type: string
+                sort_order:
+                    type: integer
+            required:
+                - code
+                - floors
+                - name
+                - sort_order
+            type: object
+        Leagues:
+            properties:
+                leagues:
+                    items:
+                        $ref: '#/components/schemas/League'
+                    type: array
+            required:
+                - leagues
             type: object
         Liveness:
             properties:
@@ -1336,6 +1461,33 @@ components:
                 - round_no
                 - sides
             type: object
+        Season:
+            properties:
+                ends_at:
+                    format: date-time
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                names:
+                    additionalProperties:
+                        type: string
+                    type: object
+                number:
+                    type: integer
+                starts_at:
+                    format: date-time
+                    type: string
+                status:
+                    type: string
+            required:
+                - ends_at
+                - id
+                - names
+                - number
+                - starts_at
+                - status
+            type: object
         SendRequest:
             properties:
                 to_user_id:
@@ -1498,6 +1650,69 @@ components:
                 - result
                 - score
                 - side_no
+            type: object
+        Standing:
+            properties:
+                best_win_streak:
+                    type: integer
+                current_win_streak:
+                    type: integer
+                division:
+                    type: integer
+                draws:
+                    type: integer
+                entity_id:
+                    format: uuid
+                    type: string
+                entity_kind:
+                    type: string
+                final_rank:
+                    type:
+                        - integer
+                        - "null"
+                league:
+                    type: string
+                losses:
+                    type: integer
+                matches:
+                    type: integer
+                next_at:
+                    type:
+                        - integer
+                        - "null"
+                peak_division:
+                    type: integer
+                peak_league:
+                    type: string
+                rank:
+                    type:
+                        - integer
+                        - "null"
+                season_id:
+                    format: uuid
+                    type: string
+                season_points:
+                    type: integer
+                wins:
+                    type: integer
+            required:
+                - best_win_streak
+                - current_win_streak
+                - division
+                - draws
+                - entity_id
+                - entity_kind
+                - final_rank
+                - league
+                - losses
+                - matches
+                - next_at
+                - peak_division
+                - peak_league
+                - rank
+                - season_id
+                - season_points
+                - wins
             type: object
         Stats:
             properties:
@@ -3564,6 +3779,186 @@ paths:
             summary: What an invite code opens (friend → user, room → room preview)
             tags:
                 - lobby
+            x-auth: any
+    /v1/leaderboards:
+        get:
+            operationId: getV1Leaderboards
+            parameters:
+                - description: default weekly; season = SP board
+                  in: query
+                  name: period
+                  required: false
+                  schema:
+                    enum:
+                        - daily
+                        - weekly
+                        - monthly
+                        - all_time
+                        - season
+                    type: string
+                - description: default user
+                  in: query
+                  name: entity
+                  required: false
+                  schema:
+                    enum:
+                        - user
+                        - team
+                        - couple
+                    type: string
+                - description: default global; friends only for users
+                  in: query
+                  name: scope
+                  required: false
+                  schema:
+                    enum:
+                        - global
+                        - country
+                        - friends
+                    type: string
+                - description: ISO country for scope=country (default the caller's)
+                  in: query
+                  name: country
+                  required: false
+                  schema:
+                    type: string
+                - description: category board (not with season)
+                  in: query
+                  name: category_id
+                  required: false
+                  schema:
+                    format: uuid
+                    type: string
+                - description: season board of a past season
+                  in: query
+                  name: season_id
+                  required: false
+                  schema:
+                    format: uuid
+                    type: string
+                - description: 1–100, default 50
+                  in: query
+                  name: limit
+                  required: false
+                  schema:
+                    type: integer
+                - description: next_cursor of the previous page
+                  in: query
+                  name: cursor
+                  required: false
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Board'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: 'A leaderboard page: period × entity × scope × category (D-029); `me` is the caller''s row on user boards'
+            tags:
+                - ranking
+            x-auth: any
+    /v1/leagues:
+        get:
+            operationId: getV1Leagues
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Leagues'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: League table with division floors in the caller's language
+            tags:
+                - ranking
             x-auth: any
     /v1/matches/{id}:
         get:
@@ -5683,6 +6078,127 @@ paths:
             tags:
                 - lobby
             x-auth: any
+    /v1/seasons/{id}:
+        get:
+            operationId: getV1SeasonsId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Season'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: A season
+            tags:
+                - ranking
+            x-auth: any
+    /v1/seasons/current:
+        get:
+            operationId: getV1SeasonsCurrent
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Season'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: The active season
+            tags:
+                - ranking
+            x-auth: any
     /v1/session:
         post:
             operationId: postV1Session
@@ -5813,6 +6329,83 @@ paths:
             summary: 'Link conflict (D-015): give up this guest account before switching to the existing one'
             tags:
                 - identity
+            x-auth: any
+    /v1/standings/{entity_kind}/{entity_id}:
+        get:
+            operationId: getV1StandingsEntityKindEntityId
+            parameters:
+                - in: path
+                  name: entity_kind
+                  required: true
+                  schema:
+                    type: string
+                - in: path
+                  name: entity_id
+                  required: true
+                  schema:
+                    type: string
+                - in: query
+                  name: season_id
+                  required: false
+                  schema:
+                    format: uuid
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Standing'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: League, division, SP and record of a user, team or couple (current season or season_id)
+            tags:
+                - ranking
             x-auth: any
     /v1/team-invites/{id}/accept:
         post:

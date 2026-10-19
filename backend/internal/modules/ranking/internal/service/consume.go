@@ -354,7 +354,6 @@ func ledger(ctx context.Context, q *sqlc.Queries, p *matchCompleted, sides [2]si
 		}
 		inCat[r.CategoryID]++
 	}
-	periods := domain.Periods(p.EndedAt)
 	var incs []boardInc
 	write := func(e entity, res domain.Result, public bool, countries []string, correct func(r *roundPayload) bool) error {
 		total, byCat := 0, map[uuid.UUID]int{}
@@ -376,21 +375,7 @@ func ledger(ctx context.Context, q *sqlc.Queries, p *matchCompleted, sides [2]si
 			if err != nil || n == 0 || !public {
 				return err
 			}
-			category := "all"
-			if cat != nil {
-				category = "cat:" + cat.String()
-			}
-			for _, per := range periods {
-				var exp time.Time
-				if per.TTL > 0 {
-					exp = per.End.Add(per.TTL)
-				}
-				for _, scope := range domain.Scopes(countries) {
-					incs = append(incs, boardInc{
-						key: domain.BoardKey(per.ID, e.kind, scope, category), member: e.id.String(), score: float64(points), expireAt: exp,
-					})
-				}
-			}
+			incs = append(incs, ledgerIncs(e.kind, e.id, cat, points, countries, p.EndedAt, p.EndedAt)...)
 			return nil
 		}
 		if err := row(nil, domain.LeaderboardPoints(res, total)); err != nil {

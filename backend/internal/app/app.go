@@ -197,7 +197,8 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	soc.Register(srv, ident, d.idem)
 	tm := team.New(team.Deps{DB: d.db, Identity: ident, Profiles: prof, Social: soc, Events: d.bus, Clock: d.clock})
 	tm.Register(srv, ident, d.idem)
-	rk := ranking.New(ranking.Deps{DB: d.db, Redis: d.rdb, Profiles: prof, Teams: tm, Clock: d.clock, Logger: d.logger})
+	rk := ranking.New(ranking.Deps{DB: d.db, Redis: d.rdb, Profiles: prof, Teams: tm, Social: soc, Clock: d.clock, Logger: d.logger})
+	rk.Register(srv, ident)
 	g := game.New(game.Deps{
 		DB: d.db, Redis: d.rdb, Content: cont, Identity: ident, Profiles: prof, Realtime: rt, Teams: tm, Seasons: rk,
 		Events: d.bus, Clock: d.clock, Logger: d.logger, Instance: d.instance,
@@ -240,6 +241,7 @@ func newBus(db *pgxpool.Pool, rdb *redis.Client, logger *slog.Logger) *events.Bu
 		Clock: clock.Real{}, Logger: logger,
 	})
 	bus.Subscribe(game.EventMatchCompleted, ranking.SubscriberMatchResults, rk.OnMatchCompleted)
+	bus.Subscribe(identity.EventAccountTierChanged, ranking.SubscriberTierChanged, rk.OnTierChanged)
 	return bus
 }
 

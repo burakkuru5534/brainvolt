@@ -2,12 +2,14 @@ package app
 
 import (
 	"encoding/json"
+	"net/http"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
 )
 
@@ -196,4 +198,106 @@ func pad2(n int) string {
 		return "0" + jsonNum(float64(n))
 	}
 	return jsonNum(float64(n))
+}
+
+// Boards, standings, seasons and leagues over REST (rest.md §9).
+func TestLeaderboardsREST(t *testing.T) {
+	x := newE2E(t)
+	tokA, a, _ := x.fullUser()
+	tokB, b, _ := x.fullUser()
+	x.befriend(tokA, b, tokB)
+	for _, tok := range []string{tokA, tokB} {
+		want(t, "country", x.do(http.MethodPatch, "/v1/me/profile", tok, map[string]any{"country_code": "DE"}), 200, "")
+	}
+	season, _, err := x.mods.ranking.ActiveSeason(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+	x.consume(completed(t, season, "1v1", [2][]uuid.UUID{{a}, {b}}, [2]*uuid.UUID{}))
+
+	r := x.do(http.MethodGet, "/v1/leaderboards", tokA, nil)
+	want(t, "weekly", r, 200, "")
+	if r.get("period") != "weekly" || r.get("me", "score") != 24.0 || r.get("me", "user", "user_id") != a.String() {
+		t.Fatalf("weekly board %s", r.raw)
+	}
+	r = x.do(http.MethodGet, "/v1/leaderboards?scope=country&country=de&period=daily", tokA, nil)
+	if r.code != 200 || r.get("country") != "DE" || r.get("me", "score") != 24.0 {
+		t.Fatalf("country board %s", r.raw)
+	}
+	r = x.do(http.MethodGet, "/v1/leaderboards?scope=friends&period=all_time", tokB, nil)
+	entries, _ := r.get("entries").([]any)
+	if r.code != 200 || len(entries) != 2 || r.get("me", "rank") != 2.0 {
+		t.Fatalf("friends board %s", r.raw)
+	}
+	if first, _ := entries[0].(map[string]any); first["entity_id"] != a.String() || first["score"] != 24.0 {
+		t.Fatalf("friends leader %v", first)
+	}
+	r = x.do(http.MethodGet, "/v1/leaderboards?scope=friends&period=all_time&limit=1", tokB, nil)
+	if r.get("next_cursor") != "1" {
+		t.Fatalf("friends page %s", r.raw)
+	}
+	r = x.do(http.MethodGet, "/v1/leaderboards?period=season", tokA, nil)
+	if r.code != 200 || r.get("me", "score") != 30.0 || r.get("period_id") == nil {
+		t.Fatalf("season board %s", r.raw)
+	}
+	want(t, "bad period", x.do(http.MethodGet, "/v1/leaderboards?period=yearly", tokA, nil), 400, "VALIDATION_FAILED")
+	want(t, "friends teams", x.do(http.MethodGet, "/v1/leaderboards?scope=friends&entity=team", tokA, nil), 400, "VALIDATION_FAILED")
+
+	r = x.do(http.MethodGet, "/v1/standings/user/"+a.String(), tokB, nil)
+	if r.code != 200 || r.get("season_points") != 30.0 || r.get("league") != "bronze" || r.get("division") != 3.0 ||
+		r.get("next_at") != 100.0 || r.get("rank") == nil || r.get("wins") != 1.0 {
+		t.Fatalf("standing %s", r.raw)
+	}
+	r = x.do(http.MethodGet, "/v1/standings/team/"+uuid.NewString(), tokB, nil)
+	if r.code != 200 || r.get("season_points") != 0.0 || r.get("rank") != nil {
+		t.Fatalf("empty standing %s", r.raw)
+	}
+	want(t, "bad kind", x.do(http.MethodGet, "/v1/standings/guild/"+a.String(), tokB, nil), 404, "NOT_FOUND")
+
+	r = x.do(http.MethodGet, "/v1/seasons/current", tokA, nil)
+	if r.code != 200 || r.get("id") != season.String() || r.get("status") != "active" {
+		t.Fatalf("season %s", r.raw)
+	}
+	want(t, "season by id", x.do(http.MethodGet, "/v1/seasons/"+season.String(), tokA, nil), 200, "")
+	want(t, "unknown season", x.do(http.MethodGet, "/v1/seasons/"+uuid.NewString(), tokA, nil), 404, "NOT_FOUND")
+
+	r = x.do(http.MethodGet, "/v1/leagues", tokA, nil, "Accept-Language", "tr")
+	leagues, _ := r.get("leagues").([]any)
+	if r.code != 200 || len(leagues) != 5 {
+		t.Fatalf("leagues %s", r.raw)
+	}
+	if gold, _ := leagues[2].(map[string]any); gold["name"] != "Altın" {
+		t.Fatalf("gold %v", gold)
+	}
+}
+
+// A restricted player's points stay off public boards until the account
+// becomes full (D-016, D-017).
+func TestRankingReplaysUpgradedAccount(t *testing.T) {
+	x := newE2E(t)
+	season, _, err := x.mods.ranking.ActiveSeason(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+	guest, b := uuid.New(), uuid.New()
+	p := completed(t, season, "1v1", [2][]uuid.UUID{{guest}, {b}}, [2]*uuid.UUID{})
+	p.Participants[0].TierAtStart = "guest"
+	x.consume(p)
+	week := weekBoard("user", "all")
+	if _, err := x.rdb.ZScore(t.Context(), week, guest.String()).Result(); err == nil {
+		t.Fatal("restricted player on a public board")
+	}
+	payload, _ := json.Marshal(identity.AccountTierChanged{UserID: guest, From: "guest", To: "full"})
+	for range 2 { // idempotent
+		if err := x.mods.ranking.OnTierChanged(t.Context(), events.Envelope{Name: identity.EventAccountTierChanged, Payload: payload}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if score, err := x.rdb.ZScore(t.Context(), week, guest.String()).Result(); err != nil || score != 24 {
+		t.Fatalf("replayed weekly score %v %v", score, err)
+	}
+	cur, _ := x.mods.ranking.CurrentSeason(t.Context())
+	if score, err := x.rdb.ZScore(t.Context(), "rank:lb:s:"+jsonNum(float64(cur.Number))+":user:global:all", guest.String()).Result(); err != nil || score != 30 {
+		t.Fatalf("replayed season score %v %v", score, err)
+	}
 }

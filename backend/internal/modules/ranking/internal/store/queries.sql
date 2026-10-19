@@ -100,3 +100,9 @@ ORDER BY l.sort_order;
 INSERT INTO ranking.leaderboard_snapshots (board_key, period_start, period_end, rank, entity_kind, entity_id, score)
 VALUES (@board_key, @period_start, @period_end, @rank, @entity_kind, @entity_id, @score)
 ON CONFLICT DO NOTHING;
+
+-- A user's rows hidden while restricted, made public on upgrade (D-016, D-017).
+-- name: PublishUserLedger :many
+UPDATE ranking.points_ledger SET public = true
+WHERE entity_kind = 'user' AND entity_id = @user_id AND NOT public
+RETURNING category_id, points, country_code, occurred_at;

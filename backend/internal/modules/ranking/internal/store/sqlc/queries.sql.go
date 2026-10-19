@@ -382,6 +382,45 @@ func (q *Queries) MarkProcessed(ctx context.Context, arg MarkProcessedParams) (i
 	return result.RowsAffected(), nil
 }
 
+const publishUserLedger = `-- name: PublishUserLedger :many
+UPDATE ranking.points_ledger SET public = true
+WHERE entity_kind = 'user' AND entity_id = $1 AND NOT public
+RETURNING category_id, points, country_code, occurred_at
+`
+
+type PublishUserLedgerRow struct {
+	CategoryID  *uuid.UUID
+	Points      int32
+	CountryCode *string
+	OccurredAt  time.Time
+}
+
+// A user's rows hidden while restricted, made public on upgrade (D-016, D-017).
+func (q *Queries) PublishUserLedger(ctx context.Context, userID uuid.UUID) ([]PublishUserLedgerRow, error) {
+	rows, err := q.db.Query(ctx, publishUserLedger, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []PublishUserLedgerRow{}
+	for rows.Next() {
+		var i PublishUserLedgerRow
+		if err := rows.Scan(
+			&i.CategoryID,
+			&i.Points,
+			&i.CountryCode,
+			&i.OccurredAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const raiseRD = `-- name: RaiseRD :many
 UPDATE ranking.ratings SET rd = $1::numeric, updated_at = $2
 WHERE rd < $1::numeric

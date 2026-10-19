@@ -71,3 +71,37 @@ func (s *Service) ActiveCoupleOf(ctx context.Context, user uuid.UUID) (CoupleInf
 	}
 	return coupleInfo(c), true, nil
 }
+
+// Label is how a leaderboard shows a team or couple.
+type Label struct {
+	Name     string      `json:"name"`
+	Tag      string      `json:"tag,omitempty"`
+	EmblemID string      `json:"emblem_id,omitempty"`
+	Users    []uuid.UUID `json:"-"`
+}
+
+// TeamLabels returns the names, tags and emblems of teams.
+func (s *Service) TeamLabels(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]Label, error) {
+	rows, err := sqlc.New(s.d.DB).TeamsByIDs(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[uuid.UUID]Label, len(rows))
+	for _, r := range rows {
+		out[r.ID] = Label{Name: r.Name, Tag: r.Tag, EmblemID: r.EmblemID}
+	}
+	return out, nil
+}
+
+// CoupleLabels returns the names and partners of couples.
+func (s *Service) CoupleLabels(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]Label, error) {
+	rows, err := sqlc.New(s.d.DB).CouplesByIDs(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[uuid.UUID]Label, len(rows))
+	for _, r := range rows {
+		out[r.ID] = Label{Name: r.Name, Users: []uuid.UUID{r.UserLowID, r.UserHighID}}
+	}
+	return out, nil
+}

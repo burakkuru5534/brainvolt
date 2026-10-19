@@ -51,3 +51,14 @@ func TestLeaderboardPoints(t *testing.T) {
 		t.Fatalf("category points %d %d", h, s)
 	}
 }
+
+func TestNextThreshold(t *testing.T) {
+	for _, c := range []struct{ sp, next int }{{0, 100}, {299, 300}, {300, 466}, {2400, 2800}} {
+		if got, ok := NextThreshold(c.sp); !ok || got != c.next {
+			t.Fatalf("NextThreshold(%d) = %d", c.sp, got)
+		}
+	}
+	if _, ok := NextThreshold(2800); ok {
+		t.Fatal("diamond has no next threshold")
+	}
+}

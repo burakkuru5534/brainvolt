@@ -31,19 +31,23 @@ type Cards interface {
 	Cards(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]profile.Card, error)
 }
 
-// Teams reads a persistent team's captain (team country, D-029).
+// Teams reads a persistent team's captain (team country, D-029) and the
+// labels of teams and couples on boards.
 type Teams interface {
 	TeamInfo(ctx context.Context, id uuid.UUID) (team.Info, error)
+	TeamLabels(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]team.Label, error)
+	CoupleLabels(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]team.Label, error)
 }
 
 // Deps are the service's collaborators.
 type Deps struct {
-	DB     *pgxpool.Pool
-	Redis  *redis.Client
-	Cards  Cards
-	Teams  Teams
-	Clock  clock.Clock
-	Logger *slog.Logger
+	DB      *pgxpool.Pool
+	Redis   *redis.Client
+	Cards   Cards
+	Teams   Teams
+	Friends Friends
+	Clock   clock.Clock
+	Logger  *slog.Logger
 }
 
 // Service implements ranking.

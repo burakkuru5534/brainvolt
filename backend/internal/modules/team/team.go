@@ -80,3 +80,16 @@ func (m *Module) CoupleInfo(ctx context.Context, id uuid.UUID) (CoupleInfo, erro
 func (m *Module) ActiveCoupleOf(ctx context.Context, user uuid.UUID) (CoupleInfo, bool, error) {
 	return m.svc.ActiveCoupleOf(ctx, user)
 }
+
+// Label is how a leaderboard shows a team or couple.
+type Label = service.Label
+
+// TeamLabels returns the names, tags and emblems of teams.
+func (m *Module) TeamLabels(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]Label, error) {
+	return m.svc.TeamLabels(ctx, ids)
+}
+
+// CoupleLabels returns the names and partners of couples.
+func (m *Module) CoupleLabels(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]Label, error) {
+	return m.svc.CoupleLabels(ctx, ids)
+}

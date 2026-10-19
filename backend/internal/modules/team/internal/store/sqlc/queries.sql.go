@@ -63,6 +63,42 @@ func (q *Queries) CoupleOfPair(ctx context.Context, arg CoupleOfPairParams) (Tea
 	return i, err
 }
 
+const couplesByIDs = `-- name: CouplesByIDs :many
+SELECT id, coalesce(name::text, '')::text AS name, user_low_id, user_high_id FROM team.couples WHERE id = ANY($1::uuid[])
+`
+
+type CouplesByIDsRow struct {
+	ID         uuid.UUID
+	Name       string
+	UserLowID  uuid.UUID
+	UserHighID uuid.UUID
+}
+
+func (q *Queries) CouplesByIDs(ctx context.Context, ids []uuid.UUID) ([]CouplesByIDsRow, error) {
+	rows, err := q.db.Query(ctx, couplesByIDs, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CouplesByIDsRow{}
+	for rows.Next() {
+		var i CouplesByIDsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.UserLowID,
+			&i.UserHighID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const disbandTeam = `-- name: DisbandTeam :exec
 UPDATE team.teams SET status = 'disbanded', disbanded_at = $1::timestamptz, updated_at = $1::timestamptz WHERE id = $2
 `
@@ -601,6 +637,44 @@ type SetRoleParams struct {
 func (q *Queries) SetRole(ctx context.Context, arg SetRoleParams) error {
 	_, err := q.db.Exec(ctx, setRole, arg.Role, arg.TeamID, arg.UserID)
 	return err
+}
+
+const teamsByIDs = `-- name: TeamsByIDs :many
+
+SELECT id, name::text AS name, tag::text AS tag, emblem_id FROM team.teams WHERE id = ANY($1::uuid[])
+`
+
+type TeamsByIDsRow struct {
+	ID       uuid.UUID
+	Name     string
+	Tag      string
+	EmblemID string
+}
+
+// ---------- Labels (leaderboards) ----------
+func (q *Queries) TeamsByIDs(ctx context.Context, ids []uuid.UUID) ([]TeamsByIDsRow, error) {
+	rows, err := q.db.Query(ctx, teamsByIDs, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []TeamsByIDsRow{}
+	for rows.Next() {
+		var i TeamsByIDsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Tag,
+			&i.EmblemID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateTeam = `-- name: UpdateTeam :exec

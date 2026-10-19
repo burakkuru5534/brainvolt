@@ -143,3 +143,16 @@ func CategoryPoints(r Result, roundsInCategory, totalRounds, correctInCategory i
 	share := math.Round(float64(ResultPoints(r)) * float64(roundsInCategory) / float64(totalRounds))
 	return int(share) + LPCorrect*correctInCategory
 }
+
+// NextThreshold is the SP of the next division or league above sp
+// (ok = false in Diamond).
+func NextThreshold(sp int) (int, bool) {
+	for _, l := range Leagues {
+		for _, floor := range l.Divisions {
+			if floor > sp {
+				return floor, true
+			}
+		}
+	}
+	return 0, false
+}

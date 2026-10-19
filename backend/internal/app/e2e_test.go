@@ -184,10 +184,13 @@ func (x *e2e) session(token string, extra map[string]any) response {
 	return x.do(http.MethodPost, "/v1/session", token, body)
 }
 
+// jobs counts the published events of a name (one delivery job per event
+// for the test subscriber).
 func (x *e2e) jobs(event string) int {
 	x.t.Helper()
 	var n int
-	if err := x.db.QueryRow(context.Background(), `SELECT count(*) FROM river_job WHERE args->'event'->>'name' = $1`, event).Scan(&n); err != nil {
+	if err := x.db.QueryRow(context.Background(), `SELECT count(*) FROM river_job WHERE args->'event'->>'name' = $1 AND args->>'subscriber' = $2`,
+		event, "test.on_"+event).Scan(&n); err != nil {
 		x.t.Fatal(err)
 	}
 	return n

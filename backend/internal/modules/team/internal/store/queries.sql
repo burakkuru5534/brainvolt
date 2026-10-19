@@ -118,3 +118,11 @@ UPDATE team.couples SET status = @status,
   dissolved_at = CASE WHEN @status = 'dissolved' THEN @now::timestamptz ELSE dissolved_at END,
   last_dissolved_at = CASE WHEN @status = 'dissolved' THEN @now::timestamptz ELSE last_dissolved_at END
 WHERE id = @id;
+
+-- ---------- Labels (leaderboards) ----------
+
+-- name: TeamsByIDs :many
+SELECT id, name::text AS name, tag::text AS tag, emblem_id FROM team.teams WHERE id = ANY(@ids::uuid[]);
+
+-- name: CouplesByIDs :many
+SELECT id, coalesce(name::text, '')::text AS name, user_low_id, user_high_id FROM team.couples WHERE id = ANY(@ids::uuid[]);
