@@ -66,6 +66,7 @@ type Questions interface {
 	CategoryExists(ctx context.Context, id uuid.UUID) (bool, error)
 	ActiveCategoryIDs(ctx context.Context) ([]uuid.UUID, error)
 	Texts(ctx context.Context, ids []uuid.UUID, locales []string) (map[uuid.UUID]map[string]content.QuestionText, error)
+	DailySet(ctx context.Context, day time.Time) (content.DailySet, error)
 }
 
 // Users is what game needs from identity.

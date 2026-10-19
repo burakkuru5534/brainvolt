@@ -29,7 +29,7 @@ type ContentCategoryTranslation struct {
 }
 
 type ContentDailySet struct {
-	Day         pgtype.Date
+	Day         time.Time
 	SetID       uuid.UUID
 	PublishedAt time.Time
 }
@@ -173,6 +173,40 @@ type GameAnswer struct {
 	PointsAwarded int32
 	IsSideAnswer  bool
 	CreatedAt     time.Time
+}
+
+type GameDailyRun struct {
+	ID                 uuid.UUID
+	Day                time.Time
+	UserID             uuid.UUID
+	SetID              uuid.UUID
+	Locale             string
+	Kind               string
+	Status             string
+	AccountTierAtStart string
+	RulesetVersion     int32
+	StartedAt          time.Time
+	CompletedAt        *time.Time
+	CorrectCount       *int16
+	TotalTimeMs        *int32
+	Score              *int32
+	Disconnects        int16
+}
+
+type GameDailyRunAnswer struct {
+	RunID            uuid.UUID
+	Position         int16
+	QuestionID       uuid.UUID
+	QuestionRevision int32
+	OptionOrder      []int16
+	ShowAt           time.Time
+	DeadlineAt       time.Time
+	OptionID         *uuid.UUID
+	ReceivedAt       *time.Time
+	ResponseMs       *int32
+	IsCorrect        bool
+	Points           int32
+	CreatedAt        time.Time
 }
 
 type GameMatch struct {
@@ -414,7 +448,7 @@ type ProgressionPlayStreak struct {
 	UserID      uuid.UUID
 	CurrentDays int32
 	LongestDays int32
-	LastPlayDay pgtype.Date
+	LastPlayDay *time.Time
 	UpdatedAt   time.Time
 }
 
@@ -451,7 +485,7 @@ type ProgressionQuestAssignment struct {
 
 type ProgressionQuestReroll struct {
 	UserID uuid.UUID
-	Day    pgtype.Date
+	Day    time.Time
 	Count  int32
 }
 
@@ -491,6 +525,16 @@ type ProgressionXpLedger struct {
 	Source    string
 	SourceRef string
 	CreatedAt time.Time
+}
+
+type RankingDailyChallengeEntry struct {
+	Day          time.Time
+	UserID       uuid.UUID
+	CorrectCount int16
+	TotalTimeMs  int32
+	CompletedAt  time.Time
+	CountryCode  *string
+	Public       bool
 }
 
 type RankingLeaderboardSnapshot struct {

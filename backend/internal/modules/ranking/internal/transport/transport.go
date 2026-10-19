@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -50,6 +51,15 @@ func (t *Transport) Register(s *httpserver.Server) {
 			{Name: "country", Type: "string", Description: "ISO country for scope=country (default the caller's)"},
 			{Name: "category_id", Type: "string", Format: "uuid", Description: "category board (not with season)"},
 			{Name: "season_id", Type: "string", Format: "uuid", Description: "season board of a past season"},
+			{Name: "limit", Type: "integer", Description: "1–100, default 50"},
+			{Name: "cursor", Type: "string", Description: "next_cursor of the previous page"},
+		},
+	}))
+	s.Handle("GET /v1/leaderboards/daily-challenge/{date}", a(t.dailyBoard), doc(httpserver.Doc{
+		Summary:  "A day's Daily Challenge board (correct ↓, total time ↑, completion ↑; D-040); `me` is the caller's place",
+		Response: service.DailyBoard{}, Errors: []apierror.Code{apierror.ValidationFailed},
+		Query: []httpserver.QueryParam{
+			{Name: "scope", Type: "string", Enum: []string{"global", "country", "friends"}, Description: "default global"},
 			{Name: "limit", Type: "integer", Description: "1–100, default 50"},
 			{Name: "cursor", Type: "string", Description: "next_cursor of the previous page"},
 		},
@@ -118,6 +128,35 @@ func (t *Transport) leaderboard(w http.ResponseWriter, r *http.Request) error {
 		q.Offset = n
 	}
 	b, err := t.svc.Leaderboard(r.Context(), q)
+	if err != nil {
+		return err
+	}
+	return httpserver.WriteJSON(w, http.StatusOK, b)
+}
+
+func (t *Transport) dailyBoard(w http.ResponseWriter, r *http.Request) error {
+	day, err := time.Parse(time.DateOnly, r.PathValue("date"))
+	if err != nil {
+		return apierror.Validation(apierror.FieldError{Field: "date", Rule: "format"})
+	}
+	qs := r.URL.Query()
+	limit, offset := 50, 0
+	if v := qs.Get("limit"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil || n < 1 || n > 100 {
+			return apierror.Validation(apierror.FieldError{Field: "limit", Rule: "range"})
+		}
+		limit = n
+	}
+	if v := qs.Get("cursor"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil || n < 0 || n > 10_000 {
+			return apierror.Validation(apierror.FieldError{Field: "cursor", Rule: "format"})
+		}
+		offset = n
+	}
+	p, _ := identity.PrincipalFrom(r.Context())
+	b, err := t.svc.DailyBoard(r.Context(), p.UserID, day, or(qs.Get("scope"), "global"), limit, offset)
 	if err != nil {
 		return err
 	}

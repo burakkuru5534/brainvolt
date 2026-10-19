@@ -193,6 +193,19 @@ func (q *Queries) CountEligible(ctx context.Context, locale string) ([]CountElig
 	return items, nil
 }
 
+const dailySetOf = `-- name: DailySetOf :one
+
+SELECT set_id FROM content.daily_sets WHERE day = $1
+`
+
+// ---------- Daily sets (Daily Challenge, D-040) ----------
+func (q *Queries) DailySetOf(ctx context.Context, day pgtype.Date) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, dailySetOf, day)
+	var set_id uuid.UUID
+	err := row.Scan(&set_id)
+	return set_id, err
+}
+
 const getQuestion = `-- name: GetQuestion :one
 SELECT id, subcategory_id, question_type, difficulty, difficulty_calibrated, original_locale, source_id, source_ref, author_user_id, pool, fingerprint, verification_status, verified_by, verified_at, rejection_reason, retired_at, revision, created_at, updated_at FROM content.questions WHERE id = $1
 `
@@ -253,6 +266,24 @@ func (q *Queries) GetQuestionForUpdate(ctx context.Context, id uuid.UUID) (Conte
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const insertDailySet = `-- name: InsertDailySet :execrows
+INSERT INTO content.daily_sets (day, set_id, published_at) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING
+`
+
+type InsertDailySetParams struct {
+	Day   pgtype.Date
+	SetID uuid.UUID
+	Now   time.Time
+}
+
+func (q *Queries) InsertDailySet(ctx context.Context, arg InsertDailySetParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertDailySet, arg.Day, arg.SetID, arg.Now)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const insertOption = `-- name: InsertOption :exec
@@ -316,6 +347,27 @@ func (q *Queries) InsertQuestion(ctx context.Context, arg InsertQuestionParams) 
 	return err
 }
 
+const insertQuestionSet = `-- name: InsertQuestionSet :exec
+INSERT INTO content.question_sets (id, kind, created_by, created_at) VALUES ($1, $2, $3, $4)
+`
+
+type InsertQuestionSetParams struct {
+	ID        uuid.UUID
+	Kind      string
+	CreatedBy *uuid.UUID
+	Now       time.Time
+}
+
+func (q *Queries) InsertQuestionSet(ctx context.Context, arg InsertQuestionSetParams) error {
+	_, err := q.db.Exec(ctx, insertQuestionSet,
+		arg.ID,
+		arg.Kind,
+		arg.CreatedBy,
+		arg.Now,
+	)
+	return err
+}
+
 const insertRevision = `-- name: InsertRevision :exec
 
 INSERT INTO content.question_revisions (question_id, revision, snapshot, created_by, created_at)
@@ -339,6 +391,21 @@ func (q *Queries) InsertRevision(ctx context.Context, arg InsertRevisionParams) 
 		arg.CreatedBy,
 		arg.CreatedAt,
 	)
+	return err
+}
+
+const insertSetItem = `-- name: InsertSetItem :exec
+INSERT INTO content.question_set_items (set_id, position, question_id) VALUES ($1, $2, $3)
+`
+
+type InsertSetItemParams struct {
+	SetID      uuid.UUID
+	Position   int16
+	QuestionID uuid.UUID
+}
+
+func (q *Queries) InsertSetItem(ctx context.Context, arg InsertSetItemParams) error {
+	_, err := q.db.Exec(ctx, insertSetItem, arg.SetID, arg.Position, arg.QuestionID)
 	return err
 }
 
@@ -1000,6 +1067,32 @@ func (q *Queries) QuestionUsed(ctx context.Context, questionID uuid.UUID) (bool,
 	return exists, err
 }
 
+const recentDailyQuestions = `-- name: RecentDailyQuestions :many
+SELECT i.question_id FROM content.daily_sets d JOIN content.question_set_items i ON i.set_id = d.set_id
+WHERE d.day >= $1
+`
+
+// Recent daily questions (kept out of new daily sets).
+func (q *Queries) RecentDailyQuestions(ctx context.Context, since pgtype.Date) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, recentDailyQuestions, since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var question_id uuid.UUID
+		if err := rows.Scan(&question_id); err != nil {
+			return nil, err
+		}
+		items = append(items, question_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const retireQuestion = `-- name: RetireQuestion :exec
 UPDATE content.questions SET retired_at = $1, updated_at = $1 WHERE id = $2 AND retired_at IS NULL
 `
@@ -1127,6 +1220,52 @@ func (q *Queries) SetQuestionStatus(ctx context.Context, arg SetQuestionStatusPa
 		arg.ID,
 	)
 	return err
+}
+
+const setQuestions = `-- name: SetQuestions :many
+SELECT q.id, q.revision, q.question_type, q.subcategory_id, s.category_id,
+       coalesce(round(q.difficulty_calibrated)::smallint, q.difficulty)::smallint AS difficulty_used
+FROM content.question_set_items i
+JOIN content.questions q ON q.id = i.question_id
+JOIN content.subcategories s ON s.id = q.subcategory_id
+WHERE i.set_id = $1
+ORDER BY i.position
+`
+
+type SetQuestionsRow struct {
+	ID             uuid.UUID
+	Revision       int32
+	QuestionType   string
+	SubcategoryID  uuid.UUID
+	CategoryID     uuid.UUID
+	DifficultyUsed int16
+}
+
+func (q *Queries) SetQuestions(ctx context.Context, setID uuid.UUID) ([]SetQuestionsRow, error) {
+	rows, err := q.db.Query(ctx, setQuestions, setID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SetQuestionsRow{}
+	for rows.Next() {
+		var i SetQuestionsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Revision,
+			&i.QuestionType,
+			&i.SubcategoryID,
+			&i.CategoryID,
+			&i.DifficultyUsed,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const setTranslationStatus = `-- name: SetTranslationStatus :exec

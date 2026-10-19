@@ -27,6 +27,7 @@ import (
 const (
 	SubscriberMatchResults = "ranking.match_results"
 	SubscriberTierChanged  = "ranking.tier_changed"
+	SubscriberDailyBoard   = "ranking.daily_board"
 )
 
 // EventSeasonEnded is published when a season closes.
@@ -118,4 +119,9 @@ func (m *Module) Maintain(ctx context.Context) error { return m.svc.Maintain(ctx
 // SeasonResults lists users' peak leagues and final ranks of a season.
 func (m *Module) SeasonResults(ctx context.Context, season uuid.UUID) ([]SeasonResult, error) {
 	return m.svc.SeasonResults(ctx, season)
+}
+
+// OnDailyRunCompleted consumes game.DailyRunCompleted: the daily board.
+func (m *Module) OnDailyRunCompleted(ctx context.Context, e events.Envelope) error {
+	return m.svc.OnDailyRunCompleted(ctx, e)
 }

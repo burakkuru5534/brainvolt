@@ -86,6 +86,14 @@ sql:
         sql_package: pgx/v5
         emit_pointers_for_null_types: true
         emit_empty_slices: true
+        overrides:
+          - db_type: date
+            go_type: time.Time
+          - db_type: date
+            nullable: true
+            go_type:
+              type: time.Time
+              pointer: true
   - name: social
     engine: postgresql
     schema: migrations
@@ -131,6 +139,13 @@ sql:
         emit_pointers_for_null_types: true
         emit_empty_slices: true
         overrides:
+          - db_type: date
+            go_type: time.Time
+          - db_type: date
+            nullable: true
+            go_type:
+              type: time.Time
+              pointer: true
           - db_type: pg_catalog.numeric
             go_type: float64
   - name: progression

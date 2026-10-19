@@ -33,6 +33,120 @@ func (q *Queries) ActiveSeason(ctx context.Context) (RankingSeason, error) {
 	return i, err
 }
 
+const dailyBoard = `-- name: DailyBoard :many
+SELECT user_id, correct_count, total_time_ms, completed_at FROM ranking.daily_challenge_entries
+WHERE day = $1 AND public
+  AND ($2::text IS NULL OR country_code = $2::text)
+  AND (cardinality($3::uuid[]) = 0 OR user_id = ANY($3::uuid[]))
+ORDER BY correct_count DESC, total_time_ms ASC, completed_at ASC, user_id
+LIMIT $5 OFFSET $4
+`
+
+type DailyBoardParams struct {
+	Day     time.Time
+	Country *string
+	Users   []uuid.UUID
+	Off     int32
+	Lim     int32
+}
+
+type DailyBoardRow struct {
+	UserID       uuid.UUID
+	CorrectCount int16
+	TotalTimeMs  int32
+	CompletedAt  time.Time
+}
+
+// Public entries of a day in board order, optionally one country or a set of users.
+func (q *Queries) DailyBoard(ctx context.Context, arg DailyBoardParams) ([]DailyBoardRow, error) {
+	rows, err := q.db.Query(ctx, dailyBoard,
+		arg.Day,
+		arg.Country,
+		arg.Users,
+		arg.Off,
+		arg.Lim,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []DailyBoardRow{}
+	for rows.Next() {
+		var i DailyBoardRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.CorrectCount,
+			&i.TotalTimeMs,
+			&i.CompletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const dailyEntry = `-- name: DailyEntry :one
+SELECT day, user_id, correct_count, total_time_ms, completed_at, country_code, public FROM ranking.daily_challenge_entries WHERE day = $1 AND user_id = $2
+`
+
+type DailyEntryParams struct {
+	Day    time.Time
+	UserID uuid.UUID
+}
+
+func (q *Queries) DailyEntry(ctx context.Context, arg DailyEntryParams) (RankingDailyChallengeEntry, error) {
+	row := q.db.QueryRow(ctx, dailyEntry, arg.Day, arg.UserID)
+	var i RankingDailyChallengeEntry
+	err := row.Scan(
+		&i.Day,
+		&i.UserID,
+		&i.CorrectCount,
+		&i.TotalTimeMs,
+		&i.CompletedAt,
+		&i.CountryCode,
+		&i.Public,
+	)
+	return i, err
+}
+
+const dailyRank = `-- name: DailyRank :one
+SELECT count(*)::int + 1 FROM ranking.daily_challenge_entries e
+WHERE e.day = $1 AND e.public
+  AND ($2::text IS NULL OR e.country_code = $2::text)
+  AND (cardinality($3::uuid[]) = 0 OR e.user_id = ANY($3::uuid[]))
+  AND (e.correct_count > $4::smallint
+       OR (e.correct_count = $4::smallint AND (e.total_time_ms < $5::int
+           OR (e.total_time_ms = $5::int AND e.completed_at < $6::timestamptz))))
+`
+
+type DailyRankParams struct {
+	Day          time.Time
+	Country      *string
+	Users        []uuid.UUID
+	CorrectCount int16
+	TotalTimeMs  int32
+	CompletedAt  time.Time
+}
+
+// The place of an entry among the public ones of its day (scope as DailyBoard).
+func (q *Queries) DailyRank(ctx context.Context, arg DailyRankParams) (int32, error) {
+	row := q.db.QueryRow(ctx, dailyRank,
+		arg.Day,
+		arg.Country,
+		arg.Users,
+		arg.CorrectCount,
+		arg.TotalTimeMs,
+		arg.CompletedAt,
+	)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const getRating = `-- name: GetRating :one
 
 SELECT entity_kind, entity_id, bucket, rating, rd, volatility, rated_matches, last_rated_at, updated_at FROM ranking.ratings WHERE entity_kind = $1 AND entity_id = $2 AND bucket = $3
@@ -116,6 +230,37 @@ func (q *Queries) GetStanding(ctx context.Context, arg GetStandingParams) (Ranki
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const insertDailyEntry = `-- name: InsertDailyEntry :exec
+
+INSERT INTO ranking.daily_challenge_entries (day, user_id, correct_count, total_time_ms, completed_at, country_code, public)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+ON CONFLICT DO NOTHING
+`
+
+type InsertDailyEntryParams struct {
+	Day          time.Time
+	UserID       uuid.UUID
+	CorrectCount int16
+	TotalTimeMs  int32
+	CompletedAt  time.Time
+	CountryCode  *string
+	Public       bool
+}
+
+// ---------- Daily Challenge board (schema-ranking §4.4) ----------
+func (q *Queries) InsertDailyEntry(ctx context.Context, arg InsertDailyEntryParams) error {
+	_, err := q.db.Exec(ctx, insertDailyEntry,
+		arg.Day,
+		arg.UserID,
+		arg.CorrectCount,
+		arg.TotalTimeMs,
+		arg.CompletedAt,
+		arg.CountryCode,
+		arg.Public,
+	)
+	return err
 }
 
 const insertLedger = `-- name: InsertLedger :execrows
@@ -338,6 +483,15 @@ func (q *Queries) MarkProcessed(ctx context.Context, arg MarkProcessedParams) (i
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const publishUserDaily = `-- name: PublishUserDaily :exec
+UPDATE ranking.daily_challenge_entries SET public = true WHERE user_id = $1 AND NOT public
+`
+
+func (q *Queries) PublishUserDaily(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, publishUserDaily, userID)
+	return err
 }
 
 const publishUserLedger = `-- name: PublishUserLedger :many

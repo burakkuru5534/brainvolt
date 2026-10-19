@@ -12,6 +12,35 @@ import (
 	"github.com/google/uuid"
 )
 
+const answerDailyQuestion = `-- name: AnswerDailyQuestion :exec
+UPDATE game.daily_run_answers SET option_id = $1, received_at = $2, response_ms = $3,
+  is_correct = $4, points = $5
+WHERE run_id = $6 AND position = $7
+`
+
+type AnswerDailyQuestionParams struct {
+	OptionID   *uuid.UUID
+	ReceivedAt *time.Time
+	ResponseMs *int32
+	IsCorrect  bool
+	Points     int32
+	RunID      uuid.UUID
+	Position   int16
+}
+
+func (q *Queries) AnswerDailyQuestion(ctx context.Context, arg AnswerDailyQuestionParams) error {
+	_, err := q.db.Exec(ctx, answerDailyQuestion,
+		arg.OptionID,
+		arg.ReceivedAt,
+		arg.ResponseMs,
+		arg.IsCorrect,
+		arg.Points,
+		arg.RunID,
+		arg.Position,
+	)
+	return err
+}
+
 const cancelMatch = `-- name: CancelMatch :execrows
 UPDATE game.matches
 SET status = 'cancelled', ended_at = $1, cancel_reason = $2, updated_at = $1
@@ -30,6 +59,31 @@ func (q *Queries) CancelMatch(ctx context.Context, arg CancelMatchParams) (int64
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const completeDailyRun = `-- name: CompleteDailyRun :exec
+UPDATE game.daily_runs SET status = 'completed', completed_at = $1, correct_count = $2,
+  total_time_ms = $3, score = $4
+WHERE id = $5
+`
+
+type CompleteDailyRunParams struct {
+	CompletedAt  *time.Time
+	CorrectCount *int16
+	TotalTimeMs  *int32
+	Score        *int32
+	ID           uuid.UUID
+}
+
+func (q *Queries) CompleteDailyRun(ctx context.Context, arg CompleteDailyRunParams) error {
+	_, err := q.db.Exec(ctx, completeDailyRun,
+		arg.CompletedAt,
+		arg.CorrectCount,
+		arg.TotalTimeMs,
+		arg.Score,
+		arg.ID,
+	)
+	return err
 }
 
 const completeMatch = `-- name: CompleteMatch :execrows
@@ -61,6 +115,107 @@ func (q *Queries) CompleteMatch(ctx context.Context, arg CompleteMatchParams) (i
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const countDailyDisconnect = `-- name: CountDailyDisconnect :exec
+UPDATE game.daily_runs SET disconnects = disconnects + 1 WHERE id = $1
+`
+
+func (q *Queries) CountDailyDisconnect(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, countDailyDisconnect, id)
+	return err
+}
+
+const dailyAnswers = `-- name: DailyAnswers :many
+SELECT run_id, position, question_id, question_revision, option_order, show_at, deadline_at, option_id, received_at, response_ms, is_correct, points, created_at FROM game.daily_run_answers WHERE run_id = $1 ORDER BY position
+`
+
+func (q *Queries) DailyAnswers(ctx context.Context, runID uuid.UUID) ([]GameDailyRunAnswer, error) {
+	rows, err := q.db.Query(ctx, dailyAnswers, runID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GameDailyRunAnswer{}
+	for rows.Next() {
+		var i GameDailyRunAnswer
+		if err := rows.Scan(
+			&i.RunID,
+			&i.Position,
+			&i.QuestionID,
+			&i.QuestionRevision,
+			&i.OptionOrder,
+			&i.ShowAt,
+			&i.DeadlineAt,
+			&i.OptionID,
+			&i.ReceivedAt,
+			&i.ResponseMs,
+			&i.IsCorrect,
+			&i.Points,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getDailyRun = `-- name: GetDailyRun :one
+SELECT id, day, user_id, set_id, locale, kind, status, account_tier_at_start, ruleset_version, started_at, completed_at, correct_count, total_time_ms, score, disconnects FROM game.daily_runs WHERE id = $1
+`
+
+func (q *Queries) GetDailyRun(ctx context.Context, id uuid.UUID) (GameDailyRun, error) {
+	row := q.db.QueryRow(ctx, getDailyRun, id)
+	var i GameDailyRun
+	err := row.Scan(
+		&i.ID,
+		&i.Day,
+		&i.UserID,
+		&i.SetID,
+		&i.Locale,
+		&i.Kind,
+		&i.Status,
+		&i.AccountTierAtStart,
+		&i.RulesetVersion,
+		&i.StartedAt,
+		&i.CompletedAt,
+		&i.CorrectCount,
+		&i.TotalTimeMs,
+		&i.Score,
+		&i.Disconnects,
+	)
+	return i, err
+}
+
+const getDailyRunForUpdate = `-- name: GetDailyRunForUpdate :one
+SELECT id, day, user_id, set_id, locale, kind, status, account_tier_at_start, ruleset_version, started_at, completed_at, correct_count, total_time_ms, score, disconnects FROM game.daily_runs WHERE id = $1 FOR UPDATE
+`
+
+func (q *Queries) GetDailyRunForUpdate(ctx context.Context, id uuid.UUID) (GameDailyRun, error) {
+	row := q.db.QueryRow(ctx, getDailyRunForUpdate, id)
+	var i GameDailyRun
+	err := row.Scan(
+		&i.ID,
+		&i.Day,
+		&i.UserID,
+		&i.SetID,
+		&i.Locale,
+		&i.Kind,
+		&i.Status,
+		&i.AccountTierAtStart,
+		&i.RulesetVersion,
+		&i.StartedAt,
+		&i.CompletedAt,
+		&i.CorrectCount,
+		&i.TotalTimeMs,
+		&i.Score,
+		&i.Disconnects,
+	)
+	return i, err
 }
 
 const getMatch = `-- name: GetMatch :one
@@ -139,6 +294,40 @@ func (q *Queries) InsertAnswer(ctx context.Context, arg InsertAnswerParams) erro
 		arg.PointsAwarded,
 		arg.IsSideAnswer,
 		arg.CreatedAt,
+	)
+	return err
+}
+
+const insertDailyRun = `-- name: InsertDailyRun :exec
+
+INSERT INTO game.daily_runs (id, day, user_id, set_id, locale, kind, status, account_tier_at_start, ruleset_version, started_at)
+VALUES ($1, $2, $3, $4, $5, $6, 'in_progress', $7, $8, $9)
+`
+
+type InsertDailyRunParams struct {
+	ID             uuid.UUID
+	Day            time.Time
+	UserID         uuid.UUID
+	SetID          uuid.UUID
+	Locale         string
+	Kind           string
+	Tier           string
+	RulesetVersion int32
+	Now            time.Time
+}
+
+// ---------- Daily Challenge runs (schema-platform §6) ----------
+func (q *Queries) InsertDailyRun(ctx context.Context, arg InsertDailyRunParams) error {
+	_, err := q.db.Exec(ctx, insertDailyRun,
+		arg.ID,
+		arg.Day,
+		arg.UserID,
+		arg.SetID,
+		arg.Locale,
+		arg.Kind,
+		arg.Tier,
+		arg.RulesetVersion,
+		arg.Now,
 	)
 	return err
 }
@@ -531,6 +720,39 @@ func (q *Queries) ListSides(ctx context.Context, matchID uuid.UUID) ([]ListSides
 	return items, nil
 }
 
+const officialRunOf = `-- name: OfficialRunOf :one
+SELECT id, day, user_id, set_id, locale, kind, status, account_tier_at_start, ruleset_version, started_at, completed_at, correct_count, total_time_ms, score, disconnects FROM game.daily_runs
+WHERE day = $1 AND user_id = $2 AND kind = 'official' AND status IN ('in_progress','completed')
+`
+
+type OfficialRunOfParams struct {
+	Day    time.Time
+	UserID uuid.UUID
+}
+
+func (q *Queries) OfficialRunOf(ctx context.Context, arg OfficialRunOfParams) (GameDailyRun, error) {
+	row := q.db.QueryRow(ctx, officialRunOf, arg.Day, arg.UserID)
+	var i GameDailyRun
+	err := row.Scan(
+		&i.ID,
+		&i.Day,
+		&i.UserID,
+		&i.SetID,
+		&i.Locale,
+		&i.Kind,
+		&i.Status,
+		&i.AccountTierAtStart,
+		&i.RulesetVersion,
+		&i.StartedAt,
+		&i.CompletedAt,
+		&i.CorrectCount,
+		&i.TotalTimeMs,
+		&i.Score,
+		&i.Disconnects,
+	)
+	return i, err
+}
+
 const recentQuestionIDs = `-- name: RecentQuestionIDs :many
 SELECT DISTINCT r.question_id
 FROM game.match_rounds r
@@ -750,6 +972,36 @@ func (q *Queries) SetSideResult(ctx context.Context, arg SetSideResultParams) er
 	return err
 }
 
+const showDailyQuestion = `-- name: ShowDailyQuestion :exec
+INSERT INTO game.daily_run_answers (run_id, position, question_id, question_revision, option_order, show_at, deadline_at, is_correct, created_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, false, $8)
+`
+
+type ShowDailyQuestionParams struct {
+	RunID            uuid.UUID
+	Position         int16
+	QuestionID       uuid.UUID
+	QuestionRevision int32
+	OptionOrder      []int16
+	ShowAt           time.Time
+	DeadlineAt       time.Time
+	Now              time.Time
+}
+
+func (q *Queries) ShowDailyQuestion(ctx context.Context, arg ShowDailyQuestionParams) error {
+	_, err := q.db.Exec(ctx, showDailyQuestion,
+		arg.RunID,
+		arg.Position,
+		arg.QuestionID,
+		arg.QuestionRevision,
+		arg.OptionOrder,
+		arg.ShowAt,
+		arg.DeadlineAt,
+		arg.Now,
+	)
+	return err
+}
+
 const sideEntities = `-- name: SideEntities :many
 SELECT side_no, team_id, couple_id FROM game.match_sides WHERE match_id = $1 ORDER BY side_no
 `
@@ -808,4 +1060,44 @@ func (q *Queries) SideScoreFromRounds(ctx context.Context, matchID uuid.UUID) ([
 		return nil, err
 	}
 	return items, nil
+}
+
+const staleDailyRuns = `-- name: StaleDailyRuns :many
+SELECT id FROM game.daily_runs WHERE status = 'in_progress' AND started_at < $1 ORDER BY started_at LIMIT 200
+`
+
+// Runs left running (abandoned apps), settled by the worker.
+func (q *Queries) StaleDailyRuns(ctx context.Context, before time.Time) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, staleDailyRuns, before)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const voidDailyRun = `-- name: VoidDailyRun :exec
+UPDATE game.daily_runs SET status = $1, completed_at = $2 WHERE id = $3
+`
+
+type VoidDailyRunParams struct {
+	Status string
+	Now    *time.Time
+	ID     uuid.UUID
+}
+
+func (q *Queries) VoidDailyRun(ctx context.Context, arg VoidDailyRunParams) error {
+	_, err := q.db.Exec(ctx, voidDailyRun, arg.Status, arg.Now, arg.ID)
+	return err
 }

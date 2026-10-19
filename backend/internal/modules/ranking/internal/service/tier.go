@@ -40,6 +40,9 @@ func (s *Service) OnTierChanged(ctx context.Context, e events.Envelope) error {
 	err = postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error {
 		incs = nil
 		q := sqlc.New(tx)
+		if err := q.PublishUserDaily(ctx, p.UserID); err != nil {
+			return err
+		}
 		rows, err := q.PublishUserLedger(ctx, p.UserID)
 		if err != nil {
 			return err

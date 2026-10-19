@@ -136,3 +136,46 @@ ORDER BY r.round_no;
 
 -- name: SideEntities :many
 SELECT side_no, team_id, couple_id FROM game.match_sides WHERE match_id = $1 ORDER BY side_no;
+
+-- ---------- Daily Challenge runs (schema-platform §6) ----------
+
+-- name: InsertDailyRun :exec
+INSERT INTO game.daily_runs (id, day, user_id, set_id, locale, kind, status, account_tier_at_start, ruleset_version, started_at)
+VALUES (@id, @day, @user_id, @set_id, @locale, @kind, 'in_progress', @tier, @ruleset_version, @now);
+
+-- name: GetDailyRun :one
+SELECT * FROM game.daily_runs WHERE id = @id;
+
+-- name: GetDailyRunForUpdate :one
+SELECT * FROM game.daily_runs WHERE id = @id FOR UPDATE;
+
+-- name: OfficialRunOf :one
+SELECT * FROM game.daily_runs
+WHERE day = @day AND user_id = @user_id AND kind = 'official' AND status IN ('in_progress','completed');
+
+-- name: CompleteDailyRun :exec
+UPDATE game.daily_runs SET status = 'completed', completed_at = @completed_at, correct_count = @correct_count,
+  total_time_ms = @total_time_ms, score = @score
+WHERE id = @id;
+
+-- name: VoidDailyRun :exec
+UPDATE game.daily_runs SET status = @status, completed_at = @now WHERE id = @id;
+
+-- name: CountDailyDisconnect :exec
+UPDATE game.daily_runs SET disconnects = disconnects + 1 WHERE id = @id;
+
+-- name: DailyAnswers :many
+SELECT * FROM game.daily_run_answers WHERE run_id = @run_id ORDER BY position;
+
+-- name: ShowDailyQuestion :exec
+INSERT INTO game.daily_run_answers (run_id, position, question_id, question_revision, option_order, show_at, deadline_at, is_correct, created_at)
+VALUES (@run_id, @position, @question_id, @question_revision, @option_order, @show_at, @deadline_at, false, @now);
+
+-- name: AnswerDailyQuestion :exec
+UPDATE game.daily_run_answers SET option_id = @option_id, received_at = @received_at, response_ms = @response_ms,
+  is_correct = @is_correct, points = @points
+WHERE run_id = @run_id AND position = @position;
+
+-- Runs left running (abandoned apps), settled by the worker.
+-- name: StaleDailyRuns :many
+SELECT id FROM game.daily_runs WHERE status = 'in_progress' AND started_at < @before ORDER BY started_at LIMIT 200;

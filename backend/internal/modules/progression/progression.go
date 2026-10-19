@@ -25,6 +25,7 @@ import (
 const (
 	SubscriberMatchAwards  = "progression.match_awards"
 	SubscriberSeasonReward = "progression.season_rewards"
+	SubscriberDailyRewards = "progression.daily_rewards"
 )
 
 // MsgAwards is the personal match.awards message.
@@ -82,4 +83,10 @@ func (s seasons) SeasonResults(ctx context.Context, season uuid.UUID) ([]service
 		out[i] = service.SeasonResult{UserID: r.UserID, PeakLeague: r.PeakLeague, FinalRank: r.FinalRank}
 	}
 	return out, err
+}
+
+// OnDailyRunCompleted consumes game.DailyRunCompleted: XP, play streak
+// and daily_challenge quests.
+func (m *Module) OnDailyRunCompleted(ctx context.Context, e events.Envelope) error {
+	return m.svc.OnDailyRunCompleted(ctx, e)
 }

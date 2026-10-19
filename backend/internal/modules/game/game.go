@@ -6,7 +6,9 @@ package game
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -22,9 +24,11 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/team"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/idempotency"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
@@ -32,7 +36,9 @@ import (
 const (
 	EventMatchStarted   = service.EventMatchStarted
 	EventMatchCompleted = service.EventMatchCompleted
-	EventMatchCancelled = service.EventMatchCancelled
+	// EventDailyRunCompleted is published for completed official daily runs.
+	EventDailyRunCompleted = service.EventDailyRunCompleted
+	EventMatchCancelled    = service.EventMatchCancelled
 )
 
 // Config is a match configuration (mode-matrix.md).
@@ -58,6 +64,9 @@ type Member = service.Member
 
 // Created is a new match in `waiting` with the engine output of T1.
 type Created = service.Created
+
+// DailyRunCompleted is the payload of game.DailyRunCompleted.
+type DailyRunCompleted = service.DailyRunCompleted
 
 // MatchCompleted is the payload of game.MatchCompleted.
 type MatchCompleted = service.MatchCompleted
@@ -146,6 +155,8 @@ type Module struct {
 	svc      *service.Service
 	live     *live.Manager
 	identity *identity.Module
+	rt       *realtime.Module
+	logger   *slog.Logger
 }
 
 // New builds the module and, with a realtime gateway, registers the
@@ -159,7 +170,7 @@ func New(d Deps) *Module {
 		sd.Teams = d.Teams
 	}
 	svc := service.New(sd)
-	m := &Module{svc: svc, identity: d.Identity}
+	m := &Module{svc: svc, identity: d.Identity, logger: d.Logger}
 	if d.Realtime != nil {
 		m.live = live.New(live.Deps{
 			Redis: d.Redis, Persister: svc, RT: d.Realtime, Texts: d.Content, Cards: d.Profiles,
@@ -170,8 +181,49 @@ func New(d Deps) *Module {
 		d.Realtime.OnDisconnect(m.live.OnDisconnect)
 		d.Realtime.OnPong(m.live.OnPong)
 		d.Realtime.OnLive(m.live.OnLive)
+		m.rt = d.Realtime
+		d.Realtime.Handle("daily", m.handleDaily)
 	}
 	return m
+}
+
+// dailyIntent is daily.join {run_id} / daily.answer {run_id, position,
+// option_id} (websocket.md §4).
+type dailyIntent struct {
+	RunID    uuid.UUID `json:"run_id"`
+	Position int16     `json:"position"`
+	OptionID uuid.UUID `json:"option_id"`
+}
+
+// handleDaily plays a Daily Challenge run: the answers are personal
+// frames to the player (daily.question / revealed / completed).
+func (m *Module) handleDaily(ctx context.Context, c realtime.Client, msg realtime.Message) error {
+	var p dailyIntent
+	if err := json.Unmarshal(msg.Data, &p); err != nil || p.RunID == uuid.Nil {
+		return apierror.New(apierror.MalformedRequest)
+	}
+	var frames []service.DailyFrame
+	var err error
+	switch msg.Type {
+	case "daily.join":
+		frames, err = m.svc.JoinDaily(ctx, c.UserID, p.RunID)
+	case "daily.answer":
+		if p.OptionID == uuid.Nil || p.Position < 1 {
+			return apierror.New(apierror.MalformedRequest)
+		}
+		frames, err = m.svc.AnswerDaily(ctx, c.UserID, p.RunID, p.Position, p.OptionID)
+	default:
+		return apierror.New(apierror.MalformedRequest).With("reason", "unknown_intent")
+	}
+	if err != nil {
+		return err
+	}
+	for _, f := range frames {
+		if err := m.rt.Send(ctx, realtime.Target{User: c.UserID, Session: c.SessionID}, realtime.Frame{T: f.Type, D: f.Data}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Create checks the T1 guards and stores a new match in `waiting`.
@@ -247,8 +299,8 @@ func (m *Module) Apply(ctx context.Context, match *engine.Match, out engine.Outp
 }
 
 // Register adds game's REST routes; ident authenticates them.
-func (m *Module) Register(s *httpserver.Server, ident *identity.Module) {
-	transport.New(m.svc, ident).Register(s)
+func (m *Module) Register(s *httpserver.Server, ident *identity.Module, idem *idempotency.Store) {
+	transport.New(m.svc, ident, idem).Register(s)
 }
 
 // Close stops this instance's live owners without releasing their leases,
@@ -260,4 +312,26 @@ func (m *Module) Name() string { return "game" }
 
 // Run receives forwarded match commands until ctx ends, then stops the
 // local owners (their leases expire; edge-cases §4).
-func (m *Module) Run(ctx context.Context) error { return m.live.Run(ctx) }
+func (m *Module) Run(ctx context.Context) error {
+	go m.sweepDaily(ctx)
+	return m.live.Run(ctx)
+}
+
+// sweepDaily settles abandoned daily runs every minute.
+func (m *Module) sweepDaily(ctx context.Context) {
+	t := time.NewTicker(time.Minute)
+	defer t.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
+			if err := m.svc.SettleStaleDaily(ctx); err != nil && ctx.Err() == nil {
+				m.logger.WarnContext(ctx, "game: daily sweep failed", "error", err)
+			}
+		}
+	}
+}
+
+// DailyDay is the Europe/Istanbul calendar day of t (D-029).
+func DailyDay(t time.Time) time.Time { return service.DailyDay(t) }

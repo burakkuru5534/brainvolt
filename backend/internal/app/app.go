@@ -207,7 +207,7 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 		DB: d.db, Redis: d.rdb, Content: cont, Identity: ident, Profiles: prof, Realtime: rt, Teams: tm, Seasons: rk,
 		Events: d.bus, Clock: d.clock, Logger: d.logger, Instance: d.instance,
 	})
-	g.Register(srv, ident)
+	g.Register(srv, ident, d.idem)
 	mm := matchmaking.New(matchmaking.Deps{
 		Redis: d.rdb, Game: g, Realtime: rt, Ratings: ratings{rk}, Social: soc, Teams: tm, Profiles: prof, Clock: d.clock, Logger: d.logger, Practice: d.env == config.EnvDev,
 	})
@@ -255,6 +255,9 @@ func newBus(db *pgxpool.Pool, rdb *redis.Client, logger *slog.Logger) *events.Bu
 	prog := progression.New(progression.Deps{DB: db, Pusher: workerPusher(rdb, logger), Ranking: rk, Clock: clock.Real{}, Logger: logger})
 	bus.Subscribe(game.EventMatchCompleted, progression.SubscriberMatchAwards, prog.OnMatchCompleted)
 	bus.Subscribe(ranking.EventSeasonEnded, progression.SubscriberSeasonReward, prog.OnSeasonEnded)
+	// Daily Challenge: the daily board and the run's XP / streak / quest (D-040).
+	bus.Subscribe(game.EventDailyRunCompleted, ranking.SubscriberDailyBoard, rk.OnDailyRunCompleted)
+	bus.Subscribe(game.EventDailyRunCompleted, progression.SubscriberDailyRewards, prog.OnDailyRunCompleted)
 	return bus
 }
 
@@ -293,7 +296,7 @@ func NewWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) (*Ap
 	bus := newBus(db, rdb, logger)
 	workers := river.NewWorkers()
 	bus.AddWorker(workers)
-	periodic := addJobs(workers, newRanking(db, rdb, bus, logger))
+	periodic := addJobs(workers, newRanking(db, rdb, bus, logger), content.New(db, clock.Real{}, bus))
 	client, err := river.NewClient(riverpgxv5.New(db), &river.Config{
 		Queues:       map[string]river.QueueConfig{river.QueueDefault: {MaxWorkers: 10}},
 		Workers:      workers,

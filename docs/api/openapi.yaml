@@ -519,6 +519,151 @@ components:
                 - status
                 - stream
             type: object
+        DailyAnswerView:
+            properties:
+                correct:
+                    type: boolean
+                points:
+                    type: integer
+                position:
+                    type: integer
+                response_ms:
+                    type:
+                        - integer
+                        - "null"
+            required:
+                - correct
+                - points
+                - position
+                - response_ms
+            type: object
+        DailyBoard:
+            properties:
+                country:
+                    type:
+                        - string
+                        - "null"
+                day:
+                    type: string
+                entries:
+                    items:
+                        $ref: '#/components/schemas/DailyEntry'
+                    type: array
+                me:
+                    oneOf:
+                        - $ref: '#/components/schemas/DailyEntry'
+                        - type: "null"
+                next_cursor:
+                    type:
+                        - string
+                        - "null"
+                scope:
+                    type: string
+            required:
+                - day
+                - entries
+                - me
+                - next_cursor
+                - scope
+            type: object
+        DailyEntry:
+            properties:
+                completed_at:
+                    format: date-time
+                    type: string
+                correct_count:
+                    type: integer
+                rank:
+                    type: integer
+                total_time_ms:
+                    type: integer
+                user:
+                    oneOf:
+                        - $ref: '#/components/schemas/Card'
+                        - type: "null"
+                user_id:
+                    format: uuid
+                    type: string
+            required:
+                - completed_at
+                - correct_count
+                - rank
+                - total_time_ms
+                - user
+                - user_id
+            type: object
+        DailyRunView:
+            properties:
+                answers:
+                    items:
+                        $ref: '#/components/schemas/DailyAnswerView'
+                    type: array
+                completed_at:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+                correct_count:
+                    type:
+                        - integer
+                        - "null"
+                day:
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                kind:
+                    type: string
+                score:
+                    type:
+                        - integer
+                        - "null"
+                started_at:
+                    format: date-time
+                    type: string
+                status:
+                    type: string
+                total_time_ms:
+                    type:
+                        - integer
+                        - "null"
+            required:
+                - answers
+                - completed_at
+                - correct_count
+                - day
+                - id
+                - kind
+                - score
+                - started_at
+                - status
+                - total_time_ms
+            type: object
+        DailyStart:
+            properties:
+                kind:
+                    type: string
+            required:
+                - kind
+            type: object
+        DailyToday:
+            properties:
+                available:
+                    type: boolean
+                day:
+                    type: string
+                official:
+                    oneOf:
+                        - $ref: '#/components/schemas/DailyRunView'
+                        - type: "null"
+                practice_allowed:
+                    type: boolean
+            required:
+                - available
+                - day
+                - official
+                - practice_allowed
+            type: object
         Deletion:
             properties:
                 purge_after:
@@ -3405,6 +3550,201 @@ paths:
             tags:
                 - content
             x-auth: public
+    /v1/daily/runs:
+        post:
+            operationId: postV1DailyRuns
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+                - description: Client-generated UUID; repeats within 24 h replay the stored response (conventions.md §9)
+                  in: header
+                  name: Idempotency-Key
+                  required: true
+                  schema:
+                    format: uuid
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/DailyStart'
+                required: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DailyRunView'
+                    description: Created
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: DAILY_ATTEMPT_IN_PROGRESS, DAILY_ATTEMPT_USED, IDEMPOTENCY_KEY_REUSED, IDEMPOTENT_REQUEST_IN_PROGRESS'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: DAILY_NOT_AVAILABLE, UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Start a daily run (official once a day, practice after it); play it with daily.join / daily.answer
+            tags:
+                - game
+            x-auth: any
+    /v1/daily/runs/{id}:
+        get:
+            operationId: getV1DailyRunsId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DailyRunView'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: A daily run with its answers once completed
+            tags:
+                - game
+            x-auth: owner
+    /v1/daily/today:
+        get:
+            operationId: getV1DailyToday
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DailyToday'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: 'Today''s Daily Challenge (Europe/Istanbul day): set available, the caller''s official run, practice allowed'
+            tags:
+                - game
+            x-auth: any
     /v1/friend-requests:
         get:
             operationId: getV1FriendRequests
@@ -4209,6 +4549,88 @@ paths:
             security:
                 - firebase: []
             summary: 'A leaderboard page: period × entity × scope × category (D-029); `me` is the caller''s row on user boards'
+            tags:
+                - ranking
+            x-auth: any
+    /v1/leaderboards/daily-challenge/{date}:
+        get:
+            operationId: getV1LeaderboardsDailyChallengeDate
+            parameters:
+                - in: path
+                  name: date
+                  required: true
+                  schema:
+                    type: string
+                - description: default global
+                  in: query
+                  name: scope
+                  required: false
+                  schema:
+                    enum:
+                        - global
+                        - country
+                        - friends
+                    type: string
+                - description: 1–100, default 50
+                  in: query
+                  name: limit
+                  required: false
+                  schema:
+                    type: integer
+                - description: next_cursor of the previous page
+                  in: query
+                  name: cursor
+                  required: false
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DailyBoard'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: A day's Daily Challenge board (correct ↓, total time ↑, completion ↑; D-040); `me` is the caller's place
             tags:
                 - ranking
             x-auth: any

@@ -118,3 +118,35 @@ WHERE s.season_id = @season_id AND s.entity_kind = r.entity_kind AND s.entity_id
 -- name: SeasonUserResults :many
 SELECT entity_id AS user_id, peak_league, final_rank_global FROM ranking.season_standings
 WHERE season_id = @season_id AND entity_kind = 'user';
+
+-- ---------- Daily Challenge board (schema-ranking §4.4) ----------
+
+-- name: InsertDailyEntry :exec
+INSERT INTO ranking.daily_challenge_entries (day, user_id, correct_count, total_time_ms, completed_at, country_code, public)
+VALUES (@day, @user_id, @correct_count, @total_time_ms, @completed_at, sqlc.narg(country_code), @public)
+ON CONFLICT DO NOTHING;
+
+-- Public entries of a day in board order, optionally one country or a set of users.
+-- name: DailyBoard :many
+SELECT user_id, correct_count, total_time_ms, completed_at FROM ranking.daily_challenge_entries
+WHERE day = @day AND public
+  AND (sqlc.narg(country)::text IS NULL OR country_code = sqlc.narg(country)::text)
+  AND (cardinality(@users::uuid[]) = 0 OR user_id = ANY(@users::uuid[]))
+ORDER BY correct_count DESC, total_time_ms ASC, completed_at ASC, user_id
+LIMIT @lim OFFSET @off;
+
+-- name: DailyEntry :one
+SELECT * FROM ranking.daily_challenge_entries WHERE day = @day AND user_id = @user_id;
+
+-- The place of an entry among the public ones of its day (scope as DailyBoard).
+-- name: DailyRank :one
+SELECT count(*)::int + 1 FROM ranking.daily_challenge_entries e
+WHERE e.day = @day AND e.public
+  AND (sqlc.narg(country)::text IS NULL OR e.country_code = sqlc.narg(country)::text)
+  AND (cardinality(@users::uuid[]) = 0 OR e.user_id = ANY(@users::uuid[]))
+  AND (e.correct_count > @correct_count::smallint
+       OR (e.correct_count = @correct_count::smallint AND (e.total_time_ms < @total_time_ms::int
+           OR (e.total_time_ms = @total_time_ms::int AND e.completed_at < @completed_at::timestamptz))));
+
+-- name: PublishUserDaily :exec
+UPDATE ranking.daily_challenge_entries SET public = true WHERE user_id = @user_id AND NOT public;

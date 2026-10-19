@@ -276,3 +276,31 @@ ORDER BY o.question_id, o.position;
 -- name: CategoryNames :many
 SELECT category_id, locale, name FROM content.category_translations
 WHERE category_id = ANY(@ids::uuid[]) AND locale = ANY(@locales::text[]);
+
+-- ---------- Daily sets (Daily Challenge, D-040) ----------
+
+-- name: DailySetOf :one
+SELECT set_id FROM content.daily_sets WHERE day = @day;
+
+-- name: InsertQuestionSet :exec
+INSERT INTO content.question_sets (id, kind, created_by, created_at) VALUES (@id, @kind, sqlc.narg(created_by), @now);
+
+-- name: InsertSetItem :exec
+INSERT INTO content.question_set_items (set_id, position, question_id) VALUES (@set_id, @position, @question_id);
+
+-- name: InsertDailySet :execrows
+INSERT INTO content.daily_sets (day, set_id, published_at) VALUES (@day, @set_id, @now) ON CONFLICT DO NOTHING;
+
+-- Recent daily questions (kept out of new daily sets).
+-- name: RecentDailyQuestions :many
+SELECT i.question_id FROM content.daily_sets d JOIN content.question_set_items i ON i.set_id = d.set_id
+WHERE d.day >= @since;
+
+-- name: SetQuestions :many
+SELECT q.id, q.revision, q.question_type, q.subcategory_id, s.category_id,
+       coalesce(round(q.difficulty_calibrated)::smallint, q.difficulty)::smallint AS difficulty_used
+FROM content.question_set_items i
+JOIN content.questions q ON q.id = i.question_id
+JOIN content.subcategories s ON s.id = q.subcategory_id
+WHERE i.set_id = @set_id
+ORDER BY i.position;

@@ -123,3 +123,6 @@ func (m *Module) OnMatchCompleted(ctx context.Context, e events.Envelope) error 
 func (m *Module) Register(s *httpserver.Server, ident *identity.Module, idem *idempotency.Store) {
 	transport.New(m.Service, ident, idem).Register(s)
 }
+
+// DailySet is a day's Daily Challenge questions in order.
+type DailySet = service.DailySet
