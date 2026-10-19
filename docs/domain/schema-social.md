@@ -226,12 +226,15 @@ CREATE TABLE team.couples (
   status        text        NOT NULL DEFAULT 'pending'
                 CHECK (status IN ('pending','active','declined','dissolved','expired')),
   created_at    timestamptz NOT NULL,
+  requested_at  timestamptz NOT NULL,                     -- the current request (expires after 7 days; reset on reactivation)
   activated_at  timestamptz,
   dissolved_at  timestamptz,
   last_dissolved_at timestamptz,                          -- kept when the same pair reactivates the profile (couple-contest.md §6)
   CHECK (user_low_id < user_high_id),
   CHECK (requested_by IN (user_low_id, user_high_id))
 );
+-- one row per pair: forming the same couple again reactivates it (D-047)
+CREATE UNIQUE INDEX couples_pair_uq ON team.couples (user_low_id, user_high_id);
 -- each user can be in at most one pending-or-active couple
 CREATE UNIQUE INDEX couples_low_live_uq  ON team.couples (user_low_id)  WHERE status IN ('pending','active');
 CREATE UNIQUE INDEX couples_high_live_uq ON team.couples (user_high_id) WHERE status IN ('pending','active');

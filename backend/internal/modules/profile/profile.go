@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile/internal/domain"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile/internal/service"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile/internal/transport"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
@@ -45,6 +46,10 @@ type Privacy = service.Privacy
 func (m *Module) PrivacyOf(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]Privacy, error) {
 	return m.svc.PrivacyOf(ctx, ids)
 }
+
+// TextRejected reports profanity or reserved names in a public text (team
+// and couple names; the basic list until moderation, Phase 8).
+func TextRejected(s string) bool { return domain.Rejected(s) }
 
 // LocalesOf returns users' content languages (match texts).
 func (m *Module) LocalesOf(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]string, error) {

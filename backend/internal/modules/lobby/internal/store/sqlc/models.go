@@ -407,3 +407,49 @@ type SocialFriendship struct {
 	FriendID  uuid.UUID
 	CreatedAt time.Time
 }
+
+type TeamCouple struct {
+	ID              uuid.UUID
+	UserLowID       uuid.UUID
+	UserHighID      uuid.UUID
+	RequestedBy     uuid.UUID
+	Name            *string
+	Status          string
+	CreatedAt       time.Time
+	RequestedAt     time.Time
+	ActivatedAt     *time.Time
+	DissolvedAt     *time.Time
+	LastDissolvedAt *time.Time
+}
+
+type TeamInvite struct {
+	ID            uuid.UUID
+	TeamID        uuid.UUID
+	InvitedUserID uuid.UUID
+	InvitedBy     uuid.UUID
+	Status        string
+	CreatedAt     time.Time
+	ExpiresAt     time.Time
+	RespondedAt   *time.Time
+}
+
+type TeamMembership struct {
+	TeamID      uuid.UUID
+	UserID      uuid.UUID
+	Role        string
+	JoinedAt    time.Time
+	LeftAt      *time.Time
+	LeaveReason *string
+}
+
+type TeamTeam struct {
+	ID            uuid.UUID
+	Name          string
+	Tag           string
+	EmblemID      string
+	CaptainUserID uuid.UUID
+	Status        string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	DisbandedAt   *time.Time
+}

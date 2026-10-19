@@ -92,13 +92,14 @@
 |---|---|---|---|---|---|
 | POST | `/v1/teams` | full | ✓ | 5 | Create `{name, tag, emblem_id}`. |
 | GET | `/v1/teams/{id}` | any | — | 5 | Team profile, members, standings. |
-| PATCH | `/v1/teams/{id}` | captain | — | 5 | Edit (`If-Match`). |
+| PATCH | `/v1/teams/{id}` | captain | — | 5 | Edit `{name, tag, emblem_id}` (last write wins; no `If-Match` at launch, D-069). |
 | POST | `/v1/teams/{id}/invites` | captain/member | ✓ | 5 | Invite a friend (D-027). |
+| GET | `/v1/me/team-invites` | full | — | 5 | Pending team invites. |
 | POST | `/v1/team-invites/{id}/accept` · `/decline` | full | — | 5 | Respond. |
 | POST | `/v1/teams/{id}/leave` · `/kick/{user_id}` · `/captain/{user_id}` · `/disband` | member / captain | — | 5 | Membership management. |
 | GET | `/v1/me/teams` | any | — | 5 | Own teams. |
 | POST | `/v1/couples` | full | ✓ | 5 | Couple request `{partner_user_id}` (7-day cooldown, reactivation, D-047). |
-| POST | `/v1/couples/{id}/accept` · `/decline` · `/dissolve` | partner | — | 5 | Respond / break up. |
+| POST | `/v1/couples/{id}/accept` · `/decline` · `/dissolve` | partner | — | 5 | Accept (the partner asked) / decline (either partner while pending; the requester withdraws) / break up. |
 | GET | `/v1/couples/{id}` · `/v1/me/couple` | any | — | 5 | Couple profile. |
 
 ## 9. ranking & leaderboards

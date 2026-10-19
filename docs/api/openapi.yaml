@@ -230,6 +230,62 @@ components:
                 - casual
                 - ranked
             type: object
+        Couple:
+            properties:
+                activated_at:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+                created_at:
+                    format: date-time
+                    type: string
+                expires_at:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+                id:
+                    format: uuid
+                    type: string
+                name:
+                    type:
+                        - string
+                        - "null"
+                partners:
+                    items:
+                        $ref: '#/components/schemas/Card'
+                    type: array
+                requested_at:
+                    format: date-time
+                    type: string
+                requested_by:
+                    format: uuid
+                    type: string
+                status:
+                    type: string
+            required:
+                - activated_at
+                - created_at
+                - id
+                - name
+                - partners
+                - requested_at
+                - requested_by
+                - status
+            type: object
+        CoupleRequest:
+            properties:
+                name:
+                    type:
+                        - string
+                        - "null"
+                partner_user_id:
+                    format: uuid
+                    type: string
+            required:
+                - partner_user_id
+            type: object
         Credit:
             properties:
                 attribution_text:
@@ -437,6 +493,38 @@ components:
                 - friends
                 - next_cursor
             type: object
+        Invite:
+            properties:
+                created_at:
+                    format: date-time
+                    type: string
+                emblem_id:
+                    type: string
+                expires_at:
+                    format: date-time
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                invited_by:
+                    $ref: '#/components/schemas/Card'
+                team_id:
+                    format: uuid
+                    type: string
+                team_name:
+                    type: string
+                team_tag:
+                    type: string
+            required:
+                - created_at
+                - emblem_id
+                - expires_at
+                - id
+                - invited_by
+                - team_id
+                - team_name
+                - team_tag
+            type: object
         InviteCode:
             properties:
                 code:
@@ -450,6 +538,31 @@ components:
                 - code
                 - expires_at
                 - kind
+            type: object
+        InviteCreated:
+            properties:
+                id:
+                    format: uuid
+                    type: string
+            required:
+                - id
+            type: object
+        InviteRequest:
+            properties:
+                user_id:
+                    format: uuid
+                    type: string
+            required:
+                - user_id
+            type: object
+        Invites:
+            properties:
+                invites:
+                    items:
+                        $ref: '#/components/schemas/Invite'
+                    type: array
+            required:
+                - invites
             type: object
         JoinRequest:
             properties:
@@ -554,6 +667,29 @@ components:
                 - profile
                 - settings
                 - user
+            type: object
+        Member:
+            properties:
+                Card:
+                    $ref: '#/components/schemas/Card'
+                joined_at:
+                    format: date-time
+                    type: string
+                role:
+                    type: string
+            required:
+                - Card
+                - joined_at
+                - role
+            type: object
+        MyCouple:
+            properties:
+                couple:
+                    oneOf:
+                        - $ref: '#/components/schemas/Couple'
+                        - type: "null"
+            required:
+                - couple
             type: object
         Option:
             properties:
@@ -1364,6 +1500,61 @@ components:
                 - id
                 - name
                 - slug
+            type: object
+        Team:
+            properties:
+                captain_user_id:
+                    format: uuid
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                emblem_id:
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                members:
+                    items:
+                        $ref: '#/components/schemas/Member'
+                    type: array
+                name:
+                    type: string
+                status:
+                    type: string
+                tag:
+                    type: string
+            required:
+                - captain_user_id
+                - created_at
+                - emblem_id
+                - id
+                - members
+                - name
+                - status
+                - tag
+            type: object
+        TeamInput:
+            properties:
+                emblem_id:
+                    type: string
+                name:
+                    type: string
+                tag:
+                    type: string
+            required:
+                - emblem_id
+                - name
+                - tag
+            type: object
+        Teams:
+            properties:
+                teams:
+                    items:
+                        $ref: '#/components/schemas/Team'
+                    type: array
+            required:
+                - teams
             type: object
         TextBody:
             properties:
@@ -2226,6 +2417,416 @@ paths:
             tags:
                 - lobby
             x-auth: any
+    /v1/couples:
+        post:
+            operationId: postV1Couples
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+                - description: Client-generated UUID; repeats within 24 h replay the stored response (conventions.md §9)
+                  in: header
+                  name: Idempotency-Key
+                  required: true
+                  schema:
+                    format: uuid
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CoupleRequest'
+                required: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Couple'
+                    description: Created
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_UPGRADE_REQUIRED, BLOCKED, FORBIDDEN'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: COUPLE_COOLDOWN, COUPLE_EXISTS, IDEMPOTENCY_KEY_REUSED, IDEMPOTENT_REQUEST_IN_PROGRESS'
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TEXT_REJECTED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Ask a friend to form a couple (the same pair reactivates its profile; 7-day cooldown for a new partner)
+            tags:
+                - team
+            x-auth: full
+    /v1/couples/{id}:
+        get:
+            operationId: getV1CouplesId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Couple'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Couple profile
+            tags:
+                - team
+            x-auth: any
+    /v1/couples/{id}/accept:
+        post:
+            operationId: postV1CouplesIdAccept
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Couple'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_UPGRADE_REQUIRED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MATCH_STATE_INVALID'
+                "410":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: CHALLENGE_EXPIRED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: 'Couple: accept'
+            tags:
+                - team
+            x-auth: partner
+    /v1/couples/{id}/decline:
+        post:
+            operationId: postV1CouplesIdDecline
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Couple'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_UPGRADE_REQUIRED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MATCH_STATE_INVALID'
+                "410":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: CHALLENGE_EXPIRED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: 'Couple: decline'
+            tags:
+                - team
+            x-auth: partner
+    /v1/couples/{id}/dissolve:
+        post:
+            operationId: postV1CouplesIdDissolve
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Couple'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_UPGRADE_REQUIRED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MATCH_STATE_INVALID'
+                "410":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: CHALLENGE_EXPIRED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: 'Couple: dissolve'
+            tags:
+                - team
+            x-auth: partner
     /v1/credits:
         get:
             operationId: getV1Credits
@@ -3295,6 +3896,61 @@ paths:
             tags:
                 - profile
             x-auth: any
+    /v1/me/couple:
+        get:
+            operationId: getV1MeCouple
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MyCouple'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: The caller's pending or active couple (null when none)
+            tags:
+                - team
+            x-auth: any
     /v1/me/deletion:
         delete:
             operationId: deleteV1MeDeletion
@@ -3735,6 +4391,122 @@ paths:
             summary: Edit own privacy and app settings
             tags:
                 - profile
+            x-auth: any
+    /v1/me/team-invites:
+        get:
+            operationId: getV1MeTeamInvites
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Invites'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_UPGRADE_REQUIRED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Pending team invites
+            tags:
+                - team
+            x-auth: full
+    /v1/me/teams:
+        get:
+            operationId: getV1MeTeams
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Teams'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: The caller's active teams
+            tags:
+                - team
             x-auth: any
     /v1/profiles/{user_id}:
         get:
@@ -5000,6 +5772,774 @@ paths:
             tags:
                 - identity
             x-auth: any
+    /v1/team-invites/{id}/accept:
+        post:
+            operationId: postV1TeamInvitesIdAccept
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_UPGRADE_REQUIRED, BLOCKED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MATCH_STATE_INVALID, TEAM_FULL, TEAM_LIMIT_REACHED'
+                "410":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: CHALLENGE_EXPIRED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: 'Team invite: accept'
+            tags:
+                - team
+            x-auth: full
+    /v1/team-invites/{id}/decline:
+        post:
+            operationId: postV1TeamInvitesIdDecline
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_UPGRADE_REQUIRED, BLOCKED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MATCH_STATE_INVALID, TEAM_FULL, TEAM_LIMIT_REACHED'
+                "410":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: CHALLENGE_EXPIRED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: 'Team invite: decline'
+            tags:
+                - team
+            x-auth: full
+    /v1/teams:
+        post:
+            operationId: postV1Teams
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+                - description: Client-generated UUID; repeats within 24 h replay the stored response (conventions.md §9)
+                  in: header
+                  name: Idempotency-Key
+                  required: true
+                  schema:
+                    format: uuid
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TeamInput'
+                required: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Team'
+                    description: Created
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_UPGRADE_REQUIRED'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: IDEMPOTENCY_KEY_REUSED, IDEMPOTENT_REQUEST_IN_PROGRESS, TEAM_LIMIT_REACHED'
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TEXT_REJECTED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Create a team (the caller is captain; max 3 active teams)
+            tags:
+                - team
+            x-auth: full
+    /v1/teams/{id}:
+        get:
+            operationId: getV1TeamsId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Team'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Team profile and members
+            tags:
+                - team
+            x-auth: any
+        patch:
+            operationId: patchV1TeamsId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TeamInput'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Team'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_CAPTAIN'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TEXT_REJECTED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Edit name, tag or emblem
+            tags:
+                - team
+            x-auth: captain
+    /v1/teams/{id}/captain/{user_id}:
+        post:
+            operationId: postV1TeamsIdCaptainUserId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: path
+                  name: user_id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_CAPTAIN'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Hand the captaincy to a member
+            tags:
+                - team
+            x-auth: captain
+    /v1/teams/{id}/disband:
+        post:
+            operationId: postV1TeamsIdDisband
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_CAPTAIN'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Disband the team
+            tags:
+                - team
+            x-auth: captain
+    /v1/teams/{id}/invites:
+        post:
+            operationId: postV1TeamsIdInvites
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+                - description: Client-generated UUID; repeats within 24 h replay the stored response (conventions.md §9)
+                  in: header
+                  name: Idempotency-Key
+                  required: true
+                  schema:
+                    format: uuid
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/InviteRequest'
+                required: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/InviteCreated'
+                    description: Created
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_UPGRADE_REQUIRED, FORBIDDEN, NOT_CAPTAIN'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: IDEMPOTENCY_KEY_REUSED, IDEMPOTENT_REQUEST_IN_PROGRESS, REQUEST_PENDING, TEAM_FULL'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Invite a friend (full account) to the team; 7 days
+            tags:
+                - team
+            x-auth: member
+    /v1/teams/{id}/kick/{user_id}:
+        post:
+            operationId: postV1TeamsIdKickUserId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: path
+                  name: user_id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_CAPTAIN'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Remove a member
+            tags:
+                - team
+            x-auth: captain
+    /v1/teams/{id}/leave:
+        post:
+            operationId: postV1TeamsIdLeave
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_CAPTAIN'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Leave (a leaving captain hands over to the longest-standing member; the last member disbands)
+            tags:
+                - team
+            x-auth: member
     /v1/ws:
         get:
             operationId: getV1Ws
