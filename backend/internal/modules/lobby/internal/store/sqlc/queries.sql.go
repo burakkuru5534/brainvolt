@@ -305,15 +305,17 @@ func (q *Queries) InsertCode(ctx context.Context, arg InsertCodeParams) error {
 
 const insertRoom = `-- name: InsertRoom :exec
 
-INSERT INTO lobby.rooms (id, host_user_id, match_config, created_at, last_activity_at)
-VALUES ($1, $2, $3, $4, $4)
+INSERT INTO lobby.rooms (id, host_user_id, match_config, creator_quiz_id, friends_of_host_only, created_at, last_activity_at)
+VALUES ($1, $2, $3, $4, $5, $6, $6)
 `
 
 type InsertRoomParams struct {
-	ID          uuid.UUID
-	HostUserID  uuid.UUID
-	MatchConfig []byte
-	Now         time.Time
+	ID                uuid.UUID
+	HostUserID        uuid.UUID
+	MatchConfig       []byte
+	CreatorQuizID     *uuid.UUID
+	FriendsOfHostOnly bool
+	Now               time.Time
 }
 
 // ---------- Rooms ----------
@@ -322,6 +324,8 @@ func (q *Queries) InsertRoom(ctx context.Context, arg InsertRoomParams) error {
 		arg.ID,
 		arg.HostUserID,
 		arg.MatchConfig,
+		arg.CreatorQuizID,
+		arg.FriendsOfHostOnly,
 		arg.Now,
 	)
 	return err
@@ -530,18 +534,21 @@ func (q *Queries) SetChallengeStatus(ctx context.Context, arg SetChallengeStatus
 const updateRoom = `-- name: UpdateRoom :exec
 UPDATE lobby.rooms
 SET host_user_id = $1, status = $2, match_config = $3,
-    current_match_id = $4, matches_played = $5, last_activity_at = $6
-WHERE id = $7 AND status <> 'closed'
+    creator_quiz_id = $4, friends_of_host_only = $5,
+    current_match_id = $6, matches_played = $7, last_activity_at = $8
+WHERE id = $9 AND status <> 'closed'
 `
 
 type UpdateRoomParams struct {
-	HostUserID     uuid.UUID
-	Status         string
-	MatchConfig    []byte
-	CurrentMatchID *uuid.UUID
-	MatchesPlayed  int32
-	Now            time.Time
-	ID             uuid.UUID
+	HostUserID        uuid.UUID
+	Status            string
+	MatchConfig       []byte
+	CreatorQuizID     *uuid.UUID
+	FriendsOfHostOnly bool
+	CurrentMatchID    *uuid.UUID
+	MatchesPlayed     int32
+	Now               time.Time
+	ID                uuid.UUID
 }
 
 func (q *Queries) UpdateRoom(ctx context.Context, arg UpdateRoomParams) error {
@@ -549,6 +556,8 @@ func (q *Queries) UpdateRoom(ctx context.Context, arg UpdateRoomParams) error {
 		arg.HostUserID,
 		arg.Status,
 		arg.MatchConfig,
+		arg.CreatorQuizID,
+		arg.FriendsOfHostOnly,
 		arg.CurrentMatchID,
 		arg.MatchesPlayed,
 		arg.Now,

@@ -38,6 +38,12 @@ const (
 // SubscriberChallengeFailed is lobby's subscription to game.MatchCancelled.
 const SubscriberChallengeFailed = "lobby.on_match_cancelled"
 
+// Quiz is a Creator Quiz as a room or challenge plays it.
+type Quiz = service.Quiz
+
+// Quizzes is implemented over creator in app (lobby does not import it).
+type Quizzes = service.Quizzes
+
 // Deps are the module's collaborators.
 type Deps struct {
 	DB       *pgxpool.Pool
@@ -47,6 +53,7 @@ type Deps struct {
 	Social   *social.Module
 	Teams    *team.Module
 	Game     *game.Module
+	Quizzes  Quizzes
 	Realtime *realtime.Module
 	Events   *events.Bus
 	Clock    clock.Clock
@@ -63,7 +70,7 @@ type Module struct {
 // and the room stream's resume.
 func New(d Deps) *Module {
 	svc := service.New(service.Deps{
-		DB: d.DB, Redis: d.Redis, Users: d.Identity, Profiles: d.Profiles, Social: d.Social, Teams: d.Teams, Game: d.Game,
+		DB: d.DB, Redis: d.Redis, Users: d.Identity, Profiles: d.Profiles, Social: d.Social, Teams: d.Teams, Game: d.Game, Quizzes: d.Quizzes,
 		RT: d.Realtime, Events: d.Events, Clock: d.Clock, Logger: d.Logger,
 	})
 	m := &Module{svc: svc}

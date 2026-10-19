@@ -121,6 +121,9 @@ const (
 	OriginRevenge     = domain.Revenge
 )
 
+// CategoryCreatorQuiz is the Creator Quiz category mode.
+const CategoryCreatorQuiz = domain.CreatorQuiz
+
 // SeasonProvider is implemented by ranking (Phase 7); until then ranked
 // matches play in the preseason (D-064).
 type SeasonProvider = service.SeasonProvider

@@ -133,6 +133,7 @@ type Room struct {
 	HostUserID    uuid.UUID    `json:"host_user_id"`
 	Code          string       `json:"code"`
 	MatchConfig   game.Config  `json:"match_config"`
+	FriendsOnly   bool         `json:"friends_of_host_only"`
 	MatchID       *uuid.UUID   `json:"match_id,omitempty"`
 	MatchesPlayed int          `json:"matches_played"`
 	Capacity      int          `json:"capacity"`
@@ -159,7 +160,7 @@ func (s *Service) render(ctx context.Context, r *room) (Room, error) {
 		return Room{}, err
 	}
 	out := Room{
-		ID: r.ID, Status: r.Status, Version: r.Version, HostUserID: r.Host, Code: r.Code, MatchConfig: r.Config,
+		ID: r.ID, Status: r.Status, Version: r.Version, HostUserID: r.Host, Code: r.Code, MatchConfig: r.Config, FriendsOnly: r.FriendsOnly,
 		MatchID: r.MatchID, MatchesPlayed: r.MatchesPlayed, Capacity: r.capacity(), Members: make([]RoomMember, 0, len(r.Members)),
 	}
 	for _, m := range r.Members {
@@ -250,6 +251,7 @@ func (s *Service) persist(ctx context.Context, r *room) {
 	if err == nil {
 		err = sqlc.New(s.d.DB).UpdateRoom(ctx, sqlc.UpdateRoomParams{
 			ID: r.ID, HostUserID: r.Host, Status: r.Status, MatchConfig: cfg, CurrentMatchID: r.MatchID,
+			CreatorQuizID: r.Config.CreatorQuizID, FriendsOfHostOnly: r.FriendsOnly,
 			MatchesPlayed: int32(r.MatchesPlayed), Now: s.d.Clock.Now(), //nolint:gosec // G115: a handful of matches per room
 		})
 	}
@@ -308,6 +310,10 @@ func (s *Service) refresh(ctx context.Context, id uuid.UUID) (*room, error) {
 // returns it with its invite code. A room the caller was in is left.
 func (s *Service) CreateRoom(ctx context.Context, user uuid.UUID, locale string, cfg game.Config) (Room, error) {
 	cfg.Origin = game.OriginPrivateRoom
+	quiz, err := s.withQuiz(ctx, user, &cfg)
+	if err != nil {
+		return Room{}, err
+	}
 	if err := checkConfig(cfg); err != nil {
 		return Room{}, err
 	}
@@ -319,10 +325,13 @@ func (s *Service) CreateRoom(ctx context.Context, user uuid.UUID, locale string,
 	if err != nil {
 		return Room{}, err
 	}
-	r := &room{ID: ids.New(), Host: user, Status: RoomOpen, Config: cfg, Version: 1, Members: []member{{UserID: user, Side: 1, Seat: 1, Locale: locale}}}
+	r := &room{ID: ids.New(), Host: user, Status: RoomOpen, Config: cfg, Version: 1, FriendsOnly: friendsOnly(quiz),
+		Members: []member{{UserID: user, Side: 1, Seat: 1, Locale: locale}}}
 	err = postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error {
 		q := sqlc.New(tx)
-		if err := q.InsertRoom(ctx, sqlc.InsertRoomParams{ID: r.ID, HostUserID: user, MatchConfig: body, Now: now}); err != nil {
+		if err := q.InsertRoom(ctx, sqlc.InsertRoomParams{
+			ID: r.ID, HostUserID: user, MatchConfig: body, CreatorQuizID: cfg.CreatorQuizID, FriendsOfHostOnly: r.FriendsOnly, Now: now,
+		}); err != nil {
 			return err
 		}
 		r.Code, err = s.newCode(ctx, q, KindRoom, r.ID, user, now.Add(roomCodeTTL), now)
@@ -374,8 +383,17 @@ func (s *Service) UpdateRoomConfig(ctx context.Context, user, id uuid.UUID, cfg 
 		return Room{}, err
 	}
 	cfg.Origin = game.OriginPrivateRoom
+	quiz, err := s.withQuiz(ctx, user, &cfg)
+	if err != nil {
+		return Room{}, err
+	}
 	if err := checkConfig(cfg); err != nil {
 		return Room{}, err
+	}
+	if friendsOnly(quiz) {
+		if err := s.allFriendsOfHost(ctx, id, user); err != nil {
+			return Room{}, err
+		}
 	}
 	r, err := s.update(ctx, id, func(r *room) error {
 		if r.member(user) == nil {
@@ -393,7 +411,7 @@ func (s *Service) UpdateRoomConfig(ctx context.Context, user, id uuid.UUID, cfg 
 		if 2*cfg.Format.SideSize() < len(r.Members) {
 			return apierror.New(apierror.RoomFull)
 		}
-		r.Config = cfg
+		r.Config, r.FriendsOnly = cfg, friendsOnly(quiz)
 		r.unreadyAll()
 		return nil
 	})
@@ -401,6 +419,43 @@ func (s *Service) UpdateRoomConfig(ctx context.Context, user, id uuid.UUID, cfg 
 		return Room{}, err
 	}
 	return s.render(ctx, r)
+}
+
+// friendsOnly reports whether a room playing quiz is limited to the
+// host's friends: an unpublished quiz (D-023, R14).
+func friendsOnly(quiz *Quiz) bool { return quiz != nil && !quiz.Published }
+
+// allFriendsOfHost fails with ROOM_FRIENDS_ONLY unless every member of
+// the room is the host or a friend of the host (R14).
+func (s *Service) allFriendsOfHost(ctx context.Context, id, host uuid.UUID) error {
+	r, err := s.load(ctx, id)
+	if err != nil {
+		return err
+	}
+	for _, m := range r.Members {
+		if m.UserID == host {
+			continue
+		}
+		ok, err := s.d.Social.AreFriends(ctx, m.UserID, host)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return apierror.New(apierror.RoomFriendsOnly)
+		}
+	}
+	return nil
+}
+
+// countPlay counts a started Creator Quiz match; a failure only loses a
+// count.
+func (s *Service) countPlay(ctx context.Context, cfg *game.Config) {
+	if cfg.CreatorQuizID == nil || s.d.Quizzes == nil {
+		return
+	}
+	if err := s.d.Quizzes.CountPlay(ctx, *cfg.CreatorQuizID); err != nil {
+		s.d.Logger.WarnContext(ctx, "lobby: counting a quiz play failed", "quiz_id", *cfg.CreatorQuizID, "error", err)
+	}
 }
 
 // JoinRoom joins the room of an invite code: blocks with any member,
@@ -657,17 +712,20 @@ func (s *Service) StartRoom(ctx context.Context, user, id uuid.UUID) (uuid.UUID,
 	if err != nil {
 		return uuid.Nil, err
 	}
+	var startErr error
+	if r.FriendsOnly {
+		startErr = s.allFriendsOfHost(ctx, id, r.Host)
+	}
 	size := r.Config.Format.SideSize()
 	var sides [2][]game.Member
 	for side := range 2 {
 		sides[side] = make([]game.Member, size)
 	}
 	for _, m := range r.Members {
-		sides[m.Side-1][m.Seat-1] = game.Member{UserID: m.UserID, Locale: m.Locale}
+		sides[m.Side-1][m.Seat-1] = game.Member{UserID: m.UserID, Locale: quizLocale(&r.Config, m.Locale)}
 	}
 	req := game.CreateRequest{Config: r.Config, Sides: sides, OriginRef: &r.ID}
-	var startErr error
-	if r.Config.Format == "couple" {
+	if startErr == nil && r.Config.Format == "couple" {
 		req.Couples, startErr = s.couplesOf(ctx, sides)
 	}
 	var c *game.Created
@@ -691,6 +749,7 @@ func (s *Service) StartRoom(ctx context.Context, user, id uuid.UUID) (uuid.UUID,
 	if err != nil {
 		s.d.Logger.WarnContext(ctx, "lobby: marking a room in match failed", "room_id", id, "error", err)
 	}
+	s.countPlay(ctx, &r.Config)
 	for _, m := range r.Members {
 		s.send(ctx, m.UserID, realtime.Frame{T: "room.match_starting", S: roomStream(id), D: map[string]any{"room_id": id, "match_id": c.Match.ID}})
 	}

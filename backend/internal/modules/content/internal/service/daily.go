@@ -22,7 +22,8 @@ var dailyCurve = []int{2, 3, 3, 3, 4, 4, 4, 4, 5, 5}
 // dailyNoRepeat keeps a question out of daily sets for this long.
 const dailyNoRepeat = 90 * 24 * time.Hour
 
-// DailySet is a day's Daily Challenge questions in order.
+// DailySet is a question set in order: a day's Daily Challenge or a
+// creator quiz.
 type DailySet struct {
 	ID        uuid.UUID
 	Questions []SelectedQuestion
@@ -47,6 +48,17 @@ func (s *Service) DailySet(ctx context.Context, day time.Time) (DailySet, error)
 	if err != nil {
 		return DailySet{}, err
 	}
+	return s.questionSet(ctx, q, id)
+}
+
+// QuestionSet returns a question set's questions in order whatever their
+// verification state (creator quizzes are played among friends before
+// review).
+func (s *Service) QuestionSet(ctx context.Context, id uuid.UUID) (DailySet, error) {
+	return s.questionSet(ctx, sqlc.New(s.db), id)
+}
+
+func (s *Service) questionSet(ctx context.Context, q *sqlc.Queries, id uuid.UUID) (DailySet, error) {
 	rows, err := q.SetQuestions(ctx, id)
 	if err != nil {
 		return DailySet{}, err

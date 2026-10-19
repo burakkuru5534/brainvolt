@@ -60,6 +60,26 @@ type Game interface {
 	CategoryExists(ctx context.Context, id uuid.UUID) (bool, error)
 }
 
+// Quiz is a Creator Quiz as a room or challenge plays it.
+type Quiz struct {
+	SetID     uuid.UUID
+	Length    int
+	WindowMS  int
+	Locale    string
+	Author    uuid.UUID
+	Published bool
+}
+
+// Quizzes is what lobby needs from creator (wired in app; lobby does not
+// import creator).
+type Quizzes interface {
+	// Playable returns a quiz the user may play: their own or a published
+	// one; NOT_FOUND otherwise.
+	Playable(ctx context.Context, user, id uuid.UUID) (Quiz, error)
+	// CountPlay counts a started match of the quiz.
+	CountPlay(ctx context.Context, id uuid.UUID) error
+}
+
 // Realtime delivers lobby events and answers deferred intents.
 type Realtime interface {
 	Send(ctx context.Context, t realtime.Target, f realtime.Frame) error
@@ -74,6 +94,7 @@ type Deps struct {
 	Social   Social
 	Teams    Teams
 	Game     Game
+	Quizzes  Quizzes
 	RT       Realtime
 	Events   *events.Bus
 	Clock    clock.Clock
@@ -116,6 +137,38 @@ func (s *Service) activeUser(ctx context.Context, id uuid.UUID) error {
 		return apierror.New(apierror.NotFound)
 	}
 	return nil
+}
+
+// withQuiz fills a Creator Quiz configuration from its quiz (D-044): the
+// client names the quiz, never its question set. It returns the quiz, or
+// nil for other category modes.
+func (s *Service) withQuiz(ctx context.Context, user uuid.UUID, cfg *game.Config) (*Quiz, error) {
+	if cfg.CategoryMode != game.CategoryCreatorQuiz {
+		return nil, nil
+	}
+	if cfg.CreatorQuizID == nil {
+		return nil, apierror.Validation(apierror.FieldError{Field: "match_config.creator_quiz_id", Rule: "required"})
+	}
+	if s.d.Quizzes == nil {
+		return nil, apierror.New(apierror.NotFound)
+	}
+	z, err := s.d.Quizzes.Playable(ctx, user, *cfg.CreatorQuizID)
+	if err != nil {
+		return nil, err
+	}
+	author := z.Author
+	cfg.QuestionSetID, cfg.QuizLength, cfg.QuizWindowMS = &z.SetID, z.Length, z.WindowMS
+	cfg.QuizAuthorID, cfg.QuizPublished, cfg.QuizLocale = &author, z.Published, z.Locale
+	return &z, nil
+}
+
+// quizLocale is the language members play a configuration in: the quiz's
+// for a Creator Quiz, their own otherwise.
+func quizLocale(cfg *game.Config, own string) string {
+	if cfg.QuizLocale != "" {
+		return cfg.QuizLocale
+	}
+	return own
 }
 
 // checkConfig validates a configuration for an origin of lobby.

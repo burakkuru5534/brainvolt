@@ -29,8 +29,8 @@ DELETE FROM lobby.invite_codes WHERE expires_at < @before;
 -- ---------- Rooms ----------
 
 -- name: InsertRoom :exec
-INSERT INTO lobby.rooms (id, host_user_id, match_config, created_at, last_activity_at)
-VALUES (@id, @host_user_id, @match_config, @now, @now);
+INSERT INTO lobby.rooms (id, host_user_id, match_config, creator_quiz_id, friends_of_host_only, created_at, last_activity_at)
+VALUES (@id, @host_user_id, @match_config, sqlc.narg(creator_quiz_id), @friends_of_host_only, @now, @now);
 
 -- name: GetRoom :one
 SELECT * FROM lobby.rooms WHERE id = @id;
@@ -38,6 +38,7 @@ SELECT * FROM lobby.rooms WHERE id = @id;
 -- name: UpdateRoom :exec
 UPDATE lobby.rooms
 SET host_user_id = @host_user_id, status = @status, match_config = @match_config,
+    creator_quiz_id = sqlc.narg(creator_quiz_id), friends_of_host_only = @friends_of_host_only,
     current_match_id = sqlc.narg(current_match_id), matches_played = @matches_played, last_activity_at = @now
 WHERE id = @id AND status <> 'closed';
 

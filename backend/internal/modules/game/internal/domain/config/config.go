@@ -39,6 +39,13 @@ type Config struct {
 	// the author's answer window (10/15/20 s, R21).
 	QuizLength   int `json:"quiz_length,omitempty"`
 	QuizWindowMS int `json:"quiz_window_ms,omitempty"`
+	// CreatorQuizID is the quiz a room or challenge plays; lobby fills the
+	// question set, length, window, author and published flag from it.
+	CreatorQuizID *uuid.UUID `json:"creator_quiz_id,omitempty"`
+	QuizAuthorID  *uuid.UUID `json:"quiz_author_id,omitempty"`
+	QuizPublished bool       `json:"quiz_published,omitempty"`
+	// QuizLocale is the quiz's only language: every participant plays in it.
+	QuizLocale string `json:"quiz_locale,omitempty"`
 }
 
 // Rule is one declarative configuration rule (mode-matrix §3.1).
@@ -177,7 +184,7 @@ func checkModeParams(c Config) []Violation {
 			add("R21", "Creator Quiz answer window is 10, 15 or 20 s (D-044)")
 		}
 	default:
-		if len(c.CategoryIDs) > 0 || c.SubcategoryID != nil || c.QuestionSetID != nil {
+		if len(c.CategoryIDs) > 0 || c.SubcategoryID != nil || c.QuestionSetID != nil || c.CreatorQuizID != nil {
 			add("P04", "category ids, sub-category and question set belong to a category mode")
 		}
 	}
@@ -213,6 +220,7 @@ func Transform(c Config, parent *Config) Config {
 			c.RankedLength = parent.RankedLength
 			c.CategoryMode, c.CategoryIDs = domain.RevengeMatch, cats
 			c.SubcategoryID, c.QuestionSetID, c.QuizLength, c.QuizWindowMS = nil, nil, 0, 0
+			c.CreatorQuizID, c.QuizAuthorID, c.QuizPublished, c.QuizLocale = nil, nil, false, ""
 		}
 		// T01: never rated outside matchmaking.
 		if c.MatchType == domain.Ranked {

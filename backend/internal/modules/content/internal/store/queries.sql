@@ -79,8 +79,10 @@ SELECT greatest(
 
 -- ---------- Sources (D-006) ----------
 
+-- The credits screen: every source but player-written Creator Quiz
+-- questions, which are not licensed content.
 -- name: ListSources :many
-SELECT * FROM content.sources ORDER BY created_at, name;
+SELECT * FROM content.sources WHERE kind <> 'creator' ORDER BY created_at, name;
 
 -- name: SourceExists :one
 SELECT EXISTS (SELECT 1 FROM content.sources WHERE id = $1);
@@ -98,9 +100,9 @@ SET kind = EXCLUDED.kind, name = EXCLUDED.name, url = EXCLUDED.url,
 
 -- name: InsertQuestion :exec
 INSERT INTO content.questions (id, subcategory_id, question_type, difficulty, original_locale,
-  source_id, source_ref, author_user_id, fingerprint, verification_status, created_at, updated_at)
+  source_id, source_ref, author_user_id, fingerprint, verification_status, pool, created_at, updated_at)
 VALUES (@id, @subcategory_id, @question_type, @difficulty, @original_locale,
-  @source_id, @source_ref, @author_user_id, @fingerprint, @verification_status, @now, @now);
+  @source_id, @source_ref, @author_user_id, @fingerprint, @verification_status, @pool, @now, @now);
 
 -- name: QuestionIDByFingerprint :one
 SELECT id FROM content.questions WHERE fingerprint = $1;
@@ -304,3 +306,19 @@ JOIN content.questions q ON q.id = i.question_id
 JOIN content.subcategories s ON s.id = q.subcategory_id
 WHERE i.set_id = @set_id
 ORDER BY i.position;
+
+-- ---------- Question sets (creator quizzes) ----------
+
+-- name: DeleteSetItems :exec
+DELETE FROM content.question_set_items WHERE set_id = @set_id;
+
+-- name: SetQuestionIDs :many
+SELECT question_id FROM content.question_set_items WHERE set_id = @set_id ORDER BY position;
+
+-- The first active sub-category of a category (creator questions).
+-- name: FirstSubcategory :one
+SELECT s.id FROM content.subcategories s JOIN content.categories c ON c.id = s.category_id
+WHERE c.id = @category_id AND c.is_active ORDER BY s.sort_order, s.slug LIMIT 1;
+
+-- name: CreatorSource :one
+SELECT id FROM content.sources WHERE kind = 'creator' ORDER BY created_at LIMIT 1;

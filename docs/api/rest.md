@@ -65,7 +65,7 @@
 ## 6. lobby (rooms, challenges, invite codes)
 | Method | Path | Auth | Idem | Ph | Purpose |
 |---|---|---|---|---|---|
-| POST | `/v1/rooms` | any | ✓ | 5 | Create private room `{match_config}` → room + invite code; the caller leaves a previous room. `creator_quiz_id` arrives with Phase 8; formats other than 1v1 with Phase 6. |
+| POST | `/v1/rooms` | any | ✓ | 5 | Create private room `{match_config}` → room + invite code; the caller leaves a previous room. A Creator Quiz room sends `category_mode: creator_quiz` + `creator_quiz_id` (own or published quiz; lobby fills the question set, length and window; unpublished → friends of host only, D-083). |
 | GET | `/v1/rooms/{id}` | member | — | 5 | Room state (live updates via WS). |
 | PATCH | `/v1/rooms/{id}` | host | — | 5 | Change config (`If-Match: <room version>`, optional); ready flags reset. |
 | POST | `/v1/rooms/join` | any | — | 5 | `{code}` → join (friends-of-host rule for unverified quizzes, D-023). |
@@ -171,10 +171,14 @@
 | Method | Path | Auth | Idem | Ph | Purpose |
 |---|---|---|---|---|---|
 | POST | `/v1/creator/quizzes` | full | ✓ | 8 | Create draft quiz (D-031 limits). |
-| GET / PATCH / DELETE | `/v1/creator/quizzes/{id}` | author | — | 8 | Edit (`If-Match`), questions included. |
+| GET | `/v1/creator/quizzes/{id}` | any | — | 8 | A quiz; questions and answers for its author and staff, others see published quizzes only. |
+| PATCH / DELETE | `/v1/creator/quizzes/{id}` | author | — | 8 | Replace details and questions (`If-Match`: version; a submitted/published quiz returns to review) / delete. |
+| GET | `/v1/me/quizzes` | any | — | 8 | The caller's quizzes. |
 | POST | `/v1/creator/quizzes/{id}/submit` | author | — | 8 | Send to moderation. |
-| GET | `/v1/creator/quizzes?status=published&category_id=&locale=&cursor=` | any | — | 8 | Public discovery (published only). |
+| GET | `/v1/creator/quizzes?category_id=&locale=&limit=&cursor=` | any | — | 8 | Public discovery (published only). |
 | POST / DELETE | `/v1/creator/quizzes/{id}/like` | full | — | 8 | Like / unlike. |
+| GET | `/v1/admin/quizzes` | mod | — | 8 | Quizzes waiting for review, oldest first. |
+| POST | `/v1/admin/quizzes/{id}/review` | mod | — | 8 | `{approve, reason}` — publish or reject (reason required); never one's own quiz (D-083). |
 
 ---
 

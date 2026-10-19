@@ -67,6 +67,7 @@ type Questions interface {
 	ActiveCategoryIDs(ctx context.Context) ([]uuid.UUID, error)
 	Texts(ctx context.Context, ids []uuid.UUID, locales []string) (map[uuid.UUID]map[string]content.QuestionText, error)
 	DailySet(ctx context.Context, day time.Time) (content.DailySet, error)
+	QuestionSet(ctx context.Context, id uuid.UUID) (content.DailySet, error)
 }
 
 // Users is what game needs from identity.
@@ -324,9 +325,6 @@ func (s *Service) contextRules(ctx context.Context, cfg config.Config, req Creat
 	if err := s.sideRules(ctx, cfg, req); err != nil {
 		return err
 	}
-	if cfg.CategoryMode == domain.CreatorQuiz {
-		return fail("R14", "creator quizzes arrive in Phase 8")
-	}
 	if (cfg.Origin == domain.Rematch || cfg.Origin == domain.Revenge) && parent == nil {
 		return fail("R15", "rematch and revenge need the parent match")
 	}
@@ -496,6 +494,16 @@ func (s *Service) selectQuestions(ctx context.Context, cfg config.Config, d conf
 			}
 			picked = append(picked, qs...)
 		}
+	case domain.CreatorQuiz:
+		// The quiz's questions in the author's order (category-modes §6).
+		set, err := s.d.Questions.QuestionSet(ctx, *cfg.QuestionSetID)
+		if err != nil {
+			return nil, err
+		}
+		if len(set.Questions) != cfg.QuizLength {
+			return nil, apierror.New(apierror.NotEnoughQuestions).With("available", len(set.Questions)).With("needed", cfg.QuizLength)
+		}
+		picked = set.Questions
 	case domain.RevengeMatch:
 		base.Rules.HomeCategory, base.Rules.MaxRun, base.Rules.MaxPerCategory = cfg.CategoryIDs[0], 3, 0
 		picked, err = s.d.Questions.Select(ctx, base)
@@ -557,6 +565,9 @@ type extra struct {
 	SubcategoryID *uuid.UUID         `json:"subcategory_id,omitempty"`
 	QuizLength    int                `json:"quiz_length,omitempty"`
 	QuizWindowMS  int                `json:"quiz_window_ms,omitempty"`
+	CreatorQuizID *uuid.UUID         `json:"creator_quiz_id,omitempty"`
+	QuizAuthorID  *uuid.UUID         `json:"quiz_author_id,omitempty"`
+	QuizPublished bool               `json:"quiz_published,omitempty"`
 }
 
 func optional[T ~string](v T) *string {
@@ -573,6 +584,7 @@ func (s *Service) insert(ctx context.Context, m *engine.Match, cfg config.Config
 	raw, err := json.Marshal(extra{
 		Aggregation: cfg.Aggregation, RankedLength: cfg.RankedLength, CategoryIDs: cfg.CategoryIDs,
 		SubcategoryID: cfg.SubcategoryID, QuizLength: cfg.QuizLength, QuizWindowMS: cfg.QuizWindowMS,
+		CreatorQuizID: cfg.CreatorQuizID, QuizAuthorID: cfg.QuizAuthorID, QuizPublished: cfg.QuizPublished,
 	})
 	if err != nil {
 		return err
@@ -648,6 +660,7 @@ func matchConfig(m sqlc.GameMatch) (config.Config, error) {
 		MatchType: domain.MatchType(m.MatchType), Format: domain.Format(m.Format), Origin: domain.Origin(m.Origin),
 		Aggregation: ex.Aggregation, RankedLength: ex.RankedLength, CategoryIDs: ex.CategoryIDs,
 		SubcategoryID: ex.SubcategoryID, QuestionSetID: m.QuestionSetID, QuizLength: ex.QuizLength, QuizWindowMS: ex.QuizWindowMS,
+		CreatorQuizID: ex.CreatorQuizID, QuizAuthorID: ex.QuizAuthorID, QuizPublished: ex.QuizPublished,
 	}
 	if m.TeamAnswerMode != nil {
 		c.TeamMode = domain.TeamMode(*m.TeamAnswerMode)

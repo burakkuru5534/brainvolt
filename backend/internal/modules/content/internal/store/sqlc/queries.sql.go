@@ -193,6 +193,17 @@ func (q *Queries) CountEligible(ctx context.Context, locale string) ([]CountElig
 	return items, nil
 }
 
+const creatorSource = `-- name: CreatorSource :one
+SELECT id FROM content.sources WHERE kind = 'creator' ORDER BY created_at LIMIT 1
+`
+
+func (q *Queries) CreatorSource(ctx context.Context) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, creatorSource)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const dailySetOf = `-- name: DailySetOf :one
 
 SELECT set_id FROM content.daily_sets WHERE day = $1
@@ -204,6 +215,30 @@ func (q *Queries) DailySetOf(ctx context.Context, day pgtype.Date) (uuid.UUID, e
 	var set_id uuid.UUID
 	err := row.Scan(&set_id)
 	return set_id, err
+}
+
+const deleteSetItems = `-- name: DeleteSetItems :exec
+
+DELETE FROM content.question_set_items WHERE set_id = $1
+`
+
+// ---------- Question sets (creator quizzes) ----------
+func (q *Queries) DeleteSetItems(ctx context.Context, setID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteSetItems, setID)
+	return err
+}
+
+const firstSubcategory = `-- name: FirstSubcategory :one
+SELECT s.id FROM content.subcategories s JOIN content.categories c ON c.id = s.category_id
+WHERE c.id = $1 AND c.is_active ORDER BY s.sort_order, s.slug LIMIT 1
+`
+
+// The first active sub-category of a category (creator questions).
+func (q *Queries) FirstSubcategory(ctx context.Context, categoryID uuid.UUID) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, firstSubcategory, categoryID)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
 }
 
 const getQuestion = `-- name: GetQuestion :one
@@ -310,9 +345,9 @@ func (q *Queries) InsertOption(ctx context.Context, arg InsertOptionParams) erro
 const insertQuestion = `-- name: InsertQuestion :exec
 
 INSERT INTO content.questions (id, subcategory_id, question_type, difficulty, original_locale,
-  source_id, source_ref, author_user_id, fingerprint, verification_status, created_at, updated_at)
+  source_id, source_ref, author_user_id, fingerprint, verification_status, pool, created_at, updated_at)
 VALUES ($1, $2, $3, $4, $5,
-  $6, $7, $8, $9, $10, $11, $11)
+  $6, $7, $8, $9, $10, $11, $12, $12)
 `
 
 type InsertQuestionParams struct {
@@ -326,6 +361,7 @@ type InsertQuestionParams struct {
 	AuthorUserID       *uuid.UUID
 	Fingerprint        string
 	VerificationStatus string
+	Pool               string
 	Now                time.Time
 }
 
@@ -342,6 +378,7 @@ func (q *Queries) InsertQuestion(ctx context.Context, arg InsertQuestionParams) 
 		arg.AuthorUserID,
 		arg.Fingerprint,
 		arg.VerificationStatus,
+		arg.Pool,
 		arg.Now,
 	)
 	return err
@@ -780,10 +817,12 @@ func (q *Queries) ListRevisions(ctx context.Context, questionID uuid.UUID) ([]Li
 
 const listSources = `-- name: ListSources :many
 
-SELECT id, kind, name, url, license_code, license_url, attribution_text, share_alike, notes, created_at FROM content.sources ORDER BY created_at, name
+SELECT id, kind, name, url, license_code, license_url, attribution_text, share_alike, notes, created_at FROM content.sources WHERE kind <> 'creator' ORDER BY created_at, name
 `
 
 // ---------- Sources (D-006) ----------
+// The credits screen: every source but player-written Creator Quiz
+// questions, which are not licensed content.
 func (q *Queries) ListSources(ctx context.Context) ([]ContentSource, error) {
 	rows, err := q.db.Query(ctx, listSources)
 	if err != nil {
@@ -1192,6 +1231,30 @@ type SetOptionCorrectParams struct {
 func (q *Queries) SetOptionCorrect(ctx context.Context, arg SetOptionCorrectParams) error {
 	_, err := q.db.Exec(ctx, setOptionCorrect, arg.CorrectPosition, arg.QuestionID)
 	return err
+}
+
+const setQuestionIDs = `-- name: SetQuestionIDs :many
+SELECT question_id FROM content.question_set_items WHERE set_id = $1 ORDER BY position
+`
+
+func (q *Queries) SetQuestionIDs(ctx context.Context, setID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, setQuestionIDs, setID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var question_id uuid.UUID
+		if err := rows.Scan(&question_id); err != nil {
+			return nil, err
+		}
+		items = append(items, question_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const setQuestionStatus = `-- name: SetQuestionStatus :exec

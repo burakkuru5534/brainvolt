@@ -72,6 +72,9 @@ type MatchCompleted struct {
 	Participants  []ParticipantPayload `json:"participants"`
 	Rounds        []RoundPayload       `json:"rounds"`
 	QuestionStats []content.AnswerStat `json:"question_stats"`
+	// QuizAuthorID and QuizPublished drive Creator Quiz awards (D-044).
+	QuizAuthorID  *uuid.UUID `json:"quiz_author_id,omitempty"`
+	QuizPublished bool       `json:"quiz_published,omitempty"`
 }
 
 // MatchCancelled is the payload of game.MatchCancelled.
@@ -249,7 +252,7 @@ func (s *Service) finishTx(ctx context.Context, tx pgx.Tx, q *sqlc.Queries, m *e
 		MatchID: m.ID, MatchType: m.Config.MatchType, Format: m.Config.Format, TeamMode: m.Config.TeamMode,
 		CategoryMode: m.Config.CategoryMode, Origin: m.Config.Origin, IsRated: m.Derived.IsRated,
 		RatingBucket: string(m.Derived.RatingBucket), EndReason: r.EndReason, WinnerSideNo: r.WinnerSide, IsDraw: r.Draw,
-		RoundsPlayed: r.RoundsPlayed, EndedAt: ended,
+		RoundsPlayed: r.RoundsPlayed, EndedAt: ended, QuizAuthorID: m.Config.QuizAuthorID, QuizPublished: m.Config.QuizPublished,
 	}
 	row, err := q.GetMatch(ctx, m.ID)
 	if err != nil {

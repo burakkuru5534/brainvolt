@@ -161,6 +161,35 @@ type ContentVerificationEvent struct {
 	CreatedAt  time.Time
 }
 
+type CreatorQuiz struct {
+	ID              uuid.UUID
+	AuthorUserID    uuid.UUID
+	Locale          string
+	Title           string
+	Description     *string
+	CategoryID      *uuid.UUID
+	QuestionSetID   uuid.UUID
+	AnswerWindowMs  int32
+	QuestionCount   int16
+	Status          string
+	SubmittedAt     *time.Time
+	PublishedAt     *time.Time
+	ReviewedBy      *uuid.UUID
+	RejectionReason *string
+	PlayCount       int32
+	LikeCount       int32
+	Version         int32
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	DeletedAt       *time.Time
+}
+
+type CreatorQuizLike struct {
+	QuizID  uuid.UUID
+	UserID  uuid.UUID
+	LikedAt time.Time
+}
+
 type GameAnswer struct {
 	MatchID       uuid.UUID
 	RoundNo       int16

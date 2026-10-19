@@ -25,6 +25,7 @@ import (
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/content"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/creator"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/lobby"
@@ -216,8 +217,10 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 		Redis: d.rdb, Game: g, Realtime: rt, Ratings: ratings{rk}, Social: soc, Sanctions: mod, Teams: tm, Profiles: prof, Clock: d.clock, Logger: d.logger, Practice: d.env == config.EnvDev,
 	})
 	mm.Register(srv, ident, d.idem)
+	cr := creator.New(creator.Deps{DB: d.db, Content: cont, Identity: ident, Profiles: prof, Clock: d.clock})
+	cr.Register(srv, ident, d.idem)
 	lob := lobby.New(lobby.Deps{
-		DB: d.db, Redis: d.rdb, Identity: ident, Profiles: prof, Social: soc, Teams: tm, Game: g, Realtime: rt,
+		DB: d.db, Redis: d.rdb, Identity: ident, Profiles: prof, Social: soc, Teams: tm, Game: g, Quizzes: quizzes{cr}, Realtime: rt,
 		Events: d.bus, Clock: d.clock, Logger: d.logger,
 	})
 	lob.Register(srv, ident, d.idem)
@@ -230,6 +233,14 @@ type pusher struct{ *realtime.Module }
 
 func (p pusher) Push(ctx context.Context, user uuid.UUID, typ string, data any) error {
 	return p.Send(ctx, realtime.Target{User: user}, realtime.Frame{T: typ, D: data})
+}
+
+// quizzes adapts creator to lobby's Quizzes.
+type quizzes struct{ *creator.Module }
+
+func (q quizzes) Playable(ctx context.Context, user, id uuid.UUID) (lobby.Quiz, error) {
+	p, err := q.Module.Playable(ctx, user, id)
+	return lobby.Quiz{SetID: p.SetID, Length: p.Length, WindowMS: p.WindowMS, Locale: p.Locale, Author: p.Author, Published: p.Published}, err
 }
 
 // ratings adapts ranking to matchmaking's RatingReader.

@@ -176,8 +176,16 @@ func (s *Service) mayChallenge(ctx context.Context, from uuid.UUID, targets []uu
 // per hour.
 func (s *Service) Challenge(ctx context.Context, from uuid.UUID, to ChallengeTarget, cfg game.Config) (Challenge, error) {
 	cfg.Origin = game.OriginChallenge
+	quiz, err := s.withQuiz(ctx, from, &cfg)
+	if err != nil {
+		return Challenge{}, err
+	}
 	if err := checkConfig(cfg); err != nil {
 		return Challenge{}, err
+	}
+	// Unpublished quizzes are played in friends-of-host rooms only (R14).
+	if quiz != nil && !quiz.Published {
+		return Challenge{}, apierror.New(apierror.ModeNotAllowed).With("rule_id", "R14")
 	}
 	if (to.User == nil) == (to.Couple == nil) {
 		return Challenge{}, apierror.Validation(apierror.FieldError{Field: "target_user_id", Rule: "one_of"})
@@ -376,7 +384,7 @@ func (s *Service) RespondChallenge(ctx context.Context, user, id uuid.UUID, acti
 			var sides [2][]game.Member
 			for i, side := range [][]uuid.UUID{challengers, targets} {
 				for _, u := range side {
-					sides[i] = append(sides[i], game.Member{UserID: u, Locale: locales[u]})
+					sides[i] = append(sides[i], game.Member{UserID: u, Locale: quizLocale(&cfg, locales[u])})
 				}
 			}
 			req := game.CreateRequest{Config: cfg, Sides: sides, OriginRef: &row.ID, Parent: row.ParentMatchID}
@@ -388,6 +396,7 @@ func (s *Service) RespondChallenge(ctx context.Context, user, id uuid.UUID, acti
 				return err
 			}
 			matchID = &c.Match.ID
+			s.countPlay(ctx, &cfg)
 			if err := s.d.Events.PublishTx(ctx, tx, EventChallengeAccepted, now, ChallengeAccepted{ChallengeID: id, MatchID: c.Match.ID}); err != nil {
 				return err
 			}

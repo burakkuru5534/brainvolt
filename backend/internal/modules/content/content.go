@@ -124,5 +124,8 @@ func (m *Module) Register(s *httpserver.Server, ident *identity.Module, idem *id
 	transport.New(m.Service, ident, idem).Register(s)
 }
 
+// CreatorQuestion is one question an author writes for a quiz.
+type CreatorQuestion = service.CreatorQuestion
+
 // DailySet is a day's Daily Challenge questions in order.
 type DailySet = service.DailySet

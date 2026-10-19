@@ -17,14 +17,27 @@ import (
 // matchCompleted is the part of game.MatchCompleted progression reads
 // (the event's JSON contract; progression does not import game).
 type matchCompleted struct {
-	MatchID      uuid.UUID     `json:"match_id"`
-	MatchType    string        `json:"match_type"`
-	Format       string        `json:"format"`
-	RoundsPlayed int           `json:"rounds_played"`
-	EndedAt      time.Time     `json:"ended_at"`
-	Sides        []side        `json:"sides"`
-	Participants []participant `json:"participants"`
-	Rounds       []round       `json:"rounds"`
+	MatchID       uuid.UUID     `json:"match_id"`
+	MatchType     string        `json:"match_type"`
+	Format        string        `json:"format"`
+	RoundsPlayed  int           `json:"rounds_played"`
+	EndedAt       time.Time     `json:"ended_at"`
+	Sides         []side        `json:"sides"`
+	Participants  []participant `json:"participants"`
+	Rounds        []round       `json:"rounds"`
+	CategoryMode  string        `json:"category_mode"`
+	QuizAuthorID  *uuid.UUID    `json:"quiz_author_id"`
+	QuizPublished bool          `json:"quiz_published"`
+}
+
+// earns reports whether a participant gets anything from the match: a
+// Creator Quiz awards the players of a published quiz only, never its
+// author (D-023, D-044).
+func (p *matchCompleted) earns(user uuid.UUID) bool {
+	if p.CategoryMode != "creator_quiz" {
+		return true
+	}
+	return p.QuizPublished && (p.QuizAuthorID == nil || *p.QuizAuthorID != user)
 }
 
 type side struct {
@@ -88,6 +101,9 @@ func (s *Service) OnMatchCompleted(ctx context.Context, e events.Envelope) error
 		}
 		for i := range p.Participants {
 			me := &p.Participants[i]
+			if !p.earns(me.UserID) {
+				continue
+			}
 			if err := q.LockUser(ctx, me.UserID.String()); err != nil {
 				return err
 			}

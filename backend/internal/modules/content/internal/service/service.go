@@ -456,6 +456,9 @@ type CreateOptions struct {
 	// Status is draft (moderator create) or in_review (import, §6).
 	Status       domain.Status
 	AuthorUserID *uuid.UUID
+	// Creator puts the question in the creator_only pool (Creator Quiz):
+	// never selected for general matches and not a duplicate of anything.
+	Creator bool
 }
 
 // Create stores a new question with its options, translations, revision 1
@@ -468,11 +471,13 @@ func (s *Service) Create(ctx context.Context, d domain.Draft, o CreateOptions) (
 	if err := s.checkRefs(ctx, d.SubcategoryID, *d.SourceID); err != nil {
 		return uuid.Nil, err
 	}
-	fp := domain.Fingerprint(d.OriginalLocale, d.Texts[d.OriginalLocale])
-	if err := s.checkDuplicate(ctx, fp, uuid.Nil); err != nil {
+	id := ids.New()
+	fp, pool := domain.Fingerprint(d.OriginalLocale, d.Texts[d.OriginalLocale]), "general"
+	if o.Creator {
+		fp, pool = fp+":creator:"+id.String(), "creator_only"
+	} else if err := s.checkDuplicate(ctx, fp, uuid.Nil); err != nil {
 		return uuid.Nil, err
 	}
-	id := ids.New()
 	now := s.now()
 	err := postgres.InTx(ctx, s.db, func(tx pgx.Tx) error {
 		q := sqlc.New(tx)
@@ -484,7 +489,7 @@ func (s *Service) Create(ctx context.Context, d domain.Draft, o CreateOptions) (
 			ID: id, SubcategoryID: d.SubcategoryID, QuestionType: string(d.Type),
 			Difficulty:     int16(d.Difficulty), //nolint:gosec // G115: validated 1–5
 			OriginalLocale: d.OriginalLocale, SourceID: *d.SourceID, SourceRef: ref,
-			AuthorUserID: o.AuthorUserID, Fingerprint: fp, VerificationStatus: string(o.Status), Now: now,
+			AuthorUserID: o.AuthorUserID, Fingerprint: fp, VerificationStatus: string(o.Status), Pool: pool, Now: now,
 		}); err != nil {
 			return err
 		}
