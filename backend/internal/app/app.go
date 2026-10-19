@@ -200,7 +200,7 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	})
 	g.Register(srv, ident)
 	mm := matchmaking.New(matchmaking.Deps{
-		Redis: d.rdb, Game: g, Realtime: rt, Blocks: soc, Clock: d.clock, Logger: d.logger, Practice: d.env == config.EnvDev,
+		Redis: d.rdb, Game: g, Realtime: rt, Social: soc, Teams: tm, Profiles: prof, Clock: d.clock, Logger: d.logger, Practice: d.env == config.EnvDev,
 	})
 	mm.Register(srv, ident, d.idem)
 	lob := lobby.New(lobby.Deps{

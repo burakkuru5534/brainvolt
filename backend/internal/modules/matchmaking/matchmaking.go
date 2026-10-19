@@ -1,8 +1,8 @@
 // Package matchmaking is the public API of the matchmaking module
 // (backend-modules.md §1): a queue per matchmade 1v1 configuration paired
 // by rating with widening ranges (D-068), re-queueing and queue cooldowns,
-// plus the development practice bot (D-066). Parties and team formats
-// arrive with Phase 6.
+// team formats with parties, persistent teams and couples (D-072), plus
+// the development practice bot (D-066).
 package matchmaking
 
 import (
@@ -15,7 +15,9 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/matchmaking/internal/service"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/matchmaking/internal/transport"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/team"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/idempotency"
@@ -29,15 +31,17 @@ type RatingReader = service.RatingReader
 // Rating is a rating and its deviation.
 type Rating = service.Rating
 
-// BlockReader lists the users blocking or blocked by a user (social).
-type BlockReader = service.BlockReader
+// Social reads blocks and friendships (social, wired in app).
+type Social = service.Social
 
 // Deps are the module's collaborators. Practice enables the development
 // bot opponent; only the dev composition sets it.
 type Deps struct {
 	Redis    *redis.Client
 	Ratings  RatingReader
-	Blocks   BlockReader
+	Social   Social
+	Teams    *team.Module
+	Profiles *profile.Module
 	Game     *game.Module
 	Realtime *realtime.Module
 	Clock    clock.Clock
@@ -55,9 +59,15 @@ type Module struct {
 // cooldowns).
 func New(d Deps) *Module {
 	svc := service.New(service.Deps{
-		Redis: d.Redis, Game: games{d.Game}, Notifier: d.Realtime, Ratings: d.Ratings, Blocks: d.Blocks,
+		Redis: d.Redis, Game: games{d.Game}, Notifier: d.Realtime, Ratings: d.Ratings, Social: d.Social,
 		Clock: d.Clock, Logger: d.Logger, Practice: d.Practice,
 	})
+	if d.Teams != nil {
+		svc.SetTeams(d.Teams)
+	}
+	if d.Profiles != nil {
+		svc.SetLocales(d.Profiles)
+	}
 	d.Game.OnEnd(svc.OnEnd)
 	return &Module{svc: svc}
 }

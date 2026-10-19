@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"net/http"
 	"testing"
 	"time"
@@ -152,4 +153,73 @@ func TestTeamAndCoupleSides(t *testing.T) {
 	if err := x.db.QueryRow(t.Context(), `SELECT couple_id FROM game.match_sides WHERE match_id = $1 AND side_no = 2`, c2m.Match.ID).Scan(&couple2); err != nil || couple2 != c2 {
 		t.Fatalf("side couple %v %v", couple2, err)
 	}
+}
+
+// Team queues (D-072): a persistent team lineup meets two solo players on
+// a temporary side; two couples meet in the couple queue.
+func TestTeamAndCoupleQueues(t *testing.T) {
+	x := newE2E(t)
+	var toks [6]string
+	var users [6]uuid.UUID
+	var ws [6]*wsClient
+	for i := range 4 {
+		toks[i], users[i], _ = x.fullUser()
+	}
+	for i := 4; i < 6; i++ {
+		toks[i], users[i] = x.signedIn()
+	}
+	for i := range 6 {
+		ws[i], _ = x.auth(toks[i], "inst-"+string(rune('a'+i)), nil)
+	}
+	x.seedQuestions(users[0])
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	go func() { _ = x.mods.matchmaking.Run(ctx) }()
+
+	x.befriend(toks[0], users[1], toks[1])
+	r := x.post("/v1/teams", toks[0], map[string]any{"name": "Queue Team", "tag": "QTM", "emblem_id": "star"})
+	teamID := str(r.get("id"))
+	inv := x.post("/v1/teams/"+teamID+"/invites", toks[0], map[string]any{"user_id": users[1]})
+	want(t, "join team", x.do(http.MethodPost, "/v1/team-invites/"+str(inv.get("id"))+"/accept", toks[1], nil), 204, "")
+
+	duo := map[string]any{"match_type": "sudden_death", "format": "2v2"}
+	want(t, "lineup not full", x.post("/v1/matchmaking/tickets", toks[0], map[string]any{"match_type": "sudden_death", "format": "2v2", "team_id": teamID}), 400, "VALIDATION_FAILED")
+	r = x.post("/v1/matchmaking/tickets", toks[0], map[string]any{"match_type": "sudden_death", "format": "2v2", "team_id": teamID, "party_user_ids": []any{users[1]}})
+	if r.code != 201 || len(r.get("user_ids").([]any)) != 2 {
+		t.Fatalf("team ticket %s", r.raw)
+	}
+	want(t, "solo 1", x.post("/v1/matchmaking/tickets", toks[4], duo), 201, "")
+	want(t, "solo 2", x.post("/v1/matchmaking/tickets", toks[5], duo), 201, "")
+	id := str(data(ws[0].findWithin(5*time.Second, "mm.match_found"))["match_id"])
+	for _, i := range []int{1, 4, 5} {
+		if got := data(ws[i].findWithin(5*time.Second, "mm.match_found"))["match_id"]; got != id {
+			t.Fatalf("player %d in match %v, want %s", i, got, id)
+		}
+	}
+	var mode, team string
+	if err := x.db.QueryRow(t.Context(), `SELECT m.team_answer_mode, coalesce(s.team_id::text, '') FROM game.matches m
+		JOIN game.match_sides s ON s.match_id = m.id AND s.side_no = 1 WHERE m.id = $1`, id).Scan(&mode, &team); err != nil || mode != "fast_team_round" || team != teamID {
+		t.Fatalf("team match %q %q %v", mode, team, err)
+	}
+	leaveMatch(t, id, ws[0], ws[1], ws[4], ws[5])
+
+	// Couples: guests cannot (no couple), full accounts with a couple can.
+	couple := map[string]any{"match_type": "quick_duel", "format": "couple"}
+	want(t, "guest couple", x.post("/v1/matchmaking/tickets", toks[4], couple), 422, "MODE_NOT_ALLOWED")
+	x.befriend(toks[2], users[3], toks[3])
+	pair := func(a, b int) {
+		r := x.post("/v1/couples", toks[a], map[string]any{"partner_user_id": users[b]})
+		want(t, "accept couple", x.do(http.MethodPost, "/v1/couples/"+str(r.get("id"))+"/accept", toks[b], nil), 200, "")
+	}
+	pair(0, 1)
+	pair(2, 3)
+	// Leaving the first match gave player 0 a leave — not a cooldown yet.
+	want(t, "couple 1", x.post("/v1/matchmaking/tickets", toks[1], couple), 201, "")
+	want(t, "couple 2", x.post("/v1/matchmaking/tickets", toks[2], couple), 201, "")
+	id = str(data(ws[3].findWithin(5*time.Second, "mm.match_found"))["match_id"])
+	var couples int
+	if err := x.db.QueryRow(t.Context(), `SELECT count(*) FROM game.match_sides WHERE match_id = $1 AND couple_id IS NOT NULL`, id).Scan(&couples); err != nil || couples != 2 {
+		t.Fatalf("couple sides %d %v", couples, err)
+	}
+	leaveMatch(t, id, ws[0], ws[1], ws[2], ws[3])
 }

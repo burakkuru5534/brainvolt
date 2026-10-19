@@ -3,11 +3,13 @@
 // a search range that widens while a ticket waits, never pairing players
 // who block each other. Matches cancelled before the start put the ready
 // players back at the front of the queue; missed ready checks and leaving
-// matches lead to short queue cooldowns (D-034, D-048). Team, couple and
-// party queues arrive with Phase 6.
+// matches lead to short queue cooldowns (D-034, D-048). Team formats fill
+// each side from solo tickets, parties of friends, a persistent team or a
+// couple (Phase 6, D-072).
 package service
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"errors"
@@ -23,6 +25,7 @@ import (
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/team"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ids"
@@ -86,10 +89,22 @@ func (DefaultRatings) Rating(context.Context, uuid.UUID, string) (Rating, error)
 	return Rating{Value: 1500, RD: 350}, nil
 }
 
-// BlockReader lists users blocking or blocked by a user (social, wired in
-// app).
-type BlockReader interface {
+// Social is what matchmaking reads from social (wired in app): blocks and
+// friendships (parties are friends of the leader).
+type Social interface {
 	BlockedWith(ctx context.Context, user uuid.UUID) ([]uuid.UUID, error)
+	AreFriends(ctx context.Context, a, b uuid.UUID) (bool, error)
+}
+
+// Teams is what matchmaking needs from team.
+type Teams interface {
+	TeamInfo(ctx context.Context, id uuid.UUID) (team.Info, error)
+	ActiveCoupleOf(ctx context.Context, user uuid.UUID) (team.CoupleInfo, bool, error)
+}
+
+// LocaleReader gives party members' content languages (profile).
+type LocaleReader interface {
+	LocalesOf(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]string, error)
 }
 
 // Started is a match game created and handed to its live owner.
@@ -118,7 +133,9 @@ type Deps struct {
 	Game     Game
 	Notifier Notifier
 	Ratings  RatingReader
-	Blocks   BlockReader
+	Social   Social
+	Teams    Teams
+	Locales  LocaleReader
 	Clock    clock.Clock
 	Logger   *slog.Logger
 	Practice bool
@@ -135,46 +152,77 @@ func New(d Deps) *Service {
 	return &Service{d: d}
 }
 
+// SetTeams wires team (persistent teams and couples).
+func (s *Service) SetTeams(t Teams) { s.d.Teams = t }
+
+// SetLocales wires the party members' languages (profile).
+func (s *Service) SetLocales(l LocaleReader) { s.d.Locales = l }
+
 // Request is the body of POST /v1/matchmaking/tickets.
 type Request struct {
 	MatchType string `json:"match_type"`
-	Format    string `json:"format"`
+	// Format: 1v1, 2v2, 3v3, 4v4 or couple (the caller's active couple).
+	Format string `json:"format"`
 	// CategoryMode: blind_challenge, category_master (with category_id, a
 	// top-level category) or mixed_battle (the server picks 3); not in Ranked.
 	CategoryMode string     `json:"category_mode,omitempty"`
 	CategoryID   *uuid.UUID `json:"category_id,omitempty"`
+	// PartyUserIDs are friends queueing with the caller on one side (team
+	// formats); with TeamID they are the lineup of that persistent team.
+	PartyUserIDs []uuid.UUID `json:"party_user_ids,omitempty"`
+	TeamID       *uuid.UUID  `json:"team_id,omitempty"`
 	// Practice plays against the server's bot (development builds only).
 	Practice bool `json:"practice,omitempty"`
 }
 
 // Ticket is a queue entry as the app sees it.
 type Ticket struct {
-	ID           uuid.UUID  `json:"id"`
-	MatchType    string     `json:"match_type"`
-	Format       string     `json:"format"`
-	CategoryMode string     `json:"category_mode,omitempty"`
-	CategoryID   *uuid.UUID `json:"category_id,omitempty"`
-	State        string     `json:"state"`
-	EnqueuedAt   time.Time  `json:"enqueued_at"`
-	WaitMS       int64      `json:"wait_ms"`
+	ID           uuid.UUID   `json:"id"`
+	MatchType    string      `json:"match_type"`
+	Format       string      `json:"format"`
+	CategoryMode string      `json:"category_mode,omitempty"`
+	CategoryID   *uuid.UUID  `json:"category_id,omitempty"`
+	UserIDs      []uuid.UUID `json:"user_ids"`
+	State        string      `json:"state"`
+	EnqueuedAt   time.Time   `json:"enqueued_at"`
+	WaitMS       int64       `json:"wait_ms"`
 	// Range is the current rating search range (±); null = anyone.
 	Range   *int       `json:"range"`
 	MatchID *uuid.UUID `json:"match_id,omitempty"`
 }
 
-// entry is a ticket as stored in mm:t:<id>; it is also what a new match
-// remembers to re-queue its ready players.
+// member is one player of a ticket.
+type member struct {
+	UserID uuid.UUID `json:"user_id"`
+	Locale string    `json:"locale"`
+}
+
+// entry is a ticket as stored in mm:t:<id>: one player, a party, a team
+// lineup or a couple; it is also what a new match remembers to re-queue
+// its ready players.
 type entry struct {
 	ID         uuid.UUID   `json:"id"`
-	User       uuid.UUID   `json:"user_id"`
-	Locale     string      `json:"locale"`
+	Members    []member    `json:"members"`
 	Queue      string      `json:"queue"`
 	Request    Request     `json:"request"`
 	Rating     float64     `json:"rating"`
 	RD         float64     `json:"rd"`
 	EnqueuedMS int64       `json:"enqueued_ms"`
 	Blocks     []uuid.UUID `json:"blocks"`
+	TeamID     *uuid.UUID  `json:"team_id,omitempty"`
+	CoupleID   *uuid.UUID  `json:"couple_id,omitempty"`
 }
+
+func (e *entry) users() []uuid.UUID {
+	out := make([]uuid.UUID, len(e.Members))
+	for i, m := range e.Members {
+		out[i] = m.UserID
+	}
+	return out
+}
+
+// persistent tickets fill a whole side on their own.
+func (e *entry) persistent() bool { return e.TeamID != nil || e.CoupleID != nil }
 
 var queuesKey = redis.Key("mm", "queues")
 
@@ -187,12 +235,23 @@ func cooldownKey(user uuid.UUID) string { return redis.Key("mm", "cooldown", use
 func missedKey(user uuid.UUID) string   { return redis.Key("mm", "missed", user.String()) }
 func leavesKey(user uuid.UUID) string   { return redis.Key("mm", "leaves", user.String()) }
 func isRanked(r Request) bool           { return r.MatchType == "ranked" }
-func ratingBucket(Request) string       { return "solo" } // 1v1 queues (mode-matrix §2.5)
 func (r Request) config() game.Config   { return r.configWith(nil) }
+func (r Request) sideSize() int         { return game.Format(r.Format).SideSize() }
 func (s *Service) now() time.Time       { return s.d.Clock.Now().UTC() }
 func (s *Service) nowMS() int64         { return s.d.Clock.Now().UnixMilli() }
 func wait(e *entry, now int64) time.Duration {
 	return time.Duration(now-e.EnqueuedMS) * time.Millisecond
+}
+
+// ratingBucket is mode-matrix §2.5's bucket of a format.
+func ratingBucket(r Request) string {
+	switch r.Format {
+	case "1v1":
+		return "solo"
+	case "couple":
+		return "couple"
+	}
+	return "team"
 }
 
 func (r Request) configWith(cats []uuid.UUID) game.Config {
@@ -235,10 +294,11 @@ func searchRange(e *entry, w time.Duration) int {
 	return r
 }
 
-// validate checks a request against the mode matrix (1v1 until Phase 6).
+// validate checks a request against the mode matrix (Fast Team Round +
+// average for team queues, D-053).
 func (s *Service) validate(ctx context.Context, r Request) error {
-	if r.Format != "1v1" {
-		return apierror.New(apierror.ModeNotAllowed).With("reason", "format_not_available_yet")
+	if r.sideSize() == 0 {
+		return apierror.Validation(apierror.FieldError{Field: "format", Rule: "enum"})
 	}
 	if (r.CategoryMode == "category_master") != (r.CategoryID != nil) {
 		return apierror.Validation(apierror.FieldError{Field: "category_id", Rule: "required_for_category_master"})
@@ -255,26 +315,96 @@ func (s *Service) validate(ctx context.Context, r Request) error {
 			return apierror.New(apierror.ModeNotAllowed).With("rule_id", "R12")
 		}
 	}
+	if len(r.PartyUserIDs)+1 > r.sideSize() || (r.Format == "1v1" && len(r.PartyUserIDs) > 0) {
+		return apierror.Validation(apierror.FieldError{Field: "party_user_ids", Rule: "too_many"})
+	}
+	if r.TeamID != nil && (r.Format == "1v1" || r.Format == "couple" || len(r.PartyUserIDs)+1 != r.sideSize()) {
+		return apierror.Validation(apierror.FieldError{Field: "team_id", Rule: "full_lineup_of_a_team_format"})
+	}
 	return nil
 }
 
-// Enqueue puts the caller in the queue of the requested configuration, or
-// starts a practice match right away.
+// members builds the ticket's players: the caller, their party (friends),
+// their team lineup or their couple.
+func (s *Service) members(ctx context.Context, user uuid.UUID, r Request) (users []uuid.UUID, teamID, coupleID *uuid.UUID, err error) {
+	users = []uuid.UUID{user}
+	switch {
+	case r.Format == "couple":
+		if s.d.Teams == nil {
+			return nil, nil, nil, apierror.New(apierror.ModeNotAllowed).With("rule_id", "R16")
+		}
+		c, ok, err := s.d.Teams.ActiveCoupleOf(ctx, user)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		if !ok {
+			return nil, nil, nil, apierror.New(apierror.ModeNotAllowed).With("rule_id", "R16").With("reason", "no_active_couple")
+		}
+		partner := c.Users[0]
+		if partner == user {
+			partner = c.Users[1]
+		}
+		id := c.ID
+		return []uuid.UUID{user, partner}, nil, &id, nil
+	case r.TeamID != nil:
+		if s.d.Teams == nil {
+			return nil, nil, nil, apierror.New(apierror.ModeNotAllowed).With("rule_id", "R16")
+		}
+		t, err := s.d.Teams.TeamInfo(ctx, *r.TeamID)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		for _, u := range append([]uuid.UUID{user}, r.PartyUserIDs...) {
+			if !t.Active || !slices.Contains(t.Members, u) {
+				return nil, nil, nil, apierror.New(apierror.ModeNotAllowed).With("rule_id", "R16").With("reason", "not_a_member").With("user_id", u)
+			}
+		}
+		teamID = r.TeamID
+	default:
+		for _, u := range r.PartyUserIDs {
+			ok, err := s.d.Social.AreFriends(ctx, user, u)
+			if err != nil {
+				return nil, nil, nil, err
+			}
+			if !ok {
+				return nil, nil, nil, apierror.New(apierror.Forbidden).With("reason", "party_members_are_friends").With("user_id", u)
+			}
+		}
+	}
+	for _, u := range r.PartyUserIDs {
+		if u == user || slices.Contains(users, u) {
+			return nil, nil, nil, apierror.Validation(apierror.FieldError{Field: "party_user_ids", Rule: "unique"})
+		}
+		users = append(users, u)
+	}
+	return users, teamID, nil, nil
+}
+
+// Enqueue puts the caller — alone, with a party, a team lineup or their
+// couple — in the queue of the requested configuration, or starts a
+// practice match right away. Every member must be free (no ticket, no
+// live match, no cooldown); party members confirm with the ready check.
 func (s *Service) Enqueue(ctx context.Context, user uuid.UUID, locale string, r Request) (Ticket, error) {
 	if r.Practice {
 		if !s.d.Practice {
 			return Ticket{}, apierror.Validation(apierror.FieldError{Field: "practice", Rule: "not_available"})
 		}
-		r.MatchType, r.Format, r.CategoryMode, r.CategoryID = "quick_duel", "1v1", "", nil
+		r = Request{MatchType: "quick_duel", Format: "1v1", Practice: true}
 	}
 	if err := s.validate(ctx, r); err != nil {
 		return Ticket{}, err
 	}
-	if ttl, _ := s.d.Redis.PTTL(ctx, cooldownKey(user)).Result(); ttl > 0 {
-		return Ticket{}, apierror.New(apierror.QueueCooldown).WithRetryAfter(ttl)
+	users, teamID, coupleID, err := s.members(ctx, user, r)
+	if err != nil {
+		return Ticket{}, err
 	}
-	if _, live := s.d.Game.LiveMatch(ctx, user); live {
-		return Ticket{}, apierror.New(apierror.AlreadyInMatch)
+	for _, u := range users {
+		if ttl, _ := s.d.Redis.PTTL(ctx, cooldownKey(u)).Result(); ttl > 0 {
+			return Ticket{}, apierror.New(apierror.QueueCooldown).WithRetryAfter(ttl).With("user_id", u)
+		}
+		if _, live := s.d.Game.LiveMatch(ctx, u); live {
+			return Ticket{}, apierror.New(apierror.AlreadyInMatch).With("user_id", u)
+		}
 	}
 	if r.Practice {
 		if exists, _ := s.d.Redis.Exists(ctx, userKey(user)).Result(); exists > 0 {
@@ -284,20 +414,41 @@ func (s *Service) Enqueue(ctx context.Context, user uuid.UUID, locale string, r 
 		if err != nil {
 			return Ticket{}, err
 		}
-		return Ticket{ID: ids.New(), MatchType: r.MatchType, Format: r.Format, State: StateFound, EnqueuedAt: s.now(), MatchID: &c.MatchID}, nil
+		return Ticket{ID: ids.New(), MatchType: r.MatchType, Format: r.Format, UserIDs: users, State: StateFound, EnqueuedAt: s.now(), MatchID: &c.MatchID}, nil
 	}
-	rating, err := s.d.Ratings.Rating(ctx, user, ratingBucket(r))
-	if err != nil {
-		return Ticket{}, err
-	}
-	var blocks []uuid.UUID
-	if s.d.Blocks != nil {
-		if blocks, err = s.d.Blocks.BlockedWith(ctx, user); err != nil {
+	e := entry{ID: ids.New(), Queue: queueName(r), Request: r, EnqueuedMS: s.nowMS(), TeamID: teamID, CoupleID: coupleID}
+	locales := map[uuid.UUID]string{user: locale}
+	if len(users) > 1 && s.d.Locales != nil {
+		if locales, err = s.d.Locales.LocalesOf(ctx, users); err != nil {
 			return Ticket{}, err
 		}
+		locales[user] = locale
 	}
-	e := entry{ID: ids.New(), User: user, Locale: locale, Queue: queueName(r), Request: r, Rating: rating.Value, RD: rating.RD,
-		EnqueuedMS: s.nowMS(), Blocks: blocks}
+	for _, u := range users {
+		rating, err := s.d.Ratings.Rating(ctx, u, ratingBucket(r))
+		if err != nil {
+			return Ticket{}, err
+		}
+		e.Rating += rating.Value / float64(len(users))
+		e.RD += rating.RD / float64(len(users))
+		if s.d.Social != nil {
+			blocks, err := s.d.Social.BlockedWith(ctx, u)
+			if err != nil {
+				return Ticket{}, err
+			}
+			e.Blocks = append(e.Blocks, blocks...)
+		}
+		l := locales[u]
+		if l == "" {
+			l = locale
+		}
+		e.Members = append(e.Members, member{UserID: u, Locale: l})
+	}
+	for _, u := range users {
+		if slices.Contains(e.Blocks, u) {
+			return Ticket{}, apierror.New(apierror.Blocked).With("user_id", u)
+		}
+	}
 	if err := s.put(ctx, &e); err != nil {
 		return Ticket{}, err
 	}
@@ -306,15 +457,27 @@ func (s *Service) Enqueue(ctx context.Context, user uuid.UUID, locale string, r 
 
 // put stores a ticket and adds it to its queue (one ticket per user).
 func (s *Service) put(ctx context.Context, e *entry) error {
-	ok, err := s.d.Redis.SetNX(ctx, userKey(e.User), e.ID.String(), TicketTTL).Result()
-	if err != nil {
-		return err
+	var taken []uuid.UUID
+	release := func() {
+		for _, u := range taken {
+			s.d.Redis.Del(ctx, userKey(u))
+		}
 	}
-	if !ok {
-		return apierror.New(apierror.AlreadyQueued)
+	for _, u := range e.users() {
+		ok, err := s.d.Redis.SetNX(ctx, userKey(u), e.ID.String(), TicketTTL).Result()
+		if err != nil {
+			release()
+			return err
+		}
+		if !ok {
+			release()
+			return apierror.New(apierror.AlreadyQueued).With("user_id", u)
+		}
+		taken = append(taken, u)
 	}
 	b, err := json.Marshal(e)
 	if err != nil {
+		release()
 		return err
 	}
 	pipe := s.d.Redis.TxPipeline()
@@ -322,7 +485,7 @@ func (s *Service) put(ctx context.Context, e *entry) error {
 	pipe.ZAdd(ctx, queueKey(e.Queue), goredis.Z{Score: e.Rating, Member: e.ID.String()})
 	pipe.SAdd(ctx, queuesKey, e.Queue)
 	if _, err := pipe.Exec(ctx); err != nil {
-		s.d.Redis.Del(ctx, userKey(e.User))
+		release()
 		return err
 	}
 	return nil
@@ -332,7 +495,8 @@ func (s *Service) ticket(e *entry) Ticket {
 	w := wait(e, s.nowMS())
 	t := Ticket{
 		ID: e.ID, MatchType: e.Request.MatchType, Format: e.Request.Format, CategoryMode: e.Request.CategoryMode,
-		CategoryID: e.Request.CategoryID, State: StateSearching, EnqueuedAt: time.UnixMilli(e.EnqueuedMS).UTC(), WaitMS: w.Milliseconds(),
+		CategoryID: e.Request.CategoryID, UserIDs: e.users(), State: StateSearching,
+		EnqueuedAt: time.UnixMilli(e.EnqueuedMS).UTC(), WaitMS: w.Milliseconds(),
 	}
 	if r := searchRange(e, w); r != unlimitedMS {
 		t.Range = &r
@@ -365,7 +529,8 @@ func (s *Service) Current(ctx context.Context, user uuid.UUID) (Ticket, error) {
 	return s.ticket(e), nil
 }
 
-// Leave removes the caller's ticket; leaving twice is harmless.
+// Leave removes the caller's ticket — for the whole party; the others
+// get mm.status cancelled. Leaving twice is harmless.
 func (s *Service) Leave(ctx context.Context, user uuid.UUID) error {
 	id, err := s.ticketOf(ctx, user)
 	if err != nil {
@@ -376,10 +541,17 @@ func (s *Service) Leave(ctx context.Context, user uuid.UUID) error {
 		return err
 	}
 	e, err := s.load(ctx, id)
-	if err == nil {
-		s.d.Redis.ZRem(ctx, queueKey(e.Queue), id.String())
+	if err != nil {
+		s.d.Redis.Del(ctx, ticketKey(id), userKey(user))
+		return nil //nolint:nilerr // expired ticket: nothing left to leave
 	}
-	s.d.Redis.Del(ctx, ticketKey(id), userKey(user))
+	s.d.Redis.ZRem(ctx, queueKey(e.Queue), id.String())
+	s.drop(ctx, e)
+	for _, u := range e.users() {
+		if u != user {
+			s.notify(ctx, u, map[string]any{"ticket_id": id, "state": "cancelled", "reason": "party_left"})
+		}
+	}
 	return nil
 }
 
@@ -434,16 +606,52 @@ func (s *Service) lease(ctx context.Context, q, owner string) bool {
 	return false
 }
 
-// claim removes two tickets from a queue only if both are still there.
+// claim removes tickets from a queue only if all of them are still there.
 var claim = goredis.NewScript(`
-if redis.call('ZSCORE', KEYS[1], ARGV[1]) and redis.call('ZSCORE', KEYS[1], ARGV[2]) then
-  redis.call('ZREM', KEYS[1], ARGV[1], ARGV[2])
-  return 1
+for i = 1, #ARGV do
+  if not redis.call('ZSCORE', KEYS[1], ARGV[i]) then return 0 end
 end
-return 0`)
+redis.call('ZREM', KEYS[1], unpack(ARGV))
+return 1`)
 
-// match pairs the waiting tickets of a queue: oldest first, each with the
-// closest rating inside both players' ranges, never across a block.
+// side is the tickets forming one side of a new match.
+type side []*entry
+
+func (sd side) size() int {
+	n := 0
+	for _, e := range sd {
+		n += len(e.Members)
+	}
+	return n
+}
+
+// fits reports whether ticket e may join side sd (with the other side
+// other) on anchor a's terms: within both ranges of a, no block with
+// anyone already chosen.
+func fits(e, a *entry, chosen []*entry, now int64) bool {
+	diff := math.Abs(a.Rating - e.Rating)
+	if diff > float64(min(searchRange(a, wait(a, now)), searchRange(e, wait(e, now)))) {
+		return false
+	}
+	for _, c := range chosen {
+		for _, u := range c.users() {
+			if slices.Contains(e.Blocks, u) {
+				return false
+			}
+		}
+		for _, u := range e.users() {
+			if slices.Contains(c.Blocks, u) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// match forms matches from the waiting tickets of a queue: the oldest
+// ticket anchors side 1, each side is a persistent team or couple ticket,
+// or temporary tickets (solo and parties) filled closest rating first;
+// side 2 starts from the closest rating that fits, never across a block.
 func (s *Service) match(ctx context.Context, q string) {
 	members, err := s.d.Redis.ZRange(ctx, queueKey(q), 0, -1).Result()
 	if err != nil || len(members) < 2 {
@@ -466,30 +674,74 @@ func (s *Service) match(ctx context.Context, q string) {
 	slices.SortFunc(waiting, func(a, b *entry) int { return int(a.EnqueuedMS - b.EnqueuedMS) })
 	now := s.nowMS()
 	taken := map[uuid.UUID]bool{}
-	for i, a := range waiting {
+	for _, a := range waiting {
 		if taken[a.ID] {
 			continue
 		}
-		var best *entry
-		bestDiff := math.MaxFloat64
-		for _, b := range waiting[i+1:] {
-			if taken[b.ID] || a.User == b.User || slices.Contains(a.Blocks, b.User) || slices.Contains(b.Blocks, a.User) {
-				continue
+		n := a.Request.sideSize()
+		var chosen []*entry
+		var sides [2]side
+		build := func(i int, first *entry) bool {
+			sides[i] = side{first}
+			chosen = append(chosen, first)
+			if first.persistent() {
+				return sides[i].size() == n
 			}
-			diff := math.Abs(a.Rating - b.Rating)
-			if diff > float64(min(searchRange(a, wait(a, now)), searchRange(b, wait(b, now)))) || diff >= bestDiff {
-				continue
+			for sides[i].size() < n {
+				var best *entry
+				bestDiff := math.MaxFloat64
+				for _, e := range waiting {
+					if taken[e.ID] || slices.Contains(chosen, e) || e.persistent() || sides[i].size()+len(e.Members) > n || !fits(e, a, chosen, now) {
+						continue
+					}
+					if d := math.Abs(first.Rating - e.Rating); d < bestDiff {
+						best, bestDiff = e, d
+					}
+				}
+				if best == nil {
+					return false
+				}
+				sides[i] = append(sides[i], best)
+				chosen = append(chosen, best)
 			}
-			best, bestDiff = b, diff
+			return true
 		}
-		if best == nil {
+		if !build(0, a) {
 			continue
 		}
-		if ok, err := claim.Run(ctx, s.d.Redis, []string{queueKey(q)}, a.ID.String(), best.ID.String()).Int(); err != nil || ok != 1 {
+		// Side 2 starts from the closest rating that fits (the oldest on ties).
+		var candidates []*entry
+		for _, b := range waiting {
+			if !taken[b.ID] && !slices.Contains(chosen, b) && len(b.Members) <= n && fits(b, a, chosen, now) {
+				candidates = append(candidates, b)
+			}
+		}
+		slices.SortStableFunc(candidates, func(x, y *entry) int {
+			return cmp.Compare(math.Abs(a.Rating-x.Rating), math.Abs(a.Rating-y.Rating))
+		})
+		formed := false
+		for _, b := range candidates {
+			before := len(chosen)
+			if build(1, b) {
+				formed = true
+				break
+			}
+			chosen = chosen[:before]
+		}
+		if !formed {
 			continue
 		}
-		taken[a.ID], taken[best.ID] = true, true
-		s.start(ctx, a, best)
+		claimed := make([]any, 0, len(chosen))
+		for _, e := range chosen {
+			claimed = append(claimed, e.ID.String())
+		}
+		if ok, err := claim.Run(ctx, s.d.Redis, []string{queueKey(q)}, claimed...).Int(); err != nil || ok != 1 {
+			continue
+		}
+		for _, e := range chosen {
+			taken[e.ID] = true
+		}
+		s.start(ctx, sides)
 	}
 }
 
@@ -500,60 +752,86 @@ func (s *Service) requeue(ctx context.Context, es ...*entry) {
 }
 
 func (s *Service) drop(ctx context.Context, e *entry) {
-	s.d.Redis.Del(ctx, ticketKey(e.ID), userKey(e.User))
+	keys := make([]string, 0, 1+len(e.Members))
+	keys = append(keys, ticketKey(e.ID))
+	for _, u := range e.users() {
+		keys = append(keys, userKey(u))
+	}
+	s.d.Redis.Del(ctx, keys...)
 }
 
-// start creates the match of a pair: both players get mm.match_found; a
-// player who meanwhile entered another match loses the ticket and the
-// other goes back to the queue.
-func (s *Service) start(ctx context.Context, a, b *entry) {
-	c, err := s.d.Game.Start(ctx, game.CreateRequest{
-		Config: a.Request.config(),
-		Sides:  [2][]game.Member{{{UserID: a.User, Locale: a.Locale}}, {{UserID: b.User, Locale: b.Locale}}},
-	})
+// start creates the match of two sides: every player gets
+// mm.match_found; a ticket whose player meanwhile entered another match is
+// dropped and the others go back to the queue.
+func (s *Service) start(ctx context.Context, sides [2]side) {
+	req := game.CreateRequest{Config: sides[0][0].Request.config()}
+	var all []*entry
+	for i, sd := range sides {
+		for _, e := range sd {
+			for _, m := range e.Members {
+				req.Sides[i] = append(req.Sides[i], game.Member{UserID: m.UserID, Locale: m.Locale})
+			}
+			all = append(all, e)
+		}
+		if len(sd) == 1 {
+			req.Teams[i], req.Couples[i] = sd[0].TeamID, sd[0].CoupleID
+		}
+	}
+	c, err := s.d.Game.Start(ctx, req)
 	if err != nil {
 		var e *apierror.Error
 		if errors.As(err, &e) && e.Code == apierror.AlreadyInMatch {
 			busy, _ := e.Details["user_id"].(uuid.UUID)
-			for _, x := range []*entry{a, b} {
-				if x.User == busy {
+			for _, x := range all {
+				if slices.Contains(x.users(), busy) {
 					s.drop(ctx, x)
-					s.notify(ctx, x.User, map[string]any{"ticket_id": x.ID, "state": "cancelled", "reason": apierror.AlreadyInMatch})
+					s.tell(ctx, x, map[string]any{"ticket_id": x.ID, "state": "cancelled", "reason": apierror.AlreadyInMatch})
 				} else {
 					s.requeue(ctx, x)
 				}
 			}
 			return
 		}
-		s.d.Logger.ErrorContext(ctx, "matchmaking: starting a match failed", "queue", a.Queue, "error", err)
+		s.d.Logger.ErrorContext(ctx, "matchmaking: starting a match failed", "queue", sides[0][0].Queue, "error", err)
 		reason := apierror.Internal
 		if e != nil {
 			reason = e.Code
 		}
-		for _, x := range []*entry{a, b} {
+		for _, x := range all {
 			s.drop(ctx, x)
-			s.notify(ctx, x.User, map[string]any{"ticket_id": x.ID, "state": "cancelled", "reason": reason})
+			s.tell(ctx, x, map[string]any{"ticket_id": x.ID, "state": "cancelled", "reason": reason})
 		}
 		return
 	}
 	// Remember the tickets until the ready check is over (re-queue, D-034).
 	pipe := s.d.Redis.TxPipeline()
-	for _, x := range []*entry{a, b} {
+	for _, x := range all {
 		if bs, err := json.Marshal(x); err == nil {
-			pipe.HSet(ctx, matchKey(c.MatchID), x.User.String(), bs)
+			for _, u := range x.users() {
+				pipe.HSet(ctx, matchKey(c.MatchID), u.String(), bs)
+			}
 		}
 	}
 	pipe.Expire(ctx, matchKey(c.MatchID), matchMemory)
 	if _, err := pipe.Exec(ctx); err != nil {
 		s.d.Logger.WarnContext(ctx, "matchmaking: remembering a match failed", "error", err)
 	}
-	for _, x := range []*entry{a, b} {
+	for _, x := range all {
 		s.drop(ctx, x)
-		if err := s.d.Notifier.Send(ctx, realtime.Target{User: x.User}, realtime.Frame{T: "mm.match_found", D: map[string]any{
-			"ticket_id": x.ID, "match_id": c.MatchID, "ready_deadline_at": c.ReadyDeadlineMS,
-		}}); err != nil {
-			s.d.Logger.WarnContext(ctx, "matchmaking: notifying a player failed", "error", err)
+		for _, u := range x.users() {
+			if err := s.d.Notifier.Send(ctx, realtime.Target{User: u}, realtime.Frame{T: "mm.match_found", D: map[string]any{
+				"ticket_id": x.ID, "match_id": c.MatchID, "ready_deadline_at": c.ReadyDeadlineMS,
+			}}); err != nil {
+				s.d.Logger.WarnContext(ctx, "matchmaking: notifying a player failed", "error", err)
+			}
 		}
+	}
+}
+
+// tell sends mm.status to every player of a ticket.
+func (s *Service) tell(ctx context.Context, e *entry, d map[string]any) {
+	for _, u := range e.users() {
+		s.notify(ctx, u, d)
 	}
 }
 
@@ -564,10 +842,10 @@ func (s *Service) notify(ctx context.Context, user uuid.UUID, d map[string]any) 
 }
 
 // OnEnd reacts to a finished matchmade match: a match cancelled before the
-// start re-queues its ready players at their old place and counts a
-// missed ready check for the others (3 in 30 min → 5 min cooldown,
-// D-034); leaving a match counts toward the leaver cooldown (2nd leave in
-// 24 h → 5 min, 3rd and later → 15 min, D-048).
+// start re-queues each ticket whose players were all ready at its old
+// place and counts a missed ready check for the others (3 in 30 min → 5
+// min cooldown, D-034); leaving a match counts toward the leaver cooldown
+// (2nd leave in 24 h → 5 min, 3rd and later → 15 min, D-048).
 func (s *Service) OnEnd(ctx context.Context, m game.Ended) {
 	if m.Origin != game.OriginMatchmaking {
 		return
@@ -590,23 +868,32 @@ func (s *Service) OnEnd(ctx context.Context, m game.Ended) {
 	}
 	saved, _ := s.d.Redis.HGetAll(ctx, matchKey(m.MatchID)).Result()
 	s.d.Redis.Del(ctx, matchKey(m.MatchID))
+	ready := map[uuid.UUID]bool{}
 	for _, p := range m.Participants {
-		if p.Status != game.ParticipantReady {
-			if s.count(ctx, missedKey(p.UserID), MissedReadyWindow) >= MissedReadyLimit {
-				s.cooldown(ctx, p.UserID, MissedReadyCooldown)
-			}
+		if p.Status == game.ParticipantReady {
+			ready[p.UserID] = true
 			continue
 		}
+		if s.count(ctx, missedKey(p.UserID), MissedReadyWindow) >= MissedReadyLimit {
+			s.cooldown(ctx, p.UserID, MissedReadyCooldown)
+		}
+	}
+	done := map[uuid.UUID]bool{}
+	for _, p := range m.Participants {
 		var e entry
-		if err := json.Unmarshal([]byte(saved[p.UserID.String()]), &e); err != nil {
+		if err := json.Unmarshal([]byte(saved[p.UserID.String()]), &e); err != nil || done[e.ID] {
 			continue
+		}
+		done[e.ID] = true
+		if slices.ContainsFunc(e.users(), func(u uuid.UUID) bool { return !ready[u] }) {
+			continue // the party goes back only together
 		}
 		e.ID = ids.New() // a new ticket, still at its old place in line
 		if err := s.put(ctx, &e); err != nil {
-			s.d.Logger.WarnContext(ctx, "matchmaking: re-queueing a ready player failed", "error", err)
+			s.d.Logger.WarnContext(ctx, "matchmaking: re-queueing ready players failed", "error", err)
 			continue
 		}
-		s.notify(ctx, e.User, map[string]any{"ticket_id": e.ID, "state": StateSearching, "reason": "requeued", "ticket": s.ticket(&e)})
+		s.tell(ctx, &e, map[string]any{"ticket_id": e.ID, "state": StateSearching, "reason": "requeued", "ticket": s.ticket(&e)})
 	}
 }
 

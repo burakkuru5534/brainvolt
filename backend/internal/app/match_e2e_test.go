@@ -281,7 +281,7 @@ func TestQueuePairsPlayers(t *testing.T) {
 	wb, _ := x.auth(tokB, "inst-b", nil)
 
 	want(t, "ranked has no category mode", x.post("/v1/matchmaking/tickets", tokA, map[string]any{"match_type": "ranked", "format": "1v1", "category_mode": "blind_challenge"}), 422, "MODE_NOT_ALLOWED")
-	want(t, "team formats later", x.post("/v1/matchmaking/tickets", tokA, map[string]any{"match_type": "quick_duel", "format": "2v2"}), 422, "MODE_NOT_ALLOWED")
+	want(t, "unknown format", x.post("/v1/matchmaking/tickets", tokA, map[string]any{"match_type": "quick_duel", "format": "5v5"}), 400, "VALIDATION_FAILED")
 	r := x.post("/v1/matchmaking/tickets", tokA, map[string]any{"match_type": "quick_duel", "format": "1v1"})
 	want(t, "ticket", r, 201, "")
 	if r.get("state") != "searching" {

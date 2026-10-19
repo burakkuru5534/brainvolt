@@ -58,8 +58,8 @@
 ## 5. matchmaking
 | Method | Path | Auth | Idem | Ph | Purpose |
 |---|---|---|---|---|---|
-| POST | `/v1/matchmaking/tickets` | any | ✓ | 4–5 | Phase 4: `{match_type: quick_duel, format: 1v1, practice?}` only (first-come pairing; `practice` = dev bot, D-066). Phase 5: `{match_type, format: 1v1, category_mode?, category_id?}` → ticket with `range` (rating search range, null = anyone; D-068); `party_user_ids`, `team_id`, `couple_id` and team formats come with Phase 6. Errors: sanctions, `QUEUE_COOLDOWN` (with `Retry-After`), already queued/in match. |
-| DELETE | `/v1/matchmaking/tickets/current` | any | — | 4 | Leave queue. |
+| POST | `/v1/matchmaking/tickets` | any | ✓ | 4–6 | `{match_type, format, category_mode?, category_id?, party_user_ids?, team_id?, practice?}` → ticket with `user_ids` and `range` (null = anyone; D-068). Team formats: alone, with a party of friends (≤ side size), or a persistent team's full lineup (`team_id` + `party_user_ids`); `couple` queues the caller's active couple (D-072). Every member must be free; party members confirm through the ready check. Errors: sanctions, `QUEUE_COOLDOWN` (with `Retry-After`), already queued/in match, `BLOCKED` inside a party. |
+| DELETE | `/v1/matchmaking/tickets/current` | any | — | 4 | Leave queue (with the whole party; the others get `mm.status` cancelled). |
 | GET | `/v1/matchmaking/tickets/current` | any | — | 4 | Status, waiting time, current search range. |
 
 ## 6. lobby (rooms, challenges, invite codes)

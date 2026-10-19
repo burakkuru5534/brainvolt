@@ -1126,8 +1126,18 @@ components:
                     type: string
                 match_type:
                     type: string
+                party_user_ids:
+                    items:
+                        format: uuid
+                        type: string
+                    type: array
                 practice:
                     type: boolean
+                team_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
             required:
                 - format
                 - match_type
@@ -1631,6 +1641,11 @@ components:
                         - "null"
                 state:
                     type: string
+                user_ids:
+                    items:
+                        format: uuid
+                        type: string
+                    type: array
                 wait_ms:
                     type: integer
             required:
@@ -1640,6 +1655,7 @@ components:
                 - match_type
                 - range
                 - state
+                - user_ids
                 - wait_ms
             type: object
         Translation:

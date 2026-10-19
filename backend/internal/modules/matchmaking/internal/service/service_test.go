@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"log/slog"
+	"slices"
 	"sync"
 	"testing"
 	"time"
@@ -23,12 +24,14 @@ import (
 type fakeGame struct {
 	mu      sync.Mutex
 	started [][2]uuid.UUID
+	reqs    []game.CreateRequest
 }
 
 func (g *fakeGame) Start(_ context.Context, r game.CreateRequest) (Started, error) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	g.started = append(g.started, [2]uuid.UUID{r.Sides[0][0].UserID, r.Sides[1][0].UserID})
+	g.reqs = append(g.reqs, r)
 	return Started{MatchID: ids.New(), ReadyDeadlineMS: 1}, nil
 }
 
@@ -65,6 +68,9 @@ type blocks map[uuid.UUID][]uuid.UUID
 
 func (b blocks) BlockedWith(_ context.Context, u uuid.UUID) ([]uuid.UUID, error) { return b[u], nil }
 
+// AreFriends: everyone is friends in these tests.
+func (b blocks) AreFriends(context.Context, uuid.UUID, uuid.UUID) (bool, error) { return true, nil }
+
 type fixture struct {
 	t     *testing.T
 	svc   *Service
@@ -87,7 +93,7 @@ func newFixture(t *testing.T) *fixture {
 	f := &fixture{t: t, game: &fakeGame{}, clk: clock.NewFake(time.Now()), rates: ratings{}, block: blocks{},
 		req: Request{MatchType: "quick_duel", Format: "1v1", CategoryMode: "category_master", CategoryID: &cat}}
 	f.svc = New(Deps{Redis: rdb, Game: f.game, Notifier: &frames{sent: map[uuid.UUID][]realtime.Frame{}}, Ratings: f.rates,
-		Blocks: f.block, Clock: f.clk, Logger: slog.New(slog.NewTextHandler(io.Discard, nil))})
+		Social: f.block, Clock: f.clk, Logger: slog.New(slog.NewTextHandler(io.Discard, nil))})
 	return f
 }
 
@@ -238,5 +244,95 @@ func TestReadyCheckRequeueAndCooldowns(t *testing.T) {
 	}
 	if ttl, _ := f.svc.d.Redis.PTTL(ctx, cooldownKey(other)).Result(); ttl > 0 {
 		t.Fatal("challenge leaves count")
+	}
+}
+
+func sideUsers(ms []game.Member) []uuid.UUID {
+	out := make([]uuid.UUID, len(ms))
+	for i, m := range ms {
+		out[i] = m.UserID
+	}
+	return out
+}
+
+// Team formats: a party of two and two solos make a 2v2; the party stays
+// on one side, a leaver takes the party out of the queue.
+func TestPartiesFillTemporarySides(t *testing.T) {
+	f := newFixture(t)
+	f.req.Format = "2v2" // still a Category Master queue of its own
+	ctx := t.Context()
+	lead, mate, s1, s2 := f.player(1500), f.player(1500), f.player(1510), f.player(1490)
+	party := f.req
+	party.PartyUserIDs = []uuid.UUID{mate}
+	if _, err := f.svc.Enqueue(ctx, lead, "tr", party); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.svc.Enqueue(ctx, mate, "tr", f.req); code(err) != apierror.AlreadyQueued {
+		t.Fatalf("party member queued twice: %v", err)
+	}
+	f.clk.Advance(time.Millisecond)
+	f.enqueue(s1)
+	f.match()
+	if len(f.game.pairs()) != 0 {
+		t.Fatal("3 players made a 2v2")
+	}
+	f.enqueue(s2)
+	f.match()
+	reqs := f.game.reqs
+	if len(reqs) != 1 {
+		t.Fatalf("%d matches", len(reqs))
+	}
+	r := reqs[0]
+	if got := sideUsers(r.Sides[0]); len(got) != 2 || got[0] != lead || got[1] != mate {
+		t.Fatalf("party side %v", got)
+	}
+	if got := sideUsers(r.Sides[1]); len(got) != 2 || !slices.Contains(got, s1) || !slices.Contains(got, s2) {
+		t.Fatalf("solo side %v", got)
+	}
+	if r.Teams[0] != nil || r.Teams[1] != nil {
+		t.Fatal("temporary sides got a team")
+	}
+
+	// Leaving with a party drops the whole ticket.
+	a, b := f.player(1500), f.player(1500)
+	party.PartyUserIDs = []uuid.UUID{b}
+	if _, err := f.svc.Enqueue(ctx, a, "tr", party); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.svc.Leave(ctx, b); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.svc.Current(ctx, a); code(err) != apierror.NotFound {
+		t.Fatalf("leader still queued: %v", err)
+	}
+	if _, err := f.svc.Enqueue(ctx, a, "tr", f.req); err != nil {
+		t.Fatalf("queue again: %v", err)
+	}
+}
+
+// Requests that cannot form a side are refused.
+func TestPartyRules(t *testing.T) {
+	f := newFixture(t)
+	ctx := t.Context()
+	u, v := f.player(1500), f.player(1500)
+	duo := f.req
+	duo.PartyUserIDs = []uuid.UUID{v}
+	if _, err := f.svc.Enqueue(ctx, u, "tr", duo); code(err) != apierror.ValidationFailed {
+		t.Fatalf("party in 1v1: %v", err)
+	}
+	f.req.Format = "2v2"
+	big := f.req
+	big.PartyUserIDs = []uuid.UUID{v, f.player(1500)}
+	if _, err := f.svc.Enqueue(ctx, u, "tr", big); code(err) != apierror.ValidationFailed {
+		t.Fatalf("party of 3 in 2v2: %v", err)
+	}
+	f.block[u] = []uuid.UUID{v}
+	if _, err := f.svc.Enqueue(ctx, u, "tr", duo); code(err) != apierror.ValidationFailed {
+		t.Fatalf("1v1 party: %v", err)
+	}
+	two := f.req
+	two.PartyUserIDs = []uuid.UUID{v}
+	if _, err := f.svc.Enqueue(ctx, u, "tr", two); code(err) != apierror.Blocked {
+		t.Fatalf("blocked party: %v", err)
 	}
 }
