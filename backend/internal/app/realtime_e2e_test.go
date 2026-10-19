@@ -27,7 +27,8 @@ type wsClient struct {
 	closed chan websocket.StatusCode
 	// pong answers sys.ping automatically.
 	pong bool
-	n    int
+	// n numbers intents; the read loop sends pongs concurrently.
+	n    atomic.Int64
 	held []map[string]any
 	// lastSeq is the highest stream sequence number received.
 	lastSeq atomic.Int64
@@ -86,8 +87,7 @@ func (w *wsClient) readLoop() {
 }
 
 func (w *wsClient) send(t string, d any) string {
-	w.n++
-	id := fmt.Sprintf("c-%d-%s", w.n, ids.NewString())
+	id := fmt.Sprintf("c-%d-%s", w.n.Add(1), ids.NewString())
 	b, _ := json.Marshal(map[string]any{"t": t, "id": id, "d": d})
 	_ = w.c.Write(context.Background(), websocket.MessageText, b)
 	return id
