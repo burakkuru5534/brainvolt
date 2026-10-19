@@ -1772,6 +1772,30 @@ abstract class AppLocalizations {
   /// **'Sorunun şu anki durumunda bu işlem yapılamaz.'**
   String get error_QUESTION_STATE_INVALID;
 
+  /// Server error code QUEST_ALREADY_CLAIMED (docs/api/errors.md).
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu ödülü zaten aldın.'**
+  String get error_QUEST_ALREADY_CLAIMED;
+
+  /// Server error code QUEST_NOT_COMPLETED (docs/api/errors.md).
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu görev henüz tamamlanmadı.'**
+  String get error_QUEST_NOT_COMPLETED;
+
+  /// Server error code QUEST_NOT_REROLLABLE (docs/api/errors.md).
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu görev değiştirilemez.'**
+  String get error_QUEST_NOT_REROLLABLE;
+
+  /// Server error code QUEST_REROLL_LIMIT (docs/api/errors.md).
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugünkü görev değiştirme hakkın bitti.'**
+  String get error_QUEST_REROLL_LIMIT;
+
   /// Server error code QUEUE_COOLDOWN (docs/api/errors.md).
   ///
   /// In tr, this message translates to:

@@ -1236,6 +1236,22 @@
   "@error_QUESTION_STATE_INVALID": {
     "description": "Server error code QUESTION_STATE_INVALID (docs/api/errors.md)."
   },
+  "error_QUEST_ALREADY_CLAIMED": "Bu ödülü zaten aldın.",
+  "@error_QUEST_ALREADY_CLAIMED": {
+    "description": "Server error code QUEST_ALREADY_CLAIMED (docs/api/errors.md)."
+  },
+  "error_QUEST_NOT_COMPLETED": "Bu görev henüz tamamlanmadı.",
+  "@error_QUEST_NOT_COMPLETED": {
+    "description": "Server error code QUEST_NOT_COMPLETED (docs/api/errors.md)."
+  },
+  "error_QUEST_NOT_REROLLABLE": "Bu görev değiştirilemez.",
+  "@error_QUEST_NOT_REROLLABLE": {
+    "description": "Server error code QUEST_NOT_REROLLABLE (docs/api/errors.md)."
+  },
+  "error_QUEST_REROLL_LIMIT": "Bugünkü görev değiştirme hakkın bitti.",
+  "@error_QUEST_REROLL_LIMIT": {
+    "description": "Server error code QUEST_REROLL_LIMIT (docs/api/errors.md)."
+  },
   "error_QUEUE_COOLDOWN": "Bir süre eşleşme sırasına giremezsin.",
   "@error_QUEUE_COOLDOWN": {
     "description": "Server error code QUEUE_COOLDOWN (docs/api/errors.md)."

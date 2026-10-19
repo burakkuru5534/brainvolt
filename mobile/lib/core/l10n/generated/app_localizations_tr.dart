@@ -932,6 +932,19 @@ class AppLocalizationsTr extends AppLocalizations {
       'Sorunun şu anki durumunda bu işlem yapılamaz.';
 
   @override
+  String get error_QUEST_ALREADY_CLAIMED => 'Bu ödülü zaten aldın.';
+
+  @override
+  String get error_QUEST_NOT_COMPLETED => 'Bu görev henüz tamamlanmadı.';
+
+  @override
+  String get error_QUEST_NOT_REROLLABLE => 'Bu görev değiştirilemez.';
+
+  @override
+  String get error_QUEST_REROLL_LIMIT =>
+      'Bugünkü görev değiştirme hakkın bitti.';
+
+  @override
   String get error_QUEUE_COOLDOWN => 'Bir süre eşleşme sırasına giremezsin.';
 
   @override

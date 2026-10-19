@@ -938,6 +938,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'This isn\'t possible in the question\'s current status.';
 
   @override
+  String get error_QUEST_ALREADY_CLAIMED => 'You already claimed this reward.';
+
+  @override
+  String get error_QUEST_NOT_COMPLETED => 'This quest isn\'t completed yet.';
+
+  @override
+  String get error_QUEST_NOT_REROLLABLE => 'This quest can\'t be rerolled.';
+
+  @override
+  String get error_QUEST_REROLL_LIMIT => 'No quest rerolls left today.';
+
+  @override
   String get error_QUEUE_COOLDOWN => 'You can\'t join the queue for a while.';
 
   @override
