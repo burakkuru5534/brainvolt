@@ -321,48 +321,6 @@ func (q *Queries) Leagues(ctx context.Context, locale string) ([]LeaguesRow, err
 	return items, nil
 }
 
-const ledgerSince = `-- name: LedgerSince :many
-SELECT id, match_id, entity_kind, entity_id, season_id, category_id, points, country_code, public, occurred_at FROM ranking.points_ledger WHERE entity_kind = $1 AND entity_id = $2 AND occurred_at >= $3
-`
-
-type LedgerSinceParams struct {
-	EntityKind string
-	EntityID   uuid.UUID
-	Since      time.Time
-}
-
-// Rows of a period (board rebuild and tier-change replay).
-func (q *Queries) LedgerSince(ctx context.Context, arg LedgerSinceParams) ([]RankingPointsLedger, error) {
-	rows, err := q.db.Query(ctx, ledgerSince, arg.EntityKind, arg.EntityID, arg.Since)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []RankingPointsLedger{}
-	for rows.Next() {
-		var i RankingPointsLedger
-		if err := rows.Scan(
-			&i.ID,
-			&i.MatchID,
-			&i.EntityKind,
-			&i.EntityID,
-			&i.SeasonID,
-			&i.CategoryID,
-			&i.Points,
-			&i.CountryCode,
-			&i.Public,
-			&i.OccurredAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const markProcessed = `-- name: MarkProcessed :execrows
 
 INSERT INTO ranking.processed_matches (match_id, processed_at) VALUES ($1, $2) ON CONFLICT DO NOTHING
@@ -421,52 +379,6 @@ func (q *Queries) PublishUserLedger(ctx context.Context, userID uuid.UUID) ([]Pu
 	return items, nil
 }
 
-const raiseRD = `-- name: RaiseRD :many
-UPDATE ranking.ratings SET rd = $1::numeric, updated_at = $2
-WHERE rd < $1::numeric
-RETURNING entity_kind, entity_id, bucket, rating, volatility
-`
-
-type RaiseRDParams struct {
-	MinRd float64
-	Now   time.Time
-}
-
-type RaiseRDRow struct {
-	EntityKind string
-	EntityID   uuid.UUID
-	Bucket     string
-	Rating     float64
-	Volatility float64
-}
-
-// Season reset: RD raised to at least @min_rd (progression-formulas §9).
-func (q *Queries) RaiseRD(ctx context.Context, arg RaiseRDParams) ([]RaiseRDRow, error) {
-	rows, err := q.db.Query(ctx, raiseRD, arg.MinRd, arg.Now)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []RaiseRDRow{}
-	for rows.Next() {
-		var i RaiseRDRow
-		if err := rows.Scan(
-			&i.EntityKind,
-			&i.EntityID,
-			&i.Bucket,
-			&i.Rating,
-			&i.Volatility,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const seasonNames = `-- name: SeasonNames :many
 SELECT locale, name FROM ranking.season_translations WHERE season_id = $1
 `
@@ -496,75 +408,19 @@ func (q *Queries) SeasonNames(ctx context.Context, seasonID uuid.UUID) ([]Season
 	return items, nil
 }
 
-const seasonStandings = `-- name: SeasonStandings :many
-SELECT season_id, entity_kind, entity_id, season_points, league_code, division, peak_league, peak_division, matches, wins, losses, draws, best_win_streak, current_win_streak, final_rank_global, final_rank_country, updated_at FROM ranking.season_standings WHERE season_id = $1 AND entity_kind = $2
-ORDER BY season_points DESC, updated_at
-LIMIT $3
+const setFinalRanks = `-- name: SetFinalRanks :exec
+
+UPDATE ranking.season_standings s SET final_rank_global = r.rank
+FROM (SELECT entity_kind, entity_id,
+             row_number() OVER (PARTITION BY entity_kind ORDER BY season_points DESC, updated_at)::int AS rank
+      FROM ranking.season_standings WHERE season_id = $1) r
+WHERE s.season_id = $1 AND s.entity_kind = r.entity_kind AND s.entity_id = r.entity_id
 `
 
-type SeasonStandingsParams struct {
-	SeasonID   uuid.UUID
-	EntityKind string
-	Lim        int32
-}
-
-func (q *Queries) SeasonStandings(ctx context.Context, arg SeasonStandingsParams) ([]RankingSeasonStanding, error) {
-	rows, err := q.db.Query(ctx, seasonStandings, arg.SeasonID, arg.EntityKind, arg.Lim)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []RankingSeasonStanding{}
-	for rows.Next() {
-		var i RankingSeasonStanding
-		if err := rows.Scan(
-			&i.SeasonID,
-			&i.EntityKind,
-			&i.EntityID,
-			&i.SeasonPoints,
-			&i.LeagueCode,
-			&i.Division,
-			&i.PeakLeague,
-			&i.PeakDivision,
-			&i.Matches,
-			&i.Wins,
-			&i.Losses,
-			&i.Draws,
-			&i.BestWinStreak,
-			&i.CurrentWinStreak,
-			&i.FinalRankGlobal,
-			&i.FinalRankCountry,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const setFinalRank = `-- name: SetFinalRank :exec
-UPDATE ranking.season_standings SET final_rank_global = $1
-WHERE season_id = $2 AND entity_kind = $3 AND entity_id = $4
-`
-
-type SetFinalRankParams struct {
-	Rank       *int32
-	SeasonID   uuid.UUID
-	EntityKind string
-	EntityID   uuid.UUID
-}
-
-func (q *Queries) SetFinalRank(ctx context.Context, arg SetFinalRankParams) error {
-	_, err := q.db.Exec(ctx, setFinalRank,
-		arg.Rank,
-		arg.SeasonID,
-		arg.EntityKind,
-		arg.EntityID,
-	)
+// ---------- Season close ----------
+// Final global ranks per entity kind, by SP (ties: who got there first).
+func (q *Queries) SetFinalRanks(ctx context.Context, seasonID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, setFinalRanks, seasonID)
 	return err
 }
 
@@ -581,6 +437,43 @@ type SetSeasonStatusParams struct {
 func (q *Queries) SetSeasonStatus(ctx context.Context, arg SetSeasonStatusParams) error {
 	_, err := q.db.Exec(ctx, setSeasonStatus, arg.Status, arg.ClosedAt, arg.ID)
 	return err
+}
+
+const softReset = `-- name: SoftReset :execrows
+WITH old AS (
+  SELECT entity_kind, entity_id, bucket, rd FROM ranking.ratings WHERE rd < $3::numeric FOR UPDATE
+), upd AS (
+  UPDATE ranking.ratings r SET rd = $3::numeric, updated_at = $4
+  FROM old WHERE r.entity_kind = old.entity_kind AND r.entity_id = old.entity_id AND r.bucket = old.bucket
+  RETURNING r.entity_kind, r.entity_id, r.bucket, r.rating, r.volatility, old.rd AS rd_before
+)
+INSERT INTO ranking.rating_changes (match_id, entity_kind, entity_id, bucket, season_id, rating_before, rating_after,
+  rd_before, rd_after, vol_before, vol_after, created_at)
+SELECT $1, entity_kind, entity_id, bucket, $2, rating, rating, rd_before, $3::numeric, volatility, volatility, $4
+FROM upd
+ON CONFLICT DO NOTHING
+`
+
+type SoftResetParams struct {
+	ResetID  uuid.UUID
+	SeasonID uuid.UUID
+	MinRd    float64
+	Now      time.Time
+}
+
+// Season soft reset: RD raised to at least @min_rd (progression-formulas
+// §9), each change recorded under the synthetic match id @reset_id.
+func (q *Queries) SoftReset(ctx context.Context, arg SoftResetParams) (int64, error) {
+	result, err := q.db.Exec(ctx, softReset,
+		arg.ResetID,
+		arg.SeasonID,
+		arg.MinRd,
+		arg.Now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const upsertRating = `-- name: UpsertRating :exec

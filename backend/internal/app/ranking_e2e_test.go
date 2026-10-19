@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 
@@ -10,6 +11,8 @@ import (
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/ranking"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
 )
 
@@ -299,5 +302,61 @@ func TestRankingReplaysUpgradedAccount(t *testing.T) {
 	cur, _ := x.mods.ranking.CurrentSeason(t.Context())
 	if score, err := x.rdb.ZScore(t.Context(), "rank:lb:s:"+jsonNum(float64(cur.Number))+":user:global:all", guest.String()).Result(); err != nil || score != 30 {
 		t.Fatalf("replayed season score %v %v", score, err)
+	}
+}
+
+// The periodic job archives ended boards and closes an ended season:
+// final ranks, soft reset, next season (progression-formulas §9).
+func TestSeasonCloseAndSnapshots(t *testing.T) {
+	x := newE2E(t)
+	cur, err := x.mods.ranking.CurrentSeason(t.Context())
+	if err != nil {
+		t.Fatal(err)
+	}
+	a, b := uuid.New(), uuid.New()
+	x.consume(completed(t, cur.ID, "1v1", [2][]uuid.UUID{{a}, {b}}, [2]*uuid.UUID{}))
+	if _, err := x.db.Exec(t.Context(), `UPDATE ranking.ratings SET rd = 80 WHERE entity_id = $1`, a); err != nil {
+		t.Fatal(err)
+	}
+
+	later := ranking.New(ranking.Deps{DB: x.db, Redis: x.rdb, Profiles: x.mods.profile, Teams: x.mods.team,
+		Clock: clock.NewFake(cur.EndsAt.Add(time.Hour)), Logger: discard})
+	for range 2 { // idempotent
+		if err := later.Maintain(t.Context()); err != nil {
+			t.Fatal(err)
+		}
+	}
+	var status string
+	if err := x.db.QueryRow(t.Context(), `SELECT status FROM ranking.seasons WHERE id = $1`, cur.ID).Scan(&status); err != nil || status != "closed" {
+		t.Fatalf("old season %s %v", status, err)
+	}
+	next, err := later.CurrentSeason(t.Context())
+	if err != nil || next.Number != cur.Number+1 || !next.StartsAt.Equal(cur.EndsAt) || next.Names["en"] == "" {
+		t.Fatalf("next season %+v %v", next, err)
+	}
+	var rank int
+	if err := x.db.QueryRow(t.Context(), `SELECT final_rank_global FROM ranking.season_standings WHERE season_id = $1 AND entity_id = $2`,
+		cur.ID, a).Scan(&rank); err != nil || rank != 1 {
+		t.Fatalf("final rank %d %v", rank, err)
+	}
+	if _, rd := x.rating("user", a, "solo"); rd != 150 {
+		t.Fatalf("soft reset rd %v", rd)
+	}
+	var resets int
+	if err := x.db.QueryRow(t.Context(), `SELECT count(*) FROM ranking.rating_changes WHERE match_id = $1 AND entity_id = $2`, cur.ID, a).Scan(&resets); err != nil || resets != 1 {
+		t.Fatalf("recorded resets %d %v", resets, err)
+	}
+	snap := func(board string) int {
+		var r int
+		if err := x.db.QueryRow(t.Context(), `SELECT rank FROM ranking.leaderboard_snapshots WHERE board_key = $1 AND entity_id = $2`, board, a).Scan(&r); err != nil {
+			t.Fatalf("snapshot %s: %v", board, err)
+		}
+		return r
+	}
+	snap("s:" + jsonNum(float64(cur.Number)) + ":user:global:all")
+	snap(strings.TrimPrefix(weekBoard("user", "all"), "rank:lb:"))
+	r, err := later.Rating(t.Context(), a, "solo")
+	if err != nil || r.RD < 150 {
+		t.Fatalf("rating after reset %+v %v", r, err)
 	}
 }

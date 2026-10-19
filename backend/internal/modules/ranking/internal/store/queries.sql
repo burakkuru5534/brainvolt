@@ -45,11 +45,21 @@ INSERT INTO ranking.rating_changes (match_id, entity_kind, entity_id, bucket, se
 VALUES (@match_id, @entity_kind, @entity_id, @bucket, @season_id, @rating_before, @rating_after,
   @rd_before, @rd_after, @vol_before, @vol_after, @now);
 
--- Season reset: RD raised to at least @min_rd (progression-formulas §9).
--- name: RaiseRD :many
-UPDATE ranking.ratings SET rd = @min_rd::numeric, updated_at = @now
-WHERE rd < @min_rd::numeric
-RETURNING entity_kind, entity_id, bucket, rating, volatility;
+-- Season soft reset: RD raised to at least @min_rd (progression-formulas
+-- §9), each change recorded under the synthetic match id @reset_id.
+-- name: SoftReset :execrows
+WITH old AS (
+  SELECT entity_kind, entity_id, bucket, rd FROM ranking.ratings WHERE rd < @min_rd::numeric FOR UPDATE
+), upd AS (
+  UPDATE ranking.ratings r SET rd = @min_rd::numeric, updated_at = @now
+  FROM old WHERE r.entity_kind = old.entity_kind AND r.entity_id = old.entity_id AND r.bucket = old.bucket
+  RETURNING r.entity_kind, r.entity_id, r.bucket, r.rating, r.volatility, old.rd AS rd_before
+)
+INSERT INTO ranking.rating_changes (match_id, entity_kind, entity_id, bucket, season_id, rating_before, rating_after,
+  rd_before, rd_after, vol_before, vol_after, created_at)
+SELECT @reset_id, entity_kind, entity_id, bucket, @season_id, rating, rating, rd_before, @min_rd::numeric, volatility, volatility, @now
+FROM upd
+ON CONFLICT DO NOTHING;
 
 -- ---------- Standings ----------
 
@@ -67,25 +77,12 @@ SET season_points = EXCLUDED.season_points, league_code = EXCLUDED.league_code, 
     wins = EXCLUDED.wins, losses = EXCLUDED.losses, draws = EXCLUDED.draws, best_win_streak = EXCLUDED.best_win_streak,
     current_win_streak = EXCLUDED.current_win_streak, updated_at = EXCLUDED.updated_at;
 
--- name: SeasonStandings :many
-SELECT * FROM ranking.season_standings WHERE season_id = @season_id AND entity_kind = @entity_kind
-ORDER BY season_points DESC, updated_at
-LIMIT @lim;
-
--- name: SetFinalRank :exec
-UPDATE ranking.season_standings SET final_rank_global = @rank
-WHERE season_id = @season_id AND entity_kind = @entity_kind AND entity_id = @entity_id;
-
 -- ---------- Ledger ----------
 
 -- name: InsertLedger :execrows
 INSERT INTO ranking.points_ledger (id, match_id, entity_kind, entity_id, season_id, category_id, points, country_code, public, occurred_at)
 VALUES (@id, @match_id, @entity_kind, @entity_id, @season_id, sqlc.narg(category_id), @points, sqlc.narg(country_code), @public, @occurred_at)
 ON CONFLICT DO NOTHING;
-
--- Rows of a period (board rebuild and tier-change replay).
--- name: LedgerSince :many
-SELECT * FROM ranking.points_ledger WHERE entity_kind = @entity_kind AND entity_id = @entity_id AND occurred_at >= @since;
 
 -- ---------- Leagues ----------
 
@@ -106,3 +103,13 @@ ON CONFLICT DO NOTHING;
 UPDATE ranking.points_ledger SET public = true
 WHERE entity_kind = 'user' AND entity_id = @user_id AND NOT public
 RETURNING category_id, points, country_code, occurred_at;
+
+-- ---------- Season close ----------
+
+-- Final global ranks per entity kind, by SP (ties: who got there first).
+-- name: SetFinalRanks :exec
+UPDATE ranking.season_standings s SET final_rank_global = r.rank
+FROM (SELECT entity_kind, entity_id,
+             row_number() OVER (PARTITION BY entity_kind ORDER BY season_points DESC, updated_at)::int AS rank
+      FROM ranking.season_standings WHERE season_id = @season_id) r
+WHERE s.season_id = @season_id AND s.entity_kind = r.entity_kind AND s.entity_id = r.entity_id;

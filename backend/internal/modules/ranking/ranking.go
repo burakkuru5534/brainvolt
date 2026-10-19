@@ -96,3 +96,7 @@ func (m *Module) OnMatchCompleted(ctx context.Context, e events.Envelope) error 
 func (m *Module) OnTierChanged(ctx context.Context, e events.Envelope) error {
 	return m.svc.OnTierChanged(ctx, e)
 }
+
+// Maintain archives boards of ended periods and closes an ended season
+// (the worker runs it periodically).
+func (m *Module) Maintain(ctx context.Context) error { return m.svc.Maintain(ctx) }

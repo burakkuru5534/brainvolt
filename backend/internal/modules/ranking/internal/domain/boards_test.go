@@ -27,3 +27,20 @@ func TestPeriodsUseIstanbulBoundaries(t *testing.T) {
 		t.Fatal(s)
 	}
 }
+
+func TestPeriodByID(t *testing.T) {
+	for _, p := range Periods(time.Date(2026, 1, 1, 9, 0, 0, 0, time.UTC)) {
+		if p.ID == "a" {
+			continue
+		}
+		got, ok := PeriodByID(p.ID)
+		if !ok || !got.Start.Equal(p.Start) || !got.End.Equal(p.End) {
+			t.Fatalf("PeriodByID(%s) = %+v %v, want %+v", p.ID, got, ok, p)
+		}
+	}
+	for _, id := range []string{"a", "s:3", "w:2026-W99", "d:x", "q:1"} {
+		if _, ok := PeriodByID(id); ok {
+			t.Fatalf("PeriodByID(%s) accepted", id)
+		}
+	}
+}

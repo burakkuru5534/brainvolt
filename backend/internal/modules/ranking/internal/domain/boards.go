@@ -2,6 +2,7 @@ package domain
 
 import (
 	"fmt"
+	"strings"
 	"time"
 	_ "time/tzdata" // Europe/Istanbul on hosts without zoneinfo
 )
@@ -80,4 +81,43 @@ func Scopes(countries []string) []string {
 		}
 	}
 	return out
+}
+
+// PeriodByID parses a daily, weekly or monthly period id (ok = false
+// for all-time, season or malformed ids).
+func PeriodByID(id string) (Period, bool) {
+	kind, value, found := strings.Cut(id, ":")
+	if !found {
+		return Period{}, false
+	}
+	var start time.Time
+	switch kind {
+	case "d":
+		t, err := time.ParseInLocation(time.DateOnly, value, Istanbul)
+		if err != nil {
+			return Period{}, false
+		}
+		start = t
+	case "w":
+		var y, w int
+		if _, err := fmt.Sscanf(value, "%d-W%d", &y, &w); err != nil || w < 1 || w > 53 {
+			return Period{}, false
+		}
+		// ISO week 1 holds 4 January.
+		start = WeekStart(time.Date(y, 1, 4, 12, 0, 0, 0, Istanbul)).AddDate(0, 0, 7*(w-1))
+	case "m":
+		t, err := time.ParseInLocation("2006-01", value, Istanbul)
+		if err != nil {
+			return Period{}, false
+		}
+		start = t
+	default:
+		return Period{}, false
+	}
+	for _, p := range Periods(start) {
+		if p.ID == id {
+			return p, true
+		}
+	}
+	return Period{}, false
 }

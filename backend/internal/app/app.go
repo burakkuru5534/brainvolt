@@ -236,13 +236,19 @@ func newBus(db *pgxpool.Pool, rdb *redis.Client, logger *slog.Logger) *events.Bu
 	// lobby marks challenges whose match was cancelled as failed (schema-social §3.1).
 	bus.Subscribe(game.EventMatchCancelled, lobby.SubscriberChallengeFailed, lobby.OnMatchCancelled(db))
 	// ranking rates, ranks and scores completed matches (progression-formulas §1–4).
-	rk := ranking.New(ranking.Deps{
-		DB: db, Redis: rdb, Profiles: profile.New(db, clock.Real{}), Teams: team.New(team.Deps{DB: db, Clock: clock.Real{}}),
-		Clock: clock.Real{}, Logger: logger,
-	})
+	rk := newRanking(db, rdb, logger)
 	bus.Subscribe(game.EventMatchCompleted, ranking.SubscriberMatchResults, rk.OnMatchCompleted)
 	bus.Subscribe(identity.EventAccountTierChanged, ranking.SubscriberTierChanged, rk.OnTierChanged)
 	return bus
+}
+
+// newRanking builds ranking for worker use: country and team reads only,
+// no routes.
+func newRanking(db *pgxpool.Pool, rdb *redis.Client, logger *slog.Logger) *ranking.Module {
+	return ranking.New(ranking.Deps{
+		DB: db, Redis: rdb, Profiles: profile.New(db, clock.Real{}), Teams: team.New(team.Deps{DB: db, Clock: clock.Real{}}),
+		Clock: clock.Real{}, Logger: logger,
+	})
 }
 
 // NewWorker builds the composition for cmd/worker: a Postgres pool with the
@@ -265,10 +271,12 @@ func NewWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) (*Ap
 	bus := newBus(db, rdb, logger)
 	workers := river.NewWorkers()
 	bus.AddWorker(workers)
+	periodic := addJobs(workers, newRanking(db, rdb, logger))
 	client, err := river.NewClient(riverpgxv5.New(db), &river.Config{
-		Queues:  map[string]river.QueueConfig{river.QueueDefault: {MaxWorkers: 10}},
-		Workers: workers,
-		Logger:  logger,
+		Queues:       map[string]river.QueueConfig{river.QueueDefault: {MaxWorkers: 10}},
+		Workers:      workers,
+		PeriodicJobs: periodic,
+		Logger:       logger,
 	})
 	if err != nil {
 		db.Close()

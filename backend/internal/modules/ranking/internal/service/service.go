@@ -105,25 +105,26 @@ func (s *Service) ensureSeason(ctx context.Context) (sqlc.RankingSeason, error) 
 
 // openSeason inserts season number n starting at start with its names.
 func (s *Service) openSeason(ctx context.Context, n int32, start time.Time) error {
+	return postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error { return insertSeason(ctx, sqlc.New(tx), n, start) })
+}
+
+func insertSeason(ctx context.Context, q *sqlc.Queries, n int32, start time.Time) error {
 	policy, err := json.Marshal(resetPolicy{MinRD: 150})
 	if err != nil {
 		return err
 	}
 	id := ids.New()
-	return postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error {
-		q := sqlc.New(tx)
-		if err := q.InsertSeason(ctx, sqlc.InsertSeasonParams{
-			ID: id, Number: n, StartsAt: start.UTC(), EndsAt: start.Add(domain.SeasonLength).UTC(), ResetPolicy: policy,
-		}); err != nil {
+	if err := q.InsertSeason(ctx, sqlc.InsertSeasonParams{
+		ID: id, Number: n, StartsAt: start.UTC(), EndsAt: start.Add(domain.SeasonLength).UTC(), ResetPolicy: policy,
+	}); err != nil {
+		return err
+	}
+	for locale, name := range map[string]string{"tr": fmt.Sprintf("Sezon %d", n), "en": fmt.Sprintf("Season %d", n)} {
+		if err := q.InsertSeasonName(ctx, sqlc.InsertSeasonNameParams{SeasonID: id, Locale: locale, Name: name}); err != nil {
 			return err
 		}
-		for locale, name := range map[string]string{"tr": fmt.Sprintf("Sezon %d", n), "en": fmt.Sprintf("Season %d", n)} {
-			if err := q.InsertSeasonName(ctx, sqlc.InsertSeasonNameParams{SeasonID: id, Locale: locale, Name: name}); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+	}
+	return nil
 }
 
 // CurrentSeason returns the active season with its names.
