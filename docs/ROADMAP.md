@@ -426,7 +426,7 @@ Goal: the four numbers of progression-formulas.md live — Glicko-2 rating (MMR)
 ### 7.5 Tests & docs
 - [x] 7.5.1 Formula tests (progression-formulas §11), consumer e2e, mobile tests, docs, decision log
 
-## Phase 8 — Special Modes & Content Moderation  `[~]`
+## Phase 8 — Special Modes, Content Moderation & Visual Redesign  `[~]`
 Goal: every category mode as a full feature, the Daily Challenge solo race, creator quizzes, question reporting with moderation tools and the first anti-cheat checks (category-modes.md, schema-moderation.md, schema-platform.md §5–6).
 
 Blind Challenge (category hidden until reveal), Category Master (one category, same-category queues, category boards) and Mixed Battle (3 lobby categories, alternating 10 s picks) were built with the engine, matchmaking and leaderboards in Phases 3–7; their remaining checks are part of 8.6.
@@ -453,7 +453,16 @@ Blind Challenge (category hidden until reveal), Category Master (one category, s
 - [x] 8.5.1 Signals from matches (impossible response times, protocol violations, repeated server-error voids) into moderation cases
 
 ### 8.6 Tests & docs
-- [ ] 8.6.1 category-modes §9 test list, docs, decision log
+- [x] 8.6.1 category-modes §9 test list, docs, decision log
+
+### 8.7 Visual redesign (D-085, owner mockups 2026-10-19)
+The owner's mockups set the app's look before Phase 9: a purple design system in light and dark, rounded heavy headings, card tiles with round icon badges, gradient pill buttons, a mascot (crowned penguin) on Home.
+- [ ] 8.7.1 Design system: colour tokens (light lavender / dark night), bundled heading + body fonts, light & dark `ThemeData`, component kit (tile card, gradient pill button, icon badge, chips, option tile with letter badge, score header, bottom sheet), theme mode setting
+- [ ] 8.7.2 Home: logo, settings and avatar with presence dot, greeting hero with level bar and mascot, mode tiles (Quick Duel hero card in dark), Practice vs Bot row, wins / rank stats; Private Room sheet with mode cards and inline join-with-code
+- [ ] 8.7.3 Mode picker as icon-card grids (game mode, category mode, format chips) with a "Find an opponent" button; queue screen with radar animation, avatars, ring timer and "Cancel search"
+- [ ] 8.7.4 Match screen: question n/N with progress bar, avatars and scores with VS badge, category chip, question card, A–D option tiles, correct / wrong feedback with points and confetti; result screen in the same style
+- [ ] 8.7.5 Remaining screens restyled with the kit (daily, rooms, quizzes, progress, social, settings); widget tests updated, golden tests for the main screens
+- [ ] 8.7.6 Owner assets: mascot illustrations, avatar art, logo — placeholders until the owner delivers them
 
 ## Phase 9 — Polish & Production Readiness  `[ ]`
 - [ ] FCM notifications

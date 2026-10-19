@@ -157,3 +157,20 @@ Boards: global, country, friends (friends computed at read time); restricted acc
 - Category Master matchmaking pairs only identical category ids.
 - Revenge: 7-question revenge has exactly 3 home questions; no 4 consecutive same-category questions; Ranked parent → unrated revenge.
 - Creator Quiz: author's run gives 0 XP; unverified quiz room rejects non-friends of the host.
+
+**Where these are tested (Phase 8.6):**
+
+| Item | Test |
+|---|---|
+| Official / practice, attempt used, void frees the attempt | `internal/app/daily_e2e_test.go` `TestDailyChallenge` |
+| Concurrent official starts → one wins | `internal/app/daily_rules_e2e_test.go` |
+| Day boundary 00:00 Europe/Istanbul | `game/internal/service/daily_day_test.go` |
+| Restricted run off the board until upgrade | `internal/app/daily_rules_e2e_test.go` |
+| Tie-breakers (correct ↓, time ↑, completed_at ↑) | `internal/app/daily_rules_e2e_test.go`; timeouts count 15 000 ms in `TestDailyChallenge` |
+| Resume keeps the original deadlines; no resume → timeouts | `TestDailyChallenge` ("the clock keeps running") |
+| Mixed Battle picks (alternation, 3 categories, 4th consecutive, random) | `engine_test.go` `TestCM03MixedBattlePicks`, `TestLiveMixedBattlePick` |
+| Category Master pairs identical categories | `matchmaking/internal/service/service_test.go` |
+| Revenge home share and runs; Ranked parent → unrated | `content/internal/domain/selection_test.go` `TestSelectRevengeHome`, `config_test.go` (T01) |
+| Creator Quiz awards and friends-only rooms | `internal/app/creator_e2e_test.go` |
+
+Two items changed with the implementation (D-081, D-084): the daily board is ordered in Postgres, so there is no Redis score encoding to round-trip; and the daily run is settled lazily from Postgres with no server-held state, so a server error fails one request without voiding the run — there is no `void_server_error` and hence no daily void signal. Repeated server cancellations of **matches** raise the `repeated_server_voids` signal instead (≥ 3 in 7 days).
