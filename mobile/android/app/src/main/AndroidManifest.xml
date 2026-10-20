@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- REST, WebSocket and Firebase need the network in every build. -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- In-app purchases through Google Play Billing (RevenueCat, D-091). The
+         SDK declares it too; it is listed here so the first Play upload already
+         carries it, which Play Console requires before products can be created. -->
+    <uses-permission android:name="com.android.vending.BILLING"/>
     <application
         android:label="BrainVolt"
         android:name="${applicationName}"

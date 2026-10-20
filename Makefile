@@ -38,7 +38,7 @@ MOBILE_GEN = dart run tool/gen_error_l10n.dart && flutter gen-l10n && dart run b
 # $(call mobile,<command>,<what is skipped>) runs <command> in mobile/ if it exists.
 mobile = $(if $(wildcard $(MOBILE)/pubspec.yaml),cd $(MOBILE) && $(1),@echo mobile/ not set up yet - roadmap 1.7 - skipping $(2))
 
-.PHONY: help env check-env up up-app down reset ps logs psql redis-cli run worker test lint migrate seed admin gen check-gen
+.PHONY: help env check-env up up-app down reset ps logs psql redis-cli run worker test lint migrate seed admin gen check-gen aab
 
 help: ## List targets
 	$(HELP)
@@ -118,3 +118,7 @@ check-gen: ## Fail if committed generated files are stale   (sqlc diff ; OpenAPI
 	cd $(BACKEND) && sqlc diff
 	cd $(BACKEND) && go test -count=1 ./internal/app -run TestOpenAPIUpToDate
 	$(call mobile,$(MOBILE_GEN) && git diff --exit-code -- lib,mobile codegen check)
+
+aab: ## Signed Android App Bundle for Play (needs mobile/android/key.properties)   (cd mobile && flutter build appbundle --release --dart-define-from-file=env/prod.json)
+	$(if $(wildcard $(MOBILE)/android/key.properties),,$(error mobile/android/key.properties is missing - see mobile/README.md, "Release build"))
+	cd $(MOBILE) && flutter build appbundle --release --dart-define-from-file=env/prod.json

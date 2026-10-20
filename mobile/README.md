@@ -24,6 +24,34 @@ flutter run --dart-define-from-file=env/dev.json     # Android emulator → back
 - **Apple (iOS, D-057: tested later):** `ios/Runner/Runner.entitlements` enables Sign in with Apple; the App ID needs the same capability and Firebase console → Authentication → Apple must be enabled. Google's iOS callback URL scheme is in `ios/Runner/Info.plist`.
 - Enabled providers in Firebase console → Authentication: Anonymous, Google, Email/Password (+ Apple later).
 
+## Release build (Play upload)
+
+Release bundles are signed with the owner's **upload key**; the keystore and its passwords never enter the repository (`android/.gitignore` ignores `key.properties`, `*.jks`, `*.keystore`). One-time setup:
+
+1. Create the upload key once and back it up somewhere safe (losing it means asking Play support for a key reset):
+   ```bash
+   keytool -genkey -v -keystore upload-keystore.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   ```
+   Keep the file **outside** the repository, e.g. `C:/Users/<you>/keys/upload-keystore.jks`.
+2. Create `mobile/android/key.properties`:
+   ```properties
+   storePassword=<keystore password>
+   keyPassword=<key password>
+   keyAlias=upload
+   storeFile=C:/Users/<you>/keys/upload-keystore.jks
+   ```
+   Use forward slashes on Windows: a backslash is an escape character in `.properties` files.
+
+Then build from the repository root:
+
+```bash
+make aab    # = cd mobile && flutter build appbundle --release --dart-define-from-file=env/prod.json
+```
+
+The bundle is `mobile/build/app/outputs/bundle/release/app-release.aab`. Raise `version:` in `pubspec.yaml` (the `+N` build number) before every new upload; Play refuses a build number it has seen. Without `key.properties` a release build falls back to the debug key (so `flutter run --release` works), which Play rejects — `make aab` therefore stops early.
+
+The manifest declares `com.android.vending.BILLING` (RevenueCat, D-091), so the first upload to **internal testing** lets Play Console create subscription products. After it, turn on Play App Signing and add both SHA-1 / SHA-256 fingerprints (upload key and app signing key, Play Console → Setup → App signing) to Firebase, or Google sign-in fails in Play builds. The bundle targets `env/prod.json`; it only works once that API is deployed (roadmap 9.6.4).
+
 ## Flows
 
 Age gate (D-020) → anonymous guest → `POST /v1/session` → home. Guests link Google/Apple/email in Settings → Account (same user, progress kept, D-013a); if the account already exists the app warns (D-015), signs in to it and then abandons the guest. Email accounts verify their address (D-017). Suspended or deletion-pending accounts see only the status screen.
