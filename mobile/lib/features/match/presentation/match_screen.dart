@@ -18,6 +18,7 @@ import '../domain/match_state.dart';
 import 'match_type_name.dart';
 import 'play_controllers.dart';
 import 'play_error_text.dart';
+import 'revenge.dart';
 
 /// The live match: ready, countdown, questions shown at `show_at`, the
 /// answer, the reveal and the end. Every number comes from the server; the
@@ -775,38 +776,43 @@ class _End extends StatelessWidget {
       _ => l10n.matchLost,
     };
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            headline,
-            key: const Key('match-result'),
-            style: Theme.of(context).textTheme.headlineMedium,
-          ),
-          if (opponentGone && state.phase == MatchPhase.completed) ...[
-            const SizedBox(height: 8),
-            Text(l10n.opponentLeft),
-          ],
-          const SizedBox(height: 8),
-          Text(
-            '${state.myScore} — ${state.opponentScore}',
-            style: Theme.of(context).textTheme.displaySmall,
-          ),
-          const SizedBox(height: 24),
-          if (state.phase == MatchPhase.completed)
-            OutlinedButton(
-              key: const Key('show-details'),
-              onPressed: () => context.push(Routes.matchResult(state.matchId)),
-              child: Text(l10n.showDetails),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              headline,
+              key: const Key('match-result'),
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
-          const SizedBox(height: 12),
-          GradientButton(
-            key: const Key('back-home'),
-            label: l10n.backHome,
-            icon: Icons.home_rounded,
-            onPressed: () => context.go(Routes.home),
-          ),
-        ],
+            if (opponentGone && state.phase == MatchPhase.completed) ...[
+              const SizedBox(height: 8),
+              Text(l10n.opponentLeft),
+            ],
+            const SizedBox(height: 8),
+            Text(
+              '${state.myScore} — ${state.opponentScore}',
+              style: Theme.of(context).textTheme.displaySmall,
+            ),
+            if (state.phase == MatchPhase.completed)
+              RevengePanel(matchId: state.matchId),
+            const SizedBox(height: 24),
+            if (state.phase == MatchPhase.completed)
+              OutlinedButton(
+                key: const Key('show-details'),
+                onPressed: () =>
+                    context.push(Routes.matchResult(state.matchId)),
+                child: Text(l10n.showDetails),
+              ),
+            const SizedBox(height: 12),
+            GradientButton(
+              key: const Key('back-home'),
+              label: l10n.backHome,
+              icon: Icons.home_rounded,
+              onPressed: () => context.go(Routes.home),
+            ),
+          ],
+        ),
       ),
     );
   }

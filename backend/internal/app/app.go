@@ -220,7 +220,7 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 		Redis: d.rdb, Game: g, Realtime: rt, Ratings: ratings{rk}, Social: soc, Sanctions: mod, Teams: tm, Profiles: prof, Clock: d.clock, Logger: d.logger, Practice: d.env == config.EnvDev,
 	})
 	mm.Register(srv, ident, d.idem)
-	chat.New(chat.Deps{DB: d.db, Teams: tm, Profiles: prof, Muter: mod, Realtime: rt, Clock: d.clock}).Register(srv, ident)
+	chat.New(chat.Deps{DB: d.db, Teams: tm, Profiles: prof, Muter: mod, Realtime: rt, Events: d.bus, Clock: d.clock}).Register(srv, ident)
 	cr := creator.New(creator.Deps{DB: d.db, Content: cont, Identity: ident, Profiles: prof, Clock: d.clock})
 	cr.Register(srv, ident, d.idem)
 	lob := lobby.New(lobby.Deps{
@@ -289,6 +289,7 @@ func newBus(db *pgxpool.Pool, rdb *redis.Client, logger *slog.Logger, push notif
 	bus.Subscribe(lobby.EventChallengeAccepted, notification.SubscriberChallengeAccepts, notif.OnChallengeAccepted)
 	bus.Subscribe(team.EventCoupleRequested, notification.SubscriberCoupleRequest, notif.OnCoupleRequested)
 	bus.Subscribe(moderation.EventSanctionApplied, notification.SubscriberSanction, notif.OnSanctionApplied)
+	bus.Subscribe(chat.EventMessageSent, notification.SubscriberChatMessage, notif.OnChatMessage)
 	return bus
 }
 

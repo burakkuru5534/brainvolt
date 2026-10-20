@@ -21,6 +21,7 @@ Challenge challengeFromJson(Map<String, dynamic> j) => Challenge(
   expiresAt: DateTime.parse(j['expires_at'] as String),
   matchId: j['match_id'] as String?,
   kind: j['kind'] as String? ?? 'direct',
+  parentMatchId: j['parent_match_id'] as String?,
 );
 
 /// Parses a room of the API (REST and room.state).

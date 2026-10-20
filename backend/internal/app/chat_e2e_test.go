@@ -4,7 +4,15 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/chat"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/notification"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ids"
 )
 
 // Team chat (schema-platform §2, D-031, D-088): members only, delivery
@@ -113,5 +121,69 @@ func TestTeamChat(t *testing.T) {
 		"action": "user_sanction", "sanction": map[string]any{"kind": "chat_mute", "hours": 1, "reason_code": "harassment"}}), 200, "")
 	if f := send(wb, map[string]any{"body": "hello?"}); data(f)["code"] != "SANCTIONED" || data(f)["details"].(map[string]any)["kind"] != "chat_mute" {
 		t.Fatalf("muted %v", f)
+	}
+}
+
+// Chat and revenge notices (D-089): a message tells the other members
+// once per channel every ten minutes, opening the chat; a revenge request
+// reaches every winner with its own text.
+func TestChatNotifications(t *testing.T) {
+	x := newE2E(t)
+	tokA, a, _ := x.fullUser()
+	tokB, b, _ := x.fullUser()
+	x.befriend(tokA, b, tokB)
+	team := str(x.post("/v1/teams", tokA, map[string]any{"name": "Notice Squad", "tag": "NTC", "emblem_id": "owl"}).get("id"))
+	inv := x.post("/v1/teams/"+team+"/invites", tokA, map[string]any{"user_id": b})
+	want(t, "join", x.do(http.MethodPost, "/v1/team-invites/"+str(inv.get("id"))+"/accept", tokB, nil), 204, "")
+	ch := str(x.post("/v1/chat/channels", tokA, map[string]any{"team_id": team}).get("id"))
+	want(t, "device", x.do(http.MethodPost, "/v1/me/devices", tokB, map[string]any{
+		"installation_id": ids.NewString(), "fcm_token": "fcm-token-chat-0123456789abcdef", "platform": "android", "app_version": "1.0.0+1", "locale": "tr",
+	}), 200, "")
+	fcm := &fakeFCM{}
+	notif := notification.New(notification.Deps{DB: x.db, Profiles: x.mods.profile, Sender: fcm, Clock: clock.Real{}, Logger: discard})
+
+	wa, _ := x.auth(tokA, "inst-a", nil)
+	for _, body := range []string{"hazır mısınız?", "başlıyoruz"} {
+		if f := wa.answer(wa.send("chat.send", map[string]any{"channel_id": ch, "body": body})); f["t"] != "sys.ack" {
+			t.Fatalf("send %v", f)
+		}
+	}
+	rows, err := x.db.Query(t.Context(), `SELECT args->'event' FROM river_job WHERE args->'event'->>'name' = $1 AND args->>'subscriber' = $2`,
+		chat.EventMessageSent, notification.SubscriberChatMessage)
+	if err != nil {
+		t.Fatal(err)
+	}
+	envs, err := pgx.CollectRows(rows, pgx.RowTo[events.Envelope])
+	if err != nil || len(envs) != 2 {
+		t.Fatalf("events %d %v", len(envs), err)
+	}
+	for _, e := range envs {
+		if err := notif.OnChatMessage(t.Context(), e); err != nil {
+			t.Fatal(err)
+		}
+	}
+	nameA := x.do(http.MethodGet, "/v1/profiles/"+a.String(), tokB, nil).get("display_name").(string)
+	if fcm.count() != 1 || fcm.pushes[0].Title != "Takım sohbeti" || fcm.pushes[0].Body != nameA+" takım sohbetine yazdı." ||
+		fcm.pushes[0].Data["deep_link"] != "/chat/team/"+team {
+		t.Fatalf("pushes %+v", fcm.pushes)
+	}
+	if r := x.do(http.MethodGet, "/v1/me/inbox", tokB, nil); len(r.get("items").([]any)) != 1 {
+		t.Fatalf("inbox b %s", r.raw)
+	}
+	if r := x.do(http.MethodGet, "/v1/me/inbox", tokA, nil); len(r.get("items").([]any)) != 0 {
+		t.Fatalf("the sender is not told %s", r.raw)
+	}
+
+	// Revenge: every winner, its own text.
+	tokC, c, _ := x.fullUser()
+	x.deliver(notif.OnChallengeSent, "test", map[string]any{
+		"challenge_id": uuid.New(), "kind": "revenge", "challenger_user_id": a, "target_user_id": b, "target_user_ids": []uuid.UUID{b, c},
+	})
+	if fcm.count() != 2 || fcm.pushes[1].Title != "Rövanş isteği!" || fcm.pushes[1].Data["deep_link"] != "/challenges" {
+		t.Fatalf("revenge push %+v", fcm.pushes)
+	}
+	r := x.do(http.MethodGet, "/v1/me/inbox", tokC, nil)
+	if items := r.get("items").([]any); len(items) != 1 || items[0].(map[string]any)["kind"] != "challenge.revenge" {
+		t.Fatalf("inbox c %s", r.raw)
 	}
 }

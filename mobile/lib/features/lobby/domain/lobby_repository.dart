@@ -42,6 +42,7 @@ class Challenge {
     required this.expiresAt,
     this.matchId,
     this.kind = 'direct',
+    this.parentMatchId,
   });
 
   final String id;
@@ -56,6 +57,9 @@ class Challenge {
   final String matchType;
   final DateTime expiresAt;
   final String? matchId;
+
+  /// The match a revenge answers.
+  final String? parentMatchId;
 }
 
 /// A member of a private room.

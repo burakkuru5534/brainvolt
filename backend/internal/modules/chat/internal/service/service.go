@@ -20,8 +20,25 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/team"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ids"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/postgres"
 )
+
+// EventMessageSent is published with every message; notification tells
+// the other members (D-089).
+const EventMessageSent = "chat.MessageSent"
+
+// MessageSent is the payload of chat.MessageSent.
+type MessageSent struct {
+	MessageID  uuid.UUID   `json:"message_id"`
+	ChannelID  uuid.UUID   `json:"channel_id"`
+	Kind       string      `json:"channel_kind"`
+	TeamID     *uuid.UUID  `json:"team_id,omitempty"`
+	CoupleID   *uuid.UUID  `json:"couple_id,omitempty"`
+	SenderID   uuid.UUID   `json:"sender_user_id"`
+	Recipients []uuid.UUID `json:"recipient_user_ids"`
+}
 
 // Rules (D-031).
 const (
@@ -59,12 +76,13 @@ type Realtime interface {
 
 // Deps are the service's collaborators.
 type Deps struct {
-	DB    *pgxpool.Pool
-	Teams Teams
-	Cards Cards
-	Muter Muter
-	RT    Realtime
-	Clock clock.Clock
+	DB     *pgxpool.Pool
+	Teams  Teams
+	Cards  Cards
+	Muter  Muter
+	RT     Realtime
+	Events *events.Bus
+	Clock  clock.Clock
 }
 
 // Service implements chat.
@@ -234,9 +252,21 @@ func (s *Service) Send(ctx context.Context, user uuid.UUID, in SendInput) (Messa
 		return Message{}, apierror.New(apierror.RateLimited).WithRetryAfter(BurstWindow)
 	}
 	id := ids.New()
-	if err := q.InsertMessage(ctx, sqlc.InsertMessageParams{
-		ID: id, ChannelID: c.ID, SenderID: user, Kind: kind, Body: in.Body, QuickID: in.QuickID, FilterResult: filter, Now: now,
-	}); err != nil {
+	err = postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error {
+		if err := sqlc.New(tx).InsertMessage(ctx, sqlc.InsertMessageParams{
+			ID: id, ChannelID: c.ID, SenderID: user, Kind: kind, Body: in.Body, QuickID: in.QuickID, FilterResult: filter, Now: now,
+		}); err != nil {
+			return err
+		}
+		if s.d.Events == nil {
+			return nil
+		}
+		return s.d.Events.PublishTx(ctx, tx, EventMessageSent, now, MessageSent{
+			MessageID: id, ChannelID: c.ID, Kind: c.Kind, TeamID: c.TeamID, CoupleID: c.CoupleID, SenderID: user,
+			Recipients: slices.DeleteFunc(slices.Clone(members), func(u uuid.UUID) bool { return u == user }),
+		})
+	})
+	if err != nil {
 		return Message{}, err
 	}
 	cards, err := s.d.Cards.Cards(ctx, []uuid.UUID{user})

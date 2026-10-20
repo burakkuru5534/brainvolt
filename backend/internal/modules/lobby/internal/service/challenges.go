@@ -63,6 +63,9 @@ type (
 		ChallengeID  uuid.UUID `json:"challenge_id"`
 		ChallengerID uuid.UUID `json:"challenger_user_id"`
 		TargetID     uuid.UUID `json:"target_user_id"`
+		// Kind and TargetIDs (every target user) since D-089.
+		Kind      string      `json:"kind"`
+		TargetIDs []uuid.UUID `json:"target_user_ids"`
 	}
 	// ChallengeAccepted is the payload of lobby.ChallengeAccepted.
 	ChallengeAccepted struct {
@@ -275,7 +278,7 @@ func (s *Service) Challenge(ctx context.Context, from uuid.UUID, to ChallengeTar
 		}); err != nil {
 			return err
 		}
-		return s.d.Events.PublishTx(ctx, tx, EventChallengeSent, now, ChallengeSent{ChallengeID: id, ChallengerID: from, TargetID: targets[0]})
+		return s.d.Events.PublishTx(ctx, tx, EventChallengeSent, now, ChallengeSent{ChallengeID: id, ChallengerID: from, TargetID: targets[0], Kind: "direct", TargetIDs: targets})
 	})
 	if err != nil {
 		return Challenge{}, err

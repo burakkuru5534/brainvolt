@@ -15,6 +15,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/team"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
 )
 
@@ -28,8 +29,12 @@ type Deps struct {
 	Profiles *profile.Module
 	Muter    Muter
 	Realtime *realtime.Module
+	Events   *events.Bus
 	Clock    clock.Clock
 }
+
+// EventMessageSent is published with every message (D-089).
+const EventMessageSent = service.EventMessageSent
 
 // Module is the chat module.
 type Module struct {
@@ -39,7 +44,7 @@ type Module struct {
 
 // New builds the module and registers the chat.* intents.
 func New(d Deps) *Module {
-	deps := service.Deps{DB: d.DB, Teams: d.Teams, Cards: d.Profiles, Muter: d.Muter, Clock: d.Clock}
+	deps := service.Deps{DB: d.DB, Teams: d.Teams, Cards: d.Profiles, Muter: d.Muter, Events: d.Events, Clock: d.Clock}
 	if d.Realtime != nil {
 		deps.RT = d.Realtime
 	}

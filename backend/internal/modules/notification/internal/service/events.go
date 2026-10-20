@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -67,14 +69,28 @@ func (h Handlers) OnFriendshipCreated(ctx context.Context, e events.Envelope) er
 // OnChallengeSent handles lobby.ChallengeSent → challenge.received.
 func (h Handlers) OnChallengeSent(ctx context.Context, e events.Envelope) error {
 	var p struct {
-		ChallengeID uuid.UUID `json:"challenge_id"`
-		From        uuid.UUID `json:"challenger_user_id"`
-		To          uuid.UUID `json:"target_user_id"`
+		ChallengeID uuid.UUID   `json:"challenge_id"`
+		Kind        string      `json:"kind"`
+		From        uuid.UUID   `json:"challenger_user_id"`
+		To          uuid.UUID   `json:"target_user_id"`
+		Targets     []uuid.UUID `json:"target_user_ids"`
 	}
 	if err := e.Decode(&p); err != nil {
 		return err
 	}
-	return h.notify(ctx, p.To, p.From, "challenge.received", "/challenges", "challenge:"+p.ChallengeID.String())
+	kind := "challenge.received"
+	if p.Kind == "revenge" {
+		kind = "challenge.revenge"
+	}
+	if len(p.Targets) == 0 {
+		p.Targets = []uuid.UUID{p.To} // published before D-089 named every target
+	}
+	for _, to := range p.Targets {
+		if err := h.notify(ctx, to, p.From, kind, "/challenges", "challenge:"+p.ChallengeID.String()); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // OnChallengeAccepted handles lobby.ChallengeAccepted → challenge.accepted to
@@ -119,4 +135,41 @@ func (h Handlers) OnSanctionApplied(ctx context.Context, e events.Envelope) erro
 	}
 	return h.Svc.Notify(ctx, Notice{User: p.User, Kind: "moderation.sanction", Params: map[string]string{},
 		DeepLink: "/sanctions", Dedupe: "sanction:" + p.SanctionID.String()})
+}
+
+// ChatNoticeEvery is how often one chat channel may notify a member: a
+// burst of messages becomes one notice (D-089).
+const ChatNoticeEvery = 10 * time.Minute
+
+// OnChatMessage handles chat.MessageSent → chat.team / chat.couple to the
+// other members, opening the chat.
+func (h Handlers) OnChatMessage(ctx context.Context, e events.Envelope) error {
+	var p struct {
+		ChannelID  uuid.UUID   `json:"channel_id"`
+		Kind       string      `json:"channel_kind"`
+		TeamID     *uuid.UUID  `json:"team_id"`
+		CoupleID   *uuid.UUID  `json:"couple_id"`
+		Sender     uuid.UUID   `json:"sender_user_id"`
+		Recipients []uuid.UUID `json:"recipient_user_ids"`
+	}
+	if err := e.Decode(&p); err != nil {
+		return err
+	}
+	var kind, link string
+	switch {
+	case p.Kind == "team" && p.TeamID != nil:
+		kind, link = "chat.team", "/chat/team/"+p.TeamID.String()
+	case p.Kind == "couple" && p.CoupleID != nil:
+		kind, link = "chat.couple", "/chat/couple/"+p.CoupleID.String()
+	default:
+		return nil
+	}
+	bucket := e.OccurredAt.Unix() / int64(ChatNoticeEvery/time.Second)
+	for _, to := range p.Recipients {
+		dedupe := fmt.Sprintf("chat:%s:%d", p.ChannelID, bucket)
+		if err := h.notify(ctx, to, p.Sender, kind, link, dedupe); err != nil {
+			return err
+		}
+	}
+	return nil
 }

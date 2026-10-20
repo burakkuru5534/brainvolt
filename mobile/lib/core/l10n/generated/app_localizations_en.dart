@@ -1451,6 +1451,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatQuickRematch => 'Rematch?';
 
   @override
+  String revengeIncoming(String name) {
+    return '$name wants revenge!';
+  }
+
+  @override
+  String get revengeDeclined => 'Your revenge request was not accepted';
+
+  @override
+  String get revengeWaiting => 'Waiting for their answer…';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Your account is being deleted. You can only cancel the deletion.';
 

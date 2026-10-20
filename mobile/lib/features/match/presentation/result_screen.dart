@@ -9,16 +9,15 @@ import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/share/result_card.dart';
 import '../../../core/widgets/bv.dart';
-import '../../lobby/data/lobby_providers.dart';
 import '../../lobby/presentation/room_controller.dart';
 import '../../moderation/presentation/report_dialog.dart';
 import '../../profile/domain/avatars.dart';
 import '../../progress/presentation/progress_widgets.dart';
 import '../data/match_providers.dart';
 import '../domain/match_repository.dart';
-import 'mode_picker_screen.dart';
 import 'play_controllers.dart';
 import 'play_error_text.dart';
+import 'revenge.dart';
 
 part 'result_screen.g.dart';
 
@@ -152,8 +151,7 @@ class ResultScreen extends ConsumerWidget {
             key: const Key('revenge-series'),
             textAlign: TextAlign.center,
           ),
-        if (r.revenge case RevengeInfo(available: true))
-          _Revenge(matchId: r.id),
+        if (r.status == 'completed') RevengePanel(matchId: r.id),
         if (r.status == 'completed')
           Padding(
             padding: const EdgeInsets.only(top: 12),
@@ -220,70 +218,6 @@ class ResultScreen extends ConsumerWidget {
             ),
           ),
       ],
-    );
-  }
-}
-
-/// Revenge (D-045): the losing side picks a home category and challenges
-/// the winners; they answer from their challenges.
-class _Revenge extends ConsumerStatefulWidget {
-  const _Revenge({required this.matchId});
-
-  final String matchId;
-
-  @override
-  ConsumerState<_Revenge> createState() => _RevengeState();
-}
-
-class _RevengeState extends ConsumerState<_Revenge> {
-  var _sent = false;
-
-  Future<void> _ask() async {
-    final l10n = context.l10n;
-    final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
-    try {
-      final cats = await ref.read(categoriesProvider.future);
-      if (!mounted) {
-        return;
-      }
-      final cat = await showDialog<String>(
-        context: context,
-        builder: (context) => SimpleDialog(
-          title: Text(l10n.revengePickCategory),
-          children: [
-            for (final c in cats)
-              SimpleDialogOption(
-                key: Key('revenge-cat-${c.id}'),
-                onPressed: () => Navigator.pop(context, c.id),
-                child: Text(c.name),
-              ),
-          ],
-        ),
-      );
-      if (cat == null) {
-        return;
-      }
-      await ref.read(lobbyRepositoryProvider).revenge(widget.matchId, cat);
-      if (mounted) {
-        setState(() => _sent = true);
-      }
-      messenger.showSnackBar(SnackBar(content: Text(l10n.revengeSent)));
-    } on Object catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(playErrorText(l10n, e))));
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: OutlinedButton.icon(
-        key: const Key('revenge'),
-        icon: const Icon(Icons.sports_mma),
-        onPressed: _sent ? null : _ask,
-        label: Text(_sent ? l10n.revengeSent : l10n.revengeButton),
-      ),
     );
   }
 }

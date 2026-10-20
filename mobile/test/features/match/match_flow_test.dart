@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:brainvolt/app/app.dart';
 import 'package:brainvolt/core/realtime/realtime_providers.dart';
+import 'package:brainvolt/features/lobby/domain/lobby_repository.dart';
+import 'package:brainvolt/features/match/domain/match_repository.dart';
+import 'package:brainvolt/features/social/domain/social_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -289,5 +292,115 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('resume-match')), findsOneWidget);
     expect(find.byKey(const Key('play-practice')), findsOneWidget);
+  });
+
+  /// Ends the matched game with [winner] ahead.
+  Future<void> complete(WidgetTester tester, FakeSocket s, int winner) async {
+    s.serverSends({
+      't': 'match.completed',
+      's': 'match:m1',
+      'seq': 2,
+      'd': {
+        'end_reason': 'all_rounds_played',
+        'winner_side_no': winner,
+        'is_draw': false,
+        'sides': [
+          {'side_no': 1, 'score': winner == 1 ? 900 : 300},
+          {'side_no': 2, 'score': winner == 2 ? 900 : 300},
+        ],
+      },
+    });
+    await step(tester);
+    await step(tester);
+  }
+
+  MatchResult result({required bool revenge}) => MatchResult(
+    id: 'm1',
+    status: 'completed',
+    origin: 'queue',
+    endedAt: DateTime.now(),
+    scores: const [300, 900],
+    winnerSide: 2,
+    players: const [],
+    rounds: const [],
+    revenge: RevengeInfo(available: revenge),
+  );
+
+  Challenge revengeChallenge() => Challenge(
+    id: 'c9',
+    status: 'pending',
+    kind: 'revenge',
+    challenger: const UserCard(userId: 'opp', displayName: 'Rakip'),
+    target: const UserCard(userId: me, displayName: 'Ben'),
+    matchType: 'quick_duel',
+    expiresAt: DateTime(2030),
+    parentMatchId: 'm1',
+  );
+
+  testWidgets('the loser asks for revenge on the end screen and is taken '
+      'to the new match once it is accepted', (tester) async {
+    final t = await launch(tester);
+    t.matches.matchResult = result(revenge: true);
+    t.lobby.responded = revengeChallenge();
+    final s = await queueAndMatch(tester, t);
+    await complete(tester, s, 2);
+    expect(find.text('Kaybettin'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('revenge')));
+    await step(tester);
+    await tester.tap(find.byKey(const Key('revenge-cat-cat-science')));
+    await step(tester);
+    expect(t.lobby.calls, contains('revenge:m1:cat-science'));
+    expect(find.text('Rövanş cevabı bekleniyor…'), findsOneWidget);
+
+    s.serverSends({
+      't': 'challenge.updated',
+      'd': {'challenge_id': 'c9', 'status': 'started', 'match_id': 'm9'},
+    });
+    await step(tester);
+    await step(tester);
+    expect(s.lastSent('match.join')['d'], {'match_id': 'm9'});
+    await finish(tester, t);
+  });
+
+  testWidgets('the winner sees the revenge request arrive and accepts it', (
+    tester,
+  ) async {
+    final t = await launch(tester);
+    t.matches.matchResult = result(revenge: false);
+    t.lobby.responded = Challenge(
+      id: 'c9',
+      status: 'started',
+      kind: 'revenge',
+      challenger: const UserCard(userId: 'opp', displayName: 'Rakip'),
+      target: const UserCard(userId: me, displayName: 'Ben'),
+      matchType: 'quick_duel',
+      expiresAt: DateTime(2030),
+      matchId: 'm9',
+    );
+    final s = await queueAndMatch(tester, t);
+    await complete(tester, s, 1);
+    expect(find.byKey(const Key('revenge')), findsNothing);
+    expect(find.byKey(const Key('revenge-incoming')), findsNothing);
+
+    t.lobby.incoming = [revengeChallenge()];
+    s.serverSends({
+      't': 'challenge.received',
+      'd': {
+        'challenge': {
+          'id': 'c9',
+          'kind': 'revenge',
+          'challenger': {'display_name': 'Rakip'},
+        },
+      },
+    });
+    await step(tester);
+    await step(tester);
+    expect(find.text('Rakip rövanş istiyor!'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('revenge-accept')));
+    await step(tester);
+    await step(tester);
+    expect(t.lobby.calls, contains('accept:c9'));
+    expect(s.lastSent('match.join')['d'], {'match_id': 'm9'});
+    await finish(tester, t);
   });
 }

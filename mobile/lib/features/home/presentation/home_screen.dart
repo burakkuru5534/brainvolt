@@ -9,8 +9,6 @@ import '../../../app/session_controller.dart';
 import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/push/push_service.dart';
-import '../../../core/realtime/realtime_client.dart';
-import '../../../core/realtime/realtime_providers.dart';
 import '../../../core/widgets/bv.dart';
 import '../../auth/data/auth_providers.dart';
 import '../../auth/domain/session.dart';
@@ -39,15 +37,6 @@ final pushOpenedProvider = StreamProvider.autoDispose<String>((ref) async* {
 final pushTokenRefreshProvider = StreamProvider.autoDispose<String>(
   (ref) => ref.watch(pushServiceProvider).tokenRefresh,
 );
-
-/// Challenge events for the caller (websocket.md §5.2): home shows them in
-/// a snack bar wherever the player is in the app's main screen.
-final lobbyEventsProvider = StreamProvider.autoDispose<ServerFrame>((ref) {
-  final rt = ref.watch(realtimeClientProvider)..start();
-  return rt.frames.where(
-    (f) => f.type == 'challenge.received' || f.type == 'challenge.updated',
-  );
-});
 
 /// Home (D-085): logo bar, greeting hero with level and mascot, the Quick
 /// Duel call to action, mode tiles, shortcuts and stats. Development
@@ -78,38 +67,6 @@ class HomeScreen extends ConsumerWidget {
               .ignore();
         }
       });
-    ref.listen(lobbyEventsProvider, (_, next) {
-      final f = next.value;
-      if (f == null) {
-        return;
-      }
-      final messenger = ScaffoldMessenger.of(context);
-      if (f.type == 'challenge.received') {
-        final c = (f.data['challenge'] as Map?)?.cast<String, dynamic>();
-        final from = (c?['challenger'] as Map?)?['display_name'] as String?;
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(l10n.challengeReceived(from ?? '')),
-            action: SnackBarAction(
-              label: l10n.view,
-              onPressed: () => context.push(Routes.challenges),
-            ),
-          ),
-        );
-      } else if (f.data['status'] == 'started' &&
-          f.data['match_id'] is String) {
-        final id = f.data['match_id'] as String;
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(l10n.challengeAccepted),
-            action: SnackBarAction(
-              label: l10n.playNow,
-              onPressed: () => context.go(Routes.match(id)),
-            ),
-          ),
-        );
-      }
-    });
     final resume = ref.watch(currentMatchProvider).value;
     final dev = ref.watch(appConfigProvider).flavor == Flavor.dev;
     const gap = SizedBox(height: 14);

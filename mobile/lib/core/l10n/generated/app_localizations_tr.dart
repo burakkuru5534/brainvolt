@@ -1450,6 +1450,17 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatQuickRematch => 'Rövanş?';
 
   @override
+  String revengeIncoming(String name) {
+    return '$name rövanş istiyor!';
+  }
+
+  @override
+  String get revengeDeclined => 'Rövanş isteği kabul edilmedi';
+
+  @override
+  String get revengeWaiting => 'Rövanş cevabı bekleniyor…';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.';
 

@@ -144,6 +144,9 @@ void main() {
       'd': {'session_id': 's1', 'resume_token': 'r1'},
     });
     await step(tester);
+    // Challenges show on every screen, not only on home (D-089).
+    unawaited(t.container.read(routerProvider).push(Routes.leaderboards));
+    await step(tester);
     s.serverSends({
       't': 'challenge.received',
       'd': {

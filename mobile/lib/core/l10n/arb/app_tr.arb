@@ -2047,6 +2047,23 @@
   "@chatQuickRematch": {
     "description": "Quick phrase"
   },
+  "revengeIncoming": "{name} rövanş istiyor!",
+  "@revengeIncoming": {
+    "description": "A revenge request arrived on the match-end screen",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "revengeDeclined": "Rövanş isteği kabul edilmedi",
+  "@revengeDeclined": {
+    "description": "The winners declined or let the revenge expire"
+  },
+  "revengeWaiting": "Rövanş cevabı bekleniyor…",
+  "@revengeWaiting": {
+    "description": "Revenge sent, waiting for the winners"
+  },
   "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
   "@error_ACCOUNT_DELETION_PENDING": {
     "description": "Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md)."

@@ -42,6 +42,7 @@ const (
 	SubscriberChallengeAccepts = "notification.challenge_accepted"
 	SubscriberCoupleRequest    = "notification.couple_request"
 	SubscriberSanction         = "notification.sanction"
+	SubscriberChatMessage      = "notification.chat_message"
 )
 
 // Deps are the module's collaborators; Sender, Pusher and Profiles are
@@ -112,4 +113,9 @@ func (m *Module) OnCoupleRequested(ctx context.Context, e events.Envelope) error
 // OnSanctionApplied handles moderation.SanctionApplied.
 func (m *Module) OnSanctionApplied(ctx context.Context, e events.Envelope) error {
 	return m.handlers().OnSanctionApplied(ctx, e)
+}
+
+// OnChatMessage handles chat.MessageSent.
+func (m *Module) OnChatMessage(ctx context.Context, e events.Envelope) error {
+	return m.handlers().OnChatMessage(ctx, e)
 }

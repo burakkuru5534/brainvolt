@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/l10n/l10n.dart';
 import '../core/l10n/locale_controller.dart';
+import '../features/lobby/presentation/challenge_listener.dart';
 import 'router.dart';
 import 'theme.dart';
 
@@ -19,6 +20,8 @@ class BrainVoltApp extends ConsumerWidget {
     darkTheme: buildTheme(Brightness.dark),
     themeMode: ref.watch(themeModeSettingProvider),
     routerConfig: ref.watch(routerProvider),
+    builder: (context, child) =>
+        ChallengeListener(child: child ?? const SizedBox.shrink()),
     // null = follow the device; Flutter re-resolves when the device language changes.
     locale: ref.watch(localeOverrideProvider),
     localeListResolutionCallback: (device, _) => resolveLocale(null, device),

@@ -2708,6 +2708,24 @@ abstract class AppLocalizations {
   /// **'Rövanş?'**
   String get chatQuickRematch;
 
+  /// A revenge request arrived on the match-end screen
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} rövanş istiyor!'**
+  String revengeIncoming(String name);
+
+  /// The winners declined or let the revenge expire
+  ///
+  /// In tr, this message translates to:
+  /// **'Rövanş isteği kabul edilmedi'**
+  String get revengeDeclined;
+
+  /// Revenge sent, waiting for the winners
+  ///
+  /// In tr, this message translates to:
+  /// **'Rövanş cevabı bekleniyor…'**
+  String get revengeWaiting;
+
   /// Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md).
   ///
   /// In tr, this message translates to:

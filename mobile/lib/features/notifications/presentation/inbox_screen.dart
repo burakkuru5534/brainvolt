@@ -43,6 +43,7 @@ IconData _icon(String category) => switch (category) {
   'challenge' => Icons.sports_kabaddi,
   'friend' => Icons.person_add_alt_1,
   'team' => Icons.groups,
+  'chat' => Icons.chat_bubble_rounded,
   'moderation' => Icons.gavel,
   'quest' => Icons.flag,
   'season' => Icons.emoji_events,

@@ -100,7 +100,7 @@ func (s *Service) Revenge(ctx context.Context, from, parent, homeCategory uuid.U
 		}); err != nil {
 			return err
 		}
-		return s.d.Events.PublishTx(ctx, tx, EventChallengeSent, now, ChallengeSent{ChallengeID: id, ChallengerID: from, TargetID: winners[0]})
+		return s.d.Events.PublishTx(ctx, tx, EventChallengeSent, now, ChallengeSent{ChallengeID: id, ChallengerID: from, TargetID: winners[0], Kind: "revenge", TargetIDs: winners})
 	})
 	if err != nil {
 		return Challenge{}, err
