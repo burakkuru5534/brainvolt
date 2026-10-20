@@ -23,6 +23,8 @@ import 'package:brainvolt/features/match/data/match_providers.dart';
 import 'package:brainvolt/features/match/domain/match_repository.dart';
 import 'package:brainvolt/features/moderation/data/moderation_providers.dart';
 import 'package:brainvolt/features/moderation/domain/moderation_repository.dart';
+import 'package:brainvolt/features/notifications/data/notification_providers.dart';
+import 'package:brainvolt/features/notifications/domain/notification_repository.dart';
 import 'package:brainvolt/features/profile/data/profile_providers.dart';
 import 'package:brainvolt/features/profile/domain/me.dart';
 import 'package:brainvolt/features/profile/domain/profile_repository.dart';
@@ -188,7 +190,8 @@ class FakeSessionRepository implements SessionRepository {
   }
 
   @override
-  Future<void> registerDevice() async => calls.add('registerDevice');
+  Future<void> registerDevice({String? fcmToken}) async =>
+      calls.add('registerDevice');
 
   @override
   Future<void> unregisterDevice() async => calls.add('unregisterDevice');
@@ -764,6 +767,69 @@ class FakeCreatorRepository implements CreatorRepository {
       calls.add('like:$id:$like');
 }
 
+class FakeNotificationRepository implements NotificationRepository {
+  final calls = <String>[];
+  List<InboxItem> items = [];
+  NotificationPrefs prefs = const NotificationPrefs(
+    categories: [
+      CategoryPref(category: 'friend', push: true, inApp: true),
+      CategoryPref(
+        category: 'moderation',
+        push: true,
+        inApp: true,
+        locked: true,
+      ),
+    ],
+    quiet: QuietHours(enabled: false, start: '23:00', end: '08:00'),
+  );
+
+  @override
+  Future<InboxPage> inbox({String? cursor}) async =>
+      InboxPage(items: items, unread: items.where((i) => !i.read).length);
+
+  @override
+  Future<void> markRead({List<String> ids = const [], bool all = false}) async {
+    calls.add(all ? 'read:all' : 'read:${ids.join(',')}');
+    items = [
+      for (final i in items)
+        all || ids.contains(i.id)
+            ? InboxItem(
+                id: i.id,
+                category: i.category,
+                kind: i.kind,
+                title: i.title,
+                body: i.body,
+                deepLink: i.deepLink,
+                createdAt: i.createdAt,
+                read: true,
+              )
+            : i,
+    ];
+  }
+
+  @override
+  Future<NotificationPrefs> preferences() async => prefs;
+
+  @override
+  Future<NotificationPrefs> update({
+    List<CategoryPref>? categories,
+    QuietHours? quiet,
+  }) async {
+    calls.add(
+      'update:${categories?.map((c) => '${c.category}/${c.push}/${c.inApp}').join(',')}'
+      ':${quiet?.enabled}',
+    );
+    prefs = NotificationPrefs(
+      categories: [
+        for (final c in prefs.categories)
+          categories?.where((n) => n.category == c.category).firstOrNull ?? c,
+      ],
+      quiet: quiet ?? prefs.quiet,
+    );
+    return prefs;
+  }
+}
+
 class FakeSocket implements SocketConnection {
   final _in = StreamController<dynamic>();
   final sent = <Map<String, dynamic>>[];
@@ -818,6 +884,7 @@ class TestApp {
     this.daily,
     this.moderation,
     this.creator,
+    this.notifications,
   );
 
   /// [ageConfirmed] skips the age gate; [user] is an already signed-in user.
@@ -842,6 +909,7 @@ class TestApp {
     final daily = FakeDailyRepository();
     final moderation = FakeModerationRepository();
     final creator = FakeCreatorRepository();
+    final notifications = FakeNotificationRepository();
     final sockets = <FakeSocket>[];
     final container = ProviderContainer(
       retry: noRetry,
@@ -867,6 +935,7 @@ class TestApp {
         dailyRepositoryProvider.overrideWithValue(daily),
         moderationRepositoryProvider.overrideWithValue(moderation),
         creatorRepositoryProvider.overrideWithValue(creator),
+        notificationRepositoryProvider.overrideWithValue(notifications),
         realtimeClientProvider.overrideWith((ref) {
           final client = RealtimeClient(
             url: Uri.parse('ws://test/v1/ws'),
@@ -899,6 +968,7 @@ class TestApp {
       daily,
       moderation,
       creator,
+      notifications,
     );
   }
 
@@ -912,6 +982,7 @@ class TestApp {
   final FakeDailyRepository daily;
   final FakeModerationRepository moderation;
   final FakeCreatorRepository creator;
+  final FakeNotificationRepository notifications;
 
   /// Every WebSocket the app opened, newest last.
   final List<FakeSocket> sockets;

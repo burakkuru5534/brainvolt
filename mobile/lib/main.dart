@@ -11,6 +11,7 @@ import 'app/app.dart';
 import 'app/config.dart';
 import 'app/providers.dart';
 import 'core/network/api_client.dart';
+import 'core/push/push_service.dart';
 import 'features/auth/data/auth_providers.dart';
 import 'firebase_options.dart';
 
@@ -39,6 +40,7 @@ Future<void> main() async {
         appVersionProvider.overrideWithValue(
           '${info.version}+${info.buildNumber}',
         ),
+        pushServiceProvider.overrideWithValue(FirebasePushService()),
         tokenSourceProvider.overrideWith(
           (ref) => AuthTokenSource(ref.watch(authRepositoryProvider)),
         ),

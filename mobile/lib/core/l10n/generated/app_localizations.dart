@@ -2450,6 +2450,138 @@ abstract class AppLocalizations {
   /// **'Sıradaki meydan okuman bulunuyor'**
   String get queueFinding;
 
+  /// Inbox title
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimler'**
+  String get inboxTitle;
+
+  /// Empty inbox
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz bildirimin yok.'**
+  String get inboxEmpty;
+
+  /// Mark all read action
+  ///
+  /// In tr, this message translates to:
+  /// **'Tümünü okundu say'**
+  String get inboxMarkAll;
+
+  /// Settings screen title
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim ayarları'**
+  String get notificationSettingsTitle;
+
+  /// Push channel label
+  ///
+  /// In tr, this message translates to:
+  /// **'Anlık'**
+  String get notifPush;
+
+  /// In-app channel label
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygulama içi'**
+  String get notifInApp;
+
+  /// Quiet hours title
+  ///
+  /// In tr, this message translates to:
+  /// **'Sessiz saatler'**
+  String get notifQuietHours;
+
+  /// Quiet hours explanation
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu saatlerde anlık bildirim gelmez; bildirimler kutuda bekler.'**
+  String get notifQuietHoursHint;
+
+  /// Quiet start
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlangıç'**
+  String get notifQuietStart;
+
+  /// Quiet end
+  ///
+  /// In tr, this message translates to:
+  /// **'Bitiş'**
+  String get notifQuietEnd;
+
+  /// Locked category note
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap bildirimleri kapatılamaz.'**
+  String get notifLocked;
+
+  /// Category
+  ///
+  /// In tr, this message translates to:
+  /// **'Meydan okumalar'**
+  String get notifCatChallenge;
+
+  /// Category
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşlar'**
+  String get notifCatFriend;
+
+  /// Category
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç bulundu'**
+  String get notifCatMatchFound;
+
+  /// Category
+  ///
+  /// In tr, this message translates to:
+  /// **'Takım ve çift'**
+  String get notifCatTeam;
+
+  /// Category
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbet'**
+  String get notifCatChat;
+
+  /// Category
+  ///
+  /// In tr, this message translates to:
+  /// **'Sezon'**
+  String get notifCatSeason;
+
+  /// Category
+  ///
+  /// In tr, this message translates to:
+  /// **'Görevler'**
+  String get notifCatQuest;
+
+  /// Category
+  ///
+  /// In tr, this message translates to:
+  /// **'Turnuvalar'**
+  String get notifCatTournament;
+
+  /// Category
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesap bildirimleri'**
+  String get notifCatModeration;
+
+  /// Category
+  ///
+  /// In tr, this message translates to:
+  /// **'Haberler ve kampanyalar'**
+  String get notifCatProductNews;
+
+  /// Settings tile
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimler'**
+  String get settingsNotifications;
+
   /// Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md).
   ///
   /// In tr, this message translates to:

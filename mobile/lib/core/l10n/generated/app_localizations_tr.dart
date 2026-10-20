@@ -1312,6 +1312,73 @@ class AppLocalizationsTr extends AppLocalizations {
   String get queueFinding => 'Sıradaki meydan okuman bulunuyor';
 
   @override
+  String get inboxTitle => 'Bildirimler';
+
+  @override
+  String get inboxEmpty => 'Henüz bildirimin yok.';
+
+  @override
+  String get inboxMarkAll => 'Tümünü okundu say';
+
+  @override
+  String get notificationSettingsTitle => 'Bildirim ayarları';
+
+  @override
+  String get notifPush => 'Anlık';
+
+  @override
+  String get notifInApp => 'Uygulama içi';
+
+  @override
+  String get notifQuietHours => 'Sessiz saatler';
+
+  @override
+  String get notifQuietHoursHint =>
+      'Bu saatlerde anlık bildirim gelmez; bildirimler kutuda bekler.';
+
+  @override
+  String get notifQuietStart => 'Başlangıç';
+
+  @override
+  String get notifQuietEnd => 'Bitiş';
+
+  @override
+  String get notifLocked => 'Hesap bildirimleri kapatılamaz.';
+
+  @override
+  String get notifCatChallenge => 'Meydan okumalar';
+
+  @override
+  String get notifCatFriend => 'Arkadaşlar';
+
+  @override
+  String get notifCatMatchFound => 'Maç bulundu';
+
+  @override
+  String get notifCatTeam => 'Takım ve çift';
+
+  @override
+  String get notifCatChat => 'Sohbet';
+
+  @override
+  String get notifCatSeason => 'Sezon';
+
+  @override
+  String get notifCatQuest => 'Görevler';
+
+  @override
+  String get notifCatTournament => 'Turnuvalar';
+
+  @override
+  String get notifCatModeration => 'Hesap bildirimleri';
+
+  @override
+  String get notifCatProductNews => 'Haberler ve kampanyalar';
+
+  @override
+  String get settingsNotifications => 'Bildirimler';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.';
 

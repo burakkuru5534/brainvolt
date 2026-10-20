@@ -23,6 +23,8 @@ import '../features/match/presentation/mode_picker_screen.dart';
 import '../features/match/presentation/queue_screen.dart';
 import '../features/match/presentation/result_screen.dart';
 import '../features/moderation/presentation/sanctions_screen.dart';
+import '../features/notifications/presentation/inbox_screen.dart';
+import '../features/notifications/presentation/notification_settings_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/settings_screen.dart';
 import '../features/progress/presentation/badges_screen.dart';
@@ -57,6 +59,8 @@ abstract final class Routes {
   static const daily = '/daily';
   static const sanctions = '/sanctions';
   static const quizzes = '/quizzes';
+  static const inbox = '/inbox';
+  static const notificationSettings = '/settings/notifications';
   static const quizNew = '/quizzes/new';
   static String quiz(String id) => '/quizzes/$id';
   static String dailyRun(String id) => '/daily/runs/$id';
@@ -202,6 +206,14 @@ GoRouter router(Ref ref) {
         path: '/rooms/:id',
         builder: (context, state) =>
             RoomScreen(roomId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: Routes.inbox,
+        builder: (context, state) => const InboxScreen(),
+      ),
+      GoRoute(
+        path: Routes.notificationSettings,
+        builder: (context, state) => const NotificationSettingsScreen(),
       ),
       GoRoute(
         path: Routes.quizzes,

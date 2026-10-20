@@ -50,7 +50,7 @@ class ApiSessionRepository implements SessionRepository {
   }
 
   @override
-  Future<void> registerDevice() async {
+  Future<void> registerDevice({String? fcmToken}) async {
     await api.postJson(
       '/v1/me/devices',
       body: {
@@ -58,7 +58,7 @@ class ApiSessionRepository implements SessionRepository {
         'platform': platform,
         'app_version': appVersion,
         'locale': locale(),
-        'fcm_token': null, // push arrives in Phase 9
+        'fcm_token': fcmToken,
       },
     );
   }

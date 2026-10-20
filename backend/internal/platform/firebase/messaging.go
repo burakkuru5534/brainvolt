@@ -38,7 +38,8 @@ func NewMessenger(ctx context.Context, projectID, credentialsFile string) (*Mess
 	return &Messenger{client: client}, nil
 }
 
-// Send delivers one notification with data to one device and returns
+// Send delivers one notification with data to one device (its FCM
+// installation id) and returns
 // FCM's message id.
 func (m *Messenger) Send(ctx context.Context, token, title, body string, data map[string]string) (string, error) {
 	id, err := m.client.Send(ctx, &messaging.Message{

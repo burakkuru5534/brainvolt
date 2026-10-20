@@ -6,9 +6,9 @@ abstract interface class SessionRepository {
   /// syncs tier and providers after sign-in, link or email verification.
   Future<Session> sync();
 
-  /// `POST /v1/me/devices`: registers this installation (push token from
-  /// Phase 9).
-  Future<void> registerDevice();
+  /// `POST /v1/me/devices`: registers this installation with its push
+  /// token (null while push is off).
+  Future<void> registerDevice({String? fcmToken});
 
   /// `DELETE /v1/me/devices/{installation_id}`: before signing out.
   Future<void> unregisterDevice();

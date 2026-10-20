@@ -1849,6 +1849,94 @@
   "@queueFinding": {
     "description": "Queue subtitle"
   },
+  "inboxTitle": "Bildirimler",
+  "@inboxTitle": {
+    "description": "Inbox title"
+  },
+  "inboxEmpty": "Henüz bildirimin yok.",
+  "@inboxEmpty": {
+    "description": "Empty inbox"
+  },
+  "inboxMarkAll": "Tümünü okundu say",
+  "@inboxMarkAll": {
+    "description": "Mark all read action"
+  },
+  "notificationSettingsTitle": "Bildirim ayarları",
+  "@notificationSettingsTitle": {
+    "description": "Settings screen title"
+  },
+  "notifPush": "Anlık",
+  "@notifPush": {
+    "description": "Push channel label"
+  },
+  "notifInApp": "Uygulama içi",
+  "@notifInApp": {
+    "description": "In-app channel label"
+  },
+  "notifQuietHours": "Sessiz saatler",
+  "@notifQuietHours": {
+    "description": "Quiet hours title"
+  },
+  "notifQuietHoursHint": "Bu saatlerde anlık bildirim gelmez; bildirimler kutuda bekler.",
+  "@notifQuietHoursHint": {
+    "description": "Quiet hours explanation"
+  },
+  "notifQuietStart": "Başlangıç",
+  "@notifQuietStart": {
+    "description": "Quiet start"
+  },
+  "notifQuietEnd": "Bitiş",
+  "@notifQuietEnd": {
+    "description": "Quiet end"
+  },
+  "notifLocked": "Hesap bildirimleri kapatılamaz.",
+  "@notifLocked": {
+    "description": "Locked category note"
+  },
+  "notifCatChallenge": "Meydan okumalar",
+  "@notifCatChallenge": {
+    "description": "Category"
+  },
+  "notifCatFriend": "Arkadaşlar",
+  "@notifCatFriend": {
+    "description": "Category"
+  },
+  "notifCatMatchFound": "Maç bulundu",
+  "@notifCatMatchFound": {
+    "description": "Category"
+  },
+  "notifCatTeam": "Takım ve çift",
+  "@notifCatTeam": {
+    "description": "Category"
+  },
+  "notifCatChat": "Sohbet",
+  "@notifCatChat": {
+    "description": "Category"
+  },
+  "notifCatSeason": "Sezon",
+  "@notifCatSeason": {
+    "description": "Category"
+  },
+  "notifCatQuest": "Görevler",
+  "@notifCatQuest": {
+    "description": "Category"
+  },
+  "notifCatTournament": "Turnuvalar",
+  "@notifCatTournament": {
+    "description": "Category"
+  },
+  "notifCatModeration": "Hesap bildirimleri",
+  "@notifCatModeration": {
+    "description": "Category"
+  },
+  "notifCatProductNews": "Haberler ve kampanyalar",
+  "@notifCatProductNews": {
+    "description": "Category"
+  },
+  "settingsNotifications": "Bildirimler",
+  "@settingsNotifications": {
+    "description": "Settings tile"
+  },
   "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
   "@error_ACCOUNT_DELETION_PENDING": {
     "description": "Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md)."

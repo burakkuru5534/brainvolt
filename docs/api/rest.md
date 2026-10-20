@@ -136,7 +136,7 @@
 ## 12. notification
 | Method | Path | Auth | Idem | Ph | Purpose |
 |---|---|---|---|---|---|
-| GET | `/v1/me/inbox?cursor=` | any | — | 9 | In-app notifications, newest first, rendered in the request language; `unread` count; 30 pages of 30 days (D-086). |
+| GET | `/v1/me/inbox?cursor=` | any | — | 9 | In-app notifications, newest first, rendered in the request language, pages of 30, `unread` count; kept 30 days (D-086). |
 | POST | `/v1/me/inbox/read` | any | — | 9 | `{ids[] | all: true}`. |
 | GET / PATCH | `/v1/me/notification-preferences` | any | — | 9 | Per-category push/in-app (moderation locked); quiet hours `{enabled, start, end, utc_offset_minutes}` (D-031, D-086). |
 

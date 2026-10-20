@@ -7,5 +7,9 @@
 	<array>
 		<string>Default</string>
 	</array>
+	<!-- Push (FCM through APNs, D-086); the App ID needs Push Notifications
+	     and Firebase an APNs key. Release builds switch to production. -->
+	<key>aps-environment</key>
+	<string>development</string>
 </dict>
 </plist>

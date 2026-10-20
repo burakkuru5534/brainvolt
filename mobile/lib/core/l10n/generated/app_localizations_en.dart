@@ -1313,6 +1313,73 @@ class AppLocalizationsEn extends AppLocalizations {
   String get queueFinding => 'Finding your next challenge';
 
   @override
+  String get inboxTitle => 'Notifications';
+
+  @override
+  String get inboxEmpty => 'No notifications yet.';
+
+  @override
+  String get inboxMarkAll => 'Mark all read';
+
+  @override
+  String get notificationSettingsTitle => 'Notification settings';
+
+  @override
+  String get notifPush => 'Push';
+
+  @override
+  String get notifInApp => 'In-app';
+
+  @override
+  String get notifQuietHours => 'Quiet hours';
+
+  @override
+  String get notifQuietHoursHint =>
+      'No push in these hours; notices wait in the inbox.';
+
+  @override
+  String get notifQuietStart => 'Starts';
+
+  @override
+  String get notifQuietEnd => 'Ends';
+
+  @override
+  String get notifLocked => 'Account notices cannot be turned off.';
+
+  @override
+  String get notifCatChallenge => 'Challenges';
+
+  @override
+  String get notifCatFriend => 'Friends';
+
+  @override
+  String get notifCatMatchFound => 'Match found';
+
+  @override
+  String get notifCatTeam => 'Teams and couples';
+
+  @override
+  String get notifCatChat => 'Chat';
+
+  @override
+  String get notifCatSeason => 'Season';
+
+  @override
+  String get notifCatQuest => 'Quests';
+
+  @override
+  String get notifCatTournament => 'Tournaments';
+
+  @override
+  String get notifCatModeration => 'Account notices';
+
+  @override
+  String get notifCatProductNews => 'News and offers';
+
+  @override
+  String get settingsNotifications => 'Notifications';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Your account is being deleted. You can only cancel the deletion.';
 

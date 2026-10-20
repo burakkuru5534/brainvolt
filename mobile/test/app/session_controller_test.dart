@@ -34,6 +34,7 @@ void main() {
 
       expect(t.prefs.getBool(ageConfirmedKey), isTrue);
       expect(t.auth.calls, ['signInAnonymously']);
+      await pumpEventQueue(); // device registration waits for the push token
       expect(t.sessions.calls, ['sync', 'registerDevice']);
       expect(session(t).tier, Tier.guest);
     },
@@ -55,6 +56,7 @@ void main() {
     t.auth.loseSession = true;
     expect(await start(t), isA<SignedIn>());
     expect(t.auth.calls, ['idToken', 'signOut', 'signInAnonymously']);
+    await pumpEventQueue(); // device registration waits for the push token
     expect(t.sessions.calls, ['sync', 'registerDevice']);
     expect(session(t).user.id, 'user-guest-1');
   });
@@ -69,6 +71,7 @@ void main() {
     );
     expect(await start(t), isA<SignedIn>());
     expect(t.auth.calls, ['idToken', 'signOut', 'signInAnonymously']);
+    await pumpEventQueue(); // device registration waits for the push token
     expect(t.sessions.calls, ['sync', 'sync', 'registerDevice']);
     expect(session(t).user.id, 'user-guest-1');
   });
@@ -152,6 +155,7 @@ void main() {
           'signIn:google',
           'idToken:refresh',
         ]);
+        await pumpEventQueue(); // device registration waits for the token
         expect(t.sessions.calls, [
           'abandonGuest:token-of-guest-1',
           'sync',

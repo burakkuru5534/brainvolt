@@ -8,18 +8,36 @@ import '../../../app/router.dart';
 import '../../../app/session_controller.dart';
 import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/push/push_service.dart';
 import '../../../core/realtime/realtime_client.dart';
 import '../../../core/realtime/realtime_providers.dart';
 import '../../../core/widgets/bv.dart';
+import '../../auth/data/auth_providers.dart';
 import '../../auth/domain/session.dart';
 import '../../lobby/presentation/room_screen.dart';
 import '../../match/data/match_providers.dart';
+import '../../notifications/presentation/inbox_screen.dart';
 import '../../profile/domain/avatars.dart';
 import '../../progress/presentation/progress_widgets.dart';
 
 /// The caller's live match, if any (back from a crash or another screen).
 final currentMatchProvider = FutureProvider.autoDispose<String?>(
   (ref) => ref.watch(matchRepositoryProvider).currentMatch(),
+);
+
+/// Routes of notifications the user tapped, starting with the one that
+/// launched the app.
+final pushOpenedProvider = StreamProvider.autoDispose<String>((ref) async* {
+  final push = ref.watch(pushServiceProvider);
+  if (await push.initialRoute() case final route?) {
+    yield route;
+  }
+  yield* push.opened;
+});
+
+/// Rotated FCM tokens, sent to the server.
+final pushTokenRefreshProvider = StreamProvider.autoDispose<String>(
+  (ref) => ref.watch(pushServiceProvider).tokenRefresh,
 );
 
 /// Challenge events for the caller (websocket.md §5.2): home shows them in
@@ -44,6 +62,22 @@ class HomeScreen extends ConsumerWidget {
       SignedIn(:final session) => session,
       _ => null,
     };
+    ref
+      ..listen(inboxEventsProvider, (_, _) => ref.invalidate(inboxProvider))
+      ..listen(pushOpenedProvider, (_, next) {
+        if (next.value case final route?) {
+          openRoute(context, route);
+        }
+      })
+      ..listen(pushTokenRefreshProvider, (_, next) {
+        if (next.value case final token?) {
+          ref
+              .read(sessionRepositoryProvider)
+              .registerDevice(fcmToken: token)
+              .catchError((Object _) {})
+              .ignore();
+        }
+      });
     ref.listen(lobbyEventsProvider, (_, next) {
       final f = next.value;
       if (f == null) {
@@ -218,14 +252,15 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _TopBar extends StatelessWidget {
+class _TopBar extends ConsumerWidget {
   const _TopBar({this.avatar});
 
   final String? avatar;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final unread = ref.watch(inboxProvider).value?.unread ?? 0;
     Widget round(Key key, String tip, IconData icon, String route) => Padding(
       padding: const EdgeInsets.only(left: 8),
       child: BvCard(
@@ -244,11 +279,17 @@ class _TopBar extends StatelessWidget {
         const Expanded(
           child: Align(alignment: Alignment.centerLeft, child: BrandLogo()),
         ),
-        round(
-          const Key('open-challenges'),
-          l10n.homeChallenges,
-          Icons.sports_kabaddi,
-          Routes.challenges,
+        Badge(
+          key: const Key('inbox-badge'),
+          isLabelVisible: unread > 0,
+          label: Text('$unread'),
+          offset: const Offset(-2, 2),
+          child: round(
+            const Key('open-inbox'),
+            l10n.inboxTitle,
+            Icons.notifications_outlined,
+            Routes.inbox,
+          ),
         ),
         round(
           const Key('open-settings'),

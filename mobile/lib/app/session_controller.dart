@@ -2,6 +2,7 @@ import 'package:logging/logging.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../core/network/api_exception.dart';
+import '../core/push/push_service.dart';
 import '../features/auth/data/auth_providers.dart';
 import '../features/auth/domain/auth_repository.dart';
 import '../features/auth/domain/session.dart';
@@ -113,9 +114,14 @@ class SessionController extends _$SessionController {
       session = await sessions.sync();
     }
     // Not needed to play; a failure is retried on the next sync.
-    sessions.registerDevice().catchError((Object e) {
-      _log.warning('device registration failed', e);
-    }).ignore();
+    ref
+        .read(pushServiceProvider)
+        .token()
+        .then((t) => sessions.registerDevice(fcmToken: t))
+        .catchError((Object e) {
+          _log.warning('device registration failed', e);
+        })
+        .ignore();
     return session;
   }
 

@@ -50,6 +50,13 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => context.push(Routes.sanctions),
           ),
           ListTile(
+            key: const Key('open-notification-settings'),
+            leading: const Icon(Icons.notifications_outlined),
+            title: Text(l10n.settingsNotifications),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(Routes.notificationSettings),
+          ),
+          ListTile(
             key: const Key('open-credits'),
             leading: const Icon(Icons.info_outline),
             title: Text(l10n.creditsTitle),
