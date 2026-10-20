@@ -120,6 +120,7 @@ const (
 	OriginPrivateRoom = domain.PrivateRoom
 	OriginRematch     = domain.Rematch
 	OriginRevenge     = domain.Revenge
+	OriginTournament  = domain.Tournament
 )
 
 // CategoryCreatorQuiz is the Creator Quiz category mode.

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -168,6 +169,50 @@ func (h Handlers) OnChatMessage(ctx context.Context, e events.Envelope) error {
 	for _, to := range p.Recipients {
 		dedupe := fmt.Sprintf("chat:%s:%d", p.ChannelID, bucket)
 		if err := h.notify(ctx, to, p.Sender, kind, link, dedupe); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// OnTournamentRound handles tournament.RoundScheduled → tournament.round to
+// the bracket match's players, opening the tournament.
+func (h Handlers) OnTournamentRound(ctx context.Context, e events.Envelope) error {
+	var p struct {
+		TournamentID uuid.UUID   `json:"tournament_id"`
+		RoundNo      int         `json:"round_no"`
+		Users        []uuid.UUID `json:"user_ids"`
+	}
+	if err := e.Decode(&p); err != nil {
+		return err
+	}
+	for _, u := range p.Users {
+		if err := h.Svc.Notify(ctx, Notice{User: u, Kind: "tournament.round", Params: map[string]string{"round": strconv.Itoa(p.RoundNo)},
+			DeepLink: "/tournaments/" + p.TournamentID.String(), Dedupe: fmt.Sprintf("tournament:%s:%d", p.TournamentID, p.RoundNo)}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// OnTournamentFinished handles tournament.TournamentFinished →
+// tournament.finished with each player's place and XP.
+func (h Handlers) OnTournamentFinished(ctx context.Context, e events.Envelope) error {
+	var p struct {
+		TournamentID uuid.UUID `json:"tournament_id"`
+		Placements   []struct {
+			UserID uuid.UUID `json:"user_id"`
+			Place  int       `json:"place"`
+			XP     int       `json:"xp"`
+		} `json:"placements"`
+	}
+	if err := e.Decode(&p); err != nil {
+		return err
+	}
+	for _, pl := range p.Placements {
+		if err := h.Svc.Notify(ctx, Notice{User: pl.UserID, Kind: "tournament.finished",
+			Params:   map[string]string{"place": strconv.Itoa(pl.Place), "xp": strconv.Itoa(pl.XP)},
+			DeepLink: "/tournaments/" + p.TournamentID.String(), Dedupe: "tournament.finished:" + p.TournamentID.String()}); err != nil {
 			return err
 		}
 	}

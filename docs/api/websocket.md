@@ -157,6 +157,8 @@ No pong for **3 consecutive pings** (in match: 6 s; outside: 60 s) → server tr
 | `match.quick_chat` | `{match_id, user_id, phrase_id}` | to every participant; not stored (D-088) |
 | `rematch.offer` / `rematch.result` | `{match_id, accepted_user_ids, expires_at}` / `{match_id, accepted, new_match_id?, declined_by?, reason?}` | personal deliveries (no stream seq); the window ends 30 s after the match ended |
 
+**Tournaments (personal deliveries, D-090):** `tournament.updated {tournament_id}` — the bracket, entries or status changed, reload; `tournament.match_ready {tournament_id, match_id}` — both sides are present, join the match.
+
 **Daily run stream (`daily:<run_id>`)** — same round events as a match with `run_id` and `position` instead of `match_id` / `round_no`: `daily.question`, `daily.answer_received`, `daily.revealed`, `daily.completed {correct_count, total_time_ms, score, rank?}`, `daily.voided {reason}`.
 
 **Chat stream (`chat:<channel_id>`)**: `chat.message {id, sender_id, body|quick_id, created_at}`, `chat.message_removed {id}`, `chat.typing {user_id}`.

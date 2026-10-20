@@ -43,6 +43,9 @@ const (
 	SubscriberCoupleRequest    = "notification.couple_request"
 	SubscriberSanction         = "notification.sanction"
 	SubscriberChatMessage      = "notification.chat_message"
+	// Tournaments (D-090).
+	SubscriberTournamentRound    = "notification.tournament_round"
+	SubscriberTournamentFinished = "notification.tournament_finished"
 )
 
 // Deps are the module's collaborators; Sender, Pusher and Profiles are
@@ -118,4 +121,14 @@ func (m *Module) OnSanctionApplied(ctx context.Context, e events.Envelope) error
 // OnChatMessage handles chat.MessageSent.
 func (m *Module) OnChatMessage(ctx context.Context, e events.Envelope) error {
 	return m.handlers().OnChatMessage(ctx, e)
+}
+
+// OnTournamentRound handles tournament.RoundScheduled.
+func (m *Module) OnTournamentRound(ctx context.Context, e events.Envelope) error {
+	return m.handlers().OnTournamentRound(ctx, e)
+}
+
+// OnTournamentFinished handles tournament.TournamentFinished.
+func (m *Module) OnTournamentFinished(ctx context.Context, e events.Envelope) error {
+	return m.handlers().OnTournamentFinished(ctx, e)
 }

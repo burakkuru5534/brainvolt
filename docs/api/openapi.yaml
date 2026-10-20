@@ -2983,6 +2983,305 @@ components:
                 - user_ids
                 - wait_ms
             type: object
+        Tournament:
+            properties:
+                bracket_type:
+                    type: string
+                check_in_opens_at:
+                    format: date-time
+                    type: string
+                description:
+                    type:
+                        - string
+                        - "null"
+                entity_kind:
+                    type: string
+                entrants:
+                    type: integer
+                finished_at:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+                id:
+                    format: uuid
+                    type: string
+                match_config:
+                    $ref: '#/components/schemas/Config'
+                max_entrants:
+                    type: integer
+                min_entrants:
+                    type: integer
+                my_entry:
+                    oneOf:
+                        - $ref: '#/components/schemas/TournamentEntry'
+                        - type: "null"
+                name:
+                    type: string
+                registration_closes_at:
+                    format: date-time
+                    type: string
+                registration_opens_at:
+                    format: date-time
+                    type: string
+                rewards:
+                    $ref: '#/components/schemas/TournamentRewards'
+                round_ready_window_s:
+                    type: integer
+                starts_at:
+                    format: date-time
+                    type: string
+                status:
+                    type: string
+            required:
+                - bracket_type
+                - check_in_opens_at
+                - entity_kind
+                - entrants
+                - id
+                - match_config
+                - max_entrants
+                - min_entrants
+                - name
+                - registration_closes_at
+                - registration_opens_at
+                - rewards
+                - round_ready_window_s
+                - starts_at
+                - status
+            type: object
+        TournamentBracketSlot:
+            properties:
+                entry_a_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                entry_b_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                match_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                present:
+                    items:
+                        format: uuid
+                        type: string
+                    type: array
+                ready_until:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+                round_no:
+                    type: integer
+                slot_no:
+                    type: integer
+                status:
+                    type: string
+                winner_entry_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+            required:
+                - entry_a_id
+                - entry_b_id
+                - match_id
+                - present
+                - ready_until
+                - round_no
+                - slot_no
+                - status
+                - winner_entry_id
+            type: object
+        TournamentDetail:
+            properties:
+                Tournament:
+                    $ref: '#/components/schemas/Tournament'
+                bracket:
+                    items:
+                        $ref: '#/components/schemas/TournamentBracketSlot'
+                    type: array
+                entries:
+                    items:
+                        $ref: '#/components/schemas/TournamentEntry'
+                    type: array
+                my_match:
+                    oneOf:
+                        - $ref: '#/components/schemas/TournamentBracketSlot'
+                        - type: "null"
+                rounds:
+                    type: integer
+            required:
+                - Tournament
+                - bracket
+                - entries
+                - rounds
+            type: object
+        TournamentEntry:
+            properties:
+                entity_id:
+                    format: uuid
+                    type: string
+                entity_kind:
+                    type: string
+                final_place:
+                    type:
+                        - integer
+                        - "null"
+                id:
+                    format: uuid
+                    type: string
+                image:
+                    type: string
+                lineup:
+                    items:
+                        format: uuid
+                        type: string
+                    type: array
+                name:
+                    type: string
+                seed:
+                    type:
+                        - integer
+                        - "null"
+                status:
+                    type: string
+            required:
+                - entity_id
+                - entity_kind
+                - id
+                - lineup
+                - name
+                - status
+            type: object
+        TournamentInput:
+            properties:
+                entity_kind:
+                    type: string
+                match_config:
+                    $ref: '#/components/schemas/Config'
+                max_entrants:
+                    type: integer
+                min_entrants:
+                    type: integer
+                publish:
+                    type: boolean
+                registration_closes_at:
+                    format: date-time
+                    type: string
+                registration_opens_at:
+                    format: date-time
+                    type: string
+                rewards:
+                    $ref: '#/components/schemas/TournamentRewards'
+                round_ready_window_s:
+                    type: integer
+                starts_at:
+                    format: date-time
+                    type: string
+                texts:
+                    additionalProperties:
+                        $ref: '#/components/schemas/TournamentText'
+                    type: object
+            required:
+                - entity_kind
+                - match_config
+                - max_entrants
+                - min_entrants
+                - publish
+                - registration_closes_at
+                - registration_opens_at
+                - rewards
+                - starts_at
+                - texts
+            type: object
+        TournamentPlaceReward:
+            properties:
+                place:
+                    type: integer
+                xp:
+                    type: integer
+            required:
+                - place
+                - xp
+            type: object
+        TournamentPlay:
+            properties:
+                bracket_match:
+                    $ref: '#/components/schemas/TournamentBracketSlot'
+                match_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                present:
+                    items:
+                        format: uuid
+                        type: string
+                    type: array
+            required:
+                - bracket_match
+                - match_id
+                - present
+            type: object
+        TournamentRegistration:
+            properties:
+                lineup:
+                    items:
+                        format: uuid
+                        type: string
+                    type: array
+                team_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+            type: object
+        TournamentRewards:
+            properties:
+                participation_xp:
+                    type: integer
+                places:
+                    items:
+                        $ref: '#/components/schemas/TournamentPlaceReward'
+                    type: array
+            required:
+                - participation_xp
+                - places
+            type: object
+        TournamentText:
+            properties:
+                description:
+                    type:
+                        - string
+                        - "null"
+                name:
+                    type: string
+            required:
+                - name
+            type: object
+        TournamentUpdate:
+            properties:
+                status:
+                    type: string
+            required:
+                - status
+            type: object
+        Tournaments:
+            properties:
+                tournaments:
+                    items:
+                        $ref: '#/components/schemas/Tournament'
+                    type: array
+            required:
+                - tournaments
+            type: object
         Translation:
             properties:
                 explanation:
@@ -3649,6 +3948,164 @@ paths:
             tags:
                 - creator
             x-auth: mod
+    /v1/admin/tournaments:
+        post:
+            operationId: postV1AdminTournaments
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+                - description: Client-generated UUID; repeats within 24 h replay the stored response (conventions.md §9)
+                  in: header
+                  name: Idempotency-Key
+                  required: true
+                  schema:
+                    format: uuid
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TournamentInput'
+                required: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Tournament'
+                    description: Created
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: IDEMPOTENCY_KEY_REUSED, IDEMPOTENT_REQUEST_IN_PROGRESS'
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MODE_NOT_ALLOWED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Create a tournament (draft or open for registration; D-031, D-090)
+            tags:
+                - tournament
+            x-auth: adm
+    /v1/admin/tournaments/{id}:
+        patch:
+            operationId: patchV1AdminTournamentsId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TournamentUpdate'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Tournament'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MATCH_STATE_INVALID'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Publish a draft or cancel a tournament
+            tags:
+                - tournament
+            x-auth: adm
     /v1/badges:
         get:
             operationId: getV1Badges
@@ -10958,6 +11415,453 @@ paths:
             tags:
                 - team
             x-auth: member
+    /v1/tournaments:
+        get:
+            operationId: getV1Tournaments
+            parameters:
+                - in: query
+                  name: status
+                  required: false
+                  schema:
+                    enum:
+                        - registration
+                        - running
+                        - finished
+                        - cancelled
+                        - draft
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Tournaments'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Tournaments, newest start first, with the caller's entry
+            tags:
+                - tournament
+            x-auth: any
+    /v1/tournaments/{id}:
+        get:
+            operationId: getV1TournamentsId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TournamentDetail'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: A tournament with its entries, bracket and the caller's current match
+            tags:
+                - tournament
+            x-auth: any
+    /v1/tournaments/{id}/check-in:
+        post:
+            operationId: postV1TournamentsIdCheckIn
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TournamentEntry'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MATCH_STATE_INVALID'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Check in during the hour before the start; only checked-in entries play
+            tags:
+                - tournament
+            x-auth: full
+    /v1/tournaments/{id}/entries:
+        post:
+            operationId: postV1TournamentsIdEntries
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+                - description: Client-generated UUID; repeats within 24 h replay the stored response (conventions.md §9)
+                  in: header
+                  name: Idempotency-Key
+                  required: true
+                  schema:
+                    format: uuid
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/TournamentRegistration'
+                required: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TournamentEntry'
+                    description: Created
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_UPGRADE_REQUIRED, NOT_CAPTAIN, TOURNAMENT_REQUIREMENTS_NOT_MET'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: IDEMPOTENCY_KEY_REUSED, IDEMPOTENT_REQUEST_IN_PROGRESS, TOURNAMENT_FULL, TOURNAMENT_REGISTRATION_CLOSED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Register as a user, the caller's couple, or a team (captain, with its lineup; D-090)
+            tags:
+                - tournament
+            x-auth: full
+    /v1/tournaments/{id}/entries/mine:
+        delete:
+            operationId: deleteV1TournamentsIdEntriesMine
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_CAPTAIN'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MATCH_STATE_INVALID'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Withdraw before the start
+            tags:
+                - tournament
+            x-auth: full
+    /v1/tournaments/{id}/play:
+        post:
+            operationId: postV1TournamentsIdPlay
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TournamentPlay'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ALREADY_IN_MATCH, MATCH_STATE_INVALID'
+                "422":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MODE_NOT_ALLOWED, NOT_ENOUGH_QUESTIONS'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Show up for the current bracket match; the match starts when both sides are present
+            tags:
+                - tournament
+            x-auth: full
     /v1/ws:
         get:
             operationId: getV1Ws

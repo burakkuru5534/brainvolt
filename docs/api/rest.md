@@ -151,11 +151,12 @@
 ## 14. tournament
 | Method | Path | Auth | Idem | Ph | Purpose |
 |---|---|---|---|---|---|
-| GET | `/v1/tournaments?status=` · `/v1/tournaments/{id}` | any | — | 9 | List / detail with bracket. |
-| POST | `/v1/tournaments/{id}/entries` | full | ✓ | 9 | Register (user / team / couple, with lineup). |
-| DELETE | `/v1/tournaments/{id}/entries/mine` | full | — | 9 | Withdraw before start. |
-| POST | `/v1/tournaments/{id}/check-in` | full | — | 9 | Check in. |
-| POST / PATCH | `/v1/admin/tournaments` · `/v1/admin/tournaments/{id}` | adm | ✓ | 9 | Create / manage (D-031). |
+| GET | `/v1/tournaments?status=` · `/v1/tournaments/{id}` | any | — | 9 | List (with the caller's `my_entry`) / detail with entries, bracket, `rounds` and the caller's current `my_match` (D-090). Drafts only for staff. |
+| POST | `/v1/tournaments/{id}/entries` | full | optional | 9 | Register while registration is open: user, the caller's active couple, or a team (captain, `{team_id, lineup}` of current members, size = side size). `TOURNAMENT_FULL`, `TOURNAMENT_REGISTRATION_CLOSED`, `TOURNAMENT_REQUIREMENTS_NOT_MET` (already in, no couple). |
+| DELETE | `/v1/tournaments/{id}/entries/mine` | full | — | 9 | Withdraw before the start (team: captain). |
+| POST | `/v1/tournaments/{id}/check-in` | full | — | 9 | Check in during the hour before `starts_at`; entries that did not check in are withdrawn at the start. |
+| POST | `/v1/tournaments/{id}/play` | full | — | 9 | Show up for one's current bracket match within its ready window (`present`); when every player of both entries is present the match is created through game and `match_id` returned (`tournament.match_ready` to all). |
+| POST / PATCH | `/v1/admin/tournaments` · `/v1/admin/tournaments/{id}` | adm | optional | 9 | Create (texts tr/en, entity kind, match config with origin `tournament`, entrants 2–64, dates, ready window 60–3600 s, XP rewards per place, `publish`) / publish a draft or cancel (D-031, D-090). |
 
 ## 15. commerce
 | Method | Path | Auth | Idem | Ph | Purpose |

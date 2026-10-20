@@ -39,6 +39,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/social"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/team"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/tournament"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/config"
@@ -180,6 +181,7 @@ type modules struct {
 	game        *game.Module
 	matchmaking *matchmaking.Module
 	lobby       *lobby.Module
+	tournament  *tournament.Module
 }
 
 // registerModules builds the modules and their routes. The wiring follows
@@ -228,7 +230,14 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 		Events: d.bus, Clock: d.clock, Logger: d.logger,
 	})
 	lob.Register(srv, ident, d.idem)
-	return modules{identity: ident, profile: prof, content: cont, realtime: rt, social: soc, team: tm, ranking: rk, moderation: mod, progression: prog, game: g, matchmaking: mm, lobby: lob}
+	tour := tournament.New(tournament.Deps{
+		DB: d.db, Game: g, Profiles: prof, Teams: tm, Pusher: pusher{rt}, Events: d.bus, Clock: d.clock, Logger: d.logger,
+	})
+	tour.Register(srv, ident, d.idem)
+	return modules{
+		identity: ident, profile: prof, content: cont, realtime: rt, social: soc, team: tm, ranking: rk, moderation: mod, progression: prog,
+		game: g, matchmaking: mm, lobby: lob, tournament: tour,
+	}
 }
 
 // pusher sends personal messages through realtime (ranking and
@@ -290,7 +299,23 @@ func newBus(db *pgxpool.Pool, rdb *redis.Client, logger *slog.Logger, push notif
 	bus.Subscribe(team.EventCoupleRequested, notification.SubscriberCoupleRequest, notif.OnCoupleRequested)
 	bus.Subscribe(moderation.EventSanctionApplied, notification.SubscriberSanction, notif.OnSanctionApplied)
 	bus.Subscribe(chat.EventMessageSent, notification.SubscriberChatMessage, notif.OnChatMessage)
+	// tournament: results move the bracket on (schema-platform §3, D-090).
+	tour := newTournament(db, rdb, bus, logger)
+	bus.Subscribe(game.EventMatchCompleted, tournament.SubscriberMatchResults, tour.OnMatchCompleted)
+	bus.Subscribe(game.EventMatchCancelled, tournament.SubscriberMatchCancelled, tour.OnMatchCancelled)
+	bus.Subscribe(tournament.EventRoundScheduled, notification.SubscriberTournamentRound, notif.OnTournamentRound)
+	bus.Subscribe(tournament.EventFinished, notification.SubscriberTournamentFinished, notif.OnTournamentFinished)
+	bus.Subscribe(tournament.EventFinished, progression.SubscriberTournamentRewards, prog.OnTournamentFinished)
 	return bus
+}
+
+// newTournament builds tournament for the worker: no game (matches are
+// created from the API), bracket changes pushed through realtime.
+func newTournament(db *pgxpool.Pool, rdb *redis.Client, bus *events.Bus, logger *slog.Logger) *tournament.Module {
+	return tournament.New(tournament.Deps{
+		DB: db, Profiles: profile.New(db, clock.Real{}), Teams: team.New(team.Deps{DB: db, Clock: clock.Real{}}),
+		Pusher: workerPusher(rdb, logger), Events: bus, Clock: clock.Real{}, Logger: logger,
+	})
 }
 
 // newNotification builds notification for delivery in the worker: names
@@ -367,7 +392,7 @@ func NewWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) (*Ap
 	workers := river.NewWorkers()
 	bus.AddWorker(workers)
 	periodic := addJobs(workers, newRanking(db, rdb, bus, logger), content.New(db, clock.Real{}, bus), newNotification(db, rdb, logger, push),
-		chat.New(chat.Deps{DB: db, Clock: clock.Real{}}))
+		chat.New(chat.Deps{DB: db, Clock: clock.Real{}}), newTournament(db, rdb, bus, logger))
 	client, err := river.NewClient(riverpgxv5.New(db), &river.Config{
 		Queues:       map[string]river.QueueConfig{river.QueueDefault: {MaxWorkers: 10}},
 		Workers:      workers,

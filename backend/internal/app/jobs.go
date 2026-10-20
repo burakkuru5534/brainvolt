@@ -11,6 +11,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/notification"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/ranking"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/tournament"
 )
 
 // maintenanceInterval paces the worker's periodic jobs.
@@ -35,9 +36,15 @@ type notificationPurgeArgs struct{}
 
 func (notificationPurgeArgs) Kind() string { return "notification.purge" }
 
+// tournamentTickArgs starts due tournaments and decides bracket matches
+// whose ready window closed (D-090).
+type tournamentTickArgs struct{}
+
+func (tournamentTickArgs) Kind() string { return "tournament.tick" }
+
 // addJobs registers the worker's periodic jobs and returns their
 // schedules; River runs them on the elected leader only.
-func addJobs(workers *river.Workers, rk *ranking.Module, cont *content.Module, notif *notification.Module, ch *chat.Module) []*river.PeriodicJob {
+func addJobs(workers *river.Workers, rk *ranking.Module, cont *content.Module, notif *notification.Module, ch *chat.Module, tour *tournament.Module) []*river.PeriodicJob {
 	river.AddWorker(workers, river.WorkFunc(func(ctx context.Context, _ *river.Job[notificationPurgeArgs]) error {
 		if err := ch.Purge(ctx); err != nil {
 			return err
@@ -56,7 +63,13 @@ func addJobs(workers *river.Workers, rk *ranking.Module, cont *content.Module, n
 		}
 		return nil
 	}))
+	river.AddWorker(workers, river.WorkFunc(func(ctx context.Context, _ *river.Job[tournamentTickArgs]) error {
+		return tour.Tick(ctx)
+	}))
 	return []*river.PeriodicJob{
+		river.NewPeriodicJob(river.PeriodicInterval(time.Minute), func() (river.JobArgs, *river.InsertOpts) {
+			return tournamentTickArgs{}, &river.InsertOpts{UniqueOpts: river.UniqueOpts{ByPeriod: time.Minute}}
+		}, &river.PeriodicJobOpts{RunOnStart: true}),
 		river.NewPeriodicJob(river.PeriodicInterval(24*time.Hour), func() (river.JobArgs, *river.InsertOpts) {
 			return notificationPurgeArgs{}, &river.InsertOpts{UniqueOpts: river.UniqueOpts{ByPeriod: 24 * time.Hour}}
 		}, nil),

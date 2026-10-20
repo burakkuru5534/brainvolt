@@ -178,10 +178,12 @@ CREATE TABLE tournament.bracket_matches (
   winner_entry_id uuid        REFERENCES tournament.entries(id),
   status          text        NOT NULL CHECK (status IN ('pending','ready','in_progress','done','walkover')),
   scheduled_at    timestamptz,
+  ready_until     timestamptz,                       -- scheduled_at + round_ready_window_s (D-090)
+  present         uuid[]      NOT NULL DEFAULT '{}', -- players who pressed Play in the window (D-090)
   PRIMARY KEY (tournament_id, bracket_side, round_no, slot_no)
 );
 ```
-Rules (P): admin-created tournaments only at launch; entrants need a **full account**; no-show within the ready window = walkover; voided matches (D-030) re-resolve the bracket slot by admin decision.
+Rules (P): admin-created tournaments only at launch; entrants need a **full account**; no-show within the ready window = walkover; voided matches (D-030) re-resolve the bracket slot by admin decision. **Launch scope (D-090):** `single_elimination` only (the other bracket types stay in the schema), entries `lineup` is always filled (user → the user, couple → both partners, team → the captain's lineup), random seeding of the checked-in entries with byes for the top seeds, a draw goes to the higher seed (golden rounds come later), and `entry_requirements` is not used yet.
 
 ---
 

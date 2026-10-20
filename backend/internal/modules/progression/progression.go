@@ -26,6 +26,8 @@ const (
 	SubscriberMatchAwards  = "progression.match_awards"
 	SubscriberSeasonReward = "progression.season_rewards"
 	SubscriberDailyRewards = "progression.daily_rewards"
+	// SubscriberTournamentRewards gives tournament placement XP (D-090).
+	SubscriberTournamentRewards = "progression.tournament_rewards"
 )
 
 // MsgAwards is the personal match.awards message.
@@ -71,6 +73,11 @@ func (m *Module) OnMatchCompleted(ctx context.Context, e events.Envelope) error 
 // OnSeasonEnded consumes ranking.SeasonEnded: season badges.
 func (m *Module) OnSeasonEnded(ctx context.Context, e events.Envelope) error {
 	return m.svc.OnSeasonEnded(ctx, e, seasons{m.ranking})
+}
+
+// OnTournamentFinished handles tournament.TournamentFinished.
+func (m *Module) OnTournamentFinished(ctx context.Context, e events.Envelope) error {
+	return m.svc.OnTournamentFinished(ctx, e)
 }
 
 // seasons adapts ranking's season results.

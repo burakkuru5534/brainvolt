@@ -926,3 +926,57 @@ type TeamTeam struct {
 	UpdatedAt     time.Time
 	DisbandedAt   *time.Time
 }
+
+type TournamentBracketMatch struct {
+	TournamentID  uuid.UUID
+	RoundNo       int16
+	SlotNo        int16
+	BracketSide   string
+	EntryAID      *uuid.UUID
+	EntryBID      *uuid.UUID
+	MatchID       *uuid.UUID
+	WinnerEntryID *uuid.UUID
+	Status        string
+	ScheduledAt   *time.Time
+	ReadyUntil    *time.Time
+	Present       []uuid.UUID
+}
+
+type TournamentEntry struct {
+	ID           uuid.UUID
+	TournamentID uuid.UUID
+	EntityKind   string
+	EntityID     uuid.UUID
+	Lineup       []uuid.UUID
+	Seed         *int32
+	Status       string
+	FinalPlace   *int32
+	RegisteredAt time.Time
+}
+
+type TournamentTournament struct {
+	ID                   uuid.UUID
+	Status               string
+	BracketType          string
+	EntityKind           string
+	MatchConfig          []byte
+	IsRated              bool
+	MinEntrants          int32
+	MaxEntrants          int32
+	EntryRequirements    []byte
+	RegistrationOpensAt  time.Time
+	RegistrationClosesAt time.Time
+	StartsAt             time.Time
+	RoundReadyWindowS    int32
+	Rewards              []byte
+	CreatedBy            uuid.UUID
+	CreatedAt            time.Time
+	FinishedAt           *time.Time
+}
+
+type TournamentTournamentTranslation struct {
+	TournamentID uuid.UUID
+	Locale       string
+	Name         string
+	Description  *string
+}
