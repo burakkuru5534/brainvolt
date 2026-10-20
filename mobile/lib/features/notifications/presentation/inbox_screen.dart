@@ -44,6 +44,7 @@ IconData _icon(String category) => switch (category) {
   'friend' => Icons.person_add_alt_1,
   'team' => Icons.groups,
   'chat' => Icons.chat_bubble_rounded,
+  'tournament' => Icons.military_tech,
   'moderation' => Icons.gavel,
   'quest' => Icons.flag,
   'season' => Icons.emoji_events,

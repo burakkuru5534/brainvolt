@@ -2064,6 +2064,274 @@
   "@revengeWaiting": {
     "description": "Revenge sent, waiting for the winners"
   },
+  "tournamentsTitle": "Turnuvalar",
+  "@tournamentsTitle": {
+    "description": "Tournaments screen title"
+  },
+  "homeTournamentsSub": "Kupayı kazan",
+  "@homeTournamentsSub": {
+    "description": "Home tile subtitle"
+  },
+  "tournamentStatusRegistration": "Kayıt açık",
+  "@tournamentStatusRegistration": {
+    "description": "Tournament status"
+  },
+  "tournamentStatusRunning": "Devam ediyor",
+  "@tournamentStatusRunning": {
+    "description": "Tournament status"
+  },
+  "tournamentStatusFinished": "Bitti",
+  "@tournamentStatusFinished": {
+    "description": "Tournament status"
+  },
+  "tournamentStatusCancelled": "İptal edildi",
+  "@tournamentStatusCancelled": {
+    "description": "Tournament status"
+  },
+  "tournamentStatusDraft": "Taslak",
+  "@tournamentStatusDraft": {
+    "description": "Tournament status"
+  },
+  "tournamentCheckedIn": "Check-in yapıldı",
+  "@tournamentCheckedIn": {
+    "description": "Entry status"
+  },
+  "tournamentPlaying": "Turnuvada",
+  "@tournamentPlaying": {
+    "description": "Entry status"
+  },
+  "tournamentPlace": "{place}. oldun",
+  "@tournamentPlace": {
+    "description": "Final place",
+    "placeholders": {
+      "place": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentChampion": "Şampiyon! 🏆",
+  "@tournamentChampion": {
+    "description": "Entry status: won"
+  },
+  "tournamentRegistered": "Kayıtlı",
+  "@tournamentRegistered": {
+    "description": "Entry status"
+  },
+  "tournamentKindCouple": "Çiftler",
+  "@tournamentKindCouple": {
+    "description": "Entry kind"
+  },
+  "tournamentKindTeam": "Takımlar {format}",
+  "@tournamentKindTeam": {
+    "description": "Entry kind with format",
+    "placeholders": {
+      "format": {
+        "type": "String"
+      }
+    }
+  },
+  "tournamentKindSolo": "Bireysel",
+  "@tournamentKindSolo": {
+    "description": "Entry kind"
+  },
+  "tournamentCreate": "Turnuva oluştur",
+  "@tournamentCreate": {
+    "description": "Admin action"
+  },
+  "tournamentsEmpty": "Şu an turnuva yok. Yenileri yakında!",
+  "@tournamentsEmpty": {
+    "description": "Empty list"
+  },
+  "tournamentEntrants": "{count}/{max} katılımcı",
+  "@tournamentEntrants": {
+    "description": "Entrant count",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentBracket": "Eşleşme tablosu",
+  "@tournamentBracket": {
+    "description": "Section title"
+  },
+  "tournamentRegister": "Kayıt ol",
+  "@tournamentRegister": {
+    "description": "Button"
+  },
+  "tournamentCheckedInInfo": "Check-in tamam. Turnuva başlayınca maçın burada görünecek.",
+  "@tournamentCheckedInInfo": {
+    "description": "Info"
+  },
+  "tournamentCheckInNow": "Check-in açık! Oynamak için check-in yap.",
+  "@tournamentCheckInNow": {
+    "description": "Info"
+  },
+  "tournamentCheckInAt": "Check-in {time} itibarıyla açılır. Check-in yapmayanlar turnuvaya alınmaz.",
+  "@tournamentCheckInAt": {
+    "description": "Info",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "tournamentCheckIn": "Check-in yap",
+  "@tournamentCheckIn": {
+    "description": "Button"
+  },
+  "tournamentWithdraw": "Kaydı geri çek",
+  "@tournamentWithdraw": {
+    "description": "Button"
+  },
+  "tournamentYourMatch": "{round}. tur: rakibin {name}",
+  "@tournamentYourMatch": {
+    "description": "Current match",
+    "placeholders": {
+      "round": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tournamentWaitingOpponent": "Buradasın. Rakibin bekleniyor…",
+  "@tournamentWaitingOpponent": {
+    "description": "Info"
+  },
+  "tournamentReadyLeft": "Katılmak için kalan süre: {time}",
+  "@tournamentReadyLeft": {
+    "description": "Countdown",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "tournamentGoToMatch": "Maça git",
+  "@tournamentGoToMatch": {
+    "description": "Button"
+  },
+  "tournamentPlay": "Oyna",
+  "@tournamentPlay": {
+    "description": "Button"
+  },
+  "tournamentWaitingRound": "Sıradaki turu bekliyorsun.",
+  "@tournamentWaitingRound": {
+    "description": "Info"
+  },
+  "tournamentStarts": "Başlangıç: {time}",
+  "@tournamentStarts": {
+    "description": "Header",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "tournamentRewardLine": "{place}.: {xp} XP",
+  "@tournamentRewardLine": {
+    "description": "Reward",
+    "placeholders": {
+      "place": {
+        "type": "int"
+      },
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentFinal": "Final",
+  "@tournamentFinal": {
+    "description": "Round name"
+  },
+  "tournamentSemiFinal": "Yarı final",
+  "@tournamentSemiFinal": {
+    "description": "Round name"
+  },
+  "tournamentRound": "{round}. tur",
+  "@tournamentRound": {
+    "description": "Round name",
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentBye": "Bay",
+  "@tournamentBye": {
+    "description": "No opponent"
+  },
+  "tournamentWalkover": "Hükmen",
+  "@tournamentWalkover": {
+    "description": "Slot decided without a match"
+  },
+  "tournamentPickLineup": "Takımını ve {size} oyuncuyu seç",
+  "@tournamentPickLineup": {
+    "description": "Lineup sheet",
+    "placeholders": {
+      "size": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentNoCaptainTeam": "Kaptanı olduğun bir takım yok.",
+  "@tournamentNoCaptainTeam": {
+    "description": "Lineup sheet"
+  },
+  "tournamentNameTr": "Ad (Türkçe)",
+  "@tournamentNameTr": {
+    "description": "Form"
+  },
+  "tournamentNameEn": "Ad (İngilizce, isteğe bağlı)",
+  "@tournamentNameEn": {
+    "description": "Form"
+  },
+  "tournamentKind": "Katılım",
+  "@tournamentKind": {
+    "description": "Form"
+  },
+  "tournamentFormat": "Takım boyutu",
+  "@tournamentFormat": {
+    "description": "Form"
+  },
+  "tournamentMatchType": "Maç türü",
+  "@tournamentMatchType": {
+    "description": "Form"
+  },
+  "tournamentMax": "En fazla katılımcı",
+  "@tournamentMax": {
+    "description": "Form"
+  },
+  "tournamentStartIn": "Başlamasına",
+  "@tournamentStartIn": {
+    "description": "Form"
+  },
+  "tournamentMinutes": "{minutes} dk",
+  "@tournamentMinutes": {
+    "description": "Minutes",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentWindow": "Maça katılma süresi",
+  "@tournamentWindow": {
+    "description": "Form"
+  },
+  "tournamentCreateHint": "Kayıt hemen açılır, başlangıçta kapanır. Check-in son 1 saatte. Ödüller: 1. 300 XP, 2. 150 XP, 3. 75 XP, diğerleri 20 XP.",
+  "@tournamentCreateHint": {
+    "description": "Form hint"
+  },
+  "tournamentMatchStarted": "Turnuva maçın başladı!",
+  "@tournamentMatchStarted": {
+    "description": "Snack bar"
+  },
   "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
   "@error_ACCOUNT_DELETION_PENDING": {
     "description": "Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md)."

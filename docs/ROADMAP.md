@@ -489,7 +489,7 @@ Goal: the platform features of schema-platform.md (notifications, team chat, tou
 
 ### 9.4 Tournaments (schema-platform §3)
 - [x] 9.4.1 Admin-created tournaments, registration (full accounts), brackets, match scheduling through lobby, rewards — `tournament` module: single elimination, check-in, ready windows with walkovers, matches through game, XP rewards and notices (D-090)
-- [ ] 9.4.2 Mobile: list, registration, bracket, tournament matches
+- [x] 9.4.2 Mobile: list, registration, bracket, tournament matches — tournaments list (home tile), detail with register / check-in / withdraw, team lineup sheet, bracket columns, Play with the ready countdown, admin create form (D-090)
 
 ### 9.5 Commerce (schema-platform §4) — needs the owner's store and ad accounts
 - [ ] 9.5.1 Premium subscription: store purchase verification (App Store / Play), entitlements, webhooks

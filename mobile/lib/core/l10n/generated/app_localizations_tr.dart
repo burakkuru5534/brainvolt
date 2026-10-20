@@ -1461,6 +1461,184 @@ class AppLocalizationsTr extends AppLocalizations {
   String get revengeWaiting => 'Rövanş cevabı bekleniyor…';
 
   @override
+  String get tournamentsTitle => 'Turnuvalar';
+
+  @override
+  String get homeTournamentsSub => 'Kupayı kazan';
+
+  @override
+  String get tournamentStatusRegistration => 'Kayıt açık';
+
+  @override
+  String get tournamentStatusRunning => 'Devam ediyor';
+
+  @override
+  String get tournamentStatusFinished => 'Bitti';
+
+  @override
+  String get tournamentStatusCancelled => 'İptal edildi';
+
+  @override
+  String get tournamentStatusDraft => 'Taslak';
+
+  @override
+  String get tournamentCheckedIn => 'Check-in yapıldı';
+
+  @override
+  String get tournamentPlaying => 'Turnuvada';
+
+  @override
+  String tournamentPlace(int place) {
+    return '$place. oldun';
+  }
+
+  @override
+  String get tournamentChampion => 'Şampiyon! 🏆';
+
+  @override
+  String get tournamentRegistered => 'Kayıtlı';
+
+  @override
+  String get tournamentKindCouple => 'Çiftler';
+
+  @override
+  String tournamentKindTeam(String format) {
+    return 'Takımlar $format';
+  }
+
+  @override
+  String get tournamentKindSolo => 'Bireysel';
+
+  @override
+  String get tournamentCreate => 'Turnuva oluştur';
+
+  @override
+  String get tournamentsEmpty => 'Şu an turnuva yok. Yenileri yakında!';
+
+  @override
+  String tournamentEntrants(int count, int max) {
+    return '$count/$max katılımcı';
+  }
+
+  @override
+  String get tournamentBracket => 'Eşleşme tablosu';
+
+  @override
+  String get tournamentRegister => 'Kayıt ol';
+
+  @override
+  String get tournamentCheckedInInfo =>
+      'Check-in tamam. Turnuva başlayınca maçın burada görünecek.';
+
+  @override
+  String get tournamentCheckInNow =>
+      'Check-in açık! Oynamak için check-in yap.';
+
+  @override
+  String tournamentCheckInAt(String time) {
+    return 'Check-in $time itibarıyla açılır. Check-in yapmayanlar turnuvaya alınmaz.';
+  }
+
+  @override
+  String get tournamentCheckIn => 'Check-in yap';
+
+  @override
+  String get tournamentWithdraw => 'Kaydı geri çek';
+
+  @override
+  String tournamentYourMatch(int round, String name) {
+    return '$round. tur: rakibin $name';
+  }
+
+  @override
+  String get tournamentWaitingOpponent => 'Buradasın. Rakibin bekleniyor…';
+
+  @override
+  String tournamentReadyLeft(String time) {
+    return 'Katılmak için kalan süre: $time';
+  }
+
+  @override
+  String get tournamentGoToMatch => 'Maça git';
+
+  @override
+  String get tournamentPlay => 'Oyna';
+
+  @override
+  String get tournamentWaitingRound => 'Sıradaki turu bekliyorsun.';
+
+  @override
+  String tournamentStarts(String time) {
+    return 'Başlangıç: $time';
+  }
+
+  @override
+  String tournamentRewardLine(int place, int xp) {
+    return '$place.: $xp XP';
+  }
+
+  @override
+  String get tournamentFinal => 'Final';
+
+  @override
+  String get tournamentSemiFinal => 'Yarı final';
+
+  @override
+  String tournamentRound(int round) {
+    return '$round. tur';
+  }
+
+  @override
+  String get tournamentBye => 'Bay';
+
+  @override
+  String get tournamentWalkover => 'Hükmen';
+
+  @override
+  String tournamentPickLineup(int size) {
+    return 'Takımını ve $size oyuncuyu seç';
+  }
+
+  @override
+  String get tournamentNoCaptainTeam => 'Kaptanı olduğun bir takım yok.';
+
+  @override
+  String get tournamentNameTr => 'Ad (Türkçe)';
+
+  @override
+  String get tournamentNameEn => 'Ad (İngilizce, isteğe bağlı)';
+
+  @override
+  String get tournamentKind => 'Katılım';
+
+  @override
+  String get tournamentFormat => 'Takım boyutu';
+
+  @override
+  String get tournamentMatchType => 'Maç türü';
+
+  @override
+  String get tournamentMax => 'En fazla katılımcı';
+
+  @override
+  String get tournamentStartIn => 'Başlamasına';
+
+  @override
+  String tournamentMinutes(int minutes) {
+    return '$minutes dk';
+  }
+
+  @override
+  String get tournamentWindow => 'Maça katılma süresi';
+
+  @override
+  String get tournamentCreateHint =>
+      'Kayıt hemen açılır, başlangıçta kapanır. Check-in son 1 saatte. Ödüller: 1. 300 XP, 2. 150 XP, 3. 75 XP, diğerleri 20 XP.';
+
+  @override
+  String get tournamentMatchStarted => 'Turnuva maçın başladı!';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.';
 

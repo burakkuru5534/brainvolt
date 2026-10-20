@@ -37,6 +37,8 @@ import 'package:brainvolt/features/social/data/social_providers.dart';
 import 'package:brainvolt/features/social/domain/social_repository.dart';
 import 'package:brainvolt/features/team/data/team_providers.dart';
 import 'package:brainvolt/features/team/domain/team_repository.dart';
+import 'package:brainvolt/features/tournament/data/tournament_providers.dart';
+import 'package:brainvolt/features/tournament/domain/tournament_repository.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -171,6 +173,9 @@ class FakeSessionRepository implements SessionRepository {
   DateTime? deletionRequestedAt;
   AccountStatus status = AccountStatus.active;
 
+  /// Staff roles of the signed-in user.
+  List<String> roles = const [];
+
   @override
   Future<Session> sync() async {
     calls.add('sync');
@@ -190,6 +195,7 @@ class FakeSessionRepository implements SessionRepository {
       tier: tier,
       status: status,
       deletionRequestedAt: deletionRequestedAt,
+      roles: roles,
     );
   }
 
@@ -225,8 +231,13 @@ Session testSession({
   AccountStatus status = AccountStatus.active,
   DateTime? deletionRequestedAt,
   String displayName = 'Misafir 1234',
+  List<String> roles = const [],
 }) => Session(
-  user: SessionUser(id: 'user-$uid', deletionRequestedAt: deletionRequestedAt),
+  user: SessionUser(
+    id: 'user-$uid',
+    roles: roles,
+    deletionRequestedAt: deletionRequestedAt,
+  ),
   profile: ProfileSummary(
     username: 'oyuncu12345',
     displayName: displayName,
@@ -834,6 +845,49 @@ class FakeNotificationRepository implements NotificationRepository {
   }
 }
 
+/// Tournaments in memory: [details] by id; [played] is what play returns.
+class FakeTournamentRepository implements TournamentRepository {
+  final calls = <String>[];
+  List<Tournament> tournaments = [];
+  Map<String, TournamentDetail> details = {};
+  String? played;
+
+  @override
+  Future<List<Tournament>> list() async => tournaments;
+
+  @override
+  Future<TournamentDetail> get(String id) async => details[id]!;
+
+  @override
+  Future<void> register(
+    String id, {
+    String? teamId,
+    List<String>? lineup,
+  }) async => calls.add(
+    'register:$id${teamId == null ? '' : ':$teamId:${lineup!.join(',')}'}',
+  );
+
+  @override
+  Future<void> withdraw(String id) async => calls.add('withdraw:$id');
+
+  @override
+  Future<void> checkIn(String id) async => calls.add('check-in:$id');
+
+  @override
+  Future<String?> play(String id) async {
+    calls.add('play:$id');
+    return played;
+  }
+
+  @override
+  Future<String> create(TournamentDraft d) async {
+    calls.add(
+      'create:${d.nameTr}:${d.entityKind}:${d.format}:${d.maxEntrants}',
+    );
+    return 'new-t';
+  }
+}
+
 class FakeChatRepository implements ChatRepository {
   final calls = <String>[];
   List<ChatMessage> messages = [];
@@ -928,6 +982,7 @@ class TestApp {
     this.notifications,
     this.share,
     this.chat,
+    this.tournaments,
   );
 
   /// [ageConfirmed] skips the age gate; [user] is an already signed-in user.
@@ -955,6 +1010,7 @@ class TestApp {
     final notifications = FakeNotificationRepository();
     final share = FakeShareService();
     final chat = FakeChatRepository();
+    final tournaments = FakeTournamentRepository();
     final sockets = <FakeSocket>[];
     final container = ProviderContainer(
       retry: noRetry,
@@ -983,6 +1039,7 @@ class TestApp {
         notificationRepositoryProvider.overrideWithValue(notifications),
         shareServiceProvider.overrideWithValue(share),
         chatRepositoryProvider.overrideWithValue(chat),
+        tournamentRepositoryProvider.overrideWithValue(tournaments),
         realtimeClientProvider.overrideWith((ref) {
           final client = RealtimeClient(
             url: Uri.parse('ws://test/v1/ws'),
@@ -1018,6 +1075,7 @@ class TestApp {
       notifications,
       share,
       chat,
+      tournaments,
     );
   }
 
@@ -1034,6 +1092,7 @@ class TestApp {
   final FakeNotificationRepository notifications;
   final FakeShareService share;
   final FakeChatRepository chat;
+  final FakeTournamentRepository tournaments;
 
   /// Every WebSocket the app opened, newest last.
   final List<FakeSocket> sockets;

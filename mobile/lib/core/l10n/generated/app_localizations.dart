@@ -2726,6 +2726,312 @@ abstract class AppLocalizations {
   /// **'Rövanş cevabı bekleniyor…'**
   String get revengeWaiting;
 
+  /// Tournaments screen title
+  ///
+  /// In tr, this message translates to:
+  /// **'Turnuvalar'**
+  String get tournamentsTitle;
+
+  /// Home tile subtitle
+  ///
+  /// In tr, this message translates to:
+  /// **'Kupayı kazan'**
+  String get homeTournamentsSub;
+
+  /// Tournament status
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıt açık'**
+  String get tournamentStatusRegistration;
+
+  /// Tournament status
+  ///
+  /// In tr, this message translates to:
+  /// **'Devam ediyor'**
+  String get tournamentStatusRunning;
+
+  /// Tournament status
+  ///
+  /// In tr, this message translates to:
+  /// **'Bitti'**
+  String get tournamentStatusFinished;
+
+  /// Tournament status
+  ///
+  /// In tr, this message translates to:
+  /// **'İptal edildi'**
+  String get tournamentStatusCancelled;
+
+  /// Tournament status
+  ///
+  /// In tr, this message translates to:
+  /// **'Taslak'**
+  String get tournamentStatusDraft;
+
+  /// Entry status
+  ///
+  /// In tr, this message translates to:
+  /// **'Check-in yapıldı'**
+  String get tournamentCheckedIn;
+
+  /// Entry status
+  ///
+  /// In tr, this message translates to:
+  /// **'Turnuvada'**
+  String get tournamentPlaying;
+
+  /// Final place
+  ///
+  /// In tr, this message translates to:
+  /// **'{place}. oldun'**
+  String tournamentPlace(int place);
+
+  /// Entry status: won
+  ///
+  /// In tr, this message translates to:
+  /// **'Şampiyon! 🏆'**
+  String get tournamentChampion;
+
+  /// Entry status
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıtlı'**
+  String get tournamentRegistered;
+
+  /// Entry kind
+  ///
+  /// In tr, this message translates to:
+  /// **'Çiftler'**
+  String get tournamentKindCouple;
+
+  /// Entry kind with format
+  ///
+  /// In tr, this message translates to:
+  /// **'Takımlar {format}'**
+  String tournamentKindTeam(String format);
+
+  /// Entry kind
+  ///
+  /// In tr, this message translates to:
+  /// **'Bireysel'**
+  String get tournamentKindSolo;
+
+  /// Admin action
+  ///
+  /// In tr, this message translates to:
+  /// **'Turnuva oluştur'**
+  String get tournamentCreate;
+
+  /// Empty list
+  ///
+  /// In tr, this message translates to:
+  /// **'Şu an turnuva yok. Yenileri yakında!'**
+  String get tournamentsEmpty;
+
+  /// Entrant count
+  ///
+  /// In tr, this message translates to:
+  /// **'{count}/{max} katılımcı'**
+  String tournamentEntrants(int count, int max);
+
+  /// Section title
+  ///
+  /// In tr, this message translates to:
+  /// **'Eşleşme tablosu'**
+  String get tournamentBracket;
+
+  /// Button
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıt ol'**
+  String get tournamentRegister;
+
+  /// Info
+  ///
+  /// In tr, this message translates to:
+  /// **'Check-in tamam. Turnuva başlayınca maçın burada görünecek.'**
+  String get tournamentCheckedInInfo;
+
+  /// Info
+  ///
+  /// In tr, this message translates to:
+  /// **'Check-in açık! Oynamak için check-in yap.'**
+  String get tournamentCheckInNow;
+
+  /// Info
+  ///
+  /// In tr, this message translates to:
+  /// **'Check-in {time} itibarıyla açılır. Check-in yapmayanlar turnuvaya alınmaz.'**
+  String tournamentCheckInAt(String time);
+
+  /// Button
+  ///
+  /// In tr, this message translates to:
+  /// **'Check-in yap'**
+  String get tournamentCheckIn;
+
+  /// Button
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydı geri çek'**
+  String get tournamentWithdraw;
+
+  /// Current match
+  ///
+  /// In tr, this message translates to:
+  /// **'{round}. tur: rakibin {name}'**
+  String tournamentYourMatch(int round, String name);
+
+  /// Info
+  ///
+  /// In tr, this message translates to:
+  /// **'Buradasın. Rakibin bekleniyor…'**
+  String get tournamentWaitingOpponent;
+
+  /// Countdown
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılmak için kalan süre: {time}'**
+  String tournamentReadyLeft(String time);
+
+  /// Button
+  ///
+  /// In tr, this message translates to:
+  /// **'Maça git'**
+  String get tournamentGoToMatch;
+
+  /// Button
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyna'**
+  String get tournamentPlay;
+
+  /// Info
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıradaki turu bekliyorsun.'**
+  String get tournamentWaitingRound;
+
+  /// Header
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlangıç: {time}'**
+  String tournamentStarts(String time);
+
+  /// Reward
+  ///
+  /// In tr, this message translates to:
+  /// **'{place}.: {xp} XP'**
+  String tournamentRewardLine(int place, int xp);
+
+  /// Round name
+  ///
+  /// In tr, this message translates to:
+  /// **'Final'**
+  String get tournamentFinal;
+
+  /// Round name
+  ///
+  /// In tr, this message translates to:
+  /// **'Yarı final'**
+  String get tournamentSemiFinal;
+
+  /// Round name
+  ///
+  /// In tr, this message translates to:
+  /// **'{round}. tur'**
+  String tournamentRound(int round);
+
+  /// No opponent
+  ///
+  /// In tr, this message translates to:
+  /// **'Bay'**
+  String get tournamentBye;
+
+  /// Slot decided without a match
+  ///
+  /// In tr, this message translates to:
+  /// **'Hükmen'**
+  String get tournamentWalkover;
+
+  /// Lineup sheet
+  ///
+  /// In tr, this message translates to:
+  /// **'Takımını ve {size} oyuncuyu seç'**
+  String tournamentPickLineup(int size);
+
+  /// Lineup sheet
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaptanı olduğun bir takım yok.'**
+  String get tournamentNoCaptainTeam;
+
+  /// Form
+  ///
+  /// In tr, this message translates to:
+  /// **'Ad (Türkçe)'**
+  String get tournamentNameTr;
+
+  /// Form
+  ///
+  /// In tr, this message translates to:
+  /// **'Ad (İngilizce, isteğe bağlı)'**
+  String get tournamentNameEn;
+
+  /// Form
+  ///
+  /// In tr, this message translates to:
+  /// **'Katılım'**
+  String get tournamentKind;
+
+  /// Form
+  ///
+  /// In tr, this message translates to:
+  /// **'Takım boyutu'**
+  String get tournamentFormat;
+
+  /// Form
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç türü'**
+  String get tournamentMatchType;
+
+  /// Form
+  ///
+  /// In tr, this message translates to:
+  /// **'En fazla katılımcı'**
+  String get tournamentMax;
+
+  /// Form
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlamasına'**
+  String get tournamentStartIn;
+
+  /// Minutes
+  ///
+  /// In tr, this message translates to:
+  /// **'{minutes} dk'**
+  String tournamentMinutes(int minutes);
+
+  /// Form
+  ///
+  /// In tr, this message translates to:
+  /// **'Maça katılma süresi'**
+  String get tournamentWindow;
+
+  /// Form hint
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıt hemen açılır, başlangıçta kapanır. Check-in son 1 saatte. Ödüller: 1. 300 XP, 2. 150 XP, 3. 75 XP, diğerleri 20 XP.'**
+  String get tournamentCreateHint;
+
+  /// Snack bar
+  ///
+  /// In tr, this message translates to:
+  /// **'Turnuva maçın başladı!'**
+  String get tournamentMatchStarted;
+
   /// Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md).
   ///
   /// In tr, this message translates to:

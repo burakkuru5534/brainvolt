@@ -155,6 +155,13 @@ class HomeScreen extends ConsumerWidget {
                   l10n.homeQuizzesSub,
                   () => context.push(Routes.quizzes),
                 ),
+                _Tile(
+                  const Key('open-tournaments'),
+                  Icons.emoji_events_outlined,
+                  l10n.tournamentsTitle,
+                  l10n.homeTournamentsSub,
+                  () => context.push(Routes.tournaments),
+                ),
               ],
             ),
             if (dev) ...[

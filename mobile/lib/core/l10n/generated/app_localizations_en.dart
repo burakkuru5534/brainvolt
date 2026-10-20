@@ -1462,6 +1462,184 @@ class AppLocalizationsEn extends AppLocalizations {
   String get revengeWaiting => 'Waiting for their answer…';
 
   @override
+  String get tournamentsTitle => 'Tournaments';
+
+  @override
+  String get homeTournamentsSub => 'Win the cup';
+
+  @override
+  String get tournamentStatusRegistration => 'Registration open';
+
+  @override
+  String get tournamentStatusRunning => 'In progress';
+
+  @override
+  String get tournamentStatusFinished => 'Finished';
+
+  @override
+  String get tournamentStatusCancelled => 'Cancelled';
+
+  @override
+  String get tournamentStatusDraft => 'Draft';
+
+  @override
+  String get tournamentCheckedIn => 'Checked in';
+
+  @override
+  String get tournamentPlaying => 'Playing';
+
+  @override
+  String tournamentPlace(int place) {
+    return 'Place $place';
+  }
+
+  @override
+  String get tournamentChampion => 'Champion! 🏆';
+
+  @override
+  String get tournamentRegistered => 'Registered';
+
+  @override
+  String get tournamentKindCouple => 'Couples';
+
+  @override
+  String tournamentKindTeam(String format) {
+    return 'Teams $format';
+  }
+
+  @override
+  String get tournamentKindSolo => 'Solo';
+
+  @override
+  String get tournamentCreate => 'Create tournament';
+
+  @override
+  String get tournamentsEmpty => 'No tournaments right now. New ones soon!';
+
+  @override
+  String tournamentEntrants(int count, int max) {
+    return '$count/$max entrants';
+  }
+
+  @override
+  String get tournamentBracket => 'Bracket';
+
+  @override
+  String get tournamentRegister => 'Register';
+
+  @override
+  String get tournamentCheckedInInfo =>
+      'You\'re checked in. Your match shows here when the tournament starts.';
+
+  @override
+  String get tournamentCheckInNow => 'Check-in is open! Check in to play.';
+
+  @override
+  String tournamentCheckInAt(String time) {
+    return 'Check-in opens at $time. Only checked-in entries play.';
+  }
+
+  @override
+  String get tournamentCheckIn => 'Check in';
+
+  @override
+  String get tournamentWithdraw => 'Withdraw';
+
+  @override
+  String tournamentYourMatch(int round, String name) {
+    return 'Round $round: you play $name';
+  }
+
+  @override
+  String get tournamentWaitingOpponent =>
+      'You\'re in. Waiting for your opponent…';
+
+  @override
+  String tournamentReadyLeft(String time) {
+    return 'Time left to show up: $time';
+  }
+
+  @override
+  String get tournamentGoToMatch => 'Go to match';
+
+  @override
+  String get tournamentPlay => 'Play';
+
+  @override
+  String get tournamentWaitingRound => 'Waiting for your next round.';
+
+  @override
+  String tournamentStarts(String time) {
+    return 'Starts: $time';
+  }
+
+  @override
+  String tournamentRewardLine(int place, int xp) {
+    return '#$place: $xp XP';
+  }
+
+  @override
+  String get tournamentFinal => 'Final';
+
+  @override
+  String get tournamentSemiFinal => 'Semi-final';
+
+  @override
+  String tournamentRound(int round) {
+    return 'Round $round';
+  }
+
+  @override
+  String get tournamentBye => 'Bye';
+
+  @override
+  String get tournamentWalkover => 'Walkover';
+
+  @override
+  String tournamentPickLineup(int size) {
+    return 'Pick your team and $size players';
+  }
+
+  @override
+  String get tournamentNoCaptainTeam => 'You aren\'t captain of any team.';
+
+  @override
+  String get tournamentNameTr => 'Name (Turkish)';
+
+  @override
+  String get tournamentNameEn => 'Name (English, optional)';
+
+  @override
+  String get tournamentKind => 'Entrants';
+
+  @override
+  String get tournamentFormat => 'Team size';
+
+  @override
+  String get tournamentMatchType => 'Match type';
+
+  @override
+  String get tournamentMax => 'Max entrants';
+
+  @override
+  String get tournamentStartIn => 'Starts in';
+
+  @override
+  String tournamentMinutes(int minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get tournamentWindow => 'Time to show up';
+
+  @override
+  String get tournamentCreateHint =>
+      'Registration opens now and closes at the start. Check-in in the last hour. Rewards: 1st 300 XP, 2nd 150 XP, 3rd 75 XP, others 20 XP.';
+
+  @override
+  String get tournamentMatchStarted => 'Your tournament match is on!';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Your account is being deleted. You can only cancel the deletion.';
 

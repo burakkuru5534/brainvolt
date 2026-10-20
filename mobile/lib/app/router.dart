@@ -33,6 +33,7 @@ import '../features/progress/presentation/leaderboards_screen.dart';
 import '../features/progress/presentation/quests_screen.dart';
 import '../features/social/presentation/friends_screen.dart';
 import '../features/team/presentation/teams_screen.dart';
+import '../features/tournament/presentation/tournament_screens.dart';
 import 'session_controller.dart';
 
 part 'router.g.dart';
@@ -55,6 +56,9 @@ abstract final class Routes {
   static const modes = '/modes';
   static const teams = '/teams';
   static const leaderboards = '/leaderboards';
+  static const tournaments = '/tournaments';
+  static const tournamentNew = '/tournaments/new';
+  static String tournament(String id) => '/tournaments/$id';
   static const quests = '/quests';
   static const badges = '/badges';
   static const daily = '/daily';
@@ -213,6 +217,19 @@ GoRouter router(Ref ref) {
         path: '/rooms/:id',
         builder: (context, state) =>
             RoomScreen(roomId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: Routes.tournaments,
+        builder: (context, state) => const TournamentsScreen(),
+      ),
+      GoRoute(
+        path: Routes.tournamentNew,
+        builder: (context, state) => const CreateTournamentScreen(),
+      ),
+      GoRoute(
+        path: '/tournaments/:id',
+        builder: (context, state) =>
+            TournamentScreen(id: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/chat/team/:id',
