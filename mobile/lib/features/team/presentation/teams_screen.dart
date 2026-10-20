@@ -280,6 +280,18 @@ class _CoupleTile extends ConsumerWidget {
               onPressed: () =>
                   _run(context, ref, () => repo.respondCouple(c.id, 'accept')),
             ),
+          if (!pending)
+            IconButton(
+              key: const Key('couple-chat'),
+              tooltip: l10n.chatOpen,
+              icon: const Icon(Icons.chat_bubble_outline),
+              onPressed: () => context.push(
+                Routes.coupleChat(
+                  c.id,
+                  c.name ?? l10n.coupleWith(partner.displayName),
+                ),
+              ),
+            ),
           if (pending)
             IconButton(
               tooltip: l10n.decline,
@@ -392,7 +404,17 @@ class TeamScreen extends ConsumerWidget {
     };
     return switch (ref.watch(teamProvider(teamId))) {
       AsyncData(value: final t) => Scaffold(
-        appBar: AppBar(title: Text('[${t.tag}] ${t.name}')),
+        appBar: AppBar(
+          title: Text('[${t.tag}] ${t.name}'),
+          actions: [
+            IconButton(
+              key: const Key('team-chat'),
+              tooltip: l10n.chatOpen,
+              icon: const Icon(Icons.chat_bubble_outline),
+              onPressed: () => context.push(Routes.teamChat(t.id, t.name)),
+            ),
+          ],
+        ),
         body: ListView(
           children: [
             for (final m in t.members)

@@ -2612,6 +2612,102 @@ abstract class AppLocalizations {
   /// **'{correct}/{total} doğru'**
   String shareCorrectOf(int correct, int total);
 
+  /// Chat screen title
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbet'**
+  String get chatTitle;
+
+  /// Composer hint
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesaj yaz…'**
+  String get chatHint;
+
+  /// Send tooltip
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönder'**
+  String get chatSend;
+
+  /// Empty chat
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz mesaj yok. İlk mesajı sen yaz!'**
+  String get chatEmpty;
+
+  /// Removed message
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu mesaj silindi.'**
+  String get chatRemoved;
+
+  /// Typing indicator
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} yazıyor…'**
+  String chatTyping(String name);
+
+  /// Delete action
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesajı sil'**
+  String get chatDelete;
+
+  /// Open chat tooltip
+  ///
+  /// In tr, this message translates to:
+  /// **'Sohbeti aç'**
+  String get chatOpen;
+
+  /// Quick phrase
+  ///
+  /// In tr, this message translates to:
+  /// **'Bol şans!'**
+  String get chatQuickGoodLuck;
+
+  /// Quick phrase
+  ///
+  /// In tr, this message translates to:
+  /// **'İyi oyundu!'**
+  String get chatQuickWellPlayed;
+
+  /// Quick phrase
+  ///
+  /// In tr, this message translates to:
+  /// **'Harika!'**
+  String get chatQuickNice;
+
+  /// Quick phrase
+  ///
+  /// In tr, this message translates to:
+  /// **'Teşekkürler!'**
+  String get chatQuickThanks;
+
+  /// Quick phrase
+  ///
+  /// In tr, this message translates to:
+  /// **'Hay aksi!'**
+  String get chatQuickOops;
+
+  /// Quick phrase
+  ///
+  /// In tr, this message translates to:
+  /// **'Hadi başlayalım!'**
+  String get chatQuickLetsGo;
+
+  /// Quick phrase
+  ///
+  /// In tr, this message translates to:
+  /// **'GG'**
+  String get chatQuickGg;
+
+  /// Quick phrase
+  ///
+  /// In tr, this message translates to:
+  /// **'Rövanş?'**
+  String get chatQuickRematch;
+
   /// Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md).
   ///
   /// In tr, this message translates to:

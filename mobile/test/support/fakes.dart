@@ -11,6 +11,8 @@ import 'package:brainvolt/features/auth/data/auth_providers.dart';
 import 'package:brainvolt/features/auth/domain/auth_repository.dart';
 import 'package:brainvolt/features/auth/domain/session.dart';
 import 'package:brainvolt/features/auth/domain/session_repository.dart';
+import 'package:brainvolt/features/chat/data/chat_providers.dart';
+import 'package:brainvolt/features/chat/domain/chat_repository.dart';
 import 'package:brainvolt/features/content/data/content_providers.dart';
 import 'package:brainvolt/features/content/domain/content_repository.dart';
 import 'package:brainvolt/features/content/domain/credit.dart';
@@ -832,6 +834,35 @@ class FakeNotificationRepository implements NotificationRepository {
   }
 }
 
+class FakeChatRepository implements ChatRepository {
+  final calls = <String>[];
+  List<ChatMessage> messages = [];
+
+  @override
+  Future<ChatChannel> open({String? teamId, String? coupleId}) async {
+    calls.add('open:${teamId ?? coupleId}');
+    return const ChatChannel(
+      id: 'ch1',
+      members: [
+        UserCard(userId: 'user-guest-1', displayName: 'Ben'),
+        UserCard(userId: 'u-ali', displayName: 'Ali'),
+      ],
+      unread: 0,
+    );
+  }
+
+  @override
+  Future<List<ChatMessage>> history(String channelId, {String? before}) async =>
+      messages.reversed.toList();
+
+  @override
+  Future<void> read(String channelId, String lastId) async =>
+      calls.add('read:$lastId');
+
+  @override
+  Future<void> remove(String messageId) async => calls.add('remove:$messageId');
+}
+
 class FakeShareService implements ShareService {
   final shared = <String>[];
 
@@ -896,6 +927,7 @@ class TestApp {
     this.creator,
     this.notifications,
     this.share,
+    this.chat,
   );
 
   /// [ageConfirmed] skips the age gate; [user] is an already signed-in user.
@@ -922,6 +954,7 @@ class TestApp {
     final creator = FakeCreatorRepository();
     final notifications = FakeNotificationRepository();
     final share = FakeShareService();
+    final chat = FakeChatRepository();
     final sockets = <FakeSocket>[];
     final container = ProviderContainer(
       retry: noRetry,
@@ -949,6 +982,7 @@ class TestApp {
         creatorRepositoryProvider.overrideWithValue(creator),
         notificationRepositoryProvider.overrideWithValue(notifications),
         shareServiceProvider.overrideWithValue(share),
+        chatRepositoryProvider.overrideWithValue(chat),
         realtimeClientProvider.overrideWith((ref) {
           final client = RealtimeClient(
             url: Uri.parse('ws://test/v1/ws'),
@@ -983,6 +1017,7 @@ class TestApp {
       creator,
       notifications,
       share,
+      chat,
     );
   }
 
@@ -998,6 +1033,7 @@ class TestApp {
   final FakeCreatorRepository creator;
   final FakeNotificationRepository notifications;
   final FakeShareService share;
+  final FakeChatRepository chat;
 
   /// Every WebSocket the app opened, newest last.
   final List<FakeSocket> sockets;

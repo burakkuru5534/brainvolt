@@ -1978,6 +1978,75 @@
       }
     }
   },
+  "chatTitle": "Sohbet",
+  "@chatTitle": {
+    "description": "Chat screen title"
+  },
+  "chatHint": "Mesaj yaz…",
+  "@chatHint": {
+    "description": "Composer hint"
+  },
+  "chatSend": "Gönder",
+  "@chatSend": {
+    "description": "Send tooltip"
+  },
+  "chatEmpty": "Henüz mesaj yok. İlk mesajı sen yaz!",
+  "@chatEmpty": {
+    "description": "Empty chat"
+  },
+  "chatRemoved": "Bu mesaj silindi.",
+  "@chatRemoved": {
+    "description": "Removed message"
+  },
+  "chatTyping": "{name} yazıyor…",
+  "@chatTyping": {
+    "description": "Typing indicator",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatDelete": "Mesajı sil",
+  "@chatDelete": {
+    "description": "Delete action"
+  },
+  "chatOpen": "Sohbeti aç",
+  "@chatOpen": {
+    "description": "Open chat tooltip"
+  },
+  "chatQuickGoodLuck": "Bol şans!",
+  "@chatQuickGoodLuck": {
+    "description": "Quick phrase"
+  },
+  "chatQuickWellPlayed": "İyi oyundu!",
+  "@chatQuickWellPlayed": {
+    "description": "Quick phrase"
+  },
+  "chatQuickNice": "Harika!",
+  "@chatQuickNice": {
+    "description": "Quick phrase"
+  },
+  "chatQuickThanks": "Teşekkürler!",
+  "@chatQuickThanks": {
+    "description": "Quick phrase"
+  },
+  "chatQuickOops": "Hay aksi!",
+  "@chatQuickOops": {
+    "description": "Quick phrase"
+  },
+  "chatQuickLetsGo": "Hadi başlayalım!",
+  "@chatQuickLetsGo": {
+    "description": "Quick phrase"
+  },
+  "chatQuickGg": "GG",
+  "@chatQuickGg": {
+    "description": "Quick phrase"
+  },
+  "chatQuickRematch": "Rövanş?",
+  "@chatQuickRematch": {
+    "description": "Quick phrase"
+  },
   "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
   "@error_ACCOUNT_DELETION_PENDING": {
     "description": "Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md)."

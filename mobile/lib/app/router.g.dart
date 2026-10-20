@@ -55,4 +55,4 @@ final class RouterProvider
   }
 }
 
-String _$routerHash() => r'9b8311832af523462a9fcd2ec239d082321d3182';
+String _$routerHash() => r'f00152b9b4d5d0976bdb4ce9dc8dad3943fb50ac';

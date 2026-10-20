@@ -9,6 +9,7 @@ import '../features/auth/presentation/age_gate_screen.dart';
 import '../features/auth/presentation/email_auth_screen.dart';
 import '../features/auth/presentation/splash_screen.dart';
 import '../features/auth/presentation/verify_email_screen.dart';
+import '../features/chat/presentation/chat_screen.dart';
 import '../features/content/presentation/credits_screen.dart';
 import '../features/creator/presentation/quiz_editor_screen.dart';
 import '../features/creator/presentation/quizzes_screen.dart';
@@ -60,6 +61,12 @@ abstract final class Routes {
   static const sanctions = '/sanctions';
   static const quizzes = '/quizzes';
   static const inbox = '/inbox';
+  static String teamChat(String id, String title) =>
+      Uri(path: '/chat/team/$id', queryParameters: {'title': title}).toString();
+  static String coupleChat(String id, String title) => Uri(
+    path: '/chat/couple/$id',
+    queryParameters: {'title': title},
+  ).toString();
   static const notificationSettings = '/settings/notifications';
   static const quizNew = '/quizzes/new';
   static String quiz(String id) => '/quizzes/$id';
@@ -206,6 +213,20 @@ GoRouter router(Ref ref) {
         path: '/rooms/:id',
         builder: (context, state) =>
             RoomScreen(roomId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/chat/team/:id',
+        builder: (context, state) => ChatScreen(
+          teamId: state.pathParameters['id'],
+          title: state.uri.queryParameters['title'],
+        ),
+      ),
+      GoRoute(
+        path: '/chat/couple/:id',
+        builder: (context, state) => ChatScreen(
+          coupleId: state.pathParameters['id'],
+          title: state.uri.queryParameters['title'],
+        ),
       ),
       GoRoute(
         path: Routes.inbox,

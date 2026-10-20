@@ -1401,6 +1401,56 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get chatTitle => 'Chat';
+
+  @override
+  String get chatHint => 'Write a message…';
+
+  @override
+  String get chatSend => 'Send';
+
+  @override
+  String get chatEmpty => 'No messages yet. Say hello!';
+
+  @override
+  String get chatRemoved => 'This message was removed.';
+
+  @override
+  String chatTyping(String name) {
+    return '$name is typing…';
+  }
+
+  @override
+  String get chatDelete => 'Delete message';
+
+  @override
+  String get chatOpen => 'Open chat';
+
+  @override
+  String get chatQuickGoodLuck => 'Good luck!';
+
+  @override
+  String get chatQuickWellPlayed => 'Well played!';
+
+  @override
+  String get chatQuickNice => 'Nice!';
+
+  @override
+  String get chatQuickThanks => 'Thanks!';
+
+  @override
+  String get chatQuickOops => 'Oops!';
+
+  @override
+  String get chatQuickLetsGo => 'Let\'s go!';
+
+  @override
+  String get chatQuickGg => 'GG';
+
+  @override
+  String get chatQuickRematch => 'Rematch?';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Your account is being deleted. You can only cancel the deletion.';
 

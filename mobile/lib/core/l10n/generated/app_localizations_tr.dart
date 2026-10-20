@@ -1400,6 +1400,56 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String get chatTitle => 'Sohbet';
+
+  @override
+  String get chatHint => 'Mesaj yaz…';
+
+  @override
+  String get chatSend => 'Gönder';
+
+  @override
+  String get chatEmpty => 'Henüz mesaj yok. İlk mesajı sen yaz!';
+
+  @override
+  String get chatRemoved => 'Bu mesaj silindi.';
+
+  @override
+  String chatTyping(String name) {
+    return '$name yazıyor…';
+  }
+
+  @override
+  String get chatDelete => 'Mesajı sil';
+
+  @override
+  String get chatOpen => 'Sohbeti aç';
+
+  @override
+  String get chatQuickGoodLuck => 'Bol şans!';
+
+  @override
+  String get chatQuickWellPlayed => 'İyi oyundu!';
+
+  @override
+  String get chatQuickNice => 'Harika!';
+
+  @override
+  String get chatQuickThanks => 'Teşekkürler!';
+
+  @override
+  String get chatQuickOops => 'Hay aksi!';
+
+  @override
+  String get chatQuickLetsGo => 'Hadi başlayalım!';
+
+  @override
+  String get chatQuickGg => 'GG';
+
+  @override
+  String get chatQuickRematch => 'Rövanş?';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.';
 
