@@ -116,4 +116,37 @@ void main() {
     expect(t.moderation.appeals, ['s1:Hile yapmadım, lütfen kontrol edin.']);
     await finish(tester, t);
   });
+
+  testWidgets('result: share the match as a card', (tester) async {
+    final t = await launch(tester, (t) {
+      t.matches.matchResult = const MatchResult(
+        id: 'm1',
+        status: 'completed',
+        scores: [612, 431],
+        winnerSide: 1,
+        players: [
+          ResultPlayer(
+            userId: 'user-guest-1',
+            side: 1,
+            displayName: 'Ben',
+            avatarId: 'penguin',
+            correct: 5,
+            status: 'finished',
+          ),
+        ],
+        rounds: [],
+      );
+    });
+    t.container.read(routerProvider).go(Routes.matchResult('m1'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('share-result')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('share-card')), findsOneWidget);
+    expect(find.text('612 — 431'), findsNWidgets(2));
+    await tester.tap(find.byKey(const Key('share-send')));
+    await tester.pumpAndSettle();
+    expect(t.share.shared, ["BrainVolt'ta 612—431: Kazandın! Sıra sende!"]);
+    expect(find.byKey(const Key('share-card')), findsNothing);
+    await finish(tester, t);
+  });
 }

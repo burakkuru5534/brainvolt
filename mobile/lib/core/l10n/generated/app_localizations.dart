@@ -2582,6 +2582,36 @@ abstract class AppLocalizations {
   /// **'Bildirimler'**
   String get settingsNotifications;
 
+  /// Share button
+  ///
+  /// In tr, this message translates to:
+  /// **'Paylaş'**
+  String get shareAction;
+
+  /// Share tooltip
+  ///
+  /// In tr, this message translates to:
+  /// **'Sonucu paylaş'**
+  String get shareResult;
+
+  /// Share text for a match
+  ///
+  /// In tr, this message translates to:
+  /// **'BrainVolt\'ta {score}: {result} Sıra sende!'**
+  String shareMatchText(String score, String result);
+
+  /// Share text for a daily run
+  ///
+  /// In tr, this message translates to:
+  /// **'BrainVolt Günün Meydan Okuması: {correct}/10 doğru. Sen kaç yaparsın?'**
+  String shareDailyText(int correct);
+
+  /// Correct answers line
+  ///
+  /// In tr, this message translates to:
+  /// **'{correct}/{total} doğru'**
+  String shareCorrectOf(int correct, int total);
+
   /// Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md).
   ///
   /// In tr, this message translates to:

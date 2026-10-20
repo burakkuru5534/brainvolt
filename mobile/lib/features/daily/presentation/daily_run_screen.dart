@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/realtime/realtime_client.dart';
 import '../../../core/realtime/realtime_providers.dart';
+import '../../../core/share/result_card.dart';
 import '../../../core/widgets/bv.dart';
 import '../../match/presentation/play_error_text.dart';
 import 'daily_screen.dart';
@@ -270,6 +271,30 @@ class _DailyRunScreenState extends ConsumerState<DailyRunScreen> {
             key: const Key('daily-run-result'),
           ),
           const SizedBox(height: 16),
+          OutlinedButton.icon(
+            key: const Key('daily-share'),
+            icon: const Icon(Icons.ios_share),
+            label: Text(l10n.shareAction),
+            onPressed: () async {
+              final correct = (d['correct_count'] as num?)?.toInt() ?? 0;
+              await showShareCard(
+                context,
+                ref,
+                card: ResultCard(
+                  key: const Key('share-card'),
+                  headline: l10n.dailyTitle,
+                  big: '$correct/10',
+                  detail: l10n.dailyResult(
+                    correct,
+                    seconds((d['total_time_ms'] as num?)?.toInt() ?? 0),
+                  ),
+                  icon: Icons.today,
+                ),
+                text: l10n.shareDailyText(correct),
+              );
+            },
+          ),
+          const SizedBox(height: 8),
           FilledButton(
             key: const Key('daily-back'),
             onPressed: () => Navigator.of(context).maybePop(),

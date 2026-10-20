@@ -1379,6 +1379,27 @@ class AppLocalizationsTr extends AppLocalizations {
   String get settingsNotifications => 'Bildirimler';
 
   @override
+  String get shareAction => 'Paylaş';
+
+  @override
+  String get shareResult => 'Sonucu paylaş';
+
+  @override
+  String shareMatchText(String score, String result) {
+    return 'BrainVolt\'ta $score: $result Sıra sende!';
+  }
+
+  @override
+  String shareDailyText(int correct) {
+    return 'BrainVolt Günün Meydan Okuması: $correct/10 doğru. Sen kaç yaparsın?';
+  }
+
+  @override
+  String shareCorrectOf(int correct, int total) {
+    return '$correct/$total doğru';
+  }
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.';
 

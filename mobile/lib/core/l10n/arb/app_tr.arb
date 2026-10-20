@@ -1937,6 +1937,47 @@
   "@settingsNotifications": {
     "description": "Settings tile"
   },
+  "shareAction": "Paylaş",
+  "@shareAction": {
+    "description": "Share button"
+  },
+  "shareResult": "Sonucu paylaş",
+  "@shareResult": {
+    "description": "Share tooltip"
+  },
+  "shareMatchText": "BrainVolt'ta {score}: {result} Sıra sende!",
+  "@shareMatchText": {
+    "description": "Share text for a match",
+    "placeholders": {
+      "score": {
+        "type": "String"
+      },
+      "result": {
+        "type": "String"
+      }
+    }
+  },
+  "shareDailyText": "BrainVolt Günün Meydan Okuması: {correct}/10 doğru. Sen kaç yaparsın?",
+  "@shareDailyText": {
+    "description": "Share text for a daily run",
+    "placeholders": {
+      "correct": {
+        "type": "int"
+      }
+    }
+  },
+  "shareCorrectOf": "{correct}/{total} doğru",
+  "@shareCorrectOf": {
+    "description": "Correct answers line",
+    "placeholders": {
+      "correct": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
   "@error_ACCOUNT_DELETION_PENDING": {
     "description": "Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md)."

@@ -7,6 +7,7 @@ import '../../../app/router.dart';
 import '../../../app/session_controller.dart';
 import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/share/result_card.dart';
 import '../../../core/widgets/bv.dart';
 import '../../lobby/data/lobby_providers.dart';
 import '../../lobby/presentation/room_controller.dart';
@@ -42,7 +43,18 @@ class ResultScreen extends ConsumerWidget {
     };
     final result = ref.watch(matchResultProvider(matchId));
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.resultTitle)),
+      appBar: AppBar(
+        title: Text(l10n.resultTitle),
+        actions: [
+          if (result.value case final r? when r.status == 'completed')
+            IconButton(
+              key: const Key('share-result'),
+              tooltip: l10n.shareResult,
+              icon: const Icon(Icons.ios_share),
+              onPressed: () => _share(context, ref, r, me),
+            ),
+        ],
+      ),
       body: switch (result) {
         AsyncData(:final value) => _body(context, ref, value, me),
         AsyncError(:final error) => Center(
@@ -59,6 +71,37 @@ class ResultScreen extends ConsumerWidget {
         ),
         _ => const Center(child: CircularProgressIndicator()),
       },
+    );
+  }
+
+  Future<void> _share(
+    BuildContext context,
+    WidgetRef ref,
+    MatchResult r,
+    String me,
+  ) {
+    final l10n = context.l10n;
+    final mine = r.players.where((p) => p.userId == me).firstOrNull;
+    final side = mine?.side ?? 1;
+    final headline = switch (r) {
+      MatchResult(isDraw: true) => l10n.matchDraw,
+      _ when r.winnerSide == side => l10n.matchWon,
+      _ => l10n.matchLost,
+    };
+    final score = '${r.scores[side - 1]} — ${r.scores[2 - side]}';
+    return showShareCard(
+      context,
+      ref,
+      card: ResultCard(
+        key: const Key('share-card'),
+        headline: headline,
+        big: score,
+        detail: l10n.shareCorrectOf(mine?.correct ?? 0, r.rounds.length),
+        icon: r.winnerSide == side && !r.isDraw
+            ? Icons.emoji_events
+            : Icons.bolt,
+      ),
+      text: l10n.shareMatchText(score.replaceAll(' ', ''), headline),
     );
   }
 

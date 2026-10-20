@@ -1380,6 +1380,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsNotifications => 'Notifications';
 
   @override
+  String get shareAction => 'Share';
+
+  @override
+  String get shareResult => 'Share result';
+
+  @override
+  String shareMatchText(String score, String result) {
+    return 'BrainVolt $score: $result Your turn!';
+  }
+
+  @override
+  String shareDailyText(int correct) {
+    return 'BrainVolt Daily Challenge: $correct/10 correct. Can you beat it?';
+  }
+
+  @override
+  String shareCorrectOf(int correct, int total) {
+    return '$correct/$total correct';
+  }
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Your account is being deleted. You can only cancel the deletion.';
 

@@ -6,6 +6,7 @@ import 'package:brainvolt/app/providers.dart';
 import 'package:brainvolt/core/network/token_source.dart';
 import 'package:brainvolt/core/realtime/realtime_client.dart';
 import 'package:brainvolt/core/realtime/realtime_providers.dart';
+import 'package:brainvolt/core/share/share_service.dart';
 import 'package:brainvolt/features/auth/data/auth_providers.dart';
 import 'package:brainvolt/features/auth/domain/auth_repository.dart';
 import 'package:brainvolt/features/auth/domain/session.dart';
@@ -34,6 +35,7 @@ import 'package:brainvolt/features/social/data/social_providers.dart';
 import 'package:brainvolt/features/social/domain/social_repository.dart';
 import 'package:brainvolt/features/team/data/team_providers.dart';
 import 'package:brainvolt/features/team/domain/team_repository.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -830,6 +832,14 @@ class FakeNotificationRepository implements NotificationRepository {
   }
 }
 
+class FakeShareService implements ShareService {
+  final shared = <String>[];
+
+  @override
+  Future<void> shareImage(GlobalKey boundary, String text) async =>
+      shared.add(text);
+}
+
 class FakeSocket implements SocketConnection {
   final _in = StreamController<dynamic>();
   final sent = <Map<String, dynamic>>[];
@@ -885,6 +895,7 @@ class TestApp {
     this.moderation,
     this.creator,
     this.notifications,
+    this.share,
   );
 
   /// [ageConfirmed] skips the age gate; [user] is an already signed-in user.
@@ -910,6 +921,7 @@ class TestApp {
     final moderation = FakeModerationRepository();
     final creator = FakeCreatorRepository();
     final notifications = FakeNotificationRepository();
+    final share = FakeShareService();
     final sockets = <FakeSocket>[];
     final container = ProviderContainer(
       retry: noRetry,
@@ -936,6 +948,7 @@ class TestApp {
         moderationRepositoryProvider.overrideWithValue(moderation),
         creatorRepositoryProvider.overrideWithValue(creator),
         notificationRepositoryProvider.overrideWithValue(notifications),
+        shareServiceProvider.overrideWithValue(share),
         realtimeClientProvider.overrideWith((ref) {
           final client = RealtimeClient(
             url: Uri.parse('ws://test/v1/ws'),
@@ -969,6 +982,7 @@ class TestApp {
       moderation,
       creator,
       notifications,
+      share,
     );
   }
 
@@ -983,6 +997,7 @@ class TestApp {
   final FakeModerationRepository moderation;
   final FakeCreatorRepository creator;
   final FakeNotificationRepository notifications;
+  final FakeShareService share;
 
   /// Every WebSocket the app opened, newest last.
   final List<FakeSocket> sockets;

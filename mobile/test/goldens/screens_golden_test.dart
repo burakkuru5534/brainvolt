@@ -8,6 +8,7 @@ import 'package:brainvolt/app/app.dart';
 import 'package:brainvolt/app/router.dart';
 import 'package:brainvolt/app/theme.dart';
 import 'package:brainvolt/core/realtime/realtime_providers.dart';
+import 'package:brainvolt/core/share/result_card.dart';
 import 'package:brainvolt/features/match/domain/match_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -320,6 +321,33 @@ void main() {
         matchesGoldenFile('result_${mode.name}.png'),
       );
       await finish(tester, t);
+    });
+
+    testWidgets('share card ${mode.name}', (tester) async {
+      tester.view.physicalSize = const Size(1170, 1500);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: buildTheme(
+            mode == ThemeMode.dark ? Brightness.dark : Brightness.light,
+          ),
+          home: const Scaffold(
+            body: Center(
+              child: ResultCard(
+                headline: 'Kazandın!',
+                big: '612 — 431',
+                detail: '5/7 doğru',
+              ),
+            ),
+          ),
+        ),
+      );
+      await expectLater(
+        find.byType(ResultCard),
+        matchesGoldenFile('share_card_${mode.name}.png'),
+      );
     });
 
     testWidgets('room sheet ${mode.name}', (tester) async {
