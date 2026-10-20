@@ -34,6 +34,12 @@ type Deps struct {
 	Logger   *slog.Logger
 }
 
+// Events moderation publishes (schema-moderation §6).
+const (
+	EventSanctionApplied = service.EventSanctionApplied
+	EventSanctionLifted  = service.EventSanctionLifted
+)
+
 // Subscriptions to game events (anti-cheat signals, D-084).
 const (
 	SubscriberMatchSignals = "moderation.match_signals"

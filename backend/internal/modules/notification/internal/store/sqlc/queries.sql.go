@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const clearFcmTokenElsewhere = `-- name: ClearFcmTokenElsewhere :exec
@@ -27,6 +28,130 @@ type ClearFcmTokenElsewhereParams struct {
 func (q *Queries) ClearFcmTokenElsewhere(ctx context.Context, arg ClearFcmTokenElsewhereParams) error {
 	_, err := q.db.Exec(ctx, clearFcmTokenElsewhere, arg.FcmToken, arg.InstallationID)
 	return err
+}
+
+const inbox = `-- name: Inbox :many
+SELECT id, user_id, category, kind, params, deep_link, dedupe_key, created_at, read_at, expires_at FROM notification.inbox
+WHERE user_id = $1 AND expires_at > $2
+  AND ($3::timestamptz IS NULL OR created_at < $3::timestamptz)
+ORDER BY created_at DESC
+LIMIT $4
+`
+
+type InboxParams struct {
+	UserID uuid.UUID
+	Now    time.Time
+	Before *time.Time
+	Lim    int32
+}
+
+func (q *Queries) Inbox(ctx context.Context, arg InboxParams) ([]NotificationInbox, error) {
+	rows, err := q.db.Query(ctx, inbox,
+		arg.UserID,
+		arg.Now,
+		arg.Before,
+		arg.Lim,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []NotificationInbox{}
+	for rows.Next() {
+		var i NotificationInbox
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Category,
+			&i.Kind,
+			&i.Params,
+			&i.DeepLink,
+			&i.DedupeKey,
+			&i.CreatedAt,
+			&i.ReadAt,
+			&i.ExpiresAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const insertDelivery = `-- name: InsertDelivery :exec
+INSERT INTO notification.push_deliveries (id, inbox_id, device_id, status, fcm_message_id, error, attempted_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+`
+
+type InsertDeliveryParams struct {
+	ID           uuid.UUID
+	InboxID      uuid.UUID
+	DeviceID     uuid.UUID
+	Status       string
+	FcmMessageID *string
+	Error        *string
+	Now          time.Time
+}
+
+func (q *Queries) InsertDelivery(ctx context.Context, arg InsertDeliveryParams) error {
+	_, err := q.db.Exec(ctx, insertDelivery,
+		arg.ID,
+		arg.InboxID,
+		arg.DeviceID,
+		arg.Status,
+		arg.FcmMessageID,
+		arg.Error,
+		arg.Now,
+	)
+	return err
+}
+
+const insertInbox = `-- name: InsertInbox :one
+
+INSERT INTO notification.inbox (id, user_id, category, kind, params, deep_link, dedupe_key, created_at, expires_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+ON CONFLICT (user_id, dedupe_key) WHERE dedupe_key IS NOT NULL AND read_at IS NULL
+DO UPDATE SET params = EXCLUDED.params, deep_link = EXCLUDED.deep_link, created_at = EXCLUDED.created_at, expires_at = EXCLUDED.expires_at
+RETURNING id, (xmax = 0)::boolean AS inserted
+`
+
+type InsertInboxParams struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	Category  string
+	Kind      string
+	Params    []byte
+	DeepLink  *string
+	DedupeKey *string
+	Now       time.Time
+	ExpiresAt time.Time
+}
+
+type InsertInboxRow struct {
+	ID       uuid.UUID
+	Inserted bool
+}
+
+// ---------- Inbox (schema-platform §1) ----------
+// A repeat with the same unread dedupe key refreshes the existing item.
+func (q *Queries) InsertInbox(ctx context.Context, arg InsertInboxParams) (InsertInboxRow, error) {
+	row := q.db.QueryRow(ctx, insertInbox,
+		arg.ID,
+		arg.UserID,
+		arg.Category,
+		arg.Kind,
+		arg.Params,
+		arg.DeepLink,
+		arg.DedupeKey,
+		arg.Now,
+		arg.ExpiresAt,
+	)
+	var i InsertInboxRow
+	err := row.Scan(&i.ID, &i.Inserted)
+	return i, err
 }
 
 const listActiveDevices = `-- name: ListActiveDevices :many
@@ -64,6 +189,153 @@ func (q *Queries) ListActiveDevices(ctx context.Context, userID uuid.UUID) ([]No
 	return items, nil
 }
 
+const markRead = `-- name: MarkRead :exec
+UPDATE notification.inbox SET read_at = $1
+WHERE user_id = $2 AND read_at IS NULL AND ($3::boolean OR id = ANY($4::uuid[]))
+`
+
+type MarkReadParams struct {
+	Now    *time.Time
+	UserID uuid.UUID
+	Every  bool
+	Ids    []uuid.UUID
+}
+
+func (q *Queries) MarkRead(ctx context.Context, arg MarkReadParams) error {
+	_, err := q.db.Exec(ctx, markRead,
+		arg.Now,
+		arg.UserID,
+		arg.Every,
+		arg.Ids,
+	)
+	return err
+}
+
+const preferences = `-- name: Preferences :many
+
+SELECT category, push, in_app FROM notification.preferences WHERE user_id = $1
+`
+
+type PreferencesRow struct {
+	Category string
+	Push     bool
+	InApp    bool
+}
+
+// ---------- Preferences ----------
+func (q *Queries) Preferences(ctx context.Context, userID uuid.UUID) ([]PreferencesRow, error) {
+	rows, err := q.db.Query(ctx, preferences, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []PreferencesRow{}
+	for rows.Next() {
+		var i PreferencesRow
+		if err := rows.Scan(&i.Category, &i.Push, &i.InApp); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const purgeDeliveries = `-- name: PurgeDeliveries :execrows
+DELETE FROM notification.push_deliveries WHERE attempted_at < $1
+`
+
+func (q *Queries) PurgeDeliveries(ctx context.Context, before time.Time) (int64, error) {
+	result, err := q.db.Exec(ctx, purgeDeliveries, before)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const purgeInbox = `-- name: PurgeInbox :execrows
+DELETE FROM notification.inbox WHERE expires_at < $1
+`
+
+func (q *Queries) PurgeInbox(ctx context.Context, now time.Time) (int64, error) {
+	result, err := q.db.Exec(ctx, purgeInbox, now)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const pushTargets = `-- name: PushTargets :many
+
+SELECT id, fcm_token, locale FROM notification.devices
+WHERE user_id = $1 AND revoked_at IS NULL AND fcm_token IS NOT NULL
+`
+
+type PushTargetsRow struct {
+	ID       uuid.UUID
+	FcmToken *string
+	Locale   string
+}
+
+// ---------- Push ----------
+func (q *Queries) PushTargets(ctx context.Context, userID uuid.UUID) ([]PushTargetsRow, error) {
+	rows, err := q.db.Query(ctx, pushTargets, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []PushTargetsRow{}
+	for rows.Next() {
+		var i PushTargetsRow
+		if err := rows.Scan(&i.ID, &i.FcmToken, &i.Locale); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const pushesSince = `-- name: PushesSince :one
+SELECT count(DISTINCT d.inbox_id)::int FROM notification.push_deliveries d
+JOIN notification.devices v ON v.id = d.device_id
+WHERE v.user_id = $1 AND d.status = 'sent' AND d.attempted_at >= $2
+`
+
+type PushesSinceParams struct {
+	UserID uuid.UUID
+	Since  time.Time
+}
+
+// Pushes sent to a user's devices since @since (the hourly cap).
+func (q *Queries) PushesSince(ctx context.Context, arg PushesSinceParams) (int32, error) {
+	row := q.db.QueryRow(ctx, pushesSince, arg.UserID, arg.Since)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const quietHours = `-- name: QuietHours :one
+SELECT user_id, enabled, start_local, end_local, utc_offset_minutes FROM notification.quiet_hours WHERE user_id = $1
+`
+
+func (q *Queries) QuietHours(ctx context.Context, userID uuid.UUID) (NotificationQuietHour, error) {
+	row := q.db.QueryRow(ctx, quietHours, userID)
+	var i NotificationQuietHour
+	err := row.Scan(
+		&i.UserID,
+		&i.Enabled,
+		&i.StartLocal,
+		&i.EndLocal,
+		&i.UtcOffsetMinutes,
+	)
+	return i, err
+}
+
 const revokeDevice = `-- name: RevokeDevice :execrows
 UPDATE notification.devices SET revoked_at = $1::timestamptz, fcm_token = NULL
 WHERE user_id = $2 AND installation_id = $3 AND revoked_at IS NULL
@@ -81,6 +353,31 @@ func (q *Queries) RevokeDevice(ctx context.Context, arg RevokeDeviceParams) (int
 		return 0, err
 	}
 	return result.RowsAffected(), nil
+}
+
+const revokeToken = `-- name: RevokeToken :exec
+UPDATE notification.devices SET fcm_token = NULL WHERE id = $1
+`
+
+func (q *Queries) RevokeToken(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, revokeToken, id)
+	return err
+}
+
+const unreadCount = `-- name: UnreadCount :one
+SELECT count(*)::int FROM notification.inbox WHERE user_id = $1 AND read_at IS NULL AND expires_at > $2
+`
+
+type UnreadCountParams struct {
+	UserID uuid.UUID
+	Now    time.Time
+}
+
+func (q *Queries) UnreadCount(ctx context.Context, arg UnreadCountParams) (int32, error) {
+	row := q.db.QueryRow(ctx, unreadCount, arg.UserID, arg.Now)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const upsertDevice = `-- name: UpsertDevice :exec
@@ -121,6 +418,57 @@ func (q *Queries) UpsertDevice(ctx context.Context, arg UpsertDeviceParams) erro
 		arg.AppVersion,
 		arg.Locale,
 		arg.Now,
+	)
+	return err
+}
+
+const upsertPreference = `-- name: UpsertPreference :exec
+INSERT INTO notification.preferences (user_id, category, push, in_app, updated_at)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (user_id, category) DO UPDATE SET push = EXCLUDED.push, in_app = EXCLUDED.in_app, updated_at = EXCLUDED.updated_at
+`
+
+type UpsertPreferenceParams struct {
+	UserID   uuid.UUID
+	Category string
+	Push     bool
+	InApp    bool
+	Now      time.Time
+}
+
+func (q *Queries) UpsertPreference(ctx context.Context, arg UpsertPreferenceParams) error {
+	_, err := q.db.Exec(ctx, upsertPreference,
+		arg.UserID,
+		arg.Category,
+		arg.Push,
+		arg.InApp,
+		arg.Now,
+	)
+	return err
+}
+
+const upsertQuietHours = `-- name: UpsertQuietHours :exec
+INSERT INTO notification.quiet_hours (user_id, enabled, start_local, end_local, utc_offset_minutes)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (user_id) DO UPDATE SET enabled = EXCLUDED.enabled, start_local = EXCLUDED.start_local,
+  end_local = EXCLUDED.end_local, utc_offset_minutes = EXCLUDED.utc_offset_minutes
+`
+
+type UpsertQuietHoursParams struct {
+	UserID           uuid.UUID
+	Enabled          bool
+	StartLocal       pgtype.Time
+	EndLocal         pgtype.Time
+	UtcOffsetMinutes int16
+}
+
+func (q *Queries) UpsertQuietHours(ctx context.Context, arg UpsertQuietHoursParams) error {
+	_, err := q.db.Exec(ctx, upsertQuietHours,
+		arg.UserID,
+		arg.Enabled,
+		arg.StartLocal,
+		arg.EndLocal,
+		arg.UtcOffsetMinutes,
 	)
 	return err
 }

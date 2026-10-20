@@ -8,6 +8,7 @@ import (
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/content"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/notification"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/ranking"
 )
 
@@ -26,9 +27,18 @@ type dailySetArgs struct{}
 
 func (dailySetArgs) Kind() string { return "content.daily_sets" }
 
+// notificationPurgeArgs deletes expired inbox items and old push
+// delivery records (schema-platform §1).
+type notificationPurgeArgs struct{}
+
+func (notificationPurgeArgs) Kind() string { return "notification.purge" }
+
 // addJobs registers the worker's periodic jobs and returns their
 // schedules; River runs them on the elected leader only.
-func addJobs(workers *river.Workers, rk *ranking.Module, cont *content.Module) []*river.PeriodicJob {
+func addJobs(workers *river.Workers, rk *ranking.Module, cont *content.Module, notif *notification.Module) []*river.PeriodicJob {
+	river.AddWorker(workers, river.WorkFunc(func(ctx context.Context, _ *river.Job[notificationPurgeArgs]) error {
+		return notif.Purge(ctx)
+	}))
 	river.AddWorker(workers, river.WorkFunc(func(ctx context.Context, _ *river.Job[rankingMaintainArgs]) error {
 		return rk.Maintain(ctx)
 	}))
@@ -42,6 +52,9 @@ func addJobs(workers *river.Workers, rk *ranking.Module, cont *content.Module) [
 		return nil
 	}))
 	return []*river.PeriodicJob{
+		river.NewPeriodicJob(river.PeriodicInterval(24*time.Hour), func() (river.JobArgs, *river.InsertOpts) {
+			return notificationPurgeArgs{}, &river.InsertOpts{UniqueOpts: river.UniqueOpts{ByPeriod: 24 * time.Hour}}
+		}, nil),
 		river.NewPeriodicJob(river.PeriodicInterval(time.Hour), func() (river.JobArgs, *river.InsertOpts) {
 			return dailySetArgs{}, &river.InsertOpts{UniqueOpts: river.UniqueOpts{ByPeriod: time.Hour}}
 		}, &river.PeriodicJobOpts{RunOnStart: true}),

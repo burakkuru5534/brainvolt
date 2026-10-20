@@ -66,8 +66,10 @@ type (
 	}
 	// ChallengeAccepted is the payload of lobby.ChallengeAccepted.
 	ChallengeAccepted struct {
-		ChallengeID uuid.UUID `json:"challenge_id"`
-		MatchID     uuid.UUID `json:"match_id"`
+		ChallengeID  uuid.UUID `json:"challenge_id"`
+		MatchID      uuid.UUID `json:"match_id"`
+		ChallengerID uuid.UUID `json:"challenger_user_id"`
+		AcceptedBy   uuid.UUID `json:"accepted_by_user_id"`
 	}
 )
 
@@ -397,7 +399,7 @@ func (s *Service) RespondChallenge(ctx context.Context, user, id uuid.UUID, acti
 			}
 			matchID = &c.Match.ID
 			s.countPlay(ctx, &cfg)
-			if err := s.d.Events.PublishTx(ctx, tx, EventChallengeAccepted, now, ChallengeAccepted{ChallengeID: id, MatchID: c.Match.ID}); err != nil {
+			if err := s.d.Events.PublishTx(ctx, tx, EventChallengeAccepted, now, ChallengeAccepted{ChallengeID: id, MatchID: c.Match.ID, ChallengerID: row.ChallengerUserID, AcceptedBy: user}); err != nil {
 				return err
 			}
 		}

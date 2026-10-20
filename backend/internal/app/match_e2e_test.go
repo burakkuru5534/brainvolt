@@ -233,7 +233,7 @@ func TestLiveTakeover(t *testing.T) {
 	x.mods.game.Close()
 	second := game.New(game.Deps{
 		DB: x.db, Redis: x.rdb, Content: x.mods.content, Identity: x.mods.identity, Profiles: x.mods.profile,
-		Realtime: x.mods.realtime, Events: newBus(x.db, x.rdb, discard), Clock: clock.Real{}, Logger: discard, Instance: "test-second-" + id,
+		Realtime: x.mods.realtime, Events: newBus(x.db, x.rdb, discard, nil), Clock: clock.Real{}, Logger: discard, Instance: "test-second-" + id,
 	})
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)

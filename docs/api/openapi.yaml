@@ -416,6 +416,22 @@ components:
                 - slug
                 - subcategories
             type: object
+        CategoryPref:
+            properties:
+                category:
+                    type: string
+                in_app:
+                    type: boolean
+                locked:
+                    type: boolean
+                push:
+                    type: boolean
+            required:
+                - category
+                - in_app
+                - locked
+                - push
+            type: object
         Challenge:
             properties:
                 challenger:
@@ -1087,6 +1103,23 @@ components:
                 - friends
                 - next_cursor
             type: object
+        Inbox:
+            properties:
+                items:
+                    items:
+                        $ref: '#/components/schemas/Item'
+                    type: array
+                next_cursor:
+                    type:
+                        - string
+                        - "null"
+                unread:
+                    type: integer
+            required:
+                - items
+                - next_cursor
+                - unread
+            type: object
         Invite:
             properties:
                 created_at:
@@ -1157,6 +1190,43 @@ components:
                     type: array
             required:
                 - invites
+            type: object
+        Item:
+            properties:
+                body:
+                    type: string
+                category:
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                deep_link:
+                    type:
+                        - string
+                        - "null"
+                id:
+                    format: uuid
+                    type: string
+                kind:
+                    type: string
+                params:
+                    additionalProperties:
+                        type: string
+                    type: object
+                read:
+                    type: boolean
+                title:
+                    type: string
+            required:
+                - body
+                - category
+                - created_at
+                - deep_link
+                - id
+                - kind
+                - params
+                - read
+                - title
             type: object
         JoinRequest:
             properties:
@@ -1421,6 +1491,29 @@ components:
                 - side_no
                 - status
                 - user_id
+            type: object
+        Preferences:
+            properties:
+                categories:
+                    items:
+                        $ref: '#/components/schemas/CategoryPref'
+                    type: array
+                quiet_hours:
+                    $ref: '#/components/schemas/QuietHours'
+            required:
+                - categories
+                - quiet_hours
+            type: object
+        PreferencesInput:
+            properties:
+                categories:
+                    items:
+                        $ref: '#/components/schemas/CategoryPref'
+                    type: array
+                quiet_hours:
+                    oneOf:
+                        - $ref: '#/components/schemas/QuietHours'
+                        - type: "null"
             type: object
         ProfileRequest:
             properties:
@@ -1824,6 +1917,22 @@ components:
                 - rerolls_left
                 - weekly
             type: object
+        QuietHours:
+            properties:
+                enabled:
+                    type: boolean
+                end:
+                    type: string
+                start:
+                    type: string
+                utc_offset_minutes:
+                    type: integer
+            required:
+                - enabled
+                - end
+                - start
+                - utc_offset_minutes
+            type: object
         Quiz:
             properties:
                 answer_window_ms:
@@ -1923,6 +2032,16 @@ components:
                     type: array
             required:
                 - quizzes
+            type: object
+        ReadInput:
+            properties:
+                all:
+                    type: boolean
+                ids:
+                    items:
+                        format: uuid
+                        type: string
+                    type: array
             type: object
         Readiness:
             properties:
@@ -7154,6 +7273,239 @@ paths:
             security:
                 - firebase: []
             summary: Sign out on this device (stops push); repeating it is harmless
+            tags:
+                - notification
+            x-auth: any
+    /v1/me/inbox:
+        get:
+            operationId: getV1MeInbox
+            parameters:
+                - description: next_cursor of the previous page
+                  in: query
+                  name: cursor
+                  required: false
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Inbox'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: In-app notifications, newest first, in the request language (30 days)
+            tags:
+                - notification
+            x-auth: any
+    /v1/me/inbox/read:
+        post:
+            operationId: postV1MeInboxRead
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ReadInput'
+                required: true
+            responses:
+                "204":
+                    description: No Content
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: 'Mark notifications read: {ids} or {all: true}'
+            tags:
+                - notification
+            x-auth: any
+    /v1/me/notification-preferences:
+        get:
+            operationId: getV1MeNotificationPreferences
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Preferences'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Per-category push / in-app channels and quiet hours
+            tags:
+                - notification
+            x-auth: any
+        patch:
+            operationId: patchV1MeNotificationPreferences
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/PreferencesInput'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Preferences'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Change categories and quiet hours (moderation cannot be turned off)
             tags:
                 - notification
             x-auth: any

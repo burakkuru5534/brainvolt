@@ -75,6 +75,9 @@ type Firebase struct {
 	// AuthEmulatorHost is the standard variable read by the Firebase Admin
 	// SDK itself; set only in local development (ADR-0003).
 	AuthEmulatorHost string `env:"FIREBASE_AUTH_EMULATOR_HOST"`
+	// MessagingCredentialsFile is the service-account key the worker sends
+	// push with (FCM); without it pushes are only logged.
+	MessagingCredentialsFile string `env:"BRAINVOLT_FCM_CREDENTIALS_FILE"`
 }
 
 // Load reads the process environment.

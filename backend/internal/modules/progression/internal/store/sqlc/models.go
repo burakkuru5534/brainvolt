@@ -521,6 +521,45 @@ type NotificationDevice struct {
 	RevokedAt      *time.Time
 }
 
+type NotificationInbox struct {
+	ID        uuid.UUID
+	UserID    uuid.UUID
+	Category  string
+	Kind      string
+	Params    []byte
+	DeepLink  *string
+	DedupeKey *string
+	CreatedAt time.Time
+	ReadAt    *time.Time
+	ExpiresAt time.Time
+}
+
+type NotificationPreference struct {
+	UserID    uuid.UUID
+	Category  string
+	Push      bool
+	InApp     bool
+	UpdatedAt time.Time
+}
+
+type NotificationPushDelivery struct {
+	ID           uuid.UUID
+	InboxID      uuid.UUID
+	DeviceID     uuid.UUID
+	Status       string
+	FcmMessageID *string
+	Error        *string
+	AttemptedAt  time.Time
+}
+
+type NotificationQuietHour struct {
+	UserID           uuid.UUID
+	Enabled          bool
+	StartLocal       pgtype.Time
+	EndLocal         pgtype.Time
+	UtcOffsetMinutes int16
+}
+
 type ProfileProfile struct {
 	UserID            uuid.UUID
 	Username          string

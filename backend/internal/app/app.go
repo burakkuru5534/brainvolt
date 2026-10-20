@@ -122,7 +122,7 @@ func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, 
 		return nil, err
 	}
 	// Insert-only River client: the API queues event deliveries, the worker runs them.
-	bus := newBus(db, rdb, logger)
+	bus := newBus(db, rdb, logger, nil)
 	inserter, err := river.NewClient(riverpgxv5.New(db), &river.Config{Logger: logger})
 	if err != nil {
 		_ = sqlDB.Close()
@@ -193,7 +193,7 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	})
 	ident.Register(srv)
 	prof.Register(srv, ident, d.limiter)
-	notification.New(d.db, d.clock).Register(srv, ident)
+	notification.New(notification.Deps{DB: d.db, Clock: d.clock, Logger: d.logger}).Register(srv, ident)
 	cont := content.New(d.db, d.clock, d.bus)
 	cont.Register(srv, ident, d.idem)
 	rt := realtime.New(realtime.Deps{Redis: d.rdb, Auth: ident, Clock: d.clock, Logger: d.logger, Instance: d.instance})
@@ -257,7 +257,7 @@ func (r ratings) Rating(ctx context.Context, user uuid.UUID, bucket string) (mat
 // worker build it the same way: the API to address deliveries, the worker
 // to run them. Consumers subscribe here as their phases arrive
 // (backend-modules.md §3.2 event catalogue).
-func newBus(db *pgxpool.Pool, rdb *redis.Client, logger *slog.Logger) *events.Bus {
+func newBus(db *pgxpool.Pool, rdb *redis.Client, logger *slog.Logger, push notification.Sender) *events.Bus {
 	bus := events.NewBus()
 	// content counts answer statistics of completed matches (schema-content §5).
 	stats := content.New(db, clock.Real{}, bus)
@@ -279,7 +279,43 @@ func newBus(db *pgxpool.Pool, rdb *redis.Client, logger *slog.Logger) *events.Bu
 	mod := moderation.New(moderation.Deps{DB: db, Clock: clock.Real{}, Logger: logger})
 	bus.Subscribe(game.EventMatchCompleted, moderation.SubscriberMatchSignals, mod.OnMatchCompleted)
 	bus.Subscribe(game.EventMatchCancelled, moderation.SubscriberVoidSignals, mod.OnMatchCancelled)
+	// notification: inbox and push for what concerns a user (schema-platform §1).
+	notif := newNotification(db, rdb, logger, push)
+	bus.Subscribe(social.EventFriendRequestSent, notification.SubscriberFriendRequest, notif.OnFriendRequestSent)
+	bus.Subscribe(social.EventFriendshipCreated, notification.SubscriberFriendship, notif.OnFriendshipCreated)
+	bus.Subscribe(lobby.EventChallengeSent, notification.SubscriberChallengeSent, notif.OnChallengeSent)
+	bus.Subscribe(lobby.EventChallengeAccepted, notification.SubscriberChallengeAccepts, notif.OnChallengeAccepted)
+	bus.Subscribe(team.EventCoupleRequested, notification.SubscriberCoupleRequest, notif.OnCoupleRequested)
+	bus.Subscribe(moderation.EventSanctionApplied, notification.SubscriberSanction, notif.OnSanctionApplied)
 	return bus
+}
+
+// newNotification builds notification for delivery in the worker: names
+// from profile, inbox.new through realtime, push through push.
+func newNotification(db *pgxpool.Pool, rdb *redis.Client, logger *slog.Logger, push notification.Sender) *notification.Module {
+	return notification.New(notification.Deps{
+		DB: db, Profiles: profile.New(db, clock.Real{}), Sender: push, Pusher: workerPusher(rdb, logger), Clock: clock.Real{}, Logger: logger,
+	})
+}
+
+// logSender stands in for FCM when no credentials are configured: the
+// push is only logged (development).
+type logSender struct{ logger *slog.Logger }
+
+func (l logSender) Send(ctx context.Context, p notification.Push) (string, error) {
+	l.logger.InfoContext(ctx, "push (not sent: no FCM credentials)", "title", p.Title, "body", p.Body, "kind", p.Data["kind"])
+	return "", nil
+}
+
+// fcmSender adapts platform/firebase to notification.Sender.
+type fcmSender struct{ m *firebase.Messenger }
+
+func (f fcmSender) Send(ctx context.Context, p notification.Push) (string, error) {
+	id, err := f.m.Send(ctx, p.Token, p.Title, p.Body, p.Data)
+	if errors.Is(err, firebase.ErrTokenInvalid) {
+		return "", fmt.Errorf("%w: %w", notification.ErrTokenInvalid, err)
+	}
+	return id, err
 }
 
 // newRanking builds ranking for worker use: country and team reads,
@@ -314,10 +350,20 @@ func NewWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) (*Ap
 		db.Close()
 		return nil, err
 	}
-	bus := newBus(db, rdb, logger)
+	var push notification.Sender = logSender{logger}
+	if f := cfg.Firebase.MessagingCredentialsFile; f != "" {
+		m, err := firebase.NewMessenger(ctx, cfg.Firebase.ProjectID, f)
+		if err != nil {
+			db.Close()
+			_ = rdb.Close()
+			return nil, err
+		}
+		push = fcmSender{m}
+	}
+	bus := newBus(db, rdb, logger, push)
 	workers := river.NewWorkers()
 	bus.AddWorker(workers)
-	periodic := addJobs(workers, newRanking(db, rdb, bus, logger), content.New(db, clock.Real{}, bus))
+	periodic := addJobs(workers, newRanking(db, rdb, bus, logger), content.New(db, clock.Real{}, bus), newNotification(db, rdb, logger, push))
 	client, err := river.NewClient(riverpgxv5.New(db), &river.Config{
 		Queues:       map[string]river.QueueConfig{river.QueueDefault: {MaxWorkers: 10}},
 		Workers:      workers,

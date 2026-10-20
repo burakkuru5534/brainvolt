@@ -135,6 +135,7 @@ Standard game rules, retention periods, default limits and small details are dec
 | D-083 | Creator Quiz details (delegated) | **Authoring** (full accounts): title 3–60, description ≤ 300, locale tr/en (fixed after creation), one category, window 10/15/20 s, 5–30 MC or true/false questions written in the quiz's locale only; max 20 quizzes per author. Questions are `content` questions in the `creator_only` pool under a built-in "BrainVolt players" source (`kind = creator`, left out of the credits screen), with the author's id in the duplicate fingerprint so authors may reuse each other's wording; the quiz holds a `creator` question set in the author's order. Editing replaces the questions (new rows, If-Match version) and sends a submitted/published quiz back to review. **Review is per quiz, not per question:** `submitted` → a moderator/admin who is not the author publishes or rejects with a reason (`/v1/admin/quizzes`); creator questions never enter the general pools. **Play:** rooms and challenges send `creator_quiz_id`; lobby resolves it (own quiz or a published one), fills question set, length, window, locale, author and published flag into the match config — clients never name a question set. An unpublished quiz plays only in a room whose members are all friends of the host (`friends_of_host_only`, checked on join, config change and start); challenges need a published quiz. Everyone plays in the quiz's locale. `play_count` counts started matches; likes are once per user. **Awards:** progression skips the author and every participant of an unpublished quiz (no XP, streak, badge or quest progress); ranking already ignores these unrated private matches. **Mobile:** Home → Quizzes with "My quizzes" (status, rejection reason, submit / play in a room / delete) and "Discover" (likes, play in a room); the editor writes 5–30 questions (multiple choice or true/false, correct option by radio), language fixed after creation; a room playing an unpublished quiz shows the friends-only note | 2026-10-20 (delegated) | 8.4 |
 | D-084 | Anti-cheat signals (delegated) | Measured by `game` at match completion and carried on `game.MatchCompleted` (`rejects`, `fast_correct`, `fastest_ms` per participant): moderation needs no game tables. Thresholds (P, to tune with real data): **superhuman** ≥ 2 correct answers faster than 300 ms + 15 ms per prompt character (latency-adjusted server response time), severity = count (max 5); **rejected submission burst** ≥ 5 refused submissions in a match (late, duplicate, not one's turn, unknown option; state errors like a closed round do not count), severity refusals / 5 (max 3); **repeated server voids** ≥ 3 matches cancelled with `server_error` / `integrity_violation` in 7 days (new kind, migration 000019); **protocol violation** a socket closed for a malformed message or flooding, severity 1, once an hour per user. Each signal (one per user, kind and match) joins the user's open `user` case or opens one; case priority += severity; signals never sanction or change results — a moderator decides. Statistical history checks (consistent fast streak, win trading, multi-account) wait for real data (Phase 9) | 2026-10-20 (delegated) | 8.5 |
 | D-085 | Visual redesign (owner mockups; details delegated) | The owner's mockups set the look before Phase 9: one purple design system in **light and dark** (Settings → Appearance: system / light / dark, stored on the device), tokens in a `BvColors` theme extension (lavender page, white cards with soft borders, ink #22114D, gradient #8B5CF6 → #5B21D6; dark: night #0B0716 with purple borders); **Nunito** bundled (SIL OFL, variable weight; `weighted()` sets the axis); a component kit in `core/widgets/bv.dart` (card, icon badge, gradient pill button, action card, choice tile, logo, avatar bubble). Home combines both mockups: logo bar with challenges, settings and avatar; greeting hero with level line and mascot; Quick Duel gradient card; mode tiles (+ Daily, Quizzes); Practice vs Bot (dev); total wins / current league (new `matches` / `wins` on `/v1/me/progress`); shortcuts. The mascot and avatar art are placeholders (avatar emoji with a crown) until the owner delivers artwork. Golden screenshots in `mobile/test/goldens` are a visual reference run on demand (`--run-skipped --tags golden`), not a CI gate, since rendering differs across machines | 2026-10-20 (delegated) | 8.7 |
+| D-086 | Notifications (delegated) | The inbox is the source: every notice is an inbox row (30 days) rendered by the server in the request language (TR/EN templates in the notification module), and pushes are rendered in each device's language. Notices so far: friend request / accepted, challenge received / accepted (opens the match), couple request, sanction applied; a repeat while unread only refreshes the row (no second push). Push rules: category push on (default on except product_news; moderation cannot be turned off), outside quiet hours (device-local window, may wrap midnight), ≤ 10 sent per user per rolling hour; held-back pushes are recorded as `suppressed`; tokens FCM reports unregistered / invalid are cleared. The app also gets `inbox.new` over the WebSocket. Delivery runs in the worker as event subscribers; FCM through the Firebase Admin SDK with `BRAINVOLT_FCM_CREDENTIALS_FILE` (service account), and without it pushes are only logged. A daily job purges expired items and deliveries older than 30 days. `lobby.ChallengeAccepted` now carries the challenger and the accepting user | 2026-10-20 (delegated) | 9.1 |
 
 ---
 
@@ -465,18 +466,36 @@ The owner's mockups set the app's look before Phase 9: a purple design system in
 - [x] 8.7.5 Remaining screens restyled with the kit (daily, rooms, quizzes, progress, social, settings); widget tests updated, golden tests for the main screens
 - [ ] 8.7.6 Owner assets: mascot illustrations, avatar art, logo — placeholders until the owner delivers them
 
-## Phase 9 — Polish & Production Readiness  `[ ]`
-- [ ] FCM notifications
-- [ ] Shareable result cards
-- [ ] Team chat
-- [ ] Tournaments
-- [ ] Premium subscription
-- [ ] Cosmetic monetization
-- [ ] Ad integration
-- [ ] Security hardening
-- [ ] Load testing
-- [ ] E2E device testing
-- [ ] Deployment docs
+## Phase 9 — Polish & Production Readiness  `[~]`
+Goal: the platform features of schema-platform.md (notifications, team chat, tournaments, commerce), sharing, and what a store launch needs: security review, load tests, device tests and deployment docs.
+
+### 9.1 Notifications (schema-platform §1, D-031)
+- [x] 9.1.1 Schema (preferences, quiet hours, inbox, push deliveries); inbox and preferences API
+- [x] 9.1.2 Inbox items from events (friend request / accepted, challenge received / accepted, couple request, sanction), TR/EN templates, de-duplication, `inbox.new` to the app
+- [x] 9.1.3 Push through FCM (Admin SDK, credentials from the environment; a log sender without them): per-category preferences, quiet hours, ≤ 10 push per user an hour, invalid tokens revoked, 30-day purge
+- [ ] 9.1.4 Mobile: FCM token, inbox screen with unread badge, preferences and quiet hours, tapping opens the right screen
+
+### 9.2 Sharing
+- [ ] 9.2.1 Shareable result cards (match and Daily Challenge) rendered on the device and shared through the system sheet
+
+### 9.3 Team chat (schema-platform §2)
+- [ ] 9.3.1 Chat schema, WebSocket send/receive for persistent teams and couples, 5 messages / 10 s, chat_mute sanctions, blocked terms, 6-month retention
+- [ ] 9.3.2 Mobile: team chat screen, quick-chat for temporary sides
+
+### 9.4 Tournaments (schema-platform §3)
+- [ ] 9.4.1 Admin-created tournaments, registration (full accounts), brackets, match scheduling through lobby, rewards
+- [ ] 9.4.2 Mobile: list, registration, bracket, tournament matches
+
+### 9.5 Commerce (schema-platform §4) — needs the owner's store and ad accounts
+- [ ] 9.5.1 Premium subscription: store purchase verification (App Store / Play), entitlements, webhooks
+- [ ] 9.5.2 Cosmetics: catalogue, ownership, equipping (avatars, frames, themes)
+- [ ] 9.5.3 Ads: rewarded and interstitial with the D-031 limits, server-side verification
+
+### 9.6 Production readiness
+- [ ] 9.6.1 Security hardening: review of auth, rate limits, input limits, secrets, dependency scan
+- [ ] 9.6.2 Load testing: matchmaking, live matches and WebSocket fan-out at target concurrency
+- [ ] 9.6.3 End-to-end device tests (Android and iOS)
+- [ ] 9.6.4 Deployment docs: environments, secrets, migrations, backups, monitoring
 
 ---
 
