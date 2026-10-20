@@ -6,6 +6,7 @@ import (
 
 	"github.com/riverqueue/river"
 
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/chat"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/content"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/notification"
@@ -27,16 +28,20 @@ type dailySetArgs struct{}
 
 func (dailySetArgs) Kind() string { return "content.daily_sets" }
 
-// notificationPurgeArgs deletes expired inbox items and old push
-// delivery records (schema-platform §1).
+// notificationPurgeArgs is the daily retention job: expired inbox items,
+// old push delivery records (schema-platform §1) and chat messages older
+// than six months (§2).
 type notificationPurgeArgs struct{}
 
 func (notificationPurgeArgs) Kind() string { return "notification.purge" }
 
 // addJobs registers the worker's periodic jobs and returns their
 // schedules; River runs them on the elected leader only.
-func addJobs(workers *river.Workers, rk *ranking.Module, cont *content.Module, notif *notification.Module) []*river.PeriodicJob {
+func addJobs(workers *river.Workers, rk *ranking.Module, cont *content.Module, notif *notification.Module, ch *chat.Module) []*river.PeriodicJob {
 	river.AddWorker(workers, river.WorkFunc(func(ctx context.Context, _ *river.Job[notificationPurgeArgs]) error {
+		if err := ch.Purge(ctx); err != nil {
+			return err
+		}
 		return notif.Purge(ctx)
 	}))
 	river.AddWorker(workers, river.WorkFunc(func(ctx context.Context, _ *river.Job[rankingMaintainArgs]) error {

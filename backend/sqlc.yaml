@@ -53,6 +53,17 @@ sql:
         sql_package: pgx/v5
         emit_pointers_for_null_types: true
         emit_empty_slices: true
+  - name: chat
+    engine: postgresql
+    schema: migrations
+    queries: internal/modules/chat/internal/store/queries.sql
+    gen:
+      go:
+        package: sqlc
+        out: internal/modules/chat/internal/store/sqlc
+        sql_package: pgx/v5
+        emit_pointers_for_null_types: true
+        emit_empty_slices: true
   - name: notification
     engine: postgresql
     schema: migrations

@@ -51,6 +51,10 @@ func (m *Module) PrivacyOf(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]
 // and couple names; the basic list until moderation, Phase 8).
 func TextRejected(s string) bool { return domain.Rejected(s) }
 
+// MaskText hides blocked words in free text (chat) with asterisks;
+// severe reports a slur, which callers refuse (D-030, D-088).
+func MaskText(s string) (masked string, changed, severe bool) { return domain.Mask(s) }
+
 // LocalesOf returns users' content languages (match texts).
 func (m *Module) LocalesOf(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]string, error) {
 	return m.svc.LocalesOf(ctx, ids)

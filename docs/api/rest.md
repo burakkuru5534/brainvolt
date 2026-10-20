@@ -143,7 +143,8 @@
 ## 13. chat
 | Method | Path | Auth | Idem | Ph | Purpose |
 |---|---|---|---|---|---|
-| GET | `/v1/chat/channels/{id}/messages?cursor=` | member | — | 9 | History (sending is via WS `chat.send`). |
+| POST | `/v1/chat/channels` | member | — | 9 | `{team_id}` or `{couple_id}`: the channel of one's team or couple (created on first use), members and unread count (D-088). |
+| GET | `/v1/chat/channels/{id}/messages?cursor=` | member | — | 9 | History, newest first, 50 a page (sending is via WS `chat.send`). |
 | DELETE | `/v1/chat/messages/{id}` | sender / mod | — | 9 | Remove message. |
 | POST | `/v1/chat/channels/{id}/read` | member | — | 9 | Move read cursor. |
 

@@ -11,6 +11,36 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type ChatChannel struct {
+	ID        uuid.UUID
+	Kind      string
+	TeamID    *uuid.UUID
+	CoupleID  *uuid.UUID
+	MatchID   *uuid.UUID
+	SideNo    *int16
+	CreatedAt time.Time
+	ClosedAt  *time.Time
+}
+
+type ChatMessage struct {
+	ID           uuid.UUID
+	ChannelID    uuid.UUID
+	SenderID     uuid.UUID
+	Kind         string
+	Body         *string
+	QuickID      *string
+	FilterResult string
+	CreatedAt    time.Time
+	RemovedAt    *time.Time
+	RemovedBy    *uuid.UUID
+}
+
+type ChatReadCursor struct {
+	ChannelID  uuid.UUID
+	UserID     uuid.UUID
+	LastReadID uuid.UUID
+}
+
 type ContentCategory struct {
 	ID        uuid.UUID
 	Slug      string

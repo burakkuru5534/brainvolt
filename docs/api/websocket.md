@@ -108,7 +108,7 @@ No pong for **3 consecutive pings** (in match: 6 s; outside: 60 s) → server tr
 | `rematch.respond` | `{match_id, accept: bool}` | results screen, 30 s | D-027 |
 | `daily.join` | `{run_id}` | owner | start/continue a daily run |
 | `daily.answer` | `{run_id, position, option_id}` | open question | solo run |
-| `chat.send` | `{channel_id, body}` | member, not muted | free text: persistent team / couple channels only (D-031) |
+| `chat.send` | `{channel_id, body}` or `{channel_id, quick_id}` | member, not muted | persistent team / couple channels (D-031, D-088): 1–300 chars, blocked words masked, slurs refused (`TEXT_REJECTED`), 5 / 10 s (`RATE_LIMITED`), `SANCTIONED` while muted; quick ids `good_luck`, `well_played`, `nice`, `thanks`, `oops`, `lets_go`, `gg`, `rematch` |
 | `chat.typing` | `{channel_id}` | member | throttled 1 / 3 s |
 
 ### 5.2 Server → client (0.4.5)

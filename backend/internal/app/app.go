@@ -24,6 +24,7 @@ import (
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/chat"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/content"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/creator"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
@@ -219,6 +220,7 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 		Redis: d.rdb, Game: g, Realtime: rt, Ratings: ratings{rk}, Social: soc, Sanctions: mod, Teams: tm, Profiles: prof, Clock: d.clock, Logger: d.logger, Practice: d.env == config.EnvDev,
 	})
 	mm.Register(srv, ident, d.idem)
+	chat.New(chat.Deps{DB: d.db, Teams: tm, Profiles: prof, Muter: mod, Realtime: rt, Clock: d.clock}).Register(srv, ident)
 	cr := creator.New(creator.Deps{DB: d.db, Content: cont, Identity: ident, Profiles: prof, Clock: d.clock})
 	cr.Register(srv, ident, d.idem)
 	lob := lobby.New(lobby.Deps{
@@ -363,7 +365,8 @@ func NewWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) (*Ap
 	bus := newBus(db, rdb, logger, push)
 	workers := river.NewWorkers()
 	bus.AddWorker(workers)
-	periodic := addJobs(workers, newRanking(db, rdb, bus, logger), content.New(db, clock.Real{}, bus), newNotification(db, rdb, logger, push))
+	periodic := addJobs(workers, newRanking(db, rdb, bus, logger), content.New(db, clock.Real{}, bus), newNotification(db, rdb, logger, push),
+		chat.New(chat.Deps{DB: db, Clock: clock.Real{}}))
 	client, err := river.NewClient(riverpgxv5.New(db), &river.Config{
 		Queues:       map[string]river.QueueConfig{river.QueueDefault: {MaxWorkers: 10}},
 		Workers:      workers,

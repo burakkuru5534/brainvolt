@@ -96,6 +96,11 @@ func (m *Module) ProtocolViolation(ctx context.Context, user uuid.UUID, reason s
 	}
 }
 
+// Muted reports an active chat_mute or suspension (chat's Muter).
+func (m *Module) Muted(ctx context.Context, user uuid.UUID) (bool, error) {
+	return m.svc.Muted(ctx, user)
+}
+
 // Name implements the app component.
 func (m *Module) Name() string { return "moderation" }
 

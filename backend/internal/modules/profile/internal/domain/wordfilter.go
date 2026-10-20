@@ -63,3 +63,51 @@ func Rejected(text string) bool {
 	}
 	return slices.Contains(reserved, joined)
 }
+
+// severeSubstrings make a chat message blocked outright (slurs, D-030);
+// other blocked words are masked.
+var severeSubstrings = []string{"nigger", "nigga", "faggot", "orospu", "ananisik", "amina"}
+
+// Mask hides blocked words in free text (chat): each offending word
+// becomes asterisks of the same length. severe reports a slur, which the
+// caller refuses instead of masking.
+func Mask(text string) (masked string, changed, severe bool) {
+	_, joined := normalize(text)
+	for _, s := range severeSubstrings {
+		if strings.Contains(joined, s) {
+			return text, false, true
+		}
+	}
+	var b strings.Builder
+	word := []rune{}
+	flush := func() {
+		if len(word) == 0 {
+			return
+		}
+		w := string(word)
+		norm := leet.Replace(strings.ToLowerSpecial(unicode.TurkishCase, w))
+		bad := slices.Contains(blockedTokens, norm)
+		for _, sub := range blockedSubstrings {
+			if strings.Contains(turkishFold.Replace(norm), sub) {
+				bad = true
+			}
+		}
+		if bad {
+			b.WriteString(strings.Repeat("*", len(word)))
+			changed = true
+		} else {
+			b.WriteString(w)
+		}
+		word = word[:0]
+	}
+	for _, r := range text {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) || r == '@' || r == '$' {
+			word = append(word, r)
+			continue
+		}
+		flush()
+		b.WriteRune(r)
+	}
+	flush()
+	return b.String(), changed, false
+}

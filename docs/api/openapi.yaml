@@ -519,6 +519,43 @@ components:
             required:
                 - challenges
             type: object
+        Channel:
+            properties:
+                couple_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                id:
+                    format: uuid
+                    type: string
+                kind:
+                    type: string
+                members:
+                    items:
+                        $ref: '#/components/schemas/Card'
+                    type: array
+                team_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                unread:
+                    type: integer
+            required:
+                - id
+                - kind
+                - members
+                - unread
+            type: object
+        ChatReadInput:
+            properties:
+                last_read_id:
+                    format: uuid
+                    type: string
+            required:
+                - last_read_id
+            type: object
         Claimed:
             properties:
                 level:
@@ -1103,6 +1140,20 @@ components:
                 - friends
                 - next_cursor
             type: object
+        History:
+            properties:
+                messages:
+                    items:
+                        $ref: '#/components/schemas/Message'
+                    type: array
+                next_cursor:
+                    type:
+                        - string
+                        - "null"
+            required:
+                - messages
+                - next_cursor
+            type: object
         Inbox:
             properties:
                 items:
@@ -1388,6 +1439,36 @@ components:
                 - joined_at
                 - role
             type: object
+        Message:
+            properties:
+                body:
+                    type:
+                        - string
+                        - "null"
+                channel_id:
+                    format: uuid
+                    type: string
+                created_at:
+                    format: date-time
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                quick_id:
+                    type:
+                        - string
+                        - "null"
+                removed:
+                    type: boolean
+                sender:
+                    $ref: '#/components/schemas/Card'
+            required:
+                - channel_id
+                - created_at
+                - id
+                - removed
+                - sender
+            type: object
         MyCouple:
             properties:
                 couple:
@@ -1396,6 +1477,19 @@ components:
                         - type: "null"
             required:
                 - couple
+            type: object
+        OpenInput:
+            properties:
+                couple_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
+                team_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
             type: object
         Option:
             properties:
@@ -4250,6 +4344,276 @@ paths:
             tags:
                 - lobby
             x-auth: any
+    /v1/chat/channels:
+        post:
+            operationId: postV1ChatChannels
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/OpenInput'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Channel'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Open the chat of one's team or couple ({team_id} or {couple_id}); created on first use
+            tags:
+                - chat
+            x-auth: member
+    /v1/chat/channels/{id}/messages:
+        get:
+            operationId: getV1ChatChannelsIdMessages
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - description: next_cursor of the previous page
+                  in: query
+                  name: cursor
+                  required: false
+                  schema:
+                    format: uuid
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/History'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Messages newest first (sending is the WebSocket intent chat.send)
+            tags:
+                - chat
+            x-auth: member
+    /v1/chat/channels/{id}/read:
+        post:
+            operationId: postV1ChatChannelsIdRead
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ChatReadInput'
+                required: true
+            responses:
+                "204":
+                    description: No Content
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Move the read cursor
+            tags:
+                - chat
+            x-auth: member
+    /v1/chat/messages/{id}:
+        delete:
+            operationId: deleteV1ChatMessagesId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Remove a message (its sender, or staff)
+            tags:
+                - chat
+            x-auth: sender / mod
     /v1/couples:
         post:
             operationId: postV1Couples

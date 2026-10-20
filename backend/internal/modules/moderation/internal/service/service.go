@@ -204,6 +204,18 @@ func insertAction(ctx context.Context, q *sqlc.Queries, caseID *uuid.UUID, actor
 	})
 }
 
+// Muted reports whether a user may not chat: an active chat_mute or a
+// suspension (chat's Muter, D-088).
+func (s *Service) Muted(ctx context.Context, user uuid.UUID) (bool, error) {
+	active, err := sqlc.New(s.d.DB).ActiveSanctions(ctx, sqlc.ActiveSanctionsParams{UserID: user, Now: s.d.Clock.Now()})
+	if err != nil {
+		return false, err
+	}
+	return slices.ContainsFunc(active, func(a sqlc.ModerationSanction) bool {
+		return a.Kind == "chat_mute" || a.Kind == "suspension"
+	}), nil
+}
+
 // Blocking reports the kind of an active sanction that keeps a user out
 // of a match of this type and origin (game's SanctionChecker): suspension
 // always, matchmaking_ban for matchmade matches, ranked_ban for Ranked.
