@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/widgets/bv.dart';
 import '../../match/presentation/play_error_text.dart';
 import '../../profile/domain/avatars.dart';
 import '../data/daily_providers.dart';
@@ -138,10 +139,7 @@ class _DailyScreenState extends ConsumerState<DailyScreen> {
           ],
         ),
         if (board != null && board.entries.isEmpty)
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(l10n.leaderboardEmpty, textAlign: TextAlign.center),
-          ),
+          EmptyState(icon: Icons.leaderboard, text: l10n.leaderboardEmpty),
         for (final e in board?.entries ?? const <DailyEntry>[])
           ListTile(
             key: Key('daily-row-${e.userId}'),

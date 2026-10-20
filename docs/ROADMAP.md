@@ -462,7 +462,7 @@ The owner's mockups set the app's look before Phase 9: a purple design system in
 - [x] 8.7.2 Home: logo, settings and avatar with presence dot, greeting hero with level bar and mascot, mode tiles (Quick Duel hero card in dark), Practice vs Bot row, wins / rank stats; Private Room sheet with mode cards and inline join-with-code
 - [x] 8.7.3 Mode picker as icon-card grids (game mode, category mode, format chips) with a "Find an opponent" button; queue screen with radar animation, avatars, ring timer and "Cancel search"
 - [x] 8.7.4 Match screen: question n/N with progress bar, avatars and scores with VS badge, category chip, question card, A–D option tiles, correct / wrong feedback with points and confetti; result screen in the same style
-- [ ] 8.7.5 Remaining screens restyled with the kit (daily, rooms, quizzes, progress, social, settings); widget tests updated, golden tests for the main screens
+- [x] 8.7.5 Remaining screens restyled with the kit (daily, rooms, quizzes, progress, social, settings); widget tests updated, golden tests for the main screens
 - [ ] 8.7.6 Owner assets: mascot illustrations, avatar art, logo — placeholders until the owner delivers them
 
 ## Phase 9 — Polish & Production Readiness  `[ ]`

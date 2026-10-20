@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/realtime/realtime_providers.dart';
+import '../../../core/widgets/bv.dart';
 import '../../match/presentation/match_type_name.dart';
 import '../../match/presentation/play_error_text.dart';
 import '../../profile/domain/avatars.dart';
@@ -76,8 +77,9 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.challengesTitle)),
       body: switch (ref.watch(challengesProvider)) {
-        AsyncData(:final value) when value.isEmpty => Center(
-          child: Text(l10n.challengesEmpty),
+        AsyncData(:final value) when value.isEmpty => EmptyState(
+          icon: Icons.sports_kabaddi,
+          text: l10n.challengesEmpty,
         ),
         AsyncData(:final value) => RefreshIndicator(
           onRefresh: () => ref.refresh(challengesProvider.future),

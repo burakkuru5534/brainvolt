@@ -249,6 +249,16 @@ ThemeData buildTheme(Brightness brightness) {
       ),
     ),
     dividerTheme: DividerThemeData(color: bv.cardBorder),
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: bv.gradientEnd,
+      foregroundColor: Colors.white,
+      elevation: 4,
+      shape: const StadiumBorder(),
+      extendedTextStyle: weighted(
+        const TextStyle(fontSize: 16, fontFamily: brandFont),
+        FontWeight.w800,
+      ),
+    ),
   );
 }
 

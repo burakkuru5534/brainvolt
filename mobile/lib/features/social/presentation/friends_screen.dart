@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/widgets/bv.dart';
 import '../../../core/widgets/dialogs.dart';
 import '../../lobby/data/lobby_providers.dart';
 import '../../lobby/domain/lobby_repository.dart';
@@ -254,10 +255,7 @@ class _FriendsTab extends ConsumerWidget {
           const Divider(height: 1),
           ...switch (friends) {
             AsyncData(:final value) when value.isEmpty => [
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(l10n.friendsEmpty, textAlign: TextAlign.center),
-              ),
+              EmptyState(icon: Icons.people_alt, text: l10n.friendsEmpty),
             ],
             AsyncData(:final value) => [
               for (final f in value) _FriendTile(friend: f),

@@ -518,3 +518,38 @@ class OptionTile extends StatelessWidget {
     );
   }
 }
+
+/// An empty list: a large icon badge over a short line.
+class EmptyState extends StatelessWidget {
+  const EmptyState({
+    required this.icon,
+    required this.text,
+    this.textKey,
+    super.key,
+  });
+
+  final IconData icon;
+  final String text;
+  final Key? textKey;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconBadge(icon, size: 88),
+          const SizedBox(height: 16),
+          Text(
+            text,
+            key: textKey,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(color: BvColors.of(context).muted),
+          ),
+        ],
+      ),
+    ),
+  );
+}

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/widgets/bv.dart';
 import '../../lobby/data/lobby_providers.dart';
 import '../../lobby/domain/lobby_repository.dart';
 import '../../match/presentation/play_error_text.dart';
@@ -92,8 +93,9 @@ class _Mine extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     return switch (ref.watch(myQuizzesProvider)) {
-      AsyncData(:final value) when value.isEmpty => Center(
-        child: Text(l10n.quizzesEmptyMine),
+      AsyncData(:final value) when value.isEmpty => EmptyState(
+        icon: Icons.edit_note,
+        text: l10n.quizzesEmptyMine,
       ),
       AsyncData(:final value) => ListView(
         padding: const EdgeInsets.only(bottom: 88),
@@ -212,8 +214,9 @@ class _Discover extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     return switch (ref.watch(discoverQuizzesProvider)) {
-      AsyncData(:final value) when value.isEmpty => Center(
-        child: Text(l10n.quizzesEmptyDiscover),
+      AsyncData(:final value) when value.isEmpty => EmptyState(
+        icon: Icons.travel_explore,
+        text: l10n.quizzesEmptyDiscover,
       ),
       AsyncData(:final value) => ListView(
         padding: const EdgeInsets.only(bottom: 88),

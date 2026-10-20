@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/realtime/realtime_client.dart';
 import '../../../core/realtime/realtime_providers.dart';
+import '../../../core/widgets/bv.dart';
 import '../../match/presentation/play_error_text.dart';
 import 'daily_screen.dart';
 
@@ -183,7 +184,7 @@ class _DailyRunScreenState extends ConsumerState<DailyRunScreen> {
             ? const Center(
                 child: CircularProgressIndicator(key: Key('daily-waiting')),
               )
-            : _question(context, q, now),
+            : SingleChildScrollView(child: _question(context, q, now)),
       ),
     );
   }
@@ -205,30 +206,34 @@ class _DailyRunScreenState extends ConsumerState<DailyRunScreen> {
         const SizedBox(height: 16),
         if (q.category.isNotEmpty)
           Text(q.category, style: Theme.of(context).textTheme.labelLarge),
-        Text(
-          q.prompt,
-          key: const Key('daily-prompt'),
-          style: Theme.of(context).textTheme.titleLarge,
+        BvCard(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+          child: Text(
+            q.prompt,
+            key: const Key('daily-prompt'),
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
         ),
         const SizedBox(height: 16),
-        for (final (id, text) in q.options)
+        for (final (i, (id, text)) in q.options.indexed)
           Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: FilledButton.tonal(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: OptionTile(
               key: Key('daily-option-$id'),
-              style: FilledButton.styleFrom(
-                backgroundColor: correct == null
-                    ? (_chosen[q.position] == id
-                          ? Theme.of(context).colorScheme.primaryContainer
-                          : null)
-                    : id == correct
-                    ? Colors.green.shade300
-                    : (_chosen[q.position] == id ? Colors.red.shade300 : null),
-              ),
+              letter: String.fromCharCode(65 + i),
+              text: text,
+              look: correct == null
+                  ? (_chosen[q.position] == id
+                        ? OptionLook.chosen
+                        : OptionLook.idle)
+                  : id == correct
+                  ? OptionLook.correct
+                  : (_chosen[q.position] == id
+                        ? OptionLook.wrong
+                        : OptionLook.idle),
               onPressed: reveal == null && !_chosen.containsKey(q.position)
                   ? () => _answer(q, id)
                   : null,
-              child: Text(text),
             ),
           ),
         if (reveal != null)

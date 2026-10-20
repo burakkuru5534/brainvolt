@@ -76,6 +76,28 @@ void main() {
       await finish(tester, t);
     });
 
+    for (final (name, route) in [
+      ('daily', Routes.daily),
+      ('leaderboards', Routes.leaderboards),
+      ('quests', Routes.quests),
+      ('badges', Routes.badges),
+      ('friends', Routes.friends),
+      ('challenges', Routes.challenges),
+      ('teams', Routes.teams),
+      ('quizzes', Routes.quizzes),
+      ('settings', Routes.settings),
+      ('profile', Routes.profile),
+    ]) {
+      testWidgets('$name ${mode.name}', (tester) async {
+        final t = await launch(tester, route);
+        await expectLater(
+          find.byType(BrainVoltApp),
+          matchesGoldenFile('${name}_${mode.name}.png'),
+        );
+        await finish(tester, t);
+      });
+    }
+
     testWidgets('modes ${mode.name}', (tester) async {
       final t = await launch(tester, Routes.modes);
       await expectLater(

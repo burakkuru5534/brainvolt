@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/l10n.dart';
+import '../../../core/widgets/bv.dart';
 import '../../match/presentation/play_error_text.dart';
 import '../data/moderation_providers.dart';
 import '../domain/moderation_repository.dart';
@@ -50,8 +51,10 @@ class SanctionsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.sanctionsTitle)),
       body: switch (ref.watch(mySanctionsProvider)) {
-        AsyncData(:final value) when value.isEmpty => Center(
-          child: Text(l10n.sanctionsEmpty, key: const Key('sanctions-empty')),
+        AsyncData(:final value) when value.isEmpty => EmptyState(
+          icon: Icons.verified_user,
+          text: l10n.sanctionsEmpty,
+          textKey: const Key('sanctions-empty'),
         ),
         AsyncData(:final value) => ListView(
           children: [
