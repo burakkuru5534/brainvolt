@@ -5,7 +5,9 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../app/router.dart';
 import '../../../app/session_controller.dart';
+import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/widgets/bv.dart';
 import '../../lobby/data/lobby_providers.dart';
 import '../../lobby/presentation/room_controller.dart';
 import '../../moderation/presentation/report_dialog.dart';
@@ -73,15 +75,32 @@ class ResultScreen extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Text(
-          headline,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-        Text(
-          '${r.scores[mySide - 1]} — ${r.scores[2 - mySide]}',
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.displaySmall,
+        BvCard(
+          gradient: BvColors.of(context).gradient,
+          padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
+          child: Column(
+            children: [
+              Icon(
+                r.winnerSide == mySide && !r.isDraw
+                    ? Icons.emoji_events
+                    : Icons.bolt,
+                size: 48,
+                color: const Color(0xFFFFD45C),
+              ),
+              Text(
+                headline,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.headlineMedium
+                    ?.copyWith(color: Colors.white),
+              ),
+              Text(
+                '${r.scores[mySide - 1]} — ${r.scores[2 - mySide]}',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.displaySmall
+                    ?.copyWith(color: Colors.white),
+              ),
+            ],
+          ),
         ),
         if (r.players.length > 2) _TeamLines(result: r, mySide: mySide),
         if (r.revenge case final rv? when rv.chain > 0)
@@ -119,12 +138,20 @@ class ResultScreen extends ConsumerWidget {
         for (final round in r.rounds)
           Card(
             child: ListTile(
-              leading: Text(switch (round.answers
+              leading: switch (round.answers
                   .where((a) => a.userId == me)
                   .firstOrNull) {
-                ResultAnswer(correct: true) => '✅',
-                _ => '❌',
-              }, style: const TextStyle(fontSize: 24)),
+                ResultAnswer(correct: true) => Icon(
+                  Icons.check_circle,
+                  color: BvColors.of(context).success,
+                  size: 30,
+                ),
+                _ => Icon(
+                  Icons.cancel,
+                  color: BvColors.of(context).danger,
+                  size: 30,
+                ),
+              },
               title: Text('${round.roundNo}. ${round.prompt}'),
               subtitle: Text(l10n.resultCorrectAnswer(round.correctText)),
               trailing: Row(

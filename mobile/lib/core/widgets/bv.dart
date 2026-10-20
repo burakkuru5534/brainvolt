@@ -417,3 +417,104 @@ class AvatarBubble extends StatelessWidget {
     );
   }
 }
+
+/// How an answer option looks.
+enum OptionLook { idle, chosen, proposed, correct, wrong }
+
+/// An answer option: a letter badge, the text and, when chosen or
+/// revealed, a filled colour with a mark (D-085).
+class OptionTile extends StatelessWidget {
+  const OptionTile({
+    required this.letter,
+    required this.text,
+    required this.onPressed,
+    this.look = OptionLook.idle,
+    this.footer,
+    super.key,
+  });
+
+  final String letter;
+  final String text;
+  final OptionLook look;
+  final VoidCallback? onPressed;
+
+  /// Extra lines under the text (teammates' proposals).
+  final Widget? footer;
+
+  @override
+  Widget build(BuildContext context) {
+    final bv = BvColors.of(context);
+    final filled = look != OptionLook.idle && look != OptionLook.proposed;
+    final ink = filled ? Colors.white : bv.ink;
+    final gradient = switch (look) {
+      OptionLook.chosen => bv.gradient,
+      OptionLook.correct => LinearGradient(
+        colors: [bv.success, bv.success.withAlpha(220)],
+      ),
+      OptionLook.wrong => LinearGradient(
+        colors: [bv.danger, bv.danger.withAlpha(220)],
+      ),
+      _ => null,
+    };
+    final mark = switch (look) {
+      OptionLook.chosen || OptionLook.correct => Icons.check_circle,
+      OptionLook.wrong => Icons.cancel,
+      _ => null,
+    };
+    return Opacity(
+      opacity: onPressed == null && look == OptionLook.idle ? 0.75 : 1,
+      child: BvCard(
+        onTap: onPressed,
+        gradient: gradient,
+        color: look == OptionLook.proposed ? bv.badge : null,
+        radius: 18,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: filled ? Colors.white.withAlpha(50) : bv.badge,
+              ),
+              child: Text(
+                letter,
+                style: weighted(
+                  TextStyle(
+                    fontSize: 18,
+                    color: filled ? Colors.white : bv.badgeInk,
+                    fontFamily: brandFont,
+                  ),
+                  FontWeight.w900,
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    text,
+                    style: weighted(
+                      TextStyle(
+                        fontSize: 18,
+                        color: ink,
+                        fontFamily: brandFont,
+                      ),
+                      FontWeight.w800,
+                    ),
+                  ),
+                  ?footer,
+                ],
+              ),
+            ),
+            if (mark != null) Icon(mark, color: Colors.white, size: 30),
+          ],
+        ),
+      ),
+    );
+  }
+}

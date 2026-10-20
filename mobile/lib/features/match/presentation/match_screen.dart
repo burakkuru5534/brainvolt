@@ -5,9 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
+import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/realtime/realtime_client.dart';
 import '../../../core/realtime/realtime_providers.dart';
+import '../../../core/widgets/bv.dart';
 import '../../../core/widgets/dialogs.dart';
 import '../../profile/domain/avatars.dart';
 import '../domain/match_state.dart';
@@ -102,67 +104,65 @@ class _MatchScreenState extends ConsumerState<MatchScreen> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            state.round != null && state.questionCount > 0
-                ? l10n.roundOf(state.round!.roundNo, state.questionCount)
-                : matchTypeName(l10n, state.matchType),
-          ),
-          leading: IconButton(
-            key: const Key('match-leave'),
-            icon: const Icon(Icons.close),
-            onPressed: _leave,
-          ),
-        ),
-        body: Column(
-          children: [
-            if (rt.status != RealtimeStatus.connected)
-              _Notice(l10n.reconnecting, key: const Key('reconnecting')),
-            if (opponent?.status == 'disconnected')
-              _Notice(l10n.opponentDisconnected),
-            if (state.seatMoved) _Notice(l10n.seatMoved),
-            if (state.resumed && state.phase == MatchPhase.question)
-              _Notice(l10n.matchResumed),
-            _Scoreboard(state: state),
-            const Divider(height: 1),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: switch (state.phase) {
-                  MatchPhase.waiting => _waiting(context, state, now),
-                  MatchPhase.countdown => Center(
-                    child: Text(
-                      l10n.matchStartsIn(
-                        ((state.startsAt - now) / 1000).ceil().clamp(0, 9),
-                      ),
-                      key: const Key('countdown'),
-                      style: Theme.of(context).textTheme.displayLarge,
-                    ),
-                  ),
-                  MatchPhase.preRound => _PickView(
-                    state: state,
-                    now: now,
-                    onPick: (id) => _run(() => _ctrl.pick(id)),
-                  ),
-                  MatchPhase.question || MatchPhase.reveal =>
-                    state.round == null
-                        ? const Center(child: CircularProgressIndicator())
-                        : _RoundView(
-                            state: state,
-                            now: now,
-                            onAnswer: (id) => _run(
-                              () => state.sharedAnswer
-                                  ? _ctrl.propose(id)
-                                  : _ctrl.answer(id),
-                            ),
-                            onLock: (id) => _run(() => _ctrl.lock(id)),
-                          ),
-                  MatchPhase.completed ||
-                  MatchPhase.cancelled => _End(state: state),
-                },
+        body: SafeArea(
+          child: Column(
+            children: [
+              _Header(
+                title: state.round != null && state.questionCount > 0
+                    ? l10n.roundOf(state.round!.roundNo, state.questionCount)
+                    : matchTypeName(l10n, state.matchType),
+                progress: state.round != null && state.questionCount > 0
+                    ? state.round!.roundNo / state.questionCount
+                    : null,
+                onLeave: _leave,
               ),
-            ),
-          ],
+              if (rt.status != RealtimeStatus.connected)
+                _Notice(l10n.reconnecting, key: const Key('reconnecting')),
+              if (opponent?.status == 'disconnected')
+                _Notice(l10n.opponentDisconnected),
+              if (state.seatMoved) _Notice(l10n.seatMoved),
+              if (state.resumed && state.phase == MatchPhase.question)
+                _Notice(l10n.matchResumed),
+              _Scoreboard(state: state),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: switch (state.phase) {
+                    MatchPhase.waiting => _waiting(context, state, now),
+                    MatchPhase.countdown => Center(
+                      child: Text(
+                        l10n.matchStartsIn(
+                          ((state.startsAt - now) / 1000).ceil().clamp(0, 9),
+                        ),
+                        key: const Key('countdown'),
+                        style: Theme.of(context).textTheme.displayLarge,
+                      ),
+                    ),
+                    MatchPhase.preRound => _PickView(
+                      state: state,
+                      now: now,
+                      onPick: (id) => _run(() => _ctrl.pick(id)),
+                    ),
+                    MatchPhase.question || MatchPhase.reveal =>
+                      state.round == null
+                          ? const Center(child: CircularProgressIndicator())
+                          : _RoundView(
+                              state: state,
+                              now: now,
+                              onAnswer: (id) => _run(
+                                () => state.sharedAnswer
+                                    ? _ctrl.propose(id)
+                                    : _ctrl.answer(id),
+                              ),
+                              onLock: (id) => _run(() => _ctrl.lock(id)),
+                            ),
+                    MatchPhase.completed ||
+                    MatchPhase.cancelled => _End(state: state),
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -188,13 +188,14 @@ class _MatchScreenState extends ConsumerState<MatchScreen> {
           if (ready)
             Text(l10n.waitingForOpponent)
           else
-            FilledButton(
+            GradientButton(
               key: const Key('ready'),
+              label: l10n.readyButton,
+              icon: Icons.bolt,
               onPressed: () async {
                 setState(() => _readySent = true);
                 await _run(_ctrl.ready);
               },
-              child: Text(l10n.readyButton),
             ),
         ],
       ),
@@ -210,9 +211,49 @@ class _Notice extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     width: double.infinity,
-    color: Theme.of(context).colorScheme.secondaryContainer,
+    margin: const EdgeInsets.fromLTRB(16, 4, 16, 0),
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    decoration: BoxDecoration(
+      color: BvColors.of(context).badge,
+      borderRadius: BorderRadius.circular(14),
+    ),
     child: Text(text, textAlign: TextAlign.center),
+  );
+}
+
+/// "Question n/N", the leave button and the match progress.
+class _Header extends StatelessWidget {
+  const _Header({required this.title, required this.onLeave, this.progress});
+
+  final String title;
+  final double? progress;
+  final VoidCallback onLeave;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(20, 8, 16, 4),
+    child: Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+            ),
+            BvCard(
+              key: const Key('match-leave'),
+              radius: 24,
+              padding: const EdgeInsets.all(8),
+              onTap: onLeave,
+              child: Icon(Icons.close, color: BvColors.of(context).ink),
+            ),
+          ],
+        ),
+        if (progress != null) ...[
+          const SizedBox(height: 10),
+          LinearProgressIndicator(value: progress!.clamp(0, 1)),
+        ],
+      ],
+    ),
   );
 }
 
@@ -227,31 +268,42 @@ class _Scoreboard extends StatelessWidget {
     final me = state.me;
     final opponent = state.opponent;
     final answered = state.round?.answered ?? const {};
-    Widget side(Player? p, String name, int score, {required bool mine}) =>
-        Expanded(
-          child: Column(
-            children: [
+    final text = Theme.of(context).textTheme;
+    Widget side(Player? p, String name, int score, {required bool mine}) {
+      final avatar = AvatarBubble(avatarFor(p?.avatarId ?? ''), size: 64);
+      final info = Expanded(
+        child: Column(
+          crossAxisAlignment: mine
+              ? CrossAxisAlignment.start
+              : CrossAxisAlignment.end,
+          children: [
+            Text(name, overflow: TextOverflow.ellipsis, style: text.labelLarge),
+            Text(
+              '$score',
+              key: Key(mine ? 'my-score' : 'opponent-score'),
+              style: text.headlineMedium,
+            ),
+            if (!mine &&
+                p != null &&
+                answered.contains(p.userId) &&
+                state.phase == MatchPhase.question)
               Text(
-                avatarFor(p?.avatarId ?? ''),
-                style: const TextStyle(fontSize: 32),
+                '✓ ${l10n.opponentAnswered}',
+                key: const Key('opponent-answered'),
+                style: text.labelSmall,
               ),
-              Text(name, overflow: TextOverflow.ellipsis),
-              Text(
-                '$score',
-                key: Key(mine ? 'my-score' : 'opponent-score'),
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              if (!mine &&
-                  p != null &&
-                  answered.contains(p.userId) &&
-                  state.phase == MatchPhase.question)
-                Text(
-                  '✓ ${l10n.opponentAnswered}',
-                  key: const Key('opponent-answered'),
-                ),
-            ],
-          ),
-        );
+          ],
+        ),
+      );
+      return Expanded(
+        child: Row(
+          children: mine
+              ? [avatar, const SizedBox(width: 8), info]
+              : [info, const SizedBox(width: 8), avatar],
+        ),
+      );
+    }
+
     if (state.isTeam) {
       Widget team(int sideNo, String name, int score) => Expanded(
         child: Column(
@@ -289,23 +341,56 @@ class _Scoreboard extends StatelessWidget {
         child: Row(
           children: [
             team(state.mySide, l10n.yourTeam, state.myScore),
-            const Text('—'),
+            const _Versus(),
             team(3 - state.mySide, l10n.opponentsTeam, state.opponentScore),
           ],
         ),
       );
     }
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
           side(me, l10n.you, state.myScore, mine: true),
-          const Text('—'),
+          const _Versus(),
           side(
             opponent,
             opponent?.displayName ?? '',
             state.opponentScore,
             mine: false,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The VS shield between the two sides.
+class _Versus extends StatelessWidget {
+  const _Versus();
+
+  @override
+  Widget build(BuildContext context) {
+    final bv = BvColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          ShaderMask(
+            shaderCallback: (r) => bv.gradient.createShader(r),
+            child: const Icon(Icons.shield, size: 52, color: Colors.white),
+          ),
+          Text(
+            'VS',
+            style: weighted(
+              const TextStyle(
+                fontSize: 16,
+                color: Colors.white,
+                fontFamily: brandFont,
+              ),
+              FontWeight.w900,
+            ),
           ),
         ],
       ),
@@ -333,7 +418,6 @@ class _RoundView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final r = state.round!;
-    final scheme = Theme.of(context).colorScheme;
     final revealed = r.correctOptionId != null;
     if (!revealed && now < r.showAt) {
       return const Center(child: CircularProgressIndicator());
@@ -361,96 +445,208 @@ class _RoundView extends StatelessWidget {
               .firstOrNull
         : null;
     final sideResult = state.isTeam ? r.sideCorrect[state.mySide] : null;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LinearProgressIndicator(
-          key: const Key('round-timer'),
-          value: revealed ? 0 : left / window,
-        ),
-        const SizedBox(height: 16),
-        if (r.category != null) Align(child: Chip(label: Text(r.category!))),
-        const SizedBox(height: 8),
-        Text(
-          r.prompt,
-          key: const Key('prompt'),
-          style: Theme.of(context).textTheme.titleLarge,
-          textAlign: TextAlign.center,
-        ),
-        if (turnHolder != null && !revealed) ...[
-          const SizedBox(height: 8),
-          Text(
-            turnHolder.userId == state.myUserId
-                ? l10n.yourTurn
-                : l10n.turnOf(turnHolder.displayName),
-            key: const Key('turn'),
-            textAlign: TextAlign.center,
+    // Long prompts and four options scroll on small phones.
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          LinearProgressIndicator(
+            key: const Key('round-timer'),
+            value: revealed ? 0 : left / window,
           ),
-        ],
-        const SizedBox(height: 24),
-        for (final o in r.options)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: FilledButton.tonal(
-              key: Key('option-${o.id}'),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.all(16),
-                backgroundColor: switch (o.id) {
-                  _ when revealed && o.id == r.correctOptionId =>
-                    Colors.green.shade400,
-                  _ when revealed && o.id == r.myOptionId => scheme.error,
-                  _ when o.id == r.myOptionId => scheme.primaryContainer,
-                  _ when o.id == myProposal => scheme.secondaryContainer,
-                  _ => null,
-                },
-              ),
-              onPressed: open ? () => onAnswer(o.id) : null,
-              child: Column(
-                children: [
-                  Text(o.text, textAlign: TextAlign.center),
-                  if (state.sharedAnswer && !revealed)
-                    for (final e in r.proposals.entries)
-                      if (e.value == o.id && e.key != state.myUserId)
-                        Text(
-                          nameOf(e.key),
-                          style: Theme.of(context).textTheme.labelSmall,
-                        ),
-                ],
+          const SizedBox(height: 16),
+          if (r.category != null)
+            Align(
+              child: Chip(
+                avatar: Icon(
+                  Icons.public,
+                  size: 18,
+                  color: BvColors.of(context).badgeInk,
+                ),
+                label: Text(r.category!),
               ),
             ),
-          ),
-        if (state.sharedAnswer && !revealed)
-          FilledButton(
-            key: const Key('lock'),
-            onPressed: open && myProposal != null
-                ? () => onLock(myProposal)
-                : null,
-            child: Text(l10n.lockAnswer),
-          ),
-        if (revealed) ...[
           const SizedBox(height: 8),
-          Text(
-            switch (mine) {
-              _ when sideResult != null =>
-                sideResult ? l10n.answerCorrect : l10n.answerWrong,
-              RevealedAnswer(optionId: null) || null => l10n.answerTimeout,
-              RevealedAnswer(correct: true) => l10n.answerCorrect,
-              _ => l10n.answerWrong,
-            },
-            key: const Key('reveal-result'),
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleMedium,
+          BvCard(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+            child: Text(
+              r.prompt,
+              key: const Key('prompt'),
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
           ),
-          if ((mine?.points ?? 0) > 0)
-            Text(l10n.pointsGained(mine!.points), textAlign: TextAlign.center),
-          if (r.explanation != null) ...[
+          if (turnHolder != null && !revealed) ...[
             const SizedBox(height: 8),
-            Text(r.explanation!, textAlign: TextAlign.center),
+            Text(
+              turnHolder.userId == state.myUserId
+                  ? l10n.yourTurn
+                  : l10n.turnOf(turnHolder.displayName),
+              key: const Key('turn'),
+              textAlign: TextAlign.center,
+            ),
+          ],
+          const SizedBox(height: 16),
+          for (final (i, o) in r.options.indexed)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: OptionTile(
+                key: Key('option-${o.id}'),
+                letter: String.fromCharCode(65 + i),
+                text: o.text,
+                look: switch (o.id) {
+                  _ when revealed && o.id == r.correctOptionId =>
+                    OptionLook.correct,
+                  _ when revealed && o.id == r.myOptionId => OptionLook.wrong,
+                  _ when o.id == r.myOptionId => OptionLook.chosen,
+                  _ when o.id == myProposal => OptionLook.proposed,
+                  _ => OptionLook.idle,
+                },
+                onPressed: open ? () => onAnswer(o.id) : null,
+                footer: state.sharedAnswer && !revealed
+                    ? Wrap(
+                        spacing: 6,
+                        children: [
+                          for (final e in r.proposals.entries)
+                            if (e.value == o.id && e.key != state.myUserId)
+                              Text(
+                                nameOf(e.key),
+                                style: Theme.of(context).textTheme.labelSmall,
+                              ),
+                        ],
+                      )
+                    : null,
+              ),
+            ),
+          if (state.sharedAnswer && !revealed)
+            FilledButton(
+              key: const Key('lock'),
+              onPressed: open && myProposal != null
+                  ? () => onLock(myProposal)
+                  : null,
+              child: Text(l10n.lockAnswer),
+            ),
+          if (revealed) ...[
+            const SizedBox(height: 8),
+            _Feedback(
+              good: sideResult ?? (mine?.correct ?? false),
+              text: switch (mine) {
+                _ when sideResult != null =>
+                  sideResult ? l10n.answerCorrect : l10n.answerWrong,
+                RevealedAnswer(optionId: null) || null => l10n.answerTimeout,
+                RevealedAnswer(correct: true) => l10n.answerCorrect,
+                _ => l10n.answerWrong,
+              },
+              points: (mine?.points ?? 0) > 0
+                  ? l10n.pointsGained(mine!.points)
+                  : null,
+            ),
+            if (r.explanation != null) ...[
+              const SizedBox(height: 8),
+              Text(r.explanation!, textAlign: TextAlign.center),
+            ],
           ],
         ],
-      ],
+      ),
     );
   }
+}
+
+/// Correct / wrong after the reveal, with the points and, when right, a
+/// burst of sparkles.
+class _Feedback extends StatelessWidget {
+  const _Feedback({required this.good, required this.text, this.points});
+
+  final bool good;
+  final String text;
+  final String? points;
+
+  @override
+  Widget build(BuildContext context) {
+    final bv = BvColors.of(context);
+    final color = good ? bv.success : bv.danger;
+    final body = Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              good ? Icons.check_circle : Icons.cancel,
+              color: color,
+              size: 36,
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                text,
+                key: const Key('reveal-result'),
+                style: Theme.of(context).textTheme.headlineSmall
+                    ?.copyWith(color: color),
+              ),
+            ),
+          ],
+        ),
+        if (points != null)
+          Text(points!, style: Theme.of(context).textTheme.titleLarge),
+      ],
+    );
+    return good
+        ? CustomPaint(
+            painter: _Sparkles(bv),
+            child: Padding(padding: const EdgeInsets.all(12), child: body),
+          )
+        : body;
+  }
+}
+
+class _Sparkles extends CustomPainter {
+  _Sparkles(this.bv);
+
+  final BvColors bv;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final colors = [
+      bv.gradientStart,
+      bv.success,
+      const Color(0xFFF5B301),
+      bv.badgeInk,
+    ];
+    // Fixed positions: a calm, deterministic burst around the text.
+    const spots = [
+      (0.05, 0.2),
+      (0.12, 0.85),
+      (0.2, 0.45),
+      (0.3, 0.05),
+      (0.7, 0.1),
+      (0.8, 0.9),
+      (0.88, 0.4),
+      (0.95, 0.75),
+      (0.4, 0.95),
+      (0.62, 0.92),
+    ];
+    for (final (i, (x, y)) in spots.indexed) {
+      final paint = Paint()..color = colors[i % colors.length];
+      final c = Offset(x * size.width, y * size.height);
+      if (i.isEven) {
+        canvas.drawCircle(c, 3, paint);
+      } else {
+        final path = Path()
+          ..moveTo(c.dx, c.dy - 6)
+          ..lineTo(c.dx + 2, c.dy - 2)
+          ..lineTo(c.dx + 6, c.dy)
+          ..lineTo(c.dx + 2, c.dy + 2)
+          ..lineTo(c.dx, c.dy + 6)
+          ..lineTo(c.dx - 2, c.dy + 2)
+          ..lineTo(c.dx - 6, c.dy)
+          ..lineTo(c.dx - 2, c.dy - 2)
+          ..close();
+        canvas.drawPath(path, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_Sparkles old) => false;
 }
 
 class _End extends StatelessWidget {
@@ -493,10 +689,12 @@ class _End extends StatelessWidget {
               onPressed: () => context.push(Routes.matchResult(state.matchId)),
               child: Text(l10n.showDetails),
             ),
-          FilledButton(
+          const SizedBox(height: 12),
+          GradientButton(
             key: const Key('back-home'),
+            label: l10n.backHome,
+            icon: Icons.home_rounded,
             onPressed: () => context.go(Routes.home),
-            child: Text(l10n.backHome),
           ),
         ],
       ),

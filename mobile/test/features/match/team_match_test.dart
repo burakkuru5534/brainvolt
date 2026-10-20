@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:brainvolt/app/app.dart';
 import 'package:brainvolt/app/router.dart';
 import 'package:brainvolt/core/realtime/realtime_providers.dart';
+import 'package:brainvolt/core/widgets/bv.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -184,9 +185,7 @@ void main() {
     final (t, _) = await openMatch(tester, 'individual_turns', ['mate', 'o1']);
     expect(find.text('Sıra: Ayşe'), findsOneWidget);
     expect(
-      tester
-          .widget<ButtonStyleButton>(find.byKey(const Key('option-a')))
-          .onPressed,
+      tester.widget<OptionTile>(find.byKey(const Key('option-a'))).onPressed,
       isNull,
     );
     await finish(tester, t);

@@ -8,6 +8,7 @@ import 'package:brainvolt/app/app.dart';
 import 'package:brainvolt/app/router.dart';
 import 'package:brainvolt/app/theme.dart';
 import 'package:brainvolt/core/realtime/realtime_providers.dart';
+import 'package:brainvolt/features/match/domain/match_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -94,6 +95,208 @@ void main() {
       await tester.tap(find.byKey(const Key('queue-cancel')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 500));
+      await finish(tester, t);
+    });
+
+    testWidgets('match ${mode.name}', (tester) async {
+      final t = await launch(tester, Routes.play);
+      final s = t.sockets.single;
+      int now() => DateTime.now().millisecondsSinceEpoch;
+      Future<void> step() async {
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 150));
+      }
+
+      s.serverSends({
+        't': 'sys.welcome',
+        'd': {'session_id': 's1', 'resume_token': 'r1'},
+      });
+      await step();
+      s.serverSends({
+        't': 'mm.match_found',
+        'd': {'match_id': 'm1'},
+      });
+      await step();
+      await step();
+      s
+        ..ack('match.join')
+        ..serverSends({
+          't': 'match.snapshot',
+          's': 'match:m1',
+          'seq': 1,
+          'd': {
+            'status': 'in_progress',
+            'phase': 'lobby',
+            'question_count': 7,
+            'participants': [
+              {
+                'user_id': 'user-guest-1',
+                'side_no': 1,
+                'display_name': 'Ben',
+                'avatar_id': 'penguin',
+              },
+              {
+                'user_id': 'opp',
+                'side_no': 2,
+                'display_name': 'Pratik Botu',
+                'avatar_id': 'tiger',
+              },
+            ],
+            'sides': [
+              {'side_no': 1, 'score': 0},
+              {'side_no': 2, 'score': 159},
+            ],
+          },
+        })
+        ..serverSends({
+          't': 'round.started',
+          's': 'match:m1',
+          'seq': 2,
+          'd': {
+            'round_no': 1,
+            'question': {
+              'id': 'q1',
+              'prompt':
+                  'Bugün İstanbul olarak bilinen şehrin tarihteki adı neydi?',
+              'category': {'id': 'c1', 'name': 'Coğrafya'},
+            },
+            'options': [
+              {'id': 'o1', 'text': 'Konstantinopolis'},
+              {'id': 'o2', 'text': 'İskenderiye'},
+              {'id': 'o3', 'text': 'Antakya'},
+              {'id': 'o4', 'text': 'Efes'},
+            ],
+            'show_at': now() - 100,
+            'deadline_at': now() + 15000,
+          },
+        });
+      await step();
+      await tester.tap(find.byKey(const Key('option-o1')));
+      await step();
+      s
+        ..ack('match.answer')
+        ..serverSends({
+          't': 'round.answer_received',
+          's': 'match:m1',
+          'seq': 3,
+          'd': {'round_no': 1, 'user_id': 'user-guest-1', 'option_id': 'o1'},
+        });
+      await step();
+      await expectLater(
+        find.byType(BrainVoltApp),
+        matchesGoldenFile('match_question_${mode.name}.png'),
+      );
+      s.serverSends({
+        't': 'round.revealed',
+        's': 'match:m1',
+        'seq': 4,
+        'd': {
+          'round_no': 1,
+          'correct_option_id': 'o1',
+          'answers': [
+            {
+              'user_id': 'user-guest-1',
+              'option_id': 'o1',
+              'correct': true,
+              'points': {'total': 108},
+            },
+            {
+              'user_id': 'opp',
+              'option_id': 'o1',
+              'correct': true,
+              'points': {'total': 0},
+            },
+          ],
+          'sides': [
+            {'side_no': 1, 'score': 108},
+            {'side_no': 2, 'score': 159},
+          ],
+        },
+      });
+      await step();
+      await expectLater(
+        find.byType(BrainVoltApp),
+        matchesGoldenFile('match_reveal_${mode.name}.png'),
+      );
+      await finish(tester, t);
+    });
+
+    testWidgets('result ${mode.name}', (tester) async {
+      final t = await TestApp.create(prefs: {'theme_mode': mode.name});
+      t.matches.matchResult = const MatchResult(
+        id: 'm1',
+        status: 'completed',
+        scores: [612, 431],
+        winnerSide: 1,
+        players: [
+          ResultPlayer(
+            userId: 'user-guest-1',
+            side: 1,
+            displayName: 'Ben',
+            avatarId: 'penguin',
+            correct: 5,
+            status: 'finished',
+          ),
+          ResultPlayer(
+            userId: 'opp',
+            side: 2,
+            displayName: 'Rakip',
+            avatarId: 'tiger',
+            correct: 4,
+            status: 'finished',
+          ),
+        ],
+        rounds: [
+          ResultRound(
+            roundNo: 1,
+            questionId: 'q1',
+            prompt: 'Türkiye’nin başkenti neresidir?',
+            correctText: 'Ankara',
+            answers: [
+              ResultAnswer(
+                userId: 'user-guest-1',
+                optionId: 'o1',
+                correct: true,
+                points: 108,
+              ),
+            ],
+            options: {},
+          ),
+          ResultRound(
+            roundNo: 2,
+            questionId: 'q2',
+            prompt: 'En uzun nehir hangisidir?',
+            correctText: 'Nil',
+            answers: [
+              ResultAnswer(
+                userId: 'user-guest-1',
+                optionId: 'o2',
+                correct: false,
+                points: 0,
+              ),
+            ],
+            options: {},
+          ),
+        ],
+      );
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: t.container,
+          child: const BrainVoltApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      t.container.read(routerProvider).go(Routes.matchResult('m1'));
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      await expectLater(
+        find.byType(BrainVoltApp),
+        matchesGoldenFile('result_${mode.name}.png'),
+      );
       await finish(tester, t);
     });
 
