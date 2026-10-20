@@ -343,6 +343,8 @@ void main() {
     t.matches.matchResult = result(revenge: true);
     t.lobby.responded = revengeChallenge();
     final s = await queueAndMatch(tester, t);
+    await tester.tap(find.byKey(const Key('ready')));
+    await step(tester);
     await complete(tester, s, 2);
     expect(find.text('Kaybettin'), findsOneWidget);
     await tester.tap(find.byKey(const Key('revenge')));
@@ -359,6 +361,32 @@ void main() {
     await step(tester);
     await step(tester);
     expect(s.lastSent('match.join')['d'], {'match_id': 'm9'});
+    // A fresh screen: the new match asks for ready again.
+    s
+      ..ack('match.join')
+      ..serverSends({
+        't': 'match.snapshot',
+        's': 'match:m9',
+        'seq': 1,
+        'd': {
+          'status': 'waiting',
+          'phase': 'lobby',
+          'question_count': 7,
+          'ready_deadline_at': now() + 20000,
+          'participants': [
+            {'user_id': me, 'side_no': 1, 'display_name': 'Ben'},
+            {'user_id': 'opp', 'side_no': 2, 'display_name': 'Rakip'},
+          ],
+          'sides': [
+            {'side_no': 1, 'score': 0},
+            {'side_no': 2, 'score': 0},
+          ],
+        },
+      });
+    await step(tester);
+    await tester.tap(find.byKey(const Key('ready')));
+    await step(tester);
+    expect(s.lastSent('match.ready')['d'], {'match_id': 'm9'});
     await finish(tester, t);
   });
 
