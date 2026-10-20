@@ -154,7 +154,7 @@ No pong for **3 consecutive pings** (in match: 6 s; outside: 60 s) → server tr
 | `match.completed` | `{end_reason, winner_side_no, is_draw, sides, participants, tie_break?, awards_pending: true}` | rating/SP/XP arrive later as `match.awards` (async consumers) |
 | `match.awards` | ranking: `{match_id, sp_delta, season_points, league, division, league_up}` (ranked only); progression: `{match_id, xp, xp_total, level, level_up, streak, badges, quests}` | personal, two messages once ranking and progression processed (D-077) |
 | `match.cancelled` | `{reason}` | |
-| `match.quick_chat` | `{user_id, phrase_id}` | |
+| `match.quick_chat` | `{match_id, user_id, phrase_id}` | to every participant; not stored (D-088) |
 | `rematch.offer` / `rematch.result` | `{match_id, accepted_user_ids, expires_at}` / `{match_id, accepted, new_match_id?, declined_by?, reason?}` | personal deliveries (no stream seq); the window ends 30 s after the match ended |
 
 **Daily run stream (`daily:<run_id>`)** — same round events as a match with `run_id` and `position` instead of `match_id` / `round_no`: `daily.question`, `daily.answer_received`, `daily.revealed`, `daily.completed {correct_count, total_time_ms, score, rank?}`, `daily.voided {reason}`.

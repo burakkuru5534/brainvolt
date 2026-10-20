@@ -145,6 +145,26 @@ void main() {
     expect(find.text('Soru 1/7'), findsOneWidget);
     expect(find.text('Coğrafya'), findsOneWidget);
 
+    // Quick chat: the opponent's phrase shows; ours goes out.
+    s.serverSends({
+      't': 'match.quick_chat',
+      's': 'match:m1',
+      'd': {'match_id': 'm1', 'user_id': 'opp', 'phrase_id': 'gg'},
+    });
+    await step(tester);
+    expect(find.text('Rakip: GG'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('match-quick')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('match-quick-good_luck')));
+    await step(tester);
+    await step(tester);
+    expect(s.lastSent('match.quick_chat')['d'], {
+      'match_id': 'm1',
+      'phrase_id': 'good_luck',
+    });
+    s.ack('match.quick_chat');
+    await step(tester);
+
     await tester.tap(find.byKey(const Key('option-o1')));
     await step(tester);
     expect(s.lastSent('match.answer')['d'], {

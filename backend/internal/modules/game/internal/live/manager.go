@@ -337,6 +337,7 @@ type intent struct {
 	RoundNo    int       `json:"round_no"`
 	OptionID   uuid.UUID `json:"option_id"`
 	CategoryID uuid.UUID `json:"category_id"`
+	PhraseID   string    `json:"phrase_id"`
 }
 
 // Handle routes a match.* intent to the owner; the owner answers it.
@@ -365,6 +366,8 @@ func (m *Manager) Handle(ctx context.Context, c realtime.Client, msg realtime.Me
 			return apierror.New(apierror.MalformedRequest)
 		}
 		cmd.Kind, cmd.Round, cmd.Option = kindPick, p.RoundNo, p.CategoryID
+	case "match.quick_chat":
+		cmd.Kind, cmd.Phrase = kindQuick, p.PhraseID
 	default:
 		return apierror.New(apierror.MalformedRequest).With("reason", "unknown_intent")
 	}

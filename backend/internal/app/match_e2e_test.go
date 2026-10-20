@@ -84,6 +84,23 @@ func TestLiveQuickDuel(t *testing.T) {
 	}
 	wa.next("match.started")
 
+	// Quick chat (D-031, D-088): presets to everyone, one every 3 s.
+	if f := wa.answer(wa.send("match.quick_chat", map[string]any{"match_id": id, "phrase_id": "good_luck"})); f["t"] != "sys.ack" {
+		t.Fatalf("quick chat %v", f)
+	}
+	if d := data(wb.find("quick", func(f map[string]any) bool { return f["t"] == "match.quick_chat" })); d["phrase_id"] != "good_luck" || d["user_id"] != a.String() {
+		t.Fatalf("quick chat delivered %v", d)
+	}
+	if f := wa.answer(wa.send("match.quick_chat", map[string]any{"match_id": id, "phrase_id": "gg"})); data(f)["code"] != "RATE_LIMITED" {
+		t.Fatalf("quick chat spacing %v", f)
+	}
+	if f := wb.answer(wb.send("match.quick_chat", map[string]any{"match_id": id, "phrase_id": "hello"})); data(f)["code"] != "VALIDATION_FAILED" {
+		t.Fatalf("unknown phrase %v", f)
+	}
+	if f := wc.answer(wc.send("match.quick_chat", map[string]any{"match_id": id, "phrase_id": "gg"})); data(f)["code"] != "NOT_A_PARTICIPANT" {
+		t.Fatalf("outsider quick chat %v", f)
+	}
+
 	for round := 1; round <= 7; round++ {
 		sa := data(wa.next("round.started"))
 		sb := data(wb.next("round.started"))

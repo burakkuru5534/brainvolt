@@ -11,6 +11,8 @@ import '../../../core/realtime/realtime_client.dart';
 import '../../../core/realtime/realtime_providers.dart';
 import '../../../core/widgets/bv.dart';
 import '../../../core/widgets/dialogs.dart';
+import '../../chat/domain/chat_repository.dart';
+import '../../chat/presentation/chat_screen.dart';
 import '../../profile/domain/avatars.dart';
 import '../domain/match_state.dart';
 import 'match_type_name.dart';
@@ -33,9 +35,22 @@ class _MatchScreenState extends ConsumerState<MatchScreen> {
   Timer? _tick;
   bool _readySent = false;
 
+  /// Quick phrases on screen: user → (phrase, shown until).
+  final _quick = <String, (String, DateTime)>{};
+  StreamSubscription<ServerFrame>? _quickSub;
+
   @override
   void initState() {
     super.initState();
+    _quickSub = ref.read(realtimeClientProvider).frames.listen((f) {
+      if (f.type == 'match.quick_chat' &&
+          f.data['match_id'] == widget.matchId) {
+        _quick[f.data['user_id'] as String] = (
+          f.data['phrase_id'] as String? ?? '',
+          DateTime.now().add(const Duration(seconds: 3)),
+        );
+      }
+    });
     // Countdowns and the show_at gate redraw ten times a second.
     _tick = Timer.periodic(
       const Duration(milliseconds: 100),
@@ -46,7 +61,41 @@ class _MatchScreenState extends ConsumerState<MatchScreen> {
   @override
   void dispose() {
     _tick?.cancel();
+    unawaited(_quickSub?.cancel());
     super.dispose();
+  }
+
+  Future<void> _pickQuick() async {
+    final l10n = context.l10n;
+    final phrase = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final q in quickPhrases)
+                ActionChip(
+                  key: Key('match-quick-$q'),
+                  label: Text(quickPhraseText(l10n, q)),
+                  onPressed: () => Navigator.pop(context, q),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (phrase == null || !mounted) {
+      return;
+    }
+    await _run(
+      () => ref.read(realtimeClientProvider).send('match.quick_chat', {
+        'match_id': widget.matchId,
+        'phrase_id': phrase,
+      }),
+    );
   }
 
   MatchController get _ctrl =>
@@ -124,6 +173,15 @@ class _MatchScreenState extends ConsumerState<MatchScreen> {
               if (state.resumed && state.phase == MatchPhase.question)
                 _Notice(l10n.matchResumed),
               _Scoreboard(state: state),
+              _QuickLine(
+                quick: {
+                  for (final e in _quick.entries)
+                    if (e.value.$2.isAfter(DateTime.now())) e.key: e.value.$1,
+                },
+                names: {for (final p in state.players) p.userId: p.displayName},
+                me: state.myUserId,
+                onPick: state.over ? null : _pickQuick,
+              ),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -359,6 +417,58 @@ class _Scoreboard extends StatelessWidget {
             state.opponentScore,
             mine: false,
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Quick phrases just sent in the match, and the button to send one.
+class _QuickLine extends StatelessWidget {
+  const _QuickLine({
+    required this.quick,
+    required this.names,
+    required this.me,
+    required this.onPick,
+  });
+
+  final Map<String, String> quick;
+  final Map<String, String> names;
+  final String me;
+  final VoidCallback? onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final bv = BvColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                for (final e in quick.entries)
+                  Chip(
+                    key: Key('quick-shown-${e.key}'),
+                    backgroundColor: e.key == me ? bv.badge : bv.card,
+                    label: Text(
+                      '${e.key == me ? l10n.you : names[e.key] ?? ''}: '
+                      '${quickPhraseText(l10n, e.value)}',
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (onPick != null)
+            IconButton(
+              key: const Key('match-quick'),
+              tooltip: l10n.chatTitle,
+              icon: Icon(Icons.chat_bubble_outline, color: bv.badgeInk),
+              onPressed: onPick,
+            ),
         ],
       ),
     );

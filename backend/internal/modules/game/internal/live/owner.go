@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand/v2"
+	"slices"
 	"sync"
 	"time"
 
@@ -30,7 +31,15 @@ const (
 	kindDisconnect = "disconnect"
 	kindRTT        = "rtt"
 	kindFire       = "fire"
+	kindQuick      = "quick"
 )
+
+// QuickPhrases are the preset in-match phrases (translated on the device;
+// the same set as team chat, D-088).
+var QuickPhrases = []string{"good_luck", "well_played", "nice", "thanks", "oops", "lets_go", "gg", "rematch"}
+
+// quickGapMS spaces one player's quick phrases.
+const quickGapMS = 3000
 
 // command is one entry of a match owner's mailbox; it travels between
 // instances as JSON when the owner runs elsewhere.
@@ -46,16 +55,20 @@ type command struct {
 	AtMS  int64        `json:"at_ms,omitempty"`
 	RTT   int          `json:"rtt,omitempty"`
 	Timer engine.Timer `json:"timer"`
+	// Phrase is a quick-chat phrase id.
+	Phrase string `json:"phrase,omitempty"`
 }
 
 // owner runs one live match: the single writer of its state (match-
 // lifecycle §5). Every command is applied to the engine, persisted, saved
 // to Redis, delivered and its timers armed, in that order.
 type owner struct {
-	m      *Manager
-	match  *engine.Match
-	meta   *meta
-	seats  map[uuid.UUID]uuid.UUID // user → session holding the seat
+	m     *Manager
+	match *engine.Match
+	meta  *meta
+	seats map[uuid.UUID]uuid.UUID // user → session holding the seat
+	// quick is each player's last quick phrase (ms), for spacing.
+	quick  map[uuid.UUID]int64
 	inbox  chan command
 	stop   chan struct{}
 	timers []clock.Timer
@@ -114,6 +127,15 @@ func (o *owner) handle(ctx context.Context, c command) {
 		now = o.m.d.Clock.Now().UnixMilli()
 	}
 	user := c.Client.UserID
+	if c.Kind == kindQuick {
+		err := o.quickChat(ctx, user, c.Phrase, now)
+		if c.Re != "" {
+			if rerr := o.m.d.RT.Reply(ctx, c.Client, c.Re, err); rerr != nil {
+				o.m.d.Logger.DebugContext(ctx, "game: reply failed", "error", rerr)
+			}
+		}
+		return
+	}
 	var out engine.Output
 	var err error
 	switch c.Kind {
@@ -169,6 +191,31 @@ func (o *owner) handle(ctx context.Context, c command) {
 		}
 		o.send(ctx, t, o.meta.snapshot(o.match, o.recipient(user), o.m.d.Clock.Now().UnixMilli()))
 	}
+}
+
+// quickChat sends a preset phrase to everyone in the match (all sides,
+// D-031): participants only, one every 3 s; nothing is stored.
+func (o *owner) quickChat(ctx context.Context, user uuid.UUID, phrase string, now int64) error {
+	if o.match.Participant(user) == nil {
+		return apierror.New(apierror.NotAParticipant)
+	}
+	if !slices.Contains(QuickPhrases, phrase) {
+		return apierror.Validation(apierror.FieldError{Field: "phrase_id", Rule: "one_of"})
+	}
+	if o.quick == nil {
+		o.quick = map[uuid.UUID]int64{}
+	}
+	if last, ok := o.quick[user]; ok && now-last < quickGapMS {
+		return apierror.New(apierror.RateLimited).WithRetryAfter(time.Duration(quickGapMS-(now-last)) * time.Millisecond)
+	}
+	o.quick[user] = now
+	f := realtime.Frame{T: "match.quick_chat", S: streamOf(o.match.ID), TS: now, D: map[string]any{
+		"match_id": o.match.ID, "user_id": user, "phrase_id": phrase,
+	}}
+	for _, p := range o.match.Participants {
+		o.send(ctx, realtime.Target{User: p.UserID}, f)
+	}
+	return nil
 }
 
 // commit persists an output, saves the state, publishes its events and
