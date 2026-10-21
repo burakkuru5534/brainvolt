@@ -4,7 +4,7 @@ publish_to: 'none'
 
 # Sent to the backend as X-App-Version (conventions.md §2); bump the build
 # number (+N) for every store upload.
-version: 1.0.0+1
+version: 1.0.0+3
 
 environment:
   sdk: ^3.13.1
