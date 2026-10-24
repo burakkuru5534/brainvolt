@@ -28,9 +28,13 @@ import (
 
 // Timing of the protocol (websocket.md §2, §4, D-032, D-051).
 const (
-	AuthTimeout       = 5 * time.Second
-	PingInPlay        = 2 * time.Second
-	PingIdle          = 20 * time.Second
+	AuthTimeout = 5 * time.Second
+	PingInPlay  = 2 * time.Second
+	PingIdle    = 10 * time.Second
+	// IdleTimeout closes a session (4010) that had no intent and no event
+	// for this long while its user is in no match, room or queue (D-097):
+	// an open WebSocket keeps Cloud Run billing CPU.
+	IdleTimeout       = 3 * time.Minute
 	MissedPongs       = 3
 	ResumeWindow      = 2 * time.Minute
 	PresenceTTL       = 60 * time.Second
@@ -92,6 +96,9 @@ type Deps struct {
 	Clock    clock.Clock
 	Logger   *slog.Logger
 	Instance string // this API instance's id
+	// PingIdle and IdleTimeout override the defaults (tests).
+	PingIdle    time.Duration
+	IdleTimeout time.Duration
 }
 
 type resumableEntry struct {
@@ -120,6 +127,12 @@ type Hub struct {
 
 // New returns a hub.
 func New(d Deps) *Hub {
+	if d.PingIdle <= 0 {
+		d.PingIdle = PingIdle
+	}
+	if d.IdleTimeout <= 0 {
+		d.IdleTimeout = IdleTimeout
+	}
 	return &Hub{
 		d: d, sessions: map[uuid.UUID]*Session{}, byUser: map[uuid.UUID]map[uuid.UUID]*Session{},
 		byInstallation: map[string]*Session{}, resumables: map[uuid.UUID]resumableEntry{},

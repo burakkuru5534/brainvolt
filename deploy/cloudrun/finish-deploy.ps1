@@ -99,10 +99,15 @@ Check "public access"
 Step "Checks"
 $url = (gcloud run services describe brainvolt-api --region $Region --format="value(status.url)").Trim()
 gcloud run services describe brainvolt-api --region $Region --format="yaml(spec.template.metadata.annotations,spec.template.spec.containerConcurrency)"
-foreach ($path in "/healthz", "/readyz") {
+# /healthz is reserved by Cloud Run's front end (Google 404); Cloud Run's
+# own startup probe uses it inside; from outside check a public endpoint
+# and /readyz (503 with "migrations":"failed" means: run the migrate job).
+foreach ($path in "/v1/credits", "/readyz") {
     try {
-        $r = Invoke-WebRequest -UseBasicParsing -TimeoutSec 60 "$url$path"
-        Write-Host "$path -> $($r.StatusCode) $($r.Content)"
+        $r = Invoke-WebRequest -UseBasicParsing -TimeoutSec 120 "$url$path"
+        $body = $r.Content
+        if ($body.Length -gt 120) { $body = $body.Substring(0, 120) + "..." }
+        Write-Host "$path -> $($r.StatusCode) $body"
     } catch {
         Write-Host "$path -> FAILED: $($_.Exception.Message)" -ForegroundColor Yellow
     }

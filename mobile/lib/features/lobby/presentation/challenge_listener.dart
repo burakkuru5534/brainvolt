@@ -13,7 +13,9 @@ final lobbyEventsProvider = StreamProvider.autoDispose<ServerFrame>((ref) {
   if (ref.watch(sessionControllerProvider).value is! SignedIn) {
     return const Stream.empty();
   }
-  final rt = ref.watch(realtimeClientProvider)..start();
+  // Listens while the socket is open for something else; it never opens it
+  // (D-097: no WebSocket on Home). Challenges also arrive as pushes.
+  final rt = ref.watch(realtimeClientProvider);
   return rt.frames.where(
     (f) =>
         f.type == 'challenge.received' ||

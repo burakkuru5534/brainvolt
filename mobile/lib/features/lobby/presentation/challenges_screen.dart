@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/realtime/realtime_client.dart';
 import '../../../core/realtime/realtime_providers.dart';
 import '../../../core/widgets/bv.dart';
 import '../../match/presentation/match_type_name.dart';
@@ -36,11 +37,13 @@ class ChallengesScreen extends ConsumerStatefulWidget {
 
 class _ChallengesScreenState extends ConsumerState<ChallengesScreen> {
   StreamSubscription<Object>? _sub;
+  RealtimeLease? _lease;
 
   @override
   void initState() {
     super.initState();
-    final rt = ref.read(realtimeClientProvider)..start();
+    final rt = ref.read(realtimeClientProvider);
+    _lease = rt.acquire('challenges');
     _sub = rt.frames.listen((f) {
       if (f.type == 'challenge.received' || f.type == 'challenge.updated') {
         ref.invalidate(challengesProvider);
@@ -50,6 +53,7 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen> {
 
   @override
   void dispose() {
+    _lease?.release();
     unawaited(_sub?.cancel());
     super.dispose();
   }

@@ -20,6 +20,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/team"
+	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/idempotency"
@@ -72,6 +73,20 @@ func New(d Deps) *Module {
 		svc.SetLocales(d.Profiles)
 	}
 	d.Game.OnEnd(svc.OnEnd)
+	if d.Realtime != nil {
+		// A searching player counts as busy: the idle close (D-097) leaves
+		// their socket alone, and sys.welcome.live names the ticket.
+		d.Realtime.OnLive(func(ctx context.Context, user uuid.UUID) (map[string]any, error) {
+			t, err := svc.Current(ctx, user)
+			if err != nil {
+				if apierror.From(err) != nil && apierror.From(err).Code == apierror.NotFound {
+					return nil, nil
+				}
+				return nil, err
+			}
+			return map[string]any{"ticket_id": t.ID}, nil
+		})
+	}
 	return &Module{svc: svc}
 }
 

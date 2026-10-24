@@ -31,6 +31,9 @@ type Session struct {
 
 	mu      sync.Mutex
 	playing bool
+	// active is the last intent from the client or event to it (pings and
+	// pongs do not count): the idle close (D-097) starts from here.
+	active  time.Time
 	pending int // pings sent without a pong
 	rtts    []int
 	weak    bool
@@ -38,12 +41,22 @@ type Session struct {
 }
 
 func (s *Session) enqueue(f wsserver.Outbound) {
+	if !strings.HasPrefix(f.T, "sys.") {
+		s.markActive()
+	}
 	select {
 	case <-s.done:
 	case s.out <- f:
 	default:
 		s.close(wsserver.CloseProtocol, "client too slow")
 	}
+}
+
+func (s *Session) markActive() {
+	now := s.hub.d.Clock.Now()
+	s.mu.Lock()
+	s.active = now
+	s.mu.Unlock()
 }
 
 // close ends the session; the close handshake runs in the background so
@@ -209,7 +222,7 @@ func (h *Hub) handshake(ctx context.Context, conn *wsserver.Conn, locale i18n.Lo
 	now := h.d.Clock.Now()
 	s.enqueue(wsserver.Outbound{T: "sys.welcome", TS: now.UnixMilli(), Re: m.ID, D: map[string]any{
 		"session_id": sessionID, "resume_token": token, "server_time": now.UnixMilli(),
-		"heartbeat_ms": PingIdle.Milliseconds(), "user_id": p.UserID, "live": live,
+		"heartbeat_ms": h.d.PingIdle.Milliseconds(), "user_id": p.UserID, "live": live,
 	}})
 	return s, streams, true
 }
@@ -228,13 +241,16 @@ func (s *Session) writeLoop(ctx context.Context) {
 	}
 }
 
-// heartbeat pings every 2 s in play and 20 s otherwise; three unanswered
-// pings or an expired token end the session (websocket.md §2, §4).
+// heartbeat pings every 2 s in play and 10 s otherwise; three unanswered
+// pings or an expired token end the session (websocket.md §2, §4), and so
+// does idling (D-097): no intent and no event for IdleTimeout while the
+// user is in no match, room or queue.
 func (s *Session) heartbeat(ctx context.Context) {
 	h := s.hub
+	s.markActive()
 	for {
 		s.mu.Lock()
-		interval := PingIdle
+		interval := h.d.PingIdle
 		if s.playing {
 			interval = PingInPlay
 		}
@@ -253,6 +269,7 @@ func (s *Session) heartbeat(ctx context.Context) {
 		s.mu.Lock()
 		dead := s.pending >= MissedPongs
 		expired := !s.expires.IsZero() && now.After(s.expires)
+		quiet := !s.playing && now.Sub(s.active) >= h.d.IdleTimeout
 		s.pending++
 		s.mu.Unlock()
 		switch {
@@ -261,6 +278,9 @@ func (s *Session) heartbeat(ctx context.Context) {
 			return
 		case expired:
 			s.close(wsserver.CloseTokenExpired, "token expired")
+			return
+		case quiet && !h.inSomething(ctx, s.client.UserID):
+			s.close(wsserver.CloseIdle, "idle")
 			return
 		}
 		s.enqueue(wsserver.Outbound{T: "sys.ping", TS: now.UnixMilli(), D: map[string]int64{"ts": now.UnixMilli()}})
@@ -271,6 +291,9 @@ func (s *Session) heartbeat(ctx context.Context) {
 }
 
 func (h *Hub) dispatch(ctx context.Context, s *Session, m wsserver.Inbound) {
+	if m.T != "sys.pong" {
+		s.markActive()
+	}
 	switch m.T {
 	case "sys.auth":
 		s.close(wsserver.CloseProtocol, "already authenticated")
@@ -380,4 +403,17 @@ func (h *Hub) replyFrame(ctx context.Context, locale i18n.Locale, re string, err
 
 func (h *Hub) frame(t, re string, d any) wsserver.Outbound {
 	return wsserver.Outbound{T: t, TS: h.d.Clock.Now().UnixMilli(), Re: re, D: d}
+}
+
+// inSomething reports whether the user is in a live match, a room or a
+// matchmaking queue (the sys.welcome.live contributors); a failed lookup
+// counts as yes, so a session is never closed on a guess.
+func (h *Hub) inSomething(ctx context.Context, user uuid.UUID) bool {
+	for _, fn := range h.live {
+		v, err := fn(ctx, user)
+		if err != nil || len(v) > 0 {
+			return true
+		}
+	}
+	return false
 }

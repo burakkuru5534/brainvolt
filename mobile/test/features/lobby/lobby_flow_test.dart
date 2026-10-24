@@ -56,11 +56,17 @@ void main() {
     await tester.pump(const Duration(seconds: 5));
   }
 
-  FakeSocket welcome(TestApp t) => t.sockets.single
-    ..serverSends({
+  /// The socket, welcomed. These tests are about rooms and matches, not the
+  /// socket's lifecycle (D-097), so they start with it open, as if a
+  /// screen held a lease.
+  Future<FakeSocket> welcome(WidgetTester tester, TestApp t) async {
+    t.container.read(realtimeClientProvider).start();
+    await tester.pump();
+    return t.sockets.single..serverSends({
       't': 'sys.welcome',
       'd': {'session_id': 's1', 'resume_token': 'r1'},
     });
+  }
 
   testWidgets('mode picker: Category Master needs a category', (tester) async {
     final t = await launch(tester);
@@ -134,7 +140,7 @@ void main() {
 
   testWidgets('Mixed Battle: the picker chooses the category', (tester) async {
     final t = await launch(tester);
-    final s = welcome(t);
+    final s = await welcome(tester, t);
     await step(tester);
     t.container.read(routerProvider).go(Routes.match('m1'));
     await step(tester);
@@ -197,7 +203,7 @@ void main() {
     tester,
   ) async {
     final t = await launch(tester);
-    final s = welcome(t);
+    final s = await welcome(tester, t);
     await step(tester);
     await tester.tap(find.byKey(const Key('private-room')));
     await tester.pumpAndSettle();
@@ -362,7 +368,7 @@ void main() {
 
   testWidgets('private room: joining by code shows the room', (tester) async {
     final t = await launch(tester);
-    final s = welcome(t);
+    final s = await welcome(tester, t);
     await step(tester);
     final joined = {
       't': 'room.state',
@@ -472,7 +478,7 @@ void main() {
   testWidgets('team queue: waiting lobby fills, everyone readies, the leader '
       'starts (D-094)', (tester) async {
     final t = await launch(tester);
-    final s = welcome(t);
+    final s = await welcome(tester, t);
     await step(tester);
     await tester.tap(find.byKey(const Key('play-quick-duel')));
     await tester.pump();

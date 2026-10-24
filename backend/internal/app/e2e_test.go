@@ -93,7 +93,7 @@ type e2e struct {
 	httpURL string
 }
 
-func newE2E(t *testing.T) *e2e {
+func newE2E(t *testing.T, opts ...func(*moduleDeps)) *e2e {
 	t.Helper()
 	host := testenv.FirebaseEmulatorHost(t)
 	db := testdb.New(t)
@@ -115,9 +115,13 @@ func newE2E(t *testing.T) *e2e {
 	cfg := config.HTTP{ReadTimeout: 10 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: time.Minute,
 		HandlerTimeout: 10 * time.Second, ShutdownTimeout: time.Second}
 	srv := httpserver.New(cfg, config.EnvDev, discard)
-	mods := registerModules(srv, moduleDeps{db: db, verifier: verifier, bus: bus,
+	deps := moduleDeps{db: db, verifier: verifier, bus: bus,
 		limiter: ratelimit.New(clock.Real{}, discard), idem: idempotency.New(db, discard),
-		clock: clock.Real{}, logger: discard, instance: "test-" + ids.NewString(), env: config.EnvDev})
+		clock: clock.Real{}, logger: discard, instance: "test-" + ids.NewString(), env: config.EnvDev}
+	for _, o := range opts {
+		o(&deps)
+	}
+	mods := registerModules(srv, deps)
 	return &e2e{t: t, srv: srv, db: db, emu: emulator{t: t, host: host}, mods: mods}
 }
 

@@ -43,7 +43,10 @@ const (
 	CloseAccountBlocked CloseCode = 4004
 	CloseRateLimited    CloseCode = 4008
 	CloseReplaced       CloseCode = 4009
-	CloseVersion        CloseCode = 4026
+	// CloseIdle ends a session with nothing going on (D-097): the client
+	// reconnects only when a screen needs live updates again.
+	CloseIdle    CloseCode = 4010
+	CloseVersion CloseCode = 4026
 )
 
 // Inbound is a client → server message (websocket.md §3).

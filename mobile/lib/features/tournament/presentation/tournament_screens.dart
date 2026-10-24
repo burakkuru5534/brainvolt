@@ -8,6 +8,7 @@ import '../../../app/router.dart';
 import '../../../app/session_controller.dart';
 import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/realtime/realtime_client.dart';
 import '../../../core/realtime/realtime_providers.dart';
 import '../../../core/widgets/bv.dart';
 import '../../match/presentation/match_type_name.dart';
@@ -184,12 +185,14 @@ class TournamentScreen extends ConsumerStatefulWidget {
 
 class _TournamentScreenState extends ConsumerState<TournamentScreen> {
   StreamSubscription<Object>? _sub;
+  RealtimeLease? _lease;
   Timer? _tick;
 
   @override
   void initState() {
     super.initState();
-    final rt = ref.read(realtimeClientProvider)..start();
+    final rt = ref.read(realtimeClientProvider);
+    _lease = rt.acquire('tournament');
     _sub = rt.frames.listen((f) {
       if (f.data['tournament_id'] != widget.id) {
         return;
@@ -212,6 +215,7 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
 
   @override
   void dispose() {
+    _lease?.release();
     unawaited(_sub?.cancel());
     _tick?.cancel();
     super.dispose();

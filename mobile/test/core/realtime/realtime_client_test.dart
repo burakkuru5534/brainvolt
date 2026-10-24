@@ -38,6 +38,7 @@ void main() {
         sockets.add(s);
         return s;
       },
+      idleGrace: const Duration(milliseconds: 50),
     );
   });
 
@@ -166,5 +167,98 @@ void main() {
     final count = sockets.length;
     await Future<void>.delayed(const Duration(milliseconds: 700));
     expect(sockets.length, count);
+  });
+
+  group('leases and app lifecycle (D-097)', () {
+    Future<FakeSocket> welcomed(FakeSocket s) async {
+      s.serverSends({
+        't': 'sys.welcome',
+        'd': {'session_id': 's1', 'resume_token': 'rt-s1'},
+      });
+      await settle();
+      return s;
+    }
+
+    test('no lease, no socket; the first lease connects', () async {
+      await settle();
+      expect(sockets, isEmpty);
+      final lease = client.acquire('room');
+      await settle();
+      await welcomed(sockets.single);
+      expect(client.status, RealtimeStatus.connected);
+      lease.release();
+    });
+
+    test('the last release closes after the grace; a lease in between '
+        'keeps the socket', () async {
+      final a = client.acquire('queue');
+      await settle();
+      final s = await welcomed(sockets.single);
+      a.release();
+      final b = client.acquire('match'); // the next screen, at once
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(s.closeCode, isNull);
+      expect(sockets, hasLength(1));
+      b
+        ..release()
+        ..release(); // idempotent
+      expect(client.leases, 0);
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(s.closeCode, 1000);
+      expect(client.status, RealtimeStatus.idle);
+    });
+
+    test(
+      'background closes at once; foreground resumes with the session',
+      () async {
+        final lease = client.acquire('match');
+        await settle();
+        final s = await welcomed(sockets.single);
+        s.serverSends({'t': 'round.started', 's': 'match:m1', 'seq': 4});
+        await settle();
+        client.setForeground(foreground: false);
+        await settle();
+        expect(s.closeCode, 1000);
+        expect(client.status, RealtimeStatus.idle);
+
+        client.setForeground(foreground: true);
+        await settle();
+        final s2 = sockets.last;
+        expect(s2, isNot(same(s)));
+        expect((s2.sent.first['d'] as Map)['resume'], {
+          'session_id': 's1',
+          'resume_token': 'rt-s1',
+          'streams': {'match:m1': 4},
+        });
+        lease.release();
+      },
+    );
+
+    test('back in the foreground without a lease stays closed', () async {
+      final lease = client.acquire('chat');
+      await settle();
+      await welcomed(sockets.single);
+      client.setForeground(foreground: false);
+      lease.release();
+      await settle();
+      client.setForeground(foreground: true);
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(sockets, hasLength(1));
+    });
+
+    test('an idle close (4010) does not reconnect until asked again', () async {
+      final lease = client.acquire('chat');
+      await settle();
+      final s = await welcomed(sockets.single);
+      await s.serverCloses(4010);
+      await Future<void>.delayed(const Duration(milliseconds: 700));
+      expect(sockets, hasLength(1));
+      expect(client.status, RealtimeStatus.idle);
+      final again = client.acquire('room');
+      await settle();
+      expect(sockets, hasLength(2));
+      lease.release();
+      again.release();
+    });
   });
 }

@@ -19,9 +19,11 @@ final inboxProvider = FutureProvider.autoDispose<InboxPage>(
   (ref) => ref.watch(notificationRepositoryProvider).inbox(),
 );
 
-/// `inbox.new` from the server: the inbox changed.
+/// `inbox.new` from the server: the inbox changed. Only while the socket is
+/// open for something else (D-097); Home also refreshes the inbox when the
+/// app returns to the foreground.
 final inboxEventsProvider = StreamProvider.autoDispose<ServerFrame>((ref) {
-  final rt = ref.watch(realtimeClientProvider)..start();
+  final rt = ref.watch(realtimeClientProvider);
   return rt.frames.where((f) => f.type == 'inbox.new');
 });
 

@@ -8,6 +8,7 @@ package realtime
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -58,6 +59,10 @@ type Deps struct {
 	Clock    clock.Clock
 	Logger   *slog.Logger
 	Instance string
+	// PingIdle and IdleTimeout override the heartbeat and idle-close
+	// defaults (tests; D-097).
+	PingIdle    time.Duration
+	IdleTimeout time.Duration
 }
 
 // Module is the realtime module. It is also an app component: Run
@@ -68,7 +73,8 @@ type Module struct {
 
 // New builds the module.
 func New(d Deps) *Module {
-	return &Module{hub: service.New(service.Deps{Auth: d.Auth, Clock: d.Clock, Logger: d.Logger, Instance: d.Instance})}
+	return &Module{hub: service.New(service.Deps{Auth: d.Auth, Clock: d.Clock, Logger: d.Logger, Instance: d.Instance,
+		PingIdle: d.PingIdle, IdleTimeout: d.IdleTimeout})}
 }
 
 // Register adds GET /v1/ws.

@@ -190,6 +190,9 @@ type moduleDeps struct {
 	instance string
 	// env enables development-only features (practice bot, D-066).
 	env config.Environment
+	// wsPingIdle and wsIdleTimeout override realtime's heartbeat and idle
+	// close (tests; zero keeps the defaults).
+	wsPingIdle, wsIdleTimeout time.Duration
 }
 
 // modules are the built modules a process runs besides the HTTP server.
@@ -224,7 +227,8 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	notification.New(notification.Deps{DB: d.db, Clock: d.clock, Logger: d.logger}).Register(srv, ident)
 	cont := content.New(d.db, d.clock, d.bus)
 	cont.Register(srv, ident, d.idem)
-	rt := realtime.New(realtime.Deps{Auth: ident, Clock: d.clock, Logger: d.logger, Instance: d.instance})
+	rt := realtime.New(realtime.Deps{Auth: ident, Clock: d.clock, Logger: d.logger, Instance: d.instance,
+		PingIdle: d.wsPingIdle, IdleTimeout: d.wsIdleTimeout})
 	rt.Register(srv)
 	soc := social.New(social.Deps{DB: d.db, Identity: ident, Profiles: prof, Presence: rt, Events: d.bus, Clock: d.clock})
 	soc.Register(srv, ident, d.idem)

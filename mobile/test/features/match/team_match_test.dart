@@ -42,6 +42,10 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    // The feature under test, not the socket's lifecycle (D-097): start
+    // with the socket open, as if a screen held a lease.
+    t.container.read(realtimeClientProvider).start();
+    await tester.pump();
     final s = t.sockets.single
       ..serverSends({
         't': 'sys.welcome',

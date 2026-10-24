@@ -40,7 +40,8 @@ class RoomView {
 class RoomController extends _$RoomController {
   @override
   RoomView build(String roomId) {
-    final rt = ref.watch(realtimeClientProvider)..start();
+    final rt = ref.watch(realtimeClientProvider);
+    final lease = rt.acquire('room');
     final stream = 'room:$roomId';
     final frames = rt.frames.listen((f) {
       if (f.stream != stream) {
@@ -78,6 +79,7 @@ class RoomController extends _$RoomController {
       }
     });
     ref.onDispose(() {
+      lease.release();
       unawaited(frames.cancel());
       unawaited(status.cancel());
     });

@@ -11,6 +11,7 @@ import '../../../app/session_controller.dart';
 import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/push/push_service.dart';
+import '../../../core/realtime/realtime_lifecycle.dart';
 import '../../../core/widgets/bv.dart';
 import '../../auth/data/auth_providers.dart';
 import '../../auth/domain/session.dart';
@@ -57,6 +58,12 @@ class HomeScreen extends ConsumerWidget {
     };
     ref
       ..listen(inboxEventsProvider, (_, _) => ref.invalidate(inboxProvider))
+      // No socket on Home (D-097): the bell catches up on return.
+      ..listen(appForegroundProvider, (was, now) {
+        if (now && was == false) {
+          ref.invalidate(inboxProvider);
+        }
+      })
       ..listen(pushOpenedProvider, (_, next) {
         if (next.value case final route?) {
           openRoute(context, route);

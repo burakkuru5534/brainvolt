@@ -103,10 +103,34 @@ class RealtimeError implements Exception {
 /// Connection state shown by the UI (reconnect banner).
 enum RealtimeStatus { idle, connecting, connected, reconnecting, stopped }
 
+/// A screen's claim on the WebSocket (D-097): the socket is open only while
+/// at least one lease is held and the app is in the foreground. [release]
+/// is idempotent.
+class RealtimeLease {
+  RealtimeLease._(this._onRelease);
+
+  final void Function() _onRelease;
+  var _released = false;
+
+  void release() {
+    if (_released) {
+      return;
+    }
+    _released = true;
+    _onRelease();
+  }
+}
+
 /// The app's single WebSocket (websocket.md, ADR-0003): authentication,
 /// heartbeat and clock offset, intent acknowledgements, per-stream
 /// sequence numbers with duplicate dropping, and reconnect with backoff and
 /// resume.
+///
+/// The socket is open only while it is needed (D-097, cost: an open
+/// WebSocket keeps the server billing): screens that need live events hold
+/// a [RealtimeLease]; with none left it closes after [idleGrace], and it
+/// closes at once when the app leaves the foreground. A later lease or the
+/// return to the foreground reconnects and resumes the session.
 class RealtimeClient {
   RealtimeClient({
     required this.url,
@@ -114,6 +138,7 @@ class RealtimeClient {
     required this.installationId,
     this.headers = const {},
     this.connector = ioConnector,
+    this.idleGrace = defaultIdleGrace,
     DateTime Function()? now,
     Random? random,
   }) : _now = now ?? DateTime.now,
@@ -139,6 +164,16 @@ class RealtimeClient {
   /// How long an intent waits for its sys.ack / sys.error.
   static const ackTimeout = Duration(seconds: 10);
 
+  /// How long the socket stays open after the last lease is released, so
+  /// going from one screen to the next does not reconnect.
+  static const defaultIdleGrace = Duration(seconds: 5);
+
+  /// [defaultIdleGrace], shorter in tests.
+  final Duration idleGrace;
+
+  /// The server closed an idle session (D-097): reconnect only on demand.
+  static const closeIdle = 4010;
+
   final _frames = StreamController<ServerFrame>.broadcast();
   final _status = StreamController<RealtimeStatus>.broadcast();
   final _pending = <String, Completer<ServerFrame>>{};
@@ -153,6 +188,10 @@ class RealtimeClient {
   int _nextId = 0;
   bool _running = false;
   bool _refreshToken = false;
+  int _leases = 0;
+  bool _pinned = false;
+  bool _foreground = true;
+  Timer? _idle;
   String? _sessionId;
   String? _resumeToken;
 
@@ -177,18 +216,91 @@ class RealtimeClient {
   /// last ten.
   int get clockOffsetMs => _offsets.isEmpty ? 0 : _offsets.reduce(max);
 
-  /// Connects (if not yet) and keeps the connection up until [stop];
-  /// [statusChanges] tells when it is connected.
+  /// Takes a lease (D-097): connects if needed and keeps the socket open
+  /// until every lease is released; [statusChanges] tells when it is
+  /// connected. [owner] is for logs.
+  RealtimeLease acquire([String owner = '']) {
+    _leases++;
+    _log.fine('lease +$owner ($_leases)');
+    _update();
+    return RealtimeLease._(() {
+      _leases--;
+      _log.fine('lease -$owner ($_leases)');
+      _update();
+    });
+  }
+
+  /// Keeps the socket wanted with no lease (tests and tools); [stop] ends it.
   void start() {
-    if (_running) {
+    _pinned = true;
+    _update();
+  }
+
+  /// Number of leases held (tests).
+  int get leases => _leases;
+
+  /// The app went to the background (false) or came back (true): the
+  /// socket closes at once in the background and reconnects on return if
+  /// a lease is still held.
+  void setForeground({required bool foreground}) {
+    if (_foreground == foreground) {
       return;
     }
-    _running = true;
-    unawaited(_connect());
+    _foreground = foreground;
+    _update();
+  }
+
+  bool get _wanted => (_pinned || _leases > 0) && _foreground;
+
+  void _update() {
+    if (_wanted) {
+      _idle?.cancel();
+      _idle = null;
+      if (!_running) {
+        _running = true;
+        _attempt = 0;
+        unawaited(_connect());
+      }
+      return;
+    }
+    if (!_running) {
+      return;
+    }
+    if (!_foreground) {
+      unawaited(_suspend());
+      return;
+    }
+    _idle ??= Timer(idleGrace, () {
+      _idle = null;
+      if (!_wanted) {
+        unawaited(_suspend());
+      }
+    });
+  }
+
+  /// Closes the socket while nothing needs it; the session id, resume token
+  /// and stream positions stay, so the next connect resumes.
+  Future<void> _suspend() async {
+    _running = false;
+    _idle?.cancel();
+    _idle = null;
+    _retry?.cancel();
+    _reauth?.cancel();
+    _failPending();
+    final conn = _conn;
+    final sub = _sub;
+    _conn = null;
+    _sub = null;
+    _setStatus(RealtimeStatus.idle);
+    unawaited(conn?.close(1000));
+    await sub?.cancel();
   }
 
   /// Closes the socket for good (sign-out).
   Future<void> stop() async {
+    _pinned = false;
+    _idle?.cancel();
+    _idle = null;
     _running = false;
     _retry?.cancel();
     _reauth?.cancel();
@@ -360,6 +472,12 @@ class RealtimeClient {
     if (code != null && _final.contains(code)) {
       _running = false;
       _setStatus(RealtimeStatus.stopped);
+      return;
+    }
+    if (code == closeIdle) {
+      // Nothing was going on: reconnect when a screen asks again.
+      _running = false;
+      _setStatus(RealtimeStatus.idle);
       return;
     }
     if (code == 4002 || code == 4003) {

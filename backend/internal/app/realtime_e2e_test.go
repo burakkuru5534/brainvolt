@@ -198,7 +198,7 @@ func TestWebSocketHandshake(t *testing.T) {
 
 	w, welcome := x.auth(token, "inst-a", nil)
 	if welcome["user_id"] != user.String() || welcome["session_id"] == "" || welcome["resume_token"] == "" ||
-		welcome["heartbeat_ms"] != float64(20_000) {
+		welcome["heartbeat_ms"] != float64(10_000) {
 		t.Fatalf("welcome %v", welcome)
 	}
 	// Unknown types are ignored; reauth is acknowledged.
@@ -312,5 +312,46 @@ func TestWebSocketRoutingDeliveryAndResume(t *testing.T) {
 	defer mu.Unlock()
 	if len(resumed) != 2 {
 		t.Fatalf("resumed %v", resumed)
+	}
+}
+
+// D-097: a session with nothing going on is closed (4010) after the idle
+// timeout; one in a room (or match, or queue) stays, and so does one whose
+// client keeps sending intents.
+func TestIdleSessionsAreClosed(t *testing.T) {
+	x := newE2E(t, func(d *moduleDeps) {
+		d.wsPingIdle, d.wsIdleTimeout = 100*time.Millisecond, 600*time.Millisecond
+	})
+	tokA, _ := x.signedIn()
+	tokB, _ := x.signedIn()
+	tokC, _ := x.signedIn()
+
+	idle, _ := x.auth(tokA, "inst-idle", nil)
+	start := time.Now()
+	if code := idle.waitClose(); code != 4010 {
+		t.Fatalf("idle session: close %d", code)
+	}
+	if took := time.Since(start); took < 500*time.Millisecond || took > 5*time.Second {
+		t.Fatalf("idle close after %s", took)
+	}
+
+	// In a room: the lobby's live lookup keeps the socket.
+	inRoom, _ := x.auth(tokB, "inst-room", nil)
+	r := x.post("/v1/rooms", tokB, map[string]any{"match_config": map[string]any{"match_type": "quick_duel", "format": "1v1"}})
+	want(t, "room", r, 201, "")
+
+	// Busy client: an intent every 200 ms.
+	busy, _ := x.auth(tokC, "inst-busy", nil)
+	deadline := time.Now().Add(1500 * time.Millisecond)
+	for time.Now().Before(deadline) {
+		busy.send("room.ready", map[string]any{"room_id": "00000000-0000-0000-0000-000000000000"})
+		time.Sleep(200 * time.Millisecond)
+	}
+	select {
+	case code := <-inRoom.closed:
+		t.Fatalf("session in a room closed: %d", code)
+	case code := <-busy.closed:
+		t.Fatalf("busy session closed: %d", code)
+	default:
 	}
 }

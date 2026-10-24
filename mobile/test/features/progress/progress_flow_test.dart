@@ -195,6 +195,10 @@ void main() {
     t.container.read(routerProvider).go(Routes.matchResult('m1'));
     await tester.pumpAndSettle();
     expect(find.text('Ödüller hesaplanıyor…'), findsOneWidget);
+    // The feature under test, not the socket's lifecycle (D-097): start
+    // with the socket open, as if a screen held a lease.
+    t.container.read(realtimeClientProvider).start();
+    await tester.pump();
     final s = t.sockets.last
       ..serverSends({
         't': 'sys.welcome',

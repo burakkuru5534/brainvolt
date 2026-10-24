@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/realtime/realtime_client.dart';
+import '../../../core/realtime/realtime_providers.dart';
 import '../../../core/widgets/bv.dart';
 import '../domain/match_repository.dart';
 import 'play_controllers.dart';
@@ -27,18 +31,49 @@ bool canPlayAgain(MatchResult r, {DateTime? now}) =>
 /// it; the others see the offer and accept or decline; once everyone
 /// accepted, the server starts the same match again and all players go
 /// there (websocket.md rematch.*).
-class PlayAgainPanel extends ConsumerWidget {
+class PlayAgainPanel extends ConsumerStatefulWidget {
   const PlayAgainPanel({required this.matchId, super.key});
 
   final String matchId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PlayAgainPanel> createState() => _PlayAgainPanelState();
+}
+
+class _PlayAgainPanelState extends ConsumerState<PlayAgainPanel> {
+  // Live offers only matter inside the play-again window (D-091), so the
+  // socket is held that long and no longer (D-097).
+  RealtimeLease? _lease;
+  Timer? _window;
+
+  @override
+  void initState() {
+    super.initState();
+    _lease = ref.read(realtimeClientProvider).acquire('play-again');
+    _window = Timer(rematchLeaseFor, _release);
+  }
+
+  void _release() {
+    _window?.cancel();
+    _lease?.release();
+  }
+
+  @override
+  void dispose() {
+    _release();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final matchId = widget.matchId;
     final l10n = context.l10n;
     // Listen from the first frame so an early offer is not missed.
     ref.listen(rematchControllerProvider(matchId), (_, next) {
       if (next.newMatchId case final id?) {
         context.go(Routes.match(id));
+      } else if (next.declined) {
+        _release();
       }
     });
     final s = ref.watch(rematchControllerProvider(matchId));

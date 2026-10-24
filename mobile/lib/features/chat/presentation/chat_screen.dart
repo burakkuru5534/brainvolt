@@ -52,6 +52,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Timer? _typingTimer;
   DateTime _lastTypingSent = DateTime(2000);
   StreamSubscription<ServerFrame>? _frames;
+  RealtimeLease? _lease;
 
   RealtimeClient get _rt => ref.read(realtimeClientProvider);
 
@@ -63,6 +64,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   void dispose() {
+    _lease?.release();
     _text.dispose();
     _typingTimer?.cancel();
     unawaited(_frames?.cancel());
@@ -86,7 +88,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ..clear()
           ..addAll(history.reversed);
       });
-      _frames = (_rt..start()).frames.listen(_onFrame);
+      _lease ??= _rt.acquire('chat');
+      _frames = _rt.frames.listen(_onFrame);
       _markRead();
     } on Object catch (e) {
       if (mounted) {

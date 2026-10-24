@@ -138,6 +138,10 @@ void main() {
           matchId: 'm9',
         );
     });
+    // The feature under test, not the socket's lifecycle (D-097): start
+    // with the socket open, as if a screen held a lease.
+    t.container.read(realtimeClientProvider).start();
+    await tester.pump();
     final s = t.sockets.single;
     s.serverSends({
       't': 'sys.welcome',
@@ -206,6 +210,10 @@ void main() {
         rounds: const [],
       );
     });
+    // The feature under test, not the socket's lifecycle (D-097): start
+    // with the socket open, as if a screen held a lease.
+    t.container.read(realtimeClientProvider).start();
+    await tester.pump();
     final s = t.sockets.single;
     s.serverSends({
       't': 'sys.welcome',

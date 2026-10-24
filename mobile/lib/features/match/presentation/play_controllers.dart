@@ -49,6 +49,7 @@ final class QueueFailed extends QueueState {
 class QueueController extends _$QueueController {
   static const pollEvery = Duration(seconds: 3);
 
+  RealtimeLease? _lease;
   StreamSubscription<ServerFrame>? _sub;
   Timer? _poll;
 
@@ -62,9 +63,12 @@ class QueueController extends _$QueueController {
     bool practice = false,
     QueueMode mode = const QueueMode(),
   }) async {
-    final rt = ref.read(realtimeClientProvider)..start();
+    final rt = ref.read(realtimeClientProvider);
     final repo = ref.read(matchRepositoryProvider);
     _stopWatching();
+    // The queue needs live events until the match or lobby screen takes
+    // over (it holds its own lease; the client's grace bridges the gap).
+    _lease = rt.acquire('queue');
     _sub = rt.frames.listen((f) {
       if (state is! QueueSearching) {
         return;
@@ -112,6 +116,8 @@ class QueueController extends _$QueueController {
   }
 
   void _stopWatching() {
+    _lease?.release();
+    _lease = null;
     unawaited(_sub?.cancel());
     _sub = null;
     _poll?.cancel();
@@ -125,7 +131,10 @@ class QueueController extends _$QueueController {
 class MatchController extends _$MatchController {
   @override
   MatchState build(String matchId) {
-    final rt = ref.watch(realtimeClientProvider)..start();
+    final rt = ref.watch(realtimeClientProvider);
+    // The live match needs the socket until it is over (D-097); "Play
+    // again" and the room return hold their own leases after that.
+    final lease = rt.acquire('match');
     final me = switch (ref.read(sessionControllerProvider).value) {
       SignedIn(:final session) => session.user.id,
       _ => '',
@@ -136,6 +145,7 @@ class MatchController extends _$MatchController {
         state = reduce(state, f);
         if (state.over) {
           rt.forget(stream);
+          lease.release();
         }
       }
     });
@@ -145,6 +155,7 @@ class MatchController extends _$MatchController {
       }
     });
     ref.onDispose(() {
+      lease.release();
       unawaited(frames.cancel());
       unawaited(status.cancel());
     });
@@ -268,13 +279,17 @@ class RematchState {
   final bool declined;
 }
 
+/// How long the play-again panel keeps the socket open (the server's
+/// RematchWindow, D-091).
+const rematchLeaseFor = Duration(seconds: 60);
+
 /// "Play again" (D-091): everyone accepts within 60 s of the
 /// end → game creates the rematch (rematch.result carries its id).
 @riverpod
 class RematchController extends _$RematchController {
   @override
   RematchState build(String matchId) {
-    final rt = ref.watch(realtimeClientProvider)..start();
+    final rt = ref.watch(realtimeClientProvider);
     final me = switch (ref.read(sessionControllerProvider).value) {
       SignedIn(:final session) => session.user.id,
       _ => '',

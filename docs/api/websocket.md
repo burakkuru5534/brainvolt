@@ -44,6 +44,7 @@ Client                                   Server
 | 4004 | account suspended / deleted | stop, show notice |
 | 4008 | rate limit exceeded (D-032: 20 msg/s) | back off 5 s, reconnect |
 | 4009 | replaced by a newer session of this installation | don't reconnect |
+| 4010 | idle: no intent and no event for 3 min while the user is in no match, room or queue (D-097) | don't reconnect until a screen needs live events again |
 | 4026 | app version unsupported | force update |
 
 ## 3. Envelope (0.4.3)
@@ -76,7 +77,7 @@ Client                                   Server
 ## 4. Heartbeat & clock (0.4.3, D-036)
 | Message | Direction | Payload | When |
 |---|---|---|---|
-| `sys.ping` | S → C | `{ts}` server ms | every **2 s** while the user is in a match/daily run, every **20 s** otherwise |
+| `sys.ping` | S → C | `{ts}` server ms | every **2 s** while the user is in a match/daily run, every **10 s** otherwise (D-097) |
 | `sys.pong` | C → S | `{ts, client_ts}` echo + client clock | immediately |
 | — | — | server computes RTT median of last 10 (timing.md §3); client computes clock offset (timing.md §6) | — |
 | `sys.connection` | S → C | `{rtt_ms, quality: good\|weak}` | when quality changes (weak = RTT > 400 ms sustained) |
@@ -186,4 +187,4 @@ Events are idempotent on the client by `(s, seq)`: duplicates are dropped, a gap
 ---
 
 ## Delegated decisions (D-051)
-Token in first message (5 s deadline) with `sys.reauth`; one socket per installation, one seat-holding device per match; envelope `t/id/d` and `t/s/seq/ts/re/d`; per-stream gap-free sequences; ack/error for every intent; ping 2 s in play / 20 s idle, dead after 3 missed pongs; replay-or-snapshot resume with 2 min token; awards delivered asynchronously as `match.awards`; backoff 0.5 s → 10 s.
+Token in first message (5 s deadline) with `sys.reauth`; one socket per installation, one seat-holding device per match; envelope `t/id/d` and `t/s/seq/ts/re/d`; per-stream gap-free sequences; ack/error for every intent; ping 2 s in play / 10 s idle, dead after 3 missed pongs; idle sessions closed with 4010 after 3 min (D-097); the app opens the socket only while a screen needs it and closes it in the background (D-097); replay-or-snapshot resume with 2 min token; awards delivered asynchronously as `match.awards`; backoff 0.5 s → 10 s.

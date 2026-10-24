@@ -270,6 +270,26 @@ void main() {
     await finish(tester, t);
   });
 
+  testWidgets('no socket on Home; the queue opens one and leaving closes '
+      'it after the grace (D-097)', (tester) async {
+    final t = await launch(tester);
+    await step(tester);
+    expect(t.sockets, isEmpty);
+    await tester.tap(find.byKey(const Key('play-quick-duel')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.byKey(const Key('topic-all')));
+    await step(tester);
+    final s = t.sockets.single;
+    await tester.tap(find.byKey(const Key('queue-cancel')));
+    await step(tester);
+    expect(s.closeCode, isNull);
+    await tester.pump(const Duration(seconds: 6));
+    expect(s.closeCode, 1000);
+    expect(t.sockets, hasLength(1));
+    await finish(tester, t);
+  });
+
   testWidgets('cancelling the search leaves the queue', (tester) async {
     final t = await launch(tester);
     await tester.tap(find.byKey(const Key('play-quick-duel')));

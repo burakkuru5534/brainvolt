@@ -57,6 +57,7 @@ class _DailyRunScreenState extends ConsumerState<DailyRunScreen> {
   var _voided = false;
   StreamSubscription<Object>? _frames;
   StreamSubscription<Object>? _status;
+  RealtimeLease? _lease;
   Timer? _tick;
 
   RealtimeClient get _rt => ref.read(realtimeClientProvider);
@@ -64,7 +65,8 @@ class _DailyRunScreenState extends ConsumerState<DailyRunScreen> {
   @override
   void initState() {
     super.initState();
-    final rt = _rt..start();
+    final rt = _rt;
+    _lease = rt.acquire('daily');
     _frames = rt.frames.listen(_onFrame);
     _status = rt.statusChanges.listen((s) {
       if (s == RealtimeStatus.connected) {
@@ -79,6 +81,7 @@ class _DailyRunScreenState extends ConsumerState<DailyRunScreen> {
 
   @override
   void dispose() {
+    _lease?.release();
     _tick?.cancel();
     unawaited(_frames?.cancel());
     unawaited(_status?.cancel());
