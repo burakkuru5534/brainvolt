@@ -1883,4 +1883,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get error_VERSION_CONFLICT =>
       'Someone else changed this. Refresh and try again.';
+
+  @override
+  String roomReturning(int seconds) {
+    return 'Back to the room in $seconds s…';
+  }
 }

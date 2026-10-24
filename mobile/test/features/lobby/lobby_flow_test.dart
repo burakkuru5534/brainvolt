@@ -5,6 +5,7 @@ import 'package:brainvolt/app/router.dart';
 import 'package:brainvolt/core/realtime/realtime_providers.dart';
 import 'package:brainvolt/core/widgets/bv.dart';
 import 'package:brainvolt/features/auth/domain/auth_repository.dart';
+import 'package:brainvolt/features/match/domain/match_repository.dart';
 import 'package:brainvolt/features/social/domain/social_repository.dart';
 import 'package:brainvolt/features/team/domain/team_repository.dart';
 import 'package:flutter/material.dart';
@@ -245,6 +246,78 @@ void main() {
     expect(
       t.container.read(routerProvider).state.matchedLocation,
       Routes.match('m5'),
+    );
+
+    // D-092: the match ends and everyone goes back to the room lobby.
+    t.matches.matchResult = MatchResult(
+      id: 'm5',
+      status: 'completed',
+      origin: 'private_room',
+      endedAt: DateTime.now(),
+      scores: const [900, 300],
+      winnerSide: 1,
+      players: const [],
+      rounds: const [],
+    );
+    s
+      ..ack('match.join')
+      ..serverSends({
+        't': 'match.snapshot',
+        's': 'match:m5',
+        'seq': 1,
+        'd': {
+          'status': 'active',
+          'phase': 'lobby',
+          'question_count': 7,
+          'participants': [
+            {'user_id': me, 'side_no': 1, 'display_name': 'Ben'},
+            {'user_id': 'opp', 'side_no': 2, 'display_name': 'Ayşe'},
+          ],
+          'sides': [
+            {'side_no': 1, 'score': 0},
+            {'side_no': 2, 'score': 0},
+          ],
+        },
+      })
+      ..serverSends({
+        't': 'match.completed',
+        's': 'match:m5',
+        'seq': 2,
+        'd': {
+          'end_reason': 'all_rounds_played',
+          'winner_side_no': 1,
+          'is_draw': false,
+          'sides': [
+            {'side_no': 1, 'score': 900},
+            {'side_no': 2, 'score': 300},
+          ],
+        },
+      });
+    await step(tester);
+    await step(tester);
+    expect(find.byKey(const Key('room-returning')), findsOneWidget);
+    expect(find.byKey(const Key('play-again')), findsNothing);
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(seconds: 1));
+    }
+    await step(tester);
+    expect(
+      t.container.read(routerProvider).state.matchedLocation,
+      Routes.room('r1'),
+    );
+    // The room is open again (seq 4) with the ready flags cleared.
+    final reopened = state(ready: false)..['seq'] = 4;
+    ((reopened['d'] as Map)['room'] as Map)['version'] = 4;
+    s
+      ..ack('room.join')
+      ..serverSends(reopened);
+    await step(tester);
+    // Ready flags were cleared: the host waits for the others again.
+    expect(
+      tester
+          .widget<ButtonStyleButton>(find.byKey(const Key('room-start')))
+          .onPressed,
+      isNull,
     );
     await finish(tester, t);
   });

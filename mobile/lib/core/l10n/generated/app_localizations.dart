@@ -3457,6 +3457,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu kayıt başka biri tarafından değiştirildi. Yenileyip tekrar dene.'**
   String get error_VERSION_CONFLICT;
+
+  /// Room match end screen: countdown before going back to the room (D-092).
+  ///
+  /// In tr, this message translates to:
+  /// **'{seconds} sn içinde odaya dönülüyor…'**
+  String roomReturning(int seconds);
 }
 
 class _AppLocalizationsDelegate

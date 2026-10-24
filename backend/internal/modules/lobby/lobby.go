@@ -83,6 +83,14 @@ func New(d Deps) *Module {
 			}
 			return svc.SnapshotRoom(ctx, c, id)
 		})
+		if d.Game != nil {
+			// A finished room match takes its players back to the room (D-092).
+			d.Game.OnEnd(func(ctx context.Context, e game.Ended) {
+				if e.Origin == game.OriginPrivateRoom {
+					svc.OnRoomMatchEnded(context.WithoutCancel(ctx), e.MatchID)
+				}
+			})
+		}
 		d.Realtime.OnLive(func(ctx context.Context, user uuid.UUID) (map[string]any, error) {
 			if id, ok := svc.CurrentRoom(ctx, user); ok {
 				return map[string]any{"room_id": id}, nil

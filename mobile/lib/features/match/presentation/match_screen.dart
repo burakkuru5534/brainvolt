@@ -13,6 +13,7 @@ import '../../../core/widgets/bv.dart';
 import '../../../core/widgets/dialogs.dart';
 import '../../chat/domain/chat_repository.dart';
 import '../../chat/presentation/chat_screen.dart';
+import '../../lobby/presentation/room_return.dart';
 import '../../profile/domain/avatars.dart';
 import '../domain/match_state.dart';
 import 'match_type_name.dart';
@@ -796,6 +797,7 @@ class _End extends StatelessWidget {
             ),
             if (state.phase == MatchPhase.completed)
               PlayAgainPanel(matchId: state.matchId),
+            RoomReturn(matchId: state.matchId),
             const SizedBox(height: 24),
             if (state.phase == MatchPhase.completed)
               OutlinedButton(

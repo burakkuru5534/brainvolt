@@ -276,6 +276,28 @@ func (s *Service) refresh(ctx context.Context, id uuid.UUID) (*room, error) {
 	})
 }
 
+// OnRoomMatchEnded returns a private room to its lobby as soon as its
+// match ends (D-092): the room becomes `open`, every ready flag is
+// cleared and the members get room.state, so the app takes them back to
+// the room where they ready up again and the host starts the next match.
+// Rooms held by another instance, or already closed, are left alone —
+// the next room.join / ready / start refreshes them anyway.
+func (s *Service) OnRoomMatchEnded(ctx context.Context, match uuid.UUID) {
+	sum, err := s.d.Game.Summary(ctx, match)
+	if err != nil || sum.Origin != game.OriginPrivateRoom || sum.OriginRef == nil {
+		return
+	}
+	s.roomsMu.Lock()
+	_, here := s.rooms[*sum.OriginRef]
+	s.roomsMu.Unlock()
+	if !here {
+		return
+	}
+	if _, err := s.refresh(ctx, *sum.OriginRef); err != nil && !errors.Is(err, errNoChange) {
+		s.d.Logger.WarnContext(ctx, "lobby: reopening a room after its match failed", "room_id", *sum.OriginRef, "error", err)
+	}
+}
+
 // CreateRoom opens a private room with the caller as host on side 1 and
 // returns it with its invite code. A room the caller was in is left.
 func (s *Service) CreateRoom(ctx context.Context, user uuid.UUID, locale string, cfg game.Config) (Room, error) {

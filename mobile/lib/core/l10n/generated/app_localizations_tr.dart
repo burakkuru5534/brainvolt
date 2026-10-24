@@ -1878,4 +1878,9 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get error_VERSION_CONFLICT =>
       'Bu kayıt başka biri tarafından değiştirildi. Yenileyip tekrar dene.';
+
+  @override
+  String roomReturning(int seconds) {
+    return '$seconds sn içinde odaya dönülüyor…';
+  }
 }

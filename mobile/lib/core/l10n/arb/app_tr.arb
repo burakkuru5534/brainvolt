@@ -2602,5 +2602,14 @@
   "error_VERSION_CONFLICT": "Bu kayıt başka biri tarafından değiştirildi. Yenileyip tekrar dene.",
   "@error_VERSION_CONFLICT": {
     "description": "Server error code VERSION_CONFLICT (docs/api/errors.md)."
+  },
+  "roomReturning": "{seconds} sn içinde odaya dönülüyor…",
+  "@roomReturning": {
+    "description": "Room match end screen: countdown before going back to the room (D-092).",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
   }
 }

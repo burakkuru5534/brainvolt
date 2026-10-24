@@ -129,7 +129,7 @@ No pong for **3 consecutive pings** (in match: 6 s; outside: 60 s) → server tr
 **Room stream (`room:<id>`)**
 | Type | Payload |
 |---|---|
-| `room.state` | `{room}`: full room (members with cards, seats, ready flags, config, status, code, version = seq). Sent after **every** change (D-067: rooms are small, no deltas) |
+| `room.state` | `{room}`: full room (members with cards, seats, ready flags, config, status, code, version = seq). Sent after **every** change (D-067: rooms are small, no deltas). When a room match ends the room goes back to `open` with every ready flag cleared and members get `room.state` at once (D-092); the app then returns to the room lobby |
 | `room.match_starting` | `{room_id, match_id}` |
 | `room.closed` | `{room_id, reason}` (`host_closed` / `all_left` / `idle`) |
 
