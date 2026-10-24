@@ -76,7 +76,11 @@ func TestLiveSharedAnswer(t *testing.T) {
 	if f := ws[0].answer(ws[0].send("match.lock", map[string]any{"match_id": id, "round_no": 1, "option_id": opt(0)})); data(f)["code"] != "ANSWER_DUPLICATE" {
 		t.Fatalf("second lock %v", f)
 	}
-	ws[2].answer(ws[2].send("match.lock", map[string]any{"match_id": id, "round_no": 1, "option_id": opt(0)}))
+	// Both sides locked: the round is revealed at once. An unacked lock
+	// would leave the reveal to the round deadline, so check it here.
+	if f := ws[2].answer(ws[2].send("match.lock", map[string]any{"match_id": id, "round_no": 1, "option_id": opt(0)})); f["t"] != "sys.ack" {
+		t.Fatalf("opponent lock %v", f)
+	}
 	rev := data(ws[3].find("revealed", func(f map[string]any) bool { return f["t"] == "round.revealed" }))
 	if len(rev["sides"].([]any)) != 2 {
 		t.Fatalf("revealed %v", rev)
@@ -241,7 +245,8 @@ func gatherLobby(t *testing.T, ws []*wsClient, users []uuid.UUID) string {
 			return false
 		}
 		rm := data(f)["room"].(map[string]any)
-		if rm["kind"] != "matchmaking" || rm["leader_user_id"] == nil {
+		// Frames of an earlier lobby may still be buffered.
+		if rm["id"] != room || rm["kind"] != "matchmaking" || rm["leader_user_id"] == nil {
 			return false
 		}
 		members := rm["members"].([]any)
@@ -269,5 +274,7 @@ func gatherLobby(t *testing.T, ws []*wsClient, users []uuid.UUID) string {
 	if !started {
 		t.Fatalf("leader %s is not a player", leader)
 	}
-	return str(data(ws[0].find("room.match_starting", func(f map[string]any) bool { return f["t"] == "room.match_starting" }))["match_id"])
+	return str(data(ws[0].find("room.match_starting", func(f map[string]any) bool {
+		return f["t"] == "room.match_starting" && data(f)["room_id"] == room
+	}))["match_id"])
 }

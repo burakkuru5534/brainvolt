@@ -15,7 +15,6 @@ import (
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
-	"github.com/burakkuru5534/brainvolt/backend/internal/modules/lobby"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/matchmaking/internal/service"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/matchmaking/internal/transport"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
@@ -76,19 +75,16 @@ func New(d Deps) *Module {
 	return &Module{svc: svc}
 }
 
-// Lobbies is lobby's waiting-lobby API (D-094).
-type Lobbies interface {
-	SeatMatchmaking(ctx context.Context, g lobby.MatchmakingGroup) (uuid.UUID, error)
-}
+// LobbyGroup is a team ticket to seat in a waiting lobby (D-094).
+type LobbyGroup = service.LobbyGroup
 
-// SetLobbies takes team formats to lobby's waiting lobbies (D-094).
-func (m *Module) SetLobbies(l Lobbies) { m.svc.SetLobbies(lobbies{l}) }
+// Lobbies seats team tickets in waiting lobbies (D-094). lobby implements
+// it; app adapts it, since matchmaking may not import lobby
+// (backend-modules.md §2).
+type Lobbies = service.Lobbies
 
-type lobbies struct{ l Lobbies }
-
-func (a lobbies) SeatMatchmaking(ctx context.Context, g service.LobbyGroup) (uuid.UUID, error) {
-	return a.l.SeatMatchmaking(ctx, lobby.MatchmakingGroup(g))
-}
+// SetLobbies takes team formats to waiting lobbies (D-094).
+func (m *Module) SetLobbies(l Lobbies) { m.svc.SetLobbies(l) }
 
 // games adapts game to what the queue needs.
 type games struct{ *game.Module }

@@ -1,0 +1,73 @@
+# BrainVolt API on Cloud Run (D-096): one service does everything — REST,
+# WebSocket, live matches, matchmaking, lobbies AND the worker's jobs
+# (BRAINVOLT_EMBED_WORKER) — and scales to zero when nobody plays.
+#
+# Deploy with deploy/cloudrun/deploy.sh (fills the ${…} placeholders and
+# runs `gcloud run services replace`). Cost notes are in deploy/cloudrun/README.md.
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: brainvolt-api
+  labels:
+    cloud.googleapis.com/location: ${REGION}
+  annotations:
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      annotations:
+        # Scale to zero: no instance, no CPU/memory charge while idle.
+        autoscaling.knative.dev/minScale: "0"
+        # Exactly one instance at most: private rooms, matchmaking lobbies,
+        # rematch offers and WebSocket routing live in this process's memory
+        # (no Redis), so a second instance would split players. Raise only
+        # after that state moves to a shared store.
+        autoscaling.knative.dev/maxScale: "1"
+        # Request-based billing: CPU is only allocated (and billed) while a
+        # request — an open WebSocket counts — is in flight.
+        run.googleapis.com/cpu-throttling: "true"
+        # Faster cold starts after scale-to-zero (free).
+        run.googleapis.com/startup-cpu-boost: "true"
+    spec:
+      # Concurrent requests per instance. Every open WebSocket holds one
+      # slot for its whole life, so this is also the player cap of the
+      # single instance; Go serves each connection on its own goroutine,
+      # so 1 vCPU / 512 MiB handles far more. Raise up to 1000 when needed.
+      containerConcurrency: ${CONCURRENCY}
+      # WebSockets end at the request timeout (max 60 min); the app
+      # reconnects and resumes (websocket.md §6).
+      timeoutSeconds: 3600
+      containers:
+        - image: ${IMAGE}
+          command: ["/app/api"]
+          ports:
+            - name: http1
+              containerPort: 8080
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          env:
+            - name: BRAINVOLT_ENV
+              value: prod
+            - name: BRAINVOLT_EMBED_WORKER
+              value: "true"
+            - name: BRAINVOLT_LOG_FORMAT
+              value: json
+            - name: BRAINVOLT_LOG_LEVEL
+              value: info
+            - name: BRAINVOLT_FIREBASE_PROJECT_ID
+              value: ${FIREBASE_PROJECT_ID}
+            # Supabase connection string from Secret Manager (use the
+            # session-mode pooler on port 5432, see README.md).
+            - name: BRAINVOLT_POSTGRES_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ${POSTGRES_URL_SECRET}
+                  key: latest
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            periodSeconds: 2
+            failureThreshold: 30

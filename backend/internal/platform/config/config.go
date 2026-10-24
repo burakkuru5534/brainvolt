@@ -31,11 +31,16 @@ const (
 
 // Config is the complete process configuration.
 type Config struct {
-	Env      Environment `env:"BRAINVOLT_ENV" envDefault:"dev"`
-	HTTP     HTTP
-	Log      Log
-	Postgres Postgres
-	Firebase Firebase
+	Env Environment `env:"BRAINVOLT_ENV" envDefault:"dev"`
+	// EmbedWorker makes the API process also run the worker's jobs
+	// (outbox deliveries, periodic jobs) so one Cloud Run service with
+	// min-instances 0 does everything (D-096). cmd/worker is then not
+	// deployed.
+	EmbedWorker bool `env:"BRAINVOLT_EMBED_WORKER" envDefault:"false"`
+	HTTP        HTTP
+	Log         Log
+	Postgres    Postgres
+	Firebase    Firebase
 }
 
 // HTTP configures the REST/WebSocket server (timeouts: docs/api/limits.md §3).

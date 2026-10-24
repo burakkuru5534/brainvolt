@@ -101,7 +101,7 @@ func TestRankingConsumesRankedDuel(t *testing.T) {
 		t.Fatal("a second season was opened")
 	}
 	cur, err := x.mods.ranking.CurrentSeason(t.Context())
-	if err != nil || cur.Names["tr"] == "" || cur.EndsAt.Sub(cur.StartsAt) != 56*24*time.Hour || cur.StartsAt.Weekday() != time.Sunday {
+	if err != nil || cur.Names["tr"] == "" || cur.EndsAt.Sub(cur.StartsAt) != 56*24*time.Hour || cur.StartsAt.UTC().Weekday() != time.Sunday {
 		// Monday 00:00 Istanbul is Sunday 21:00 UTC.
 		t.Fatalf("season %+v %v", cur, err)
 	}
@@ -360,6 +360,12 @@ func TestSeasonCloseAndSnapshots(t *testing.T) {
 		return r
 	}
 	snap("s:" + jsonNum(float64(cur.Number)) + ":user:global:all")
+	// All-time boards are not periodic: Maintain must never drop them.
+	var alltime int
+	if err := x.db.QueryRow(t.Context(), `SELECT count(*) FROM ranking.leaderboard_entries WHERE board_key = 'rank:lb:a:user:global:all' AND member = $1`,
+		a.String()).Scan(&alltime); err != nil || alltime != 1 {
+		t.Fatalf("all-time board after Maintain: %d %v", alltime, err)
+	}
 	snap(strings.TrimPrefix(weekBoard("user", "all"), "rank:lb:"))
 	r, err := later.Rating(t.Context(), a, "solo")
 	if err != nil || r.RD < 150 {

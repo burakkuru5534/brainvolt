@@ -62,7 +62,7 @@ Credentials and ports live in `.env` (git-ignored); `.env.example` documents eve
 | `make redis-cli` | `docker compose exec redis redis-cli` |
 | `make run` | `cd backend && go run ./cmd/api` |
 | `make worker` | `cd backend && go run ./cmd/worker` (second terminal; needed for ratings, SP, XP, leaderboards, quests) |
-| `make test` | `cd backend && go test ./...` then `cd mobile && flutter test` |
+| `make test` | `cd backend && go test -timeout 20m ./...` then `cd mobile && flutter test` (the end-to-end package plays real-time matches and needs more than Go's default 10 minutes on slower machines) |
 | `make lint` | `cd backend && go vet ./... && golangci-lint run` then `cd mobile && flutter analyze` |
 | `make migrate` | `cd backend && go run ./cmd/migrate up` (`make migrate MIGRATE=status` for other goose commands) |
 | `make gen` | `cd backend && sqlc generate` then `cd mobile && flutter gen-l10n && dart run build_runner build --delete-conflicting-outputs` |

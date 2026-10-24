@@ -664,12 +664,26 @@ func fits(e, a *entry, chosen []*entry, now int64) bool {
 	return true
 }
 
-// match forms matches from the waiting tickets of a queue using FOR UPDATE SKIP LOCKED
-// to prevent any race condition or duplication between matcher workers.
+// maxMatchesPerTick bounds the matches formed in one queue per tick.
+const maxMatchesPerTick = 100
+
+// match forms every match the waiting tickets of a queue allow this tick:
+// each round claims one match (FOR UPDATE SKIP LOCKED, so matcher workers
+// never take the same tickets) and the next round sees the rest.
 func (s *Service) match(ctx context.Context, queueName string) {
+	for range maxMatchesPerTick {
+		if !s.matchOnce(ctx, queueName) {
+			return
+		}
+	}
+}
+
+// matchOnce forms at most one match from the waiting tickets of a queue
+// and reports whether it did.
+func (s *Service) matchOnce(ctx context.Context, queueName string) bool {
 	tx, err := s.d.DB.Begin(ctx)
 	if err != nil {
-		return
+		return false
 	}
 	defer tx.Rollback(ctx)
 
@@ -680,7 +694,7 @@ func (s *Service) match(ctx context.Context, queueName string) {
 		FOR UPDATE SKIP LOCKED
 	`, queueName)
 	if err != nil {
-		return
+		return false
 	}
 	defer rows.Close()
 
@@ -704,10 +718,10 @@ func (s *Service) match(ctx context.Context, queueName string) {
 		rows.Close()
 		_ = tx.Rollback(ctx)
 		s.seatLobbies(ctx, waiting)
-		return
+		return false
 	}
 	if len(waiting) < 2 {
-		return
+		return false
 	}
 
 	slices.SortFunc(waiting, func(a, b *entry) int { return int(a.EnqueuedMS - b.EnqueuedMS) })
@@ -776,25 +790,21 @@ func (s *Service) match(ctx context.Context, queueName string) {
 		for _, e := range chosen {
 			_, err = tx.Exec(ctx, `UPDATE matchmaking.tickets SET status = 'matched', updated_at = now() WHERE id = $1`, e.ID)
 			if err != nil {
-				return
+				return false
 			}
 			taken[e.ID] = true
 		}
 
 		if err := tx.Commit(ctx); err != nil {
-			return
+			return false
 		}
 
 		s.start(ctx, sides)
-		return
+		return true
 	}
+	return false
 }
 
-// seatLobbies takes every waiting team ticket (2v2–4v4, couple) of a
-// queue, oldest first, to a waiting lobby (D-094): the ticket is claimed
-// (`matched`), seated by lobby, and its players get mm.lobby with the
-// lobby's room id. The lobby, not the queue, now gathers the match: seats
-// fill as tickets arrive, everyone readies, the leader starts.
 func (s *Service) seatLobbies(ctx context.Context, waiting []*entry) {
 	slices.SortFunc(waiting, func(a, b *entry) int { return cmp.Compare(a.EnqueuedMS, b.EnqueuedMS) })
 	for _, e := range waiting {

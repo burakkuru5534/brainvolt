@@ -15,10 +15,12 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/riverqueue/river"
@@ -115,15 +117,45 @@ func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, 
 		db.Close()
 		return nil, err
 	}
-	// Insert-only River client: the API queues event deliveries, the worker runs them.
-	bus := newBus(db, logger, nil)
-	inserter, err := river.NewClient(riverpgxv5.New(db), &river.Config{Logger: logger})
-	if err != nil {
-		_ = sqlDB.Close()
-		db.Close()
-		return nil, err
+	var (
+		bus     *events.Bus
+		extra   []Component
+		closers []func()
+		live    = newLivePusher(logger)
+	)
+	if cfg.EmbedWorker {
+		// One process does it all (D-096): the API also works the jobs, on
+		// a small pool of its own with the worker's statement timeout, so a
+		// single Cloud Run service can scale to zero.
+		jobsDB, err := postgres.Connect(ctx, postgres.Options{
+			URL:              cfg.Postgres.URL,
+			StatementTimeout: cfg.Postgres.WorkerStatementTimeout,
+			ApplicationName:  "brainvolt-api-jobs",
+		})
+		if err != nil {
+			_ = sqlDB.Close()
+			db.Close()
+			return nil, err
+		}
+		j, err := newJobs(ctx, cfg, jobsDB, logger, live)
+		if err != nil {
+			jobsDB.Close()
+			_ = sqlDB.Close()
+			db.Close()
+			return nil, err
+		}
+		bus, extra, closers = j.bus, []Component{j.runner()}, []func(){jobsDB.Close}
+	} else {
+		// Insert-only River client: the API queues event deliveries, the worker runs them.
+		bus = newBus(db, logger, nil, nil)
+		inserter, err := river.NewClient(riverpgxv5.New(db), &river.Config{Logger: logger})
+		if err != nil {
+			_ = sqlDB.Close()
+			db.Close()
+			return nil, err
+		}
+		bus.Attach(inserter)
 	}
-	bus.Attach(inserter)
 
 	clk := clock.Real{}
 	srv := httpserver.New(cfg.HTTP, cfg.Env, logger)
@@ -136,8 +168,12 @@ func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, 
 	mods := registerModules(srv, moduleDeps{db: db, verifier: verifier, bus: bus, limiter: limiter,
 		idem: idempotency.New(db, logger), clock: clk, logger: logger, instance: ids.New().String(), env: cfg.Env})
 
-	a := New(RoleAPI, logger, srv, mods.realtime, mods.game, mods.matchmaking, mods.lobby, mods.moderation)
+	// The jobs' personal messages go out through this process's hub.
+	live.Bind(mods.realtime)
+	a := New(RoleAPI, logger, append([]Component{srv, mods.realtime, mods.game, mods.matchmaking, mods.lobby, mods.moderation}, extra...)...)
+	// Closers run in order: the jobs pool goes after the components stop.
 	a.closers = append(a.closers, db.Close, func() { _ = sqlDB.Close() })
+	a.closers = append(a.closers, closers...)
 	return a, nil
 }
 
@@ -219,7 +255,7 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 		Events: d.bus, Clock: d.clock, Logger: d.logger,
 	})
 	lob.Register(srv, ident, d.idem)
-	mm.SetLobbies(lob) // team formats gather in waiting lobbies (D-094)
+	mm.SetLobbies(lobbySeats{lob}) // team formats gather in waiting lobbies (D-094)
 	tour := tournament.New(tournament.Deps{
 		DB: d.db, Game: g, Profiles: prof, Teams: tm, Pusher: pusher{rt}, Events: d.bus, Clock: d.clock, Logger: d.logger,
 	})
@@ -228,6 +264,14 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 		identity: ident, profile: prof, content: cont, realtime: rt, social: soc, team: tm, ranking: rk, moderation: mod, progression: prog,
 		game: g, matchmaking: mm, lobby: lob, tournament: tour,
 	}
+}
+
+// lobbySeats adapts lobby's waiting lobbies to matchmaking (D-094);
+// matchmaking may not import lobby (backend-modules.md §2).
+type lobbySeats struct{ *lobby.Module }
+
+func (l lobbySeats) SeatMatchmaking(ctx context.Context, g matchmaking.LobbyGroup) (uuid.UUID, error) {
+	return l.Module.SeatMatchmaking(ctx, lobby.MatchmakingGroup(g))
 }
 
 // pusher sends personal messages through realtime (ranking and
@@ -258,7 +302,10 @@ func (r ratings) Rating(ctx context.Context, user uuid.UUID, bucket string) (mat
 // worker build it the same way: the API to address deliveries, the worker
 // to run them. Consumers subscribe here as their phases arrive
 // (backend-modules.md §3.2 event catalogue).
-func newBus(db *pgxpool.Pool, logger *slog.Logger, push notification.Sender) *events.Bus {
+func newBus(db *pgxpool.Pool, logger *slog.Logger, push notification.Sender, live *livePusher) *events.Bus {
+	if live == nil {
+		live = newLivePusher(logger)
+	}
 	bus := events.NewBus()
 	// content counts answer statistics of completed matches (schema-content §5).
 	stats := content.New(db, clock.Real{}, bus)
@@ -266,11 +313,11 @@ func newBus(db *pgxpool.Pool, logger *slog.Logger, push notification.Sender) *ev
 	// lobby marks challenges whose match was cancelled as failed (schema-social §3.1).
 	bus.Subscribe(game.EventMatchCancelled, lobby.SubscriberChallengeFailed, lobby.OnMatchCancelled(db))
 	// ranking rates, ranks and scores completed matches (progression-formulas §1–4).
-	rk := newRanking(db, bus, logger)
+	rk := newRanking(db, bus, logger, live)
 	bus.Subscribe(game.EventMatchCompleted, ranking.SubscriberMatchResults, rk.OnMatchCompleted)
 	bus.Subscribe(identity.EventAccountTierChanged, ranking.SubscriberTierChanged, rk.OnTierChanged)
 	// progression: XP, streaks, badges and quests (progression-formulas §5–9).
-	prog := progression.New(progression.Deps{DB: db, Pusher: workerPusher(logger), Ranking: rk, Clock: clock.Real{}, Logger: logger})
+	prog := progression.New(progression.Deps{DB: db, Pusher: live, Ranking: rk, Clock: clock.Real{}, Logger: logger})
 	bus.Subscribe(game.EventMatchCompleted, progression.SubscriberMatchAwards, prog.OnMatchCompleted)
 	bus.Subscribe(ranking.EventSeasonEnded, progression.SubscriberSeasonReward, prog.OnSeasonEnded)
 	// Daily Challenge: the daily board and the run's XP / streak / quest (D-040).
@@ -281,7 +328,7 @@ func newBus(db *pgxpool.Pool, logger *slog.Logger, push notification.Sender) *ev
 	bus.Subscribe(game.EventMatchCompleted, moderation.SubscriberMatchSignals, mod.OnMatchCompleted)
 	bus.Subscribe(game.EventMatchCancelled, moderation.SubscriberVoidSignals, mod.OnMatchCancelled)
 	// notification: inbox and push for what concerns a user (schema-platform §1).
-	notif := newNotification(db, logger, push)
+	notif := newNotification(db, logger, push, live)
 	bus.Subscribe(social.EventFriendRequestSent, notification.SubscriberFriendRequest, notif.OnFriendRequestSent)
 	bus.Subscribe(social.EventFriendshipCreated, notification.SubscriberFriendship, notif.OnFriendshipCreated)
 	bus.Subscribe(lobby.EventChallengeSent, notification.SubscriberChallengeSent, notif.OnChallengeSent)
@@ -290,7 +337,7 @@ func newBus(db *pgxpool.Pool, logger *slog.Logger, push notification.Sender) *ev
 	bus.Subscribe(moderation.EventSanctionApplied, notification.SubscriberSanction, notif.OnSanctionApplied)
 	bus.Subscribe(chat.EventMessageSent, notification.SubscriberChatMessage, notif.OnChatMessage)
 	// tournament: results move the bracket on (schema-platform §3, D-090).
-	tour := newTournament(db, bus, logger)
+	tour := newTournament(db, bus, logger, live)
 	bus.Subscribe(game.EventMatchCompleted, tournament.SubscriberMatchResults, tour.OnMatchCompleted)
 	bus.Subscribe(game.EventMatchCancelled, tournament.SubscriberMatchCancelled, tour.OnMatchCancelled)
 	bus.Subscribe(tournament.EventRoundScheduled, notification.SubscriberTournamentRound, notif.OnTournamentRound)
@@ -301,18 +348,18 @@ func newBus(db *pgxpool.Pool, logger *slog.Logger, push notification.Sender) *ev
 
 // newTournament builds tournament for the worker: no game (matches are
 // created from the API), bracket changes pushed through realtime.
-func newTournament(db *pgxpool.Pool, bus *events.Bus, logger *slog.Logger) *tournament.Module {
+func newTournament(db *pgxpool.Pool, bus *events.Bus, logger *slog.Logger, live *livePusher) *tournament.Module {
 	return tournament.New(tournament.Deps{
 		DB: db, Profiles: profile.New(db, clock.Real{}), Teams: team.New(team.Deps{DB: db, Clock: clock.Real{}}),
-		Pusher: workerPusher(logger), Events: bus, Clock: clock.Real{}, Logger: logger,
+		Pusher: live, Events: bus, Clock: clock.Real{}, Logger: logger,
 	})
 }
 
 // newNotification builds notification for delivery in the worker: names
 // from profile, inbox.new through realtime, push through push.
-func newNotification(db *pgxpool.Pool, logger *slog.Logger, push notification.Sender) *notification.Module {
+func newNotification(db *pgxpool.Pool, logger *slog.Logger, push notification.Sender, live *livePusher) *notification.Module {
 	return notification.New(notification.Deps{
-		DB: db, Profiles: profile.New(db, clock.Real{}), Sender: push, Pusher: workerPusher(logger), Clock: clock.Real{}, Logger: logger,
+		DB: db, Profiles: profile.New(db, clock.Real{}), Sender: push, Pusher: live, Clock: clock.Real{}, Logger: logger,
 	})
 }
 
@@ -338,17 +385,35 @@ func (f fcmSender) Send(ctx context.Context, p notification.Push) (string, error
 
 // newRanking builds ranking for worker use: country and team reads,
 // SeasonEnded on bus and awards pushed through realtime; no routes.
-func newRanking(db *pgxpool.Pool, bus *events.Bus, logger *slog.Logger) *ranking.Module {
+func newRanking(db *pgxpool.Pool, bus *events.Bus, logger *slog.Logger, live *livePusher) *ranking.Module {
 	return ranking.New(ranking.Deps{
 		DB: db, Profiles: profile.New(db, clock.Real{}), Teams: team.New(team.Deps{DB: db, Clock: clock.Real{}}),
-		Events: bus, Pusher: workerPusher(logger), Clock: clock.Real{}, Logger: logger,
+		Events: bus, Pusher: live, Clock: clock.Real{}, Logger: logger,
 	})
 }
 
-// workerPusher delivers personal messages from the worker: realtime
-// publishes them to the API instances holding the users' sockets.
-func workerPusher(logger *slog.Logger) pusher {
-	return pusher{realtime.New(realtime.Deps{Clock: clock.Real{}, Logger: logger, Instance: "worker-" + ids.NewString()})}
+// livePusher delivers the jobs' personal messages (match.awards, inbox.new,
+// tournament frames) to connected players. Since Redis is gone there is no
+// hub shared between processes: it works once Bind hands it the API's
+// realtime module, i.e. when the jobs run inside the API process (D-096).
+// Unbound (a separate worker process) it drops them with a debug log; the
+// app then reads awards and the inbox over REST.
+type livePusher struct {
+	rt     atomic.Pointer[realtime.Module]
+	logger *slog.Logger
+}
+
+func newLivePusher(logger *slog.Logger) *livePusher { return &livePusher{logger: logger} }
+
+// Bind starts delivering through rt.
+func (p *livePusher) Bind(rt *realtime.Module) { p.rt.Store(rt) }
+
+func (p *livePusher) Push(ctx context.Context, user uuid.UUID, typ string, data any) error {
+	if rt := p.rt.Load(); rt != nil {
+		return pusher{rt}.Push(ctx, user, typ, data)
+	}
+	p.logger.DebugContext(ctx, "no realtime hub in this process; personal message dropped", "type", typ, "user_id", user)
+	return nil
 }
 
 // NewWorker builds the composition for cmd/worker: a Postgres pool with the
@@ -367,6 +432,57 @@ func NewWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) (*Ap
 	if err != nil {
 		return nil, err
 	}
+	j, err := newJobs(ctx, cfg, db, logger, newLivePusher(logger))
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+	a := New(RoleWorker, logger, j.runner())
+	a.closers = append(a.closers, db.Close)
+	return a, nil
+}
+
+// jobs is the worker role's River client: outbox deliveries to every
+// subscriber and the periodic jobs. cmd/worker runs it alone; with
+// BRAINVOLT_EMBED_WORKER the API process runs it too (single Cloud Run
+// service that scales to zero, D-096).
+type jobs struct {
+	bus    *events.Bus
+	client *river.Client[pgx.Tx]
+}
+
+func (j jobs) runner() events.Runner {
+	return events.Runner{Client: j.client, StopTimeout: 30 * time.Second}
+}
+
+// newJobs builds the push sender, the event bus with every subscriber,
+// the periodic jobs and the River client that works them, on db.
+func newJobs(ctx context.Context, cfg config.Config, db *pgxpool.Pool, logger *slog.Logger, live *livePusher) (jobs, error) {
+	push, err := newPushSender(ctx, cfg, logger)
+	if err != nil {
+		return jobs{}, err
+	}
+	bus := newBus(db, logger, push, live)
+	workers := river.NewWorkers()
+	bus.AddWorker(workers)
+	periodic := addJobs(workers, newRanking(db, bus, logger, live), content.New(db, clock.Real{}, bus), newNotification(db, logger, push, live),
+		chat.New(chat.Deps{DB: db, Clock: clock.Real{}}), newTournament(db, bus, logger, live))
+	client, err := river.NewClient(riverpgxv5.New(db), &river.Config{
+		Queues:       map[string]river.QueueConfig{river.QueueDefault: {MaxWorkers: 10}},
+		Workers:      workers,
+		PeriodicJobs: periodic,
+		Logger:       logger,
+	})
+	if err != nil {
+		return jobs{}, err
+	}
+	bus.Attach(client)
+	return jobs{bus: bus, client: client}, nil
+}
+
+// newPushSender is FCM when credentials (or, in prod, Application Default
+// Credentials) are available, otherwise a sender that only logs.
+func newPushSender(ctx context.Context, cfg config.Config, logger *slog.Logger) (notification.Sender, error) {
 	var push notification.Sender = logSender{logger}
 	cred := cfg.Firebase.MessagingCredentialsJSON
 	if cred == "" {
@@ -374,23 +490,20 @@ func NewWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) (*Ap
 	}
 	if cred != "" {
 		m, err := firebase.NewMessenger(ctx, cfg.Firebase.ProjectID, cred)
-		if err != nil {
-			if cfg.Env == config.EnvProd {
-				logger.WarnContext(ctx, "failed to load configured FCM credentials, falling back to Application Default Credentials (ADC)", "error", err)
-				mADC, errADC := firebase.NewMessenger(ctx, cfg.Firebase.ProjectID, "")
-				if errADC != nil {
-					db.Close()
-					return nil, fmt.Errorf("firebase messaging (both configured credentials and ADC failed): %w", errADC)
-				}
-				push = fcmSender{mADC}
-			} else {
-				db.Close()
-				return nil, err
-			}
-		} else {
-			push = fcmSender{m}
+		if err == nil {
+			return fcmSender{m}, nil
 		}
-	} else if cfg.Env == config.EnvProd {
+		if cfg.Env != config.EnvProd {
+			return nil, err
+		}
+		logger.WarnContext(ctx, "failed to load configured FCM credentials, falling back to Application Default Credentials (ADC)", "error", err)
+		mADC, errADC := firebase.NewMessenger(ctx, cfg.Firebase.ProjectID, "")
+		if errADC != nil {
+			return nil, fmt.Errorf("firebase messaging (both configured credentials and ADC failed): %w", errADC)
+		}
+		return fcmSender{mADC}, nil
+	}
+	if cfg.Env == config.EnvProd {
 		m, err := firebase.NewMessenger(ctx, cfg.Firebase.ProjectID, "")
 		if err != nil {
 			logger.WarnContext(ctx, "firebase messaging ADC init failed, falling back to log sender", "error", err)
@@ -399,27 +512,7 @@ func NewWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) (*Ap
 			push = fcmSender{m}
 		}
 	}
-	bus := newBus(db, logger, push)
-	workers := river.NewWorkers()
-	bus.AddWorker(workers)
-	periodic := addJobs(workers, newRanking(db, bus, logger), content.New(db, clock.Real{}, bus), newNotification(db, logger, push),
-		chat.New(chat.Deps{DB: db, Clock: clock.Real{}}), newTournament(db, bus, logger))
-	client, err := river.NewClient(riverpgxv5.New(db), &river.Config{
-		Queues:       map[string]river.QueueConfig{river.QueueDefault: {MaxWorkers: 10}},
-		Workers:      workers,
-		PeriodicJobs: periodic,
-		Logger:       logger,
-	})
-	if err != nil {
-		db.Close()
-		return nil, err
-	}
-	bus.Attach(client)
-	a := New(RoleWorker, logger,
-		events.Runner{Client: client, StopTimeout: 30 * time.Second},
-	)
-	a.closers = append(a.closers, db.Close)
-	return a, nil
+	return push, nil
 }
 
 // Role reports which process this App was built for.

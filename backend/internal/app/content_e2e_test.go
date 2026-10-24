@@ -82,7 +82,9 @@ func TestContentFlows(t *testing.T) {
 
 	// --- roles ----------------------------------------------------------------
 	want(t, "player lists questions", x.do(http.MethodGet, "/v1/questions", token, nil), 403, "FORBIDDEN")
-	ident := identity.New(identity.Deps{DB: x.db, Events: events.NewBus(), Clock: clock.Real{}, Logger: discard})
+	// The serving identity module: role changes must drop its in-process
+	// principal cache (no shared Redis cache since the Cloud Run setup).
+	ident := x.mods.identity
 	if _, err := ident.SetRole(ctx, uid, identity.RoleModerator, true); err != nil { // by Firebase UID
 		t.Fatal(err)
 	}

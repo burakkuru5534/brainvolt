@@ -84,9 +84,9 @@ worker: check-env ## Run the worker: event consumers (ranking, progression, stat
 	$(require_backend)
 	cd $(BACKEND) && go run ./cmd/worker
 
-test: check-env ## Run backend and mobile tests   (cd backend && go test ./... ; cd mobile && flutter test)
+test: check-env ## Run backend and mobile tests   (cd backend && go test -timeout 20m ./... ; cd mobile && flutter test)
 	$(require_backend)
-	cd $(BACKEND) && go test ./...
+	cd $(BACKEND) && go test -timeout 20m ./...
 	$(call mobile,flutter test,flutter test)
 
 lint: ## Run linters   (cd backend && go vet ./... && golangci-lint run ; cd mobile && dart analyze --fatal-infos)

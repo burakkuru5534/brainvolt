@@ -1,13 +1,17 @@
 package app
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/contentfiles"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/content"
@@ -18,8 +22,20 @@ import (
 )
 
 // seedQuestions imports the repository's questions, verified (dev flow).
+// The full import takes seconds (one round trip per row), so the first call
+// in the test process imports and snapshots the content tables with COPY,
+// and later calls restore that snapshot in one transaction with the
+// approver's id swapped in — the same rows, in milliseconds.
 func (x *e2e) seedQuestions(approver uuid.UUID) {
 	x.t.Helper()
+	seedCache.Lock()
+	defer seedCache.Unlock()
+	if seedCache.tables != nil {
+		if err := restoreSeed(x.t.Context(), x.db, approver); err != nil {
+			x.t.Fatalf("restoring the seeded questions: %v", err)
+		}
+		return
+	}
 	bundle, err := contentfiles.Load(filepath.Join("..", "..", "..", "content"))
 	if err != nil {
 		x.t.Fatal(err)
@@ -27,6 +43,74 @@ func (x *e2e) seedQuestions(approver uuid.UUID) {
 	if err := importBundle(x.t.Context(), content.New(x.db, clock.Real{}, events.NewBus()), bundle, approver, io.Discard, discard); err != nil {
 		x.t.Fatal(err)
 	}
+	if err := snapshotSeed(x.t.Context(), x.db, approver); err != nil {
+		x.t.Fatalf("snapshotting the seeded questions: %v", err)
+	}
+}
+
+// seedTables are the tables the import fills, parents first.
+var seedTables = []string{
+	"content.sources", "content.categories", "content.category_translations",
+	"content.subcategories", "content.subcategory_translations",
+	"content.questions", "content.question_revisions", "content.question_translations",
+	"content.options", "content.option_translations", "content.verification_events",
+}
+
+// seedCache holds the first import as COPY text per table.
+var seedCache struct {
+	sync.Mutex
+	approver uuid.UUID
+	tables   map[string][]byte
+}
+
+func snapshotSeed(ctx context.Context, db *pgxpool.Pool, approver uuid.UUID) error {
+	conn, err := db.Acquire(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Release()
+	tables := map[string][]byte{}
+	for _, t := range seedTables {
+		var buf bytes.Buffer
+		if _, err := conn.Conn().PgConn().CopyTo(ctx, &buf, "COPY "+t+" TO STDOUT"); err != nil {
+			return err
+		}
+		tables[t] = buf.Bytes()
+	}
+	seedCache.approver, seedCache.tables = approver, tables
+	return nil
+}
+
+// restoreSeed replaces the seed tables' rows (a fresh database holds only
+// the built-in source) with the snapshot. Foreign-key triggers are off for
+// the transaction because questions and revisions point at each other.
+func restoreSeed(ctx context.Context, db *pgxpool.Pool, approver uuid.UUID) error {
+	conn, err := db.Acquire(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Release()
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+	if _, err := tx.Exec(ctx, "SET LOCAL session_replication_role = replica"); err != nil {
+		return err
+	}
+	for i := len(seedTables) - 1; i >= 0; i-- {
+		if _, err := tx.Exec(ctx, "DELETE FROM "+seedTables[i]); err != nil {
+			return err
+		}
+	}
+	from, to := []byte(seedCache.approver.String()), []byte(approver.String())
+	for _, t := range seedTables {
+		data := bytes.ReplaceAll(seedCache.tables[t], from, to)
+		if _, err := tx.Conn().PgConn().CopyFrom(ctx, bytes.NewReader(data), "COPY "+t+" FROM STDIN"); err != nil {
+			return fmt.Errorf("%s: %w", t, err)
+		}
+	}
+	return tx.Commit(ctx)
 }
 
 func str(v any) string { s, _ := v.(string); return s }
@@ -251,7 +335,7 @@ func TestLiveTakeover(t *testing.T) {
 	x.mods.game.Close()
 	second := game.New(game.Deps{
 		DB: x.db, Content: x.mods.content, Identity: x.mods.identity, Profiles: x.mods.profile,
-		Realtime: x.mods.realtime, Events: newBus(x.db, discard, nil), Clock: clock.Real{}, Logger: discard, Instance: "test-second-" + id,
+		Realtime: x.mods.realtime, Events: newBus(x.db, discard, nil, nil), Clock: clock.Real{}, Logger: discard, Instance: "test-second-" + id,
 	})
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)

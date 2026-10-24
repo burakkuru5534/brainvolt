@@ -69,7 +69,7 @@ jobs:
         run: sqlc diff
 
       - name: Tests (unit + integration, race detector; includes the OpenAPI drift test)
-        run: go test -race -count=1 ./...
+        run: go test -race -count=1 -timeout 20m ./...
 
   mobile:
     name: mobile

@@ -27,10 +27,14 @@ func (s *Service) Maintain(ctx context.Context) error {
 	return s.closeEndedSeason(ctx)
 }
 
-// snapshotEnded archives every touched daily, weekly or monthly board
-// whose period is over.
+// snapshotEnded archives every daily, weekly or monthly board whose
+// period is over, once, and drops its entries when the board's TTL after
+// the period has passed (the Redis-era expiry, redis-keys §6.1). All-time
+// and season boards are not periodic: season boards are archived by
+// closeEndedSeason and dropped by dropOldSeasonBoards; all-time boards stay.
 func (s *Service) snapshotEnded(ctx context.Context) error {
-	rows, err := s.d.DB.Query(ctx, `SELECT DISTINCT board_key FROM ranking.leaderboard_entries`)
+	rows, err := s.d.DB.Query(ctx, `SELECT DISTINCT board_key FROM ranking.leaderboard_entries
+		WHERE board_key LIKE 'rank:lb:d:%' OR board_key LIKE 'rank:lb:w:%' OR board_key LIKE 'rank:lb:m:%'`)
 	if err != nil {
 		return err
 	}
@@ -49,23 +53,41 @@ func (s *Service) snapshotEnded(ctx context.Context) error {
 	for _, key := range keys {
 		parts := strings.Split(key, ":")
 		if len(parts) < 5 {
-			_, _ = s.d.DB.Exec(ctx, `DELETE FROM ranking.leaderboard_entries WHERE board_key = $1`, key)
-			continue
+			continue // not a board key this code writes: leave it alone
 		}
 		per, ok := domain.PeriodByID(parts[2] + ":" + parts[3])
-		if !ok {
-			_, _ = s.d.DB.Exec(ctx, `DELETE FROM ranking.leaderboard_entries WHERE board_key = $1`, key)
+		if !ok || per.End.After(now) {
 			continue
 		}
-		if per.End.After(now) {
-			continue
-		}
-		if err := s.snapshot(ctx, key, parts[4], per.Start, per.End); err != nil {
+		board := strings.TrimPrefix(key, "rank:lb:")
+		var archived bool
+		if err := s.d.DB.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM ranking.leaderboard_snapshots WHERE board_key = $1)`, board).Scan(&archived); err != nil {
 			return err
 		}
-		_, _ = s.d.DB.Exec(ctx, `DELETE FROM ranking.leaderboard_entries WHERE board_key = $1`, key)
+		if !archived {
+			if err := s.snapshot(ctx, key, parts[4], per.Start, per.End); err != nil {
+				return err
+			}
+		}
+		if !per.End.Add(per.TTL).After(now) {
+			if _, err := s.d.DB.Exec(ctx, `DELETE FROM ranking.leaderboard_entries WHERE board_key = $1`, key); err != nil {
+				return err
+			}
+		}
 	}
-	return nil
+	return s.dropOldSeasonBoards(ctx, now)
+}
+
+// dropOldSeasonBoards deletes the entries of season boards whose season
+// closed more than domain.SeasonTTL ago (they were archived at the close).
+func (s *Service) dropOldSeasonBoards(ctx context.Context, now time.Time) error {
+	_, err := s.d.DB.Exec(ctx, `
+		DELETE FROM ranking.leaderboard_entries e
+		USING ranking.seasons se
+		WHERE se.status = 'closed' AND se.ends_at < $1
+		  AND e.board_key LIKE 'rank:lb:s:' || se.number || ':%'
+	`, now.Add(-domain.SeasonTTL))
+	return err
 }
 
 // snapshot copies a board's top entries to leaderboard_snapshots under

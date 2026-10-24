@@ -180,7 +180,8 @@ func TestMatchAwardsPushed(t *testing.T) {
 	tokA, a, _ := x.fullUser()
 	_, b, _ := x.fullUser()
 	w, _ := x.auth(tokA, "inst-awards", nil)
-	push := workerPusher(discard)
+	// The jobs run in the API process and push through its hub (D-096).
+	push := pusher{x.mods.realtime}
 	prog := progression.New(progression.Deps{DB: x.db, Pusher: push, Clock: clock.Real{}, Logger: discard})
 	rk := ranking.New(ranking.Deps{DB: x.db, Pusher: push, Clock: clock.Real{}, Logger: discard})
 	season, _, err := rk.ActiveSeason(t.Context())
