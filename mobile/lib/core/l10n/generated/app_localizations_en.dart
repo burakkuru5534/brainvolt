@@ -10,7 +10,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'BrainVolt';
+  String get appTitle => 'WitClash';
 
   @override
   String get homeWelcome => 'Ready to test your knowledge today?';
@@ -50,7 +50,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ageGateBody =>
-      'You must be at least 13 years old to use BrainVolt.';
+      'You must be at least 13 years old to use WitClash.';
 
   @override
   String get ageGateConfirm => 'I am 13 or older';
@@ -1227,18 +1227,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeQuizzes => 'Quizzes';
 
   @override
-  String get settingsTheme => 'Appearance';
-
-  @override
-  String get themeSystem => 'System';
-
-  @override
-  String get themeLight => 'Light';
-
-  @override
-  String get themeDark => 'Dark';
-
-  @override
   String get homeQuickDuelSub => 'Find your next opponent';
 
   @override
@@ -1373,12 +1361,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String shareMatchText(String score, String result) {
-    return 'BrainVolt $score: $result Your turn!';
+    return 'WitClash $score: $result Your turn!';
   }
 
   @override
   String shareDailyText(int correct) {
-    return 'BrainVolt Daily Challenge: $correct/10 correct. Can you beat it?';
+    return 'WitClash Daily Challenge: $correct/10 correct. Can you beat it?';
   }
 
   @override
@@ -1961,4 +1949,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get topicRankedNote => 'Ranked matches always use every topic.';
+
+  @override
+  String get brandTagline => 'CLASH YOUR WITS, CLIMB TO THE TOP';
 }

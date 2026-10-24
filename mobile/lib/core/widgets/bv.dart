@@ -1,12 +1,14 @@
-/// The BrainVolt component kit (D-085): cards, icon badges, gradient
-/// buttons and tiles shared by every screen.
+/// The WitClash component kit (D-085, restyled in D-099): glass cards,
+/// icon badges, gradient buttons, tiles and the brand mark shared by every
+/// screen.
 library;
 
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
 
-/// A rounded card with a soft border; [onTap] makes it a button.
+/// A frosted glass card with a hairline border; [onTap] makes it a
+/// button. [color] or [gradient] replace the glass fill.
 class BvCard extends StatelessWidget {
   const BvCard({
     required this.child,
@@ -29,19 +31,28 @@ class BvCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final bv = BvColors.of(context);
     final shape = BorderRadius.circular(radius);
+    final glass = gradient == null && color == null;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: gradient == null ? (color ?? bv.card) : null,
-        gradient: gradient,
+        color: glass ? null : color,
+        gradient:
+            gradient ??
+            (glass
+                ? const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0x24FFFFFF), Color(0x0FFFFFFF)],
+                  )
+                : null),
         borderRadius: shape,
-        border: gradient == null && color == null
-            ? Border.all(color: bv.cardBorder)
-            : null,
+        border: Border.all(
+          color: gradient != null ? Colors.white.withAlpha(50) : bv.cardBorder,
+        ),
         boxShadow: [
           BoxShadow(
-            color: gradient != null ? bv.glow : bv.cardBorder.withAlpha(90),
-            blurRadius: gradient != null ? 18 : 12,
-            offset: const Offset(0, 4),
+            color: gradient != null ? bv.glow : const Color(0x40000000),
+            blurRadius: gradient != null ? 22 : 18,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -81,6 +92,11 @@ class IconBadge extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: onGradient ? Colors.white.withAlpha(46) : bv.badge,
+        border: Border.all(
+          color: onGradient
+              ? Colors.white.withAlpha(60)
+              : bv.badgeInk.withAlpha(50),
+        ),
       ),
       child: Icon(
         icon,
@@ -91,7 +107,7 @@ class IconBadge extends StatelessWidget {
   }
 }
 
-/// The primary call to action: a gradient pill with a glow.
+/// The primary call to action: a purple → orange pill with a glow.
 class GradientButton extends StatelessWidget {
   const GradientButton({
     required this.label,
@@ -294,9 +310,7 @@ class ChoiceTile extends StatelessWidget {
           child: BvCard(
             onTap: onTap,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            gradient: selected
-                ? LinearGradient(colors: [bv.selected, bv.gradientEnd])
-                : null,
+            gradient: selected ? bv.heroGradient : null,
             radius: 18,
             child: Center(child: body),
           ),
@@ -325,38 +339,105 @@ class SectionTitle extends StatelessWidget {
   );
 }
 
-/// The word mark: "Brain" in ink, "Volt" in brand purple with a bolt.
-class BrandLogo extends StatelessWidget {
-  const BrandLogo({this.size = 30, super.key});
+/// The WitClash mark: a gradient tile holding a heavy italic "W" struck by
+/// a bolt.
+class BrandMark extends StatelessWidget {
+  const BrandMark({this.size = 40, super.key});
 
   final double size;
 
   @override
   Widget build(BuildContext context) {
     final bv = BvColors.of(context);
-    final base = weighted(
-      TextStyle(fontSize: size, fontFamily: brandFont, height: 1),
-      FontWeight.w900,
-    );
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          'Brain',
-          style: base.copyWith(color: bv.ink, fontStyle: FontStyle.italic),
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [bv.gradientStart, bv.gradientMid, bv.gradientEnd],
         ),
-        ShaderMask(
-          shaderCallback: (r) => bv.gradient.createShader(r),
-          child: Text(
-            'Volt',
-            style: base.copyWith(
-              color: Colors.white,
-              fontStyle: FontStyle.italic,
+        borderRadius: BorderRadius.circular(size * 0.3),
+        border: Border.all(color: Colors.white.withAlpha(70)),
+        boxShadow: [BoxShadow(color: bv.glow, blurRadius: size * 0.4)],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Text(
+            'W',
+            style: weighted(
+              TextStyle(
+                fontSize: size * 0.62,
+                height: 1,
+                color: Colors.white,
+                fontFamily: brandFont,
+                fontStyle: FontStyle.italic,
+              ),
+              FontWeight.w900,
             ),
           ),
-        ),
-        Icon(Icons.bolt, size: size * 0.9, color: bv.gradientStart),
-      ],
+          Positioned(
+            right: size * 0.02,
+            top: size * 0.02,
+            child: Icon(
+              Icons.bolt,
+              size: size * 0.42,
+              color: bv.gold,
+              shadows: const [Shadow(color: Color(0x99000000), blurRadius: 4)],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The word mark: "Wit" in white, "Clash" in the purple → orange
+/// gradient, heavy italic; [mark] puts the [BrandMark] in front.
+class BrandLogo extends StatelessWidget {
+  const BrandLogo({this.size = 30, this.mark = true, super.key});
+
+  final double size;
+  final bool mark;
+
+  @override
+  Widget build(BuildContext context) {
+    final bv = BvColors.of(context);
+    final base = weighted(
+      TextStyle(
+        fontSize: size,
+        fontFamily: brandFont,
+        height: 1.15,
+        fontStyle: FontStyle.italic,
+        letterSpacing: -0.5,
+      ),
+      FontWeight.w900,
+    );
+    return Semantics(
+      label: 'WitClash',
+      excludeSemantics: true,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (mark) ...[
+            BrandMark(size: size * 1.25),
+            SizedBox(width: size * 0.3),
+          ],
+          Text('Wit', style: base.copyWith(color: bv.ink)),
+          ShaderMask(
+            shaderCallback: (r) =>
+                LinearGradient(colors: [bv.gradientMid, bv.gradientEnd])
+                    .createShader(r),
+            child: Text(
+              // Room for the slanted last letter.
+              'Clash ',
+              style: base.copyWith(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -388,15 +469,22 @@ class AvatarBubble extends StatelessWidget {
           Container(
             width: size,
             height: size,
-            alignment: Alignment.center,
+            padding: EdgeInsets.all(ring ? 2.5 : 0),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: bv.badge,
-              border: ring
-                  ? Border.all(color: bv.gradientStart, width: 2.5)
-                  : null,
+              gradient: ring ? bv.gradient : null,
             ),
-            child: Text(emoji, style: TextStyle(fontSize: size * 0.55)),
+            child: Container(
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: ring ? bv.surface : bv.badge,
+              ),
+              child: Text(
+                emoji,
+                style: TextStyle(fontSize: size * (ring ? 0.5 : 0.55)),
+              ),
+            ),
           ),
           if (online)
             Positioned(
@@ -408,7 +496,7 @@ class AvatarBubble extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: bv.success,
-                  border: Border.all(color: bv.card, width: 2),
+                  border: Border.all(color: bv.surface, width: 2),
                 ),
               ),
             ),
@@ -466,7 +554,9 @@ class OptionTile extends StatelessWidget {
       child: BvCard(
         onTap: onPressed,
         gradient: gradient,
-        color: look == OptionLook.proposed ? bv.badge : null,
+        color: look == OptionLook.proposed
+            ? bv.gradientStart.withAlpha(60)
+            : null,
         radius: 18,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         child: Row(

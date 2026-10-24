@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// App name shown in the task switcher and app bar.
   ///
   /// In tr, this message translates to:
-  /// **'BrainVolt'**
+  /// **'WitClash'**
   String get appTitle;
 
   /// Greeting on the home screen.
@@ -179,7 +179,7 @@ abstract class AppLocalizations {
   /// Age gate explanation.
   ///
   /// In tr, this message translates to:
-  /// **'BrainVolt\'u kullanmak için en az 13 yaşında olmalısın.'**
+  /// **'WitClash\'ı kullanmak için en az 13 yaşında olmalısın.'**
   String get ageGateBody;
 
   /// Age gate checkbox.
@@ -2282,30 +2282,6 @@ abstract class AppLocalizations {
   /// **'Quizler'**
   String get homeQuizzes;
 
-  /// Theme section title
-  ///
-  /// In tr, this message translates to:
-  /// **'Görünüm'**
-  String get settingsTheme;
-
-  /// Follow the device theme
-  ///
-  /// In tr, this message translates to:
-  /// **'Sistem'**
-  String get themeSystem;
-
-  /// Light theme
-  ///
-  /// In tr, this message translates to:
-  /// **'Açık'**
-  String get themeLight;
-
-  /// Dark theme
-  ///
-  /// In tr, this message translates to:
-  /// **'Koyu'**
-  String get themeDark;
-
   /// Quick Duel hero subtitle
   ///
   /// In tr, this message translates to:
@@ -2573,13 +2549,13 @@ abstract class AppLocalizations {
   /// Share text for a match
   ///
   /// In tr, this message translates to:
-  /// **'BrainVolt\'ta {score}: {result} Sıra sende!'**
+  /// **'WitClash\'ta {score}: {result} Sıra sende!'**
   String shareMatchText(String score, String result);
 
   /// Share text for a daily run
   ///
   /// In tr, this message translates to:
-  /// **'BrainVolt Günün Meydan Okuması: {correct}/10 doğru. Sen kaç yaparsın?'**
+  /// **'WitClash Günün Meydan Okuması: {correct}/10 doğru. Sen kaç yaparsın?'**
   String shareDailyText(int correct);
 
   /// Correct answers line
@@ -3583,6 +3559,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Dereceli maçlar her zaman tüm konulardan oynanır.'**
   String get topicRankedNote;
+
+  /// The WitClash tagline under the word mark (splash, welcome).
+  ///
+  /// In tr, this message translates to:
+  /// **'BİLGİNİ YARIŞTIR, ZİRVEYE ÇIK'**
+  String get brandTagline;
 }
 
 class _AppLocalizationsDelegate

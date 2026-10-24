@@ -10,7 +10,7 @@ class AppLocalizationsTr extends AppLocalizations {
   AppLocalizationsTr([String locale = 'tr']) : super(locale);
 
   @override
-  String get appTitle => 'BrainVolt';
+  String get appTitle => 'WitClash';
 
   @override
   String get homeWelcome => 'Bugün bilgini sınamaya hazır mısın?';
@@ -50,7 +50,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get ageGateBody =>
-      'BrainVolt\'u kullanmak için en az 13 yaşında olmalısın.';
+      'WitClash\'ı kullanmak için en az 13 yaşında olmalısın.';
 
   @override
   String get ageGateConfirm => '13 yaşından büyüğüm';
@@ -1226,18 +1226,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get homeQuizzes => 'Quizler';
 
   @override
-  String get settingsTheme => 'Görünüm';
-
-  @override
-  String get themeSystem => 'Sistem';
-
-  @override
-  String get themeLight => 'Açık';
-
-  @override
-  String get themeDark => 'Koyu';
-
-  @override
   String get homeQuickDuelSub => 'Sıradaki rakibini bul';
 
   @override
@@ -1372,12 +1360,12 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String shareMatchText(String score, String result) {
-    return 'BrainVolt\'ta $score: $result Sıra sende!';
+    return 'WitClash\'ta $score: $result Sıra sende!';
   }
 
   @override
   String shareDailyText(int correct) {
-    return 'BrainVolt Günün Meydan Okuması: $correct/10 doğru. Sen kaç yaparsın?';
+    return 'WitClash Günün Meydan Okuması: $correct/10 doğru. Sen kaç yaparsın?';
   }
 
   @override
@@ -1955,4 +1943,7 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get topicRankedNote =>
       'Dereceli maçlar her zaman tüm konulardan oynanır.';
+
+  @override
+  String get brandTagline => 'BİLGİNİ YARIŞTIR, ZİRVEYE ÇIK';
 }

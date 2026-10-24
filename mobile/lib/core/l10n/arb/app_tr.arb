@@ -1,6 +1,6 @@
 {
   "@@locale": "tr",
-  "appTitle": "BrainVolt",
+  "appTitle": "WitClash",
   "@appTitle": {
     "description": "App name shown in the task switcher and app bar."
   },
@@ -52,7 +52,7 @@
   "@ageGateTitle": {
     "description": "Age gate (D-020) title."
   },
-  "ageGateBody": "BrainVolt'u kullanmak için en az 13 yaşında olmalısın.",
+  "ageGateBody": "WitClash'ı kullanmak için en az 13 yaşında olmalısın.",
   "@ageGateBody": {
     "description": "Age gate explanation."
   },
@@ -1729,22 +1729,6 @@
   "@homeQuizzes": {
     "description": "Home button to quizzes"
   },
-  "settingsTheme": "Görünüm",
-  "@settingsTheme": {
-    "description": "Theme section title"
-  },
-  "themeSystem": "Sistem",
-  "@themeSystem": {
-    "description": "Follow the device theme"
-  },
-  "themeLight": "Açık",
-  "@themeLight": {
-    "description": "Light theme"
-  },
-  "themeDark": "Koyu",
-  "@themeDark": {
-    "description": "Dark theme"
-  },
   "homeQuickDuelSub": "Sıradaki rakibini bul",
   "@homeQuickDuelSub": {
     "description": "Quick Duel hero subtitle"
@@ -1921,7 +1905,7 @@
   "@shareResult": {
     "description": "Share tooltip"
   },
-  "shareMatchText": "BrainVolt'ta {score}: {result} Sıra sende!",
+  "shareMatchText": "WitClash'ta {score}: {result} Sıra sende!",
   "@shareMatchText": {
     "description": "Share text for a match",
     "placeholders": {
@@ -1933,7 +1917,7 @@
       }
     }
   },
-  "shareDailyText": "BrainVolt Günün Meydan Okuması: {correct}/10 doğru. Sen kaç yaparsın?",
+  "shareDailyText": "WitClash Günün Meydan Okuması: {correct}/10 doğru. Sen kaç yaparsın?",
   "@shareDailyText": {
     "description": "Share text for a daily run",
     "placeholders": {
@@ -2709,5 +2693,9 @@
   "topicRankedNote": "Dereceli maçlar her zaman tüm konulardan oynanır.",
   "@topicRankedNote": {
     "description": "Ranked has no topic (R04)."
+  },
+  "brandTagline": "BİLGİNİ YARIŞTIR, ZİRVEYE ÇIK",
+  "@brandTagline": {
+    "description": "The WitClash tagline under the word mark (splash, welcome)."
   }
 }

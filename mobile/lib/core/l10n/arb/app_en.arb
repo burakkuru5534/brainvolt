@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appTitle": "BrainVolt",
+  "appTitle": "WitClash",
   "homeWelcome": "Ready to test your knowledge today?",
   "settingsTitle": "Settings",
   "settingsLanguage": "Language",
@@ -13,7 +13,7 @@
   "save": "Save",
   "splashError": "We couldn't reach the server.",
   "ageGateTitle": "Welcome!",
-  "ageGateBody": "You must be at least 13 years old to use BrainVolt.",
+  "ageGateBody": "You must be at least 13 years old to use WitClash.",
   "ageGateConfirm": "I am 13 or older",
   "homeGreeting": "Hi, {name}!",
   "homeGuestBanner": "You're playing as a guest. Link an account to keep your progress.",
@@ -364,10 +364,6 @@
   "roomQuiz": "Quiz · {count} questions",
   "roomFriendsOnly": "Only the host's friends can join.",
   "homeQuizzes": "Quizzes",
-  "settingsTheme": "Appearance",
-  "themeSystem": "System",
-  "themeLight": "Light",
-  "themeDark": "Dark",
   "homeQuickDuelSub": "Find your next opponent",
   "homeModesSub": "Explore all modes",
   "homeRoomSub": "Create or join a game",
@@ -412,8 +408,8 @@
   "settingsNotifications": "Notifications",
   "shareAction": "Share",
   "shareResult": "Share result",
-  "shareMatchText": "BrainVolt {score}: {result} Your turn!",
-  "shareDailyText": "BrainVolt Daily Challenge: {correct}/10 correct. Can you beat it?",
+  "shareMatchText": "WitClash {score}: {result} Your turn!",
+  "shareDailyText": "WitClash Daily Challenge: {correct}/10 correct. Can you beat it?",
   "shareCorrectOf": "{correct}/{total} correct",
   "chatTitle": "Chat",
   "chatHint": "Write a message…",
@@ -580,5 +576,6 @@
   "topicPickSub": "You are matched only with players who chose the same topic.",
   "topicLine": "Topic: {name}",
   "topicLoadFailed": "Topics could not be loaded; you can still play All topics.",
-  "topicRankedNote": "Ranked matches always use every topic."
+  "topicRankedNote": "Ranked matches always use every topic.",
+  "brandTagline": "CLASH YOUR WITS, CLIMB TO THE TOP"
 }

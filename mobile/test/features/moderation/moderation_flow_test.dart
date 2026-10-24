@@ -145,7 +145,7 @@ void main() {
     expect(find.text('612 — 431'), findsNWidgets(2));
     await tester.tap(find.byKey(const Key('share-send')));
     await tester.pumpAndSettle();
-    expect(t.share.shared, ["BrainVolt'ta 612—431: Kazandın! Sıra sende!"]);
+    expect(t.share.shared, ["WitClash'ta 612—431: Kazandın! Sıra sende!"]);
     expect(find.byKey(const Key('share-card')), findsNothing);
     await finish(tester, t);
   });

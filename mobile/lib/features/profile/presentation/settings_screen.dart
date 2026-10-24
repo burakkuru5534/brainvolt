@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:logging/logging.dart';
 
 import '../../../app/router.dart';
-import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/l10n/locale_controller.dart';
 import '../../../core/network/api_exception.dart';
@@ -65,8 +64,6 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const Divider(),
           const _LanguageSection(),
-          const Divider(),
-          const _ThemeSection(),
           const Divider(),
           switch (settings) {
             AsyncValue(value: final s?) => _ServerSettings(settings: s),
@@ -134,41 +131,6 @@ class _LanguageSection extends ConsumerWidget {
                   title: Text(label),
                 ),
             ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ThemeSection extends ConsumerWidget {
-  const _ThemeSection();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = context.l10n;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _Header(l10n.settingsTheme),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: SegmentedButton<ThemeMode>(
-            key: const Key('theme-mode'),
-            segments: [
-              ButtonSegment(
-                value: ThemeMode.system,
-                label: Text(l10n.themeSystem),
-              ),
-              ButtonSegment(
-                value: ThemeMode.light,
-                label: Text(l10n.themeLight),
-              ),
-              ButtonSegment(value: ThemeMode.dark, label: Text(l10n.themeDark)),
-            ],
-            selected: {ref.watch(themeModeSettingProvider)},
-            onSelectionChanged: (s) =>
-                ref.read(themeModeSettingProvider.notifier).set(s.first),
           ),
         ),
       ],
