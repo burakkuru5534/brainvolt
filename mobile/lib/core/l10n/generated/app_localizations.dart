@@ -3481,6 +3481,60 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Oda ayarları güncellendi, herkes tekrar hazır olmalı'**
   String get roomSettingsSaved;
+
+  /// Title of the matchmade team waiting lobby (D-094).
+  ///
+  /// In tr, this message translates to:
+  /// **'Eşleşme Lobisi'**
+  String get mmLobbyTitle;
+
+  /// Waiting lobby: seats taken so far.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyuncular aranıyor… ({count}/{total})'**
+  String mmLobbyWaiting(int count, int total);
+
+  /// Waiting lobby: how the leader is chosen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Lobi dolunca rastgele bir lider seçilecek; maçı o başlatır.'**
+  String get mmLobbyLeaderSoon;
+
+  /// The player is the lobby leader.
+  ///
+  /// In tr, this message translates to:
+  /// **'Lobi lideri sensin! Herkes hazır olunca maçı başlat.'**
+  String get mmLobbyYouLead;
+
+  /// Another player leads the lobby.
+  ///
+  /// In tr, this message translates to:
+  /// **'Lobi lideri: {name}. Hazır ol, maçı lider başlatacak.'**
+  String mmLobbyLeaderIs(String name);
+
+  /// Leader start button while not everyone is ready.
+  ///
+  /// In tr, this message translates to:
+  /// **'Herkesin hazır olması bekleniyor'**
+  String get mmLobbyWaitReady;
+
+  /// Empty seat of a waiting lobby.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyuncu aranıyor…'**
+  String get mmLobbySearchingSeat;
+
+  /// Dropped from the lobby for not readying in time.
+  ///
+  /// In tr, this message translates to:
+  /// **'Zamanında hazır olmadığın için lobiden çıkarıldın.'**
+  String get mmLobbyDropped;
+
+  /// Waiting lobby expired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeterli oyuncu bulunamadı, lobi kapandı.'**
+  String get mmLobbyExpired;
 }
 
 class _AppLocalizationsDelegate

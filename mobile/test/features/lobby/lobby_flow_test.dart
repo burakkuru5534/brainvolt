@@ -444,4 +444,107 @@ void main() {
     expect(find.text('Onay bekleniyor'), findsOneWidget);
     await finish(tester, t);
   });
+
+  testWidgets('team queue: waiting lobby fills, everyone readies, the leader '
+      'starts (D-094)', (tester) async {
+    final t = await launch(tester);
+    final s = welcome(t);
+    await step(tester);
+    await tester.tap(find.byKey(const Key('play-quick-duel')));
+    await step(tester);
+    s.serverSends({
+      't': 'mm.lobby',
+      'd': {'ticket_id': 't1', 'room_id': 'r7'},
+    });
+    await step(tester);
+    await step(tester);
+    expect(
+      t.container.read(routerProvider).state.matchedLocation,
+      Routes.room('r7'),
+    );
+    expect(s.lastSent('room.join')['d'], {'room_id': 'r7'});
+    Map<String, dynamic> lobby(int seq, {String? leader, bool ready = false}) {
+      Map<String, dynamic> m(String id, String name, int side, int seat) => {
+        'user_id': id,
+        'display_name': name,
+        'side_no': side,
+        'seat_no': seat,
+        'ready': id == me ? ready : true,
+      };
+      return {
+        't': 'room.state',
+        's': 'room:r7',
+        'seq': seq,
+        'd': {
+          'room': {
+            'id': 'r7',
+            'kind': 'matchmaking',
+            'status': 'open',
+            'version': seq,
+            'host_user_id': '00000000-0000-0000-0000-000000000000',
+            'code': '',
+            'capacity': 4,
+            'leader_user_id': ?leader,
+            'match_config': {
+              'match_type': 'quick_duel',
+              'format': '2v2',
+              'team_answer_mode': 'fast_team_round',
+            },
+            'members': [
+              m(me, 'Ben', 1, 1),
+              m('u2', 'Ali', 1, 2),
+              m('u3', 'Ece', 2, 1),
+              if (leader != null) m('u4', 'Can', 2, 2),
+            ],
+          },
+        },
+      };
+    }
+
+    s
+      ..ack('room.join')
+      ..serverSends(lobby(1));
+    await step(tester);
+    expect(find.text('Eşleşme Lobisi'), findsOneWidget);
+    expect(find.text('Oyuncular aranıyor… (3/4)'), findsOneWidget);
+    expect(find.byKey(const Key('room-code')), findsNothing);
+    expect(find.byKey(const Key('room-start')), findsNothing);
+
+    // Full: the drawn leader is this player; the others are ready.
+    s.serverSends(lobby(2, leader: me));
+    await step(tester);
+    expect(find.byKey(const Key('mm-lobby-you-lead')), findsOneWidget);
+    final start = find.byKey(const Key('room-start'));
+    expect(tester.widget<ButtonStyleButton>(start).onPressed, isNull);
+    await tester.tap(find.byKey(const Key('room-ready')));
+    await step(tester);
+    expect(s.lastSent('room.ready')['d'], {'room_id': 'r7'});
+    s
+      ..ack('room.ready')
+      ..serverSends(lobby(3, leader: me, ready: true));
+    await step(tester);
+    await tester.tap(start);
+    await step(tester);
+    expect(s.lastSent('room.start')['d'], {'room_id': 'r7'});
+    s
+      ..ack('room.start')
+      ..serverSends({
+        't': 'room.match_starting',
+        's': 'room:r7',
+        'd': {'room_id': 'r7', 'match_id': 'm7'},
+      })
+      ..serverSends({
+        't': 'room.closed',
+        's': 'room:r7',
+        'seq': 4,
+        'd': {'room_id': 'r7', 'reason': 'match_started'},
+      });
+    await step(tester);
+    await step(tester);
+    expect(
+      t.container.read(routerProvider).state.matchedLocation,
+      Routes.match('m7'),
+    );
+    await finish(tester, t);
+  });
 }

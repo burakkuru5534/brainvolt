@@ -68,6 +68,8 @@ class _QueueScreenState extends ConsumerState<QueueScreen> {
     ref.listen(queueControllerProvider, (_, next) {
       if (next is QueueFound) {
         context.go(Routes.match(next.matchId));
+      } else if (next is QueueLobby) {
+        context.go(Routes.room(next.roomId));
       }
     });
     final state = ref.watch(queueControllerProvider);

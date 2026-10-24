@@ -31,6 +31,12 @@ final class QueueFound extends QueueState {
   final String matchId;
 }
 
+/// A team queue seated the player in a waiting lobby (D-094, mm.lobby).
+final class QueueLobby extends QueueState {
+  const QueueLobby(this.roomId);
+  final String roomId;
+}
+
 final class QueueFailed extends QueueState {
   const QueueFailed(this.error);
   final Object error;
@@ -65,6 +71,9 @@ class QueueController extends _$QueueController {
       }
       if (f.type == 'mm.match_found') {
         _found(f.data['match_id'] as String);
+      } else if (f.type == 'mm.lobby') {
+        _stopWatching();
+        state = QueueLobby(f.data['room_id'] as String);
       } else if (f.type == 'mm.status' && f.data['state'] == 'cancelled') {
         _stopWatching();
         state = QueueFailed(

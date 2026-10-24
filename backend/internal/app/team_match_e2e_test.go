@@ -155,8 +155,9 @@ func TestTeamAndCoupleSides(t *testing.T) {
 	}
 }
 
-// Team queues (D-072): a persistent team lineup meets two solo players on
-// a temporary side; two couples meet in the couple queue.
+// Team queues (D-072, D-094): a persistent team lineup meets two solo
+// players on a temporary side; two couples meet in the couple queue. Both
+// gather in a waiting lobby first.
 func TestTeamAndCoupleQueues(t *testing.T) {
 	x := newE2E(t)
 	var toks [6]string
@@ -190,12 +191,7 @@ func TestTeamAndCoupleQueues(t *testing.T) {
 	}
 	want(t, "solo 1", x.post("/v1/matchmaking/tickets", toks[4], duo), 201, "")
 	want(t, "solo 2", x.post("/v1/matchmaking/tickets", toks[5], duo), 201, "")
-	id := str(data(ws[0].findWithin(5*time.Second, "mm.match_found"))["match_id"])
-	for _, i := range []int{1, 4, 5} {
-		if got := data(ws[i].findWithin(5*time.Second, "mm.match_found"))["match_id"]; got != id {
-			t.Fatalf("player %d in match %v, want %s", i, got, id)
-		}
-	}
+	id := gatherLobby(t, []*wsClient{ws[0], ws[1], ws[4], ws[5]}, []uuid.UUID{users[0], users[1], users[4], users[5]})
 	var mode, team string
 	if err := x.db.QueryRow(t.Context(), `SELECT m.team_answer_mode, coalesce(s.team_id::text, '') FROM game.matches m
 		JOIN game.match_sides s ON s.match_id = m.id AND s.side_no = 1 WHERE m.id = $1`, id).Scan(&mode, &team); err != nil || mode != "fast_team_round" || team != teamID {
@@ -216,10 +212,62 @@ func TestTeamAndCoupleQueues(t *testing.T) {
 	// Leaving the first match gave player 0 a leave — not a cooldown yet.
 	want(t, "couple 1", x.post("/v1/matchmaking/tickets", toks[1], couple), 201, "")
 	want(t, "couple 2", x.post("/v1/matchmaking/tickets", toks[2], couple), 201, "")
-	id = str(data(ws[3].findWithin(5*time.Second, "mm.match_found"))["match_id"])
+	id = gatherLobby(t, []*wsClient{ws[0], ws[1], ws[2], ws[3]}, users[:4])
 	var couples int
 	if err := x.db.QueryRow(t.Context(), `SELECT count(*) FROM game.match_sides WHERE match_id = $1 AND couple_id IS NOT NULL`, id).Scan(&couples); err != nil || couples != 2 {
 		t.Fatalf("couple sides %d %v", couples, err)
 	}
 	leaveMatch(t, id, ws[0], ws[1], ws[2], ws[3])
+}
+
+// gatherLobby is the waiting lobby of a matchmade team match (D-094):
+// every player is seated in the same lobby (mm.lobby), everyone readies
+// up, and the leader drawn once the lobby is full starts the match.
+func gatherLobby(t *testing.T, ws []*wsClient, users []uuid.UUID) string {
+	t.Helper()
+	room := str(data(ws[0].findWithin(5*time.Second, "mm.lobby"))["room_id"])
+	for i := 1; i < len(ws); i++ {
+		if got := str(data(ws[i].findWithin(5*time.Second, "mm.lobby"))["room_id"]); got != room {
+			t.Fatalf("player %d in lobby %s, want %s", i, got, room)
+		}
+	}
+	for i, w := range ws {
+		if f := w.answer(w.send("room.ready", map[string]any{"room_id": room})); f["t"] != "sys.ack" {
+			t.Fatalf("player %d ready %v", i, f)
+		}
+	}
+	ready := ws[0].find("full and ready lobby", func(f map[string]any) bool {
+		if f["t"] != "room.state" {
+			return false
+		}
+		rm := data(f)["room"].(map[string]any)
+		if rm["kind"] != "matchmaking" || rm["leader_user_id"] == nil {
+			return false
+		}
+		members := rm["members"].([]any)
+		for _, m := range members {
+			if m.(map[string]any)["ready"] != true {
+				return false
+			}
+		}
+		return len(members) == len(ws)
+	})
+	leader := data(ready)["room"].(map[string]any)["leader_user_id"].(string)
+	started := false
+	for i, u := range users {
+		if u.String() != leader {
+			if f := ws[i].answer(ws[i].send("room.start", map[string]any{"room_id": room})); f["t"] == "sys.ack" {
+				t.Fatalf("player %d started without being the leader", i)
+			}
+			continue
+		}
+		if f := ws[i].answer(ws[i].send("room.start", map[string]any{"room_id": room})); f["t"] != "sys.ack" {
+			t.Fatalf("leader start %v", f)
+		}
+		started = true
+	}
+	if !started {
+		t.Fatalf("leader %s is not a player", leader)
+	}
+	return str(data(ws[0].find("room.match_starting", func(f map[string]any) bool { return f["t"] == "room.match_starting" }))["match_id"])
 }

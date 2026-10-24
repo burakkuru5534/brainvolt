@@ -256,7 +256,11 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
     final room = view.room;
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.privateRoom),
+        title: Text(
+          view.room?.isMatchmaking ?? false
+              ? l10n.mmLobbyTitle
+              : l10n.privateRoom,
+        ),
         actions: [
           IconButton(
             key: const Key('room-leave'),
@@ -267,11 +271,19 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
         ],
       ),
       body: switch (view) {
-        RoomView(closedReason: final _?) => Center(
+        RoomView(closedReason: final reason?) => Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(l10n.roomClosed, key: const Key('room-closed')),
+              Text(
+                switch (reason) {
+                  'not_ready' => l10n.mmLobbyDropped,
+                  'lobby_expired' => l10n.mmLobbyExpired,
+                  _ => l10n.roomClosed,
+                },
+                key: const Key('room-closed'),
+                textAlign: TextAlign.center,
+              ),
               TextButton(
                 onPressed: () => context.go(Routes.home),
                 child: Text(l10n.backHome),
@@ -282,7 +294,8 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
         RoomView(room: null) => const Center(
           child: CircularProgressIndicator(),
         ),
-        _ => _body(context, room!, me),
+        _ when room!.isMatchmaking => _lobbyBody(context, room, me),
+        _ => _body(context, room, me),
       },
     );
   }
@@ -373,6 +386,135 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
           ),
         ],
       ],
+    );
+  }
+
+  /// The waiting lobby of a matchmade team match (D-094): seats fill as
+  /// players are found; once full a random leader is drawn; everyone
+  /// readies up and the leader starts.
+  Widget _lobbyBody(BuildContext context, Room room, String me) {
+    final l10n = context.l10n;
+    final text = Theme.of(context).textTheme;
+    final mine = room.members.where((m) => m.card.userId == me).firstOrNull;
+    final leader = room.leaderUserId;
+    final allReady = room.members.every((m) => m.ready);
+    final perSide = room.capacity ~/ 2;
+    final leaderName = room.members
+        .where((m) => m.card.userId == leader)
+        .firstOrNull
+        ?.card
+        .displayName;
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        BvCard(
+          key: const Key('mm-lobby-status'),
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                [
+                  matchTypeName(l10n, room.matchType),
+                  formatName(l10n, room.format),
+                  if (room.teamMode case final m?) teamModeName(l10n, m),
+                ].join(' · '),
+                style: text.titleMedium,
+              ),
+              const SizedBox(height: 6),
+              if (!room.full)
+                Row(
+                  children: [
+                    const SizedBox.square(
+                      dimension: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        l10n.mmLobbyWaiting(room.members.length, room.capacity),
+                        key: const Key('mm-lobby-waiting'),
+                      ),
+                    ),
+                  ],
+                )
+              else if (leader == me)
+                Text(l10n.mmLobbyYouLead, key: const Key('mm-lobby-you-lead'))
+              else
+                Text(
+                  l10n.mmLobbyLeaderIs(leaderName ?? ''),
+                  key: const Key('mm-lobby-leader'),
+                ),
+              if (!room.full) ...[
+                const SizedBox(height: 4),
+                Text(
+                  l10n.mmLobbyLeaderSoon,
+                  style: text.bodySmall?.copyWith(
+                    color: BvColors.of(context).muted,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        for (var side = 1; side <= 2; side++) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 16, bottom: 4),
+            child: Text(
+              l10n.sideLabel(side),
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+          for (var seat = 1; seat <= perSide; seat++)
+            _lobbySeat(context, room, side, seat),
+        ],
+        const SizedBox(height: 24),
+        if (mine != null)
+          FilledButton.tonal(
+            key: const Key('room-ready'),
+            onPressed: room.status == 'open'
+                ? () => _run(() => _ctrl.setReady(ready: !mine.ready))
+                : null,
+            child: Text(mine.ready ? l10n.notReady : l10n.readyLabel),
+          ),
+        if (leader == me) ...[
+          const SizedBox(height: 8),
+          FilledButton(
+            key: const Key('room-start'),
+            onPressed: room.status == 'open' && room.full && allReady
+                ? () => _run(_ctrl.start)
+                : null,
+            child: Text(allReady ? l10n.startMatch : l10n.mmLobbyWaitReady),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _lobbySeat(BuildContext context, Room room, int side, int seat) {
+    final l10n = context.l10n;
+    final m = room.members
+        .where((m) => m.side == side && m.seat == seat)
+        .firstOrNull;
+    if (m == null) {
+      return ListTile(
+        key: Key('seat-$side-$seat'),
+        leading: const Icon(Icons.hourglass_empty),
+        title: Text(l10n.mmLobbySearchingSeat),
+      );
+    }
+    final isLeader = m.card.userId == room.leaderUserId;
+    return ListTile(
+      key: Key('seat-$side-$seat'),
+      leading: Text(
+        avatarFor(m.card.avatarId),
+        style: const TextStyle(fontSize: 28),
+      ),
+      title: Text(isLeader ? '👑 ${m.card.displayName}' : m.card.displayName),
+      subtitle: Text(m.ready ? l10n.readyLabel : l10n.notReady),
+      trailing: m.ready
+          ? const Icon(Icons.check_circle, color: Colors.green)
+          : null,
     );
   }
 

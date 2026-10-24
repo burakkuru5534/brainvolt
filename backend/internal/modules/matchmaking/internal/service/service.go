@@ -118,6 +118,24 @@ type Game interface {
 	CategoryExists(ctx context.Context, id uuid.UUID) (bool, error)
 }
 
+// LobbyGroup is a ticket seated in a waiting lobby (D-094).
+type LobbyGroup struct {
+	Queue    string
+	Config   game.Config
+	TicketID uuid.UUID
+	Members  []game.Member
+	TeamID   *uuid.UUID
+	CoupleID *uuid.UUID
+	Rating   float64
+	Ranked   bool
+	Blocks   []uuid.UUID
+}
+
+// Lobbies seats team tickets in waiting lobbies (lobby, wired in app).
+type Lobbies interface {
+	SeatMatchmaking(ctx context.Context, g LobbyGroup) (uuid.UUID, error)
+}
+
 // Notifier pushes personal events (realtime).
 type Notifier interface {
 	Send(ctx context.Context, t realtime.Target, f realtime.Frame) error
@@ -134,9 +152,12 @@ type Deps struct {
 	Sanctions game.SanctionChecker
 	Teams     Teams
 	Locales   LocaleReader
-	Clock     clock.Clock
-	Logger    *slog.Logger
-	Practice  bool
+	// Lobbies, when set, takes team formats to waiting lobbies (D-094)
+	// instead of pairing full matches here.
+	Lobbies  Lobbies
+	Clock    clock.Clock
+	Logger   *slog.Logger
+	Practice bool
 }
 
 // Service is the queue.
@@ -152,6 +173,9 @@ func New(d Deps) *Service {
 
 // SetTeams wires team (persistent teams and couples).
 func (s *Service) SetTeams(t Teams) { s.d.Teams = t }
+
+// SetLobbies wires the waiting lobbies of team formats (lobby, D-094).
+func (s *Service) SetLobbies(l Lobbies) { s.d.Lobbies = l }
 
 // SetLocales wires the party members' languages (profile).
 func (s *Service) SetLocales(l LocaleReader) { s.d.Locales = l }
@@ -175,17 +199,17 @@ type Request struct {
 
 // Ticket is a queue entry as the app sees it.
 type Ticket struct {
-	ID           uuid.UUID  `json:"id"`
-	MatchType    string     `json:"match_type"`
-	Format       string     `json:"format"`
-	CategoryMode string     `json:"category_mode,omitempty"`
-	CategoryID   *uuid.UUID `json:"category_id,omitempty"`
+	ID           uuid.UUID   `json:"id"`
+	MatchType    string      `json:"match_type"`
+	Format       string      `json:"format"`
+	CategoryMode string      `json:"category_mode,omitempty"`
+	CategoryID   *uuid.UUID  `json:"category_id,omitempty"`
 	UserIDs      []uuid.UUID `json:"user_ids"`
-	State        string     `json:"state"`
-	EnqueuedAt   time.Time  `json:"enqueued_at"`
-	WaitMS       int64      `json:"wait_ms"`
-	Range        *int       `json:"range,omitempty"`
-	MatchID      *uuid.UUID `json:"match_id,omitempty"`
+	State        string      `json:"state"`
+	EnqueuedAt   time.Time   `json:"enqueued_at"`
+	WaitMS       int64       `json:"wait_ms"`
+	Range        *int        `json:"range,omitempty"`
+	MatchID      *uuid.UUID  `json:"match_id,omitempty"`
 }
 
 type member struct {
@@ -195,16 +219,16 @@ type member struct {
 
 // entry is a ticket serialized in PostgreSQL.
 type entry struct {
-	ID         uuid.UUID  `json:"id"`
-	Queue      string     `json:"queue"`
-	Request    Request    `json:"request"`
-	Members    []member   `json:"members"`
-	Rating     float64    `json:"rating"`
-	RD         float64    `json:"rd"`
+	ID         uuid.UUID   `json:"id"`
+	Queue      string      `json:"queue"`
+	Request    Request     `json:"request"`
+	Members    []member    `json:"members"`
+	Rating     float64     `json:"rating"`
+	RD         float64     `json:"rd"`
 	Blocks     []uuid.UUID `json:"blocks,omitempty"`
-	EnqueuedMS int64      `json:"enqueued_ms"`
-	TeamID     *uuid.UUID `json:"team_id,omitempty"`
-	CoupleID   *uuid.UUID `json:"couple_id,omitempty"`
+	EnqueuedMS int64       `json:"enqueued_ms"`
+	TeamID     *uuid.UUID  `json:"team_id,omitempty"`
+	CoupleID   *uuid.UUID  `json:"couple_id,omitempty"`
 }
 
 func (e *entry) users() []uuid.UUID {
@@ -218,11 +242,11 @@ func (e *entry) users() []uuid.UUID {
 // persistent tickets fill a whole side on their own.
 func (e *entry) persistent() bool { return e.TeamID != nil || e.CoupleID != nil }
 
-func isRanked(r Request) bool           { return r.MatchType == "ranked" }
-func (r Request) config() game.Config   { return r.configWith(nil) }
-func (r Request) sideSize() int         { return game.Format(r.Format).SideSize() }
-func (s *Service) now() time.Time       { return s.d.Clock.Now().UTC() }
-func (s *Service) nowMS() int64         { return s.d.Clock.Now().UnixMilli() }
+func isRanked(r Request) bool         { return r.MatchType == "ranked" }
+func (r Request) config() game.Config { return r.configWith(nil) }
+func (r Request) sideSize() int       { return game.Format(r.Format).SideSize() }
+func (s *Service) now() time.Time     { return s.d.Clock.Now().UTC() }
+func (s *Service) nowMS() int64       { return s.d.Clock.Now().UnixMilli() }
 func wait(e *entry, now int64) time.Duration {
 	return time.Duration(now-e.EnqueuedMS) * time.Millisecond
 }
@@ -676,6 +700,12 @@ func (s *Service) match(ctx context.Context, queueName string) {
 	}
 	rows.Close()
 
+	if len(waiting) > 0 && s.d.Lobbies != nil && waiting[0].Request.sideSize() > 1 {
+		rows.Close()
+		_ = tx.Rollback(ctx)
+		s.seatLobbies(ctx, waiting)
+		return
+	}
 	if len(waiting) < 2 {
 		return
 	}
@@ -757,6 +787,42 @@ func (s *Service) match(ctx context.Context, queueName string) {
 
 		s.start(ctx, sides)
 		return
+	}
+}
+
+// seatLobbies takes every waiting team ticket (2v2–4v4, couple) of a
+// queue, oldest first, to a waiting lobby (D-094): the ticket is claimed
+// (`matched`), seated by lobby, and its players get mm.lobby with the
+// lobby's room id. The lobby, not the queue, now gathers the match: seats
+// fill as tickets arrive, everyone readies, the leader starts.
+func (s *Service) seatLobbies(ctx context.Context, waiting []*entry) {
+	slices.SortFunc(waiting, func(a, b *entry) int { return cmp.Compare(a.EnqueuedMS, b.EnqueuedMS) })
+	for _, e := range waiting {
+		tag, err := s.d.DB.Exec(ctx, `
+			UPDATE matchmaking.tickets SET status = 'matched', updated_at = now()
+			WHERE id = $1 AND status = 'searching'
+		`, e.ID)
+		if err != nil || tag.RowsAffected() != 1 {
+			continue // another matcher took it
+		}
+		g := LobbyGroup{Queue: e.Queue, Config: e.Request.config(), TicketID: e.ID, TeamID: e.TeamID, CoupleID: e.CoupleID,
+			Rating: e.Rating, Ranked: isRanked(e.Request), Blocks: e.Blocks}
+		for _, m := range e.Members {
+			g.Members = append(g.Members, game.Member{UserID: m.UserID, Locale: m.Locale})
+		}
+		room, err := s.d.Lobbies.SeatMatchmaking(ctx, g)
+		if err != nil {
+			s.d.Logger.WarnContext(ctx, "matchmaking: seating a lobby failed", "ticket_id", e.ID, "error", err)
+			s.requeue(ctx, e)
+			continue
+		}
+		for _, u := range e.users() {
+			if err := s.d.Notifier.Send(ctx, realtime.Target{User: u}, realtime.Frame{T: "mm.lobby", D: map[string]any{
+				"ticket_id": e.ID, "room_id": room,
+			}}); err != nil {
+				s.d.Logger.WarnContext(ctx, "matchmaking: notifying a player failed", "error", err)
+			}
+		}
 	}
 }
 

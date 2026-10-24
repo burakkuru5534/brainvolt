@@ -53,6 +53,14 @@ type member struct {
 	Seat   int       `json:"seat_no"`
 	Ready  bool      `json:"ready"`
 	Locale string    `json:"locale"`
+	// Matchmaking lobbies (D-094): the ticket that seated the member (a
+	// party sits together), its persistent team or couple, rating and
+	// blocks.
+	Group    uuid.UUID   `json:"group,omitzero"`
+	TeamID   *uuid.UUID  `json:"team_id,omitempty"`
+	CoupleID *uuid.UUID  `json:"couple_id,omitempty"`
+	Rating   float64     `json:"rating,omitempty"`
+	Blocks   []uuid.UUID `json:"blocks,omitempty"`
 }
 
 // room is the live state of a private room (redis-keys §5), versioned for
@@ -69,6 +77,17 @@ type room struct {
 	MatchID       *uuid.UUID  `json:"match_id,omitempty"`
 	MatchesPlayed int         `json:"matches_played"`
 	Members       []member    `json:"members"`
+	// Kind is "" for a private room and "matchmaking" for the waiting
+	// lobby of a matchmade team match (D-094), which has a Queue, no
+	// host and no code; its Leader is drawn at random once every seat is
+	// taken.
+	Kind            string     `json:"kind,omitempty"`
+	Queue           string     `json:"queue,omitempty"`
+	Ranked          bool       `json:"ranked,omitempty"`
+	Leader          *uuid.UUID `json:"leader_user_id,omitempty"`
+	CreatedMS       int64      `json:"created_ms,omitempty"`
+	FullSinceMS     int64      `json:"full_since_ms,omitempty"`
+	AllReadySinceMS int64      `json:"all_ready_since_ms,omitempty"`
 }
 
 func (r *room) capacity() int { return 2 * r.Config.Format.SideSize() }
@@ -153,6 +172,10 @@ type Room struct {
 	MatchesPlayed int          `json:"matches_played"`
 	Capacity      int          `json:"capacity"`
 	Members       []RoomMember `json:"members"`
+	// Kind is "matchmaking" for a matchmade team lobby (D-094); its
+	// leader (set once the lobby is full) starts the match.
+	Kind         string     `json:"kind,omitempty"`
+	LeaderUserID *uuid.UUID `json:"leader_user_id,omitempty"`
 }
 
 // RoomPreview is what an invite code shows before joining.
@@ -177,6 +200,7 @@ func (s *Service) render(ctx context.Context, r *room) (Room, error) {
 	out := Room{
 		ID: r.ID, Status: r.Status, Version: r.Version, HostUserID: r.Host, Code: r.Code, MatchConfig: r.Config, FriendsOnly: r.FriendsOnly,
 		MatchID: r.MatchID, MatchesPlayed: r.MatchesPlayed, Capacity: r.capacity(), Members: make([]RoomMember, 0, len(r.Members)),
+		Kind: r.Kind, LeaderUserID: r.Leader,
 	}
 	for _, m := range r.Members {
 		out.Members = append(out.Members, RoomMember{Card: cards[m.UserID], SideNo: m.Side, SeatNo: m.Seat, Ready: m.Ready, IsHost: m.UserID == r.Host})
@@ -241,6 +265,9 @@ func (s *Service) update(ctx context.Context, id uuid.UUID, fn func(r *room) err
 
 // persist mirrors the durable part of a room to lobby.rooms.
 func (s *Service) persist(ctx context.Context, r *room) {
+	if r.Kind == KindMatchmaking {
+		return // matchmaking lobbies live only in memory (D-094)
+	}
 	cfg, err := json.Marshal(r.Config)
 	if err == nil {
 		err = sqlc.New(s.d.DB).UpdateRoom(ctx, sqlc.UpdateRoomParams{
@@ -406,6 +433,9 @@ func (s *Service) UpdateRoomConfig(ctx context.Context, user, id uuid.UUID, cfg 
 		if r.member(user) == nil {
 			return apierror.New(apierror.NotFound)
 		}
+		if r.Kind == KindMatchmaking {
+			return errLobbyFixed()
+		}
 		if r.Host != user {
 			return errNotHost()
 		}
@@ -563,7 +593,7 @@ func (s *Service) leave(ctx context.Context, user, id uuid.UUID) error {
 			return errRoomBusy(r.Status)
 		}
 		switch {
-		case r.Host == user:
+		case r.Kind != KindMatchmaking && r.Host == user:
 			closeReason = CloseHost
 			return errNoChange
 		case len(r.Members) == 1:
@@ -571,7 +601,12 @@ func (s *Service) leave(ctx context.Context, user, id uuid.UUID) error {
 			return errNoChange
 		}
 		r.Members = slices.DeleteFunc(r.Members, func(m member) bool { return m.UserID == user })
-		r.unreadyAll()
+		if r.Kind == KindMatchmaking {
+			// The others keep their ready flags and wait for a new player.
+			r.track(s.d.Clock.Now().UnixMilli(), s.d.Random)
+		} else {
+			r.unreadyAll()
+		}
 		return nil
 	})
 	if err != nil {
@@ -596,19 +631,22 @@ func (s *Service) closeRoom(ctx context.Context, id uuid.UUID, reason string) er
 		return err
 	}
 	now := s.d.Clock.Now().UTC()
-	err = postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error {
-		q := sqlc.New(tx)
-		n, err := q.CloseRoom(ctx, sqlc.CloseRoomParams{ID: id, Reason: reason, Now: now})
-		if err != nil || n == 0 {
+	// Matchmaking lobbies were never stored (D-094).
+	if r == nil || r.Kind != KindMatchmaking {
+		err = postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error {
+			q := sqlc.New(tx)
+			n, err := q.CloseRoom(ctx, sqlc.CloseRoomParams{ID: id, Reason: reason, Now: now})
+			if err != nil || n == 0 {
+				return err
+			}
+			if err := q.RevokeCodes(ctx, sqlc.RevokeCodesParams{TargetKind: KindRoom, TargetID: id, Now: now}); err != nil {
+				return err
+			}
+			return s.d.Events.PublishTx(ctx, tx, EventRoomClosed, now, RoomClosed{RoomID: id, Reason: reason})
+		})
+		if err != nil {
 			return err
 		}
-		if err := q.RevokeCodes(ctx, sqlc.RevokeCodesParams{TargetKind: KindRoom, TargetID: id, Now: now}); err != nil {
-			return err
-		}
-		return s.d.Events.PublishTx(ctx, tx, EventRoomClosed, now, RoomClosed{RoomID: id, Reason: reason})
-	})
-	if err != nil {
-		return err
 	}
 	if r == nil {
 		return nil
@@ -622,9 +660,15 @@ func (s *Service) closeRoom(ctx context.Context, id uuid.UUID, reason string) er
 	}
 	s.roomsMu.Unlock()
 	for _, m := range r.Members {
-		s.send(ctx, m.UserID, realtime.Frame{T: "room.closed", S: roomStream(id), Seq: r.Version + 1, TS: now.UnixMilli(), D: map[string]any{"room_id": id, "reason": reason}})
+		s.sendClosed(ctx, m.UserID, id, r.Version, reason)
 	}
 	return nil
+}
+
+// sendClosed tells one user that a room is over for them.
+func (s *Service) sendClosed(ctx context.Context, user, id uuid.UUID, version int64, reason string) {
+	s.send(ctx, user, realtime.Frame{T: "room.closed", S: roomStream(id), Seq: version + 1, TS: s.d.Clock.Now().UnixMilli(),
+		D: map[string]any{"room_id": id, "reason": reason}})
 }
 
 // RoomClosed is the payload of lobby.RoomClosed.
@@ -643,6 +687,9 @@ func (s *Service) MoveSeat(ctx context.Context, user, id, who uuid.UUID, side, s
 	_, err := s.update(ctx, id, func(r *room) error {
 		if r.member(user) == nil {
 			return apierror.New(apierror.NotFound)
+		}
+		if r.Kind == KindMatchmaking {
+			return errLobbyFixed()
 		}
 		if who != user && r.Host != user {
 			return errNotHost()
@@ -687,6 +734,9 @@ func (s *Service) SetReady(ctx context.Context, user, id uuid.UUID, ready bool) 
 			return errNoChange
 		}
 		m.Ready = ready
+		if r.Kind == KindMatchmaking {
+			r.track(s.d.Clock.Now().UnixMilli(), s.d.Random)
+		}
 		return nil
 	})
 	return err
@@ -705,7 +755,7 @@ func (s *Service) StartRoom(ctx context.Context, user, id uuid.UUID) (uuid.UUID,
 		if r.member(user) == nil {
 			return apierror.New(apierror.NotFound)
 		}
-		if r.Host != user {
+		if !r.starter(user) {
 			return errNotHost()
 		}
 		if r.Status != RoomOpen {
@@ -715,7 +765,8 @@ func (s *Service) StartRoom(ctx context.Context, user, id uuid.UUID) (uuid.UUID,
 			return apierror.New(apierror.MatchStateInvalid).With("reason", "room_not_full")
 		}
 		for _, m := range r.Members {
-			if !m.Ready && m.UserID != r.Host {
+			// A matchmaking lobby needs everyone ready, its leader too.
+			if !m.Ready && (r.Kind == KindMatchmaking || m.UserID != r.Host) {
 				return apierror.New(apierror.MatchStateInvalid).With("reason", "not_all_ready")
 			}
 		}
@@ -738,7 +789,10 @@ func (s *Service) StartRoom(ctx context.Context, user, id uuid.UUID) (uuid.UUID,
 		sides[m.Side-1][m.Seat-1] = game.Member{UserID: m.UserID, Locale: quizLocale(&r.Config, m.Locale)}
 	}
 	req := game.CreateRequest{Config: r.Config, Sides: sides, OriginRef: &r.ID}
-	if startErr == nil && r.Config.Format == "couple" {
+	if r.Kind == KindMatchmaking {
+		req.OriginRef = nil
+		req.Teams, req.Couples = r.persistentSides()
+	} else if startErr == nil && r.Config.Format == "couple" {
 		req.Couples, startErr = s.couplesOf(ctx, sides)
 	}
 	var c *game.Created
@@ -765,6 +819,12 @@ func (s *Service) StartRoom(ctx context.Context, user, id uuid.UUID) (uuid.UUID,
 	s.countPlay(ctx, &r.Config)
 	for _, m := range r.Members {
 		s.send(ctx, m.UserID, realtime.Frame{T: "room.match_starting", S: roomStream(id), D: map[string]any{"room_id": id, "match_id": c.Match.ID}})
+	}
+	if r.Kind == KindMatchmaking {
+		// A matchmaking lobby serves one match (D-094).
+		if err := s.closeRoom(context.WithoutCancel(ctx), id, CloseMatchStarted); err != nil {
+			s.d.Logger.WarnContext(ctx, "lobby: closing a started matchmaking lobby failed", "room_id", id, "error", err)
+		}
 	}
 	return c.Match.ID, nil
 }
@@ -857,10 +917,14 @@ func RoomOfStream(stream string) (uuid.UUID, error) {
 func (s *Service) Run(ctx context.Context) error {
 	tick := s.d.Clock.NewTicker(SweepEvery)
 	defer tick.Stop()
+	lobbies := s.d.Clock.NewTicker(LobbyTick)
+	defer lobbies.Stop()
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
+		case <-lobbies.C():
+			s.TickLobbies(ctx)
 		case <-tick.C():
 			s.SweepRooms(ctx)
 			if err := s.SweepCodes(ctx); err != nil {

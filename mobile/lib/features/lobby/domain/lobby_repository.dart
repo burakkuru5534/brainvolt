@@ -97,9 +97,20 @@ class Room {
     this.creatorQuizId,
     this.quizLength,
     this.friendsOnly = false,
+    this.kind = '',
+    this.leaderUserId,
   });
 
   final String id;
+
+  /// '' for a private room, 'matchmaking' for the waiting lobby of a
+  /// matchmade team match (D-094).
+  final String kind;
+
+  /// The matchmaking lobby's leader, drawn once every seat is taken.
+  final String? leaderUserId;
+
+  bool get isMatchmaking => kind == 'matchmaking';
 
   /// open / starting / in_match.
   final String status;

@@ -122,7 +122,8 @@ No pong for **3 consecutive pings** (in match: 6 s; outside: 60 s) → server tr
 | `presence.changed` | `{user_id, status}` (friends, respecting privacy) |
 | `notify` | `{inbox_id, category, kind, params, deep_link}` — in-app toast for an inbox item |
 | `mm.status` | `{ticket_id, state: searching\|found\|expired\|cancelled, range, wait_ms}` |
-| `mm.match_found` | `{match_id, ready_deadline_at}` |
+| `mm.match_found` | `{match_id, ready_deadline_at}` (1v1 queues) |
+| `mm.lobby` | `{ticket_id, room_id}` — team queues (2v2–4v4, couple): the ticket was seated in a waiting lobby, a room with `kind: "matchmaking"` followed like any room (D-094) |
 | `challenge.received` / `challenge.updated` | `{challenge}` (as `GET /v1/challenges`) / `{challenge_id, status, match_id?}` |
 | `sanction.applied` | `{kind, ends_at}` |
 
@@ -131,7 +132,7 @@ No pong for **3 consecutive pings** (in match: 6 s; outside: 60 s) → server tr
 |---|---|
 | `room.state` | `{room}`: full room (members with cards, seats, ready flags, config, status, code, version = seq). Sent after **every** change (D-067: rooms are small, no deltas). When a room match ends the room goes back to `open` with every ready flag cleared and members get `room.state` at once (D-092); the app then returns to the room lobby |
 | `room.match_starting` | `{room_id, match_id}` |
-| `room.closed` | `{room_id, reason}` (`host_closed` / `all_left` / `idle`) |
+| `room.closed` | `{room_id, reason}` (`host_closed` / `all_left` / `idle`; matchmaking lobbies: `match_started`, `lobby_expired`, and `not_ready` to a player dropped for not readying, D-094) |
 
 **Match stream (`match:<id>`)**
 | Type | Payload | Notes |

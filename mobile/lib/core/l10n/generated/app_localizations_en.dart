@@ -1898,4 +1898,39 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get roomSettingsSaved =>
       'Room settings updated — everyone readies up again';
+
+  @override
+  String get mmLobbyTitle => 'Match lobby';
+
+  @override
+  String mmLobbyWaiting(int count, int total) {
+    return 'Finding players… ($count/$total)';
+  }
+
+  @override
+  String get mmLobbyLeaderSoon =>
+      'Once the lobby is full a random leader is picked; they start the match.';
+
+  @override
+  String get mmLobbyYouLead =>
+      'You lead this lobby! Start the match once everyone is ready.';
+
+  @override
+  String mmLobbyLeaderIs(String name) {
+    return 'Lobby leader: $name. Get ready — the leader starts the match.';
+  }
+
+  @override
+  String get mmLobbyWaitReady => 'Waiting for everyone to be ready';
+
+  @override
+  String get mmLobbySearchingSeat => 'Finding a player…';
+
+  @override
+  String get mmLobbyDropped =>
+      'You were removed from the lobby for not getting ready in time.';
+
+  @override
+  String get mmLobbyExpired =>
+      'Not enough players were found; the lobby closed.';
 }

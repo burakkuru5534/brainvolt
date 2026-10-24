@@ -129,5 +129,20 @@ func OnMatchCancelled(db *pgxpool.Pool) events.Handler {
 	}
 }
 
+// MatchmakingGroup is a matchmaking ticket to seat in a waiting lobby
+// (D-094).
+type MatchmakingGroup = service.MatchmakingGroup
+
+// SeatMatchmaking seats a matchmade team ticket in an open waiting lobby
+// of its queue (or a new one) and returns the lobby (a room of kind
+// "matchmaking"); its members follow it like a room.
+func (m *Module) SeatMatchmaking(ctx context.Context, g MatchmakingGroup) (uuid.UUID, error) {
+	return m.svc.SeatMatchmaking(ctx, g)
+}
+
+// TickLobbies runs the waiting lobbies' timers once (tests; Run does it
+// every second).
+func (m *Module) TickLobbies(ctx context.Context) { m.svc.TickLobbies(ctx) }
+
 // Sweep closes idle rooms once (tests; Run sweeps every minute).
 func (m *Module) Sweep(ctx context.Context) { m.svc.SweepRooms(ctx) }

@@ -219,6 +219,7 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 		Events: d.bus, Clock: d.clock, Logger: d.logger,
 	})
 	lob.Register(srv, ident, d.idem)
+	mm.SetLobbies(lob) // team formats gather in waiting lobbies (D-094)
 	tour := tournament.New(tournament.Deps{
 		DB: d.db, Game: g, Profiles: prof, Teams: tm, Pusher: pusher{rt}, Events: d.bus, Clock: d.clock, Logger: d.logger,
 	})

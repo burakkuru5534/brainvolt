@@ -1893,4 +1893,38 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get roomSettingsSaved =>
       'Oda ayarları güncellendi, herkes tekrar hazır olmalı';
+
+  @override
+  String get mmLobbyTitle => 'Eşleşme Lobisi';
+
+  @override
+  String mmLobbyWaiting(int count, int total) {
+    return 'Oyuncular aranıyor… ($count/$total)';
+  }
+
+  @override
+  String get mmLobbyLeaderSoon =>
+      'Lobi dolunca rastgele bir lider seçilecek; maçı o başlatır.';
+
+  @override
+  String get mmLobbyYouLead =>
+      'Lobi lideri sensin! Herkes hazır olunca maçı başlat.';
+
+  @override
+  String mmLobbyLeaderIs(String name) {
+    return 'Lobi lideri: $name. Hazır ol, maçı lider başlatacak.';
+  }
+
+  @override
+  String get mmLobbyWaitReady => 'Herkesin hazır olması bekleniyor';
+
+  @override
+  String get mmLobbySearchingSeat => 'Oyuncu aranıyor…';
+
+  @override
+  String get mmLobbyDropped =>
+      'Zamanında hazır olmadığın için lobiden çıkarıldın.';
+
+  @override
+  String get mmLobbyExpired => 'Yeterli oyuncu bulunamadı, lobi kapandı.';
 }

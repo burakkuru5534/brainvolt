@@ -2623,5 +2623,54 @@
   "roomSettingsSaved": "Oda ayarları güncellendi, herkes tekrar hazır olmalı",
   "@roomSettingsSaved": {
     "description": "Snack bar after the host changed the room settings."
+  },
+  "mmLobbyTitle": "Eşleşme Lobisi",
+  "@mmLobbyTitle": {
+    "description": "Title of the matchmade team waiting lobby (D-094)."
+  },
+  "mmLobbyWaiting": "Oyuncular aranıyor… ({count}/{total})",
+  "@mmLobbyWaiting": {
+    "description": "Waiting lobby: seats taken so far.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "mmLobbyLeaderSoon": "Lobi dolunca rastgele bir lider seçilecek; maçı o başlatır.",
+  "@mmLobbyLeaderSoon": {
+    "description": "Waiting lobby: how the leader is chosen."
+  },
+  "mmLobbyYouLead": "Lobi lideri sensin! Herkes hazır olunca maçı başlat.",
+  "@mmLobbyYouLead": {
+    "description": "The player is the lobby leader."
+  },
+  "mmLobbyLeaderIs": "Lobi lideri: {name}. Hazır ol, maçı lider başlatacak.",
+  "@mmLobbyLeaderIs": {
+    "description": "Another player leads the lobby.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "mmLobbyWaitReady": "Herkesin hazır olması bekleniyor",
+  "@mmLobbyWaitReady": {
+    "description": "Leader start button while not everyone is ready."
+  },
+  "mmLobbySearchingSeat": "Oyuncu aranıyor…",
+  "@mmLobbySearchingSeat": {
+    "description": "Empty seat of a waiting lobby."
+  },
+  "mmLobbyDropped": "Zamanında hazır olmadığın için lobiden çıkarıldın.",
+  "@mmLobbyDropped": {
+    "description": "Dropped from the lobby for not readying in time."
+  },
+  "mmLobbyExpired": "Yeterli oyuncu bulunamadı, lobi kapandı.",
+  "@mmLobbyExpired": {
+    "description": "Waiting lobby expired."
   }
 }

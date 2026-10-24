@@ -63,6 +63,12 @@ class RoomController extends _$RoomController {
           state = RoomView(room: state.room, startingMatchId: id);
         case 'room.closed':
           rt.forget(stream);
+          // A matchmaking lobby closes once its match starts (D-094): the
+          // screen is already on its way to the match.
+          if (f.data['reason'] == 'match_started' &&
+              state.startingMatchId != null) {
+            return;
+          }
           state = RoomView(closedReason: f.data['reason'] as String? ?? '');
       }
     });

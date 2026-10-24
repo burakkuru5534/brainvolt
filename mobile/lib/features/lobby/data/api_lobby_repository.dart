@@ -42,6 +42,8 @@ Room roomFromJson(Map<String, dynamic> j) {
     creatorQuizId: cfg['creator_quiz_id'] as String?,
     quizLength: (cfg['quiz_length'] as num?)?.toInt(),
     friendsOnly: j['friends_of_host_only'] == true,
+    kind: j['kind'] as String? ?? '',
+    leaderUserId: j['leader_user_id'] as String?,
     members: [
       for (final m in _maps(j['members']))
         RoomMember(

@@ -2309,6 +2309,13 @@ components:
                 id:
                     format: uuid
                     type: string
+                kind:
+                    type: string
+                leader_user_id:
+                    format: uuid
+                    type:
+                        - string
+                        - "null"
                 match_config:
                     $ref: '#/components/schemas/Config'
                 match_id:

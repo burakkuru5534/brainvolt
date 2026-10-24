@@ -563,5 +563,14 @@
   "roomReturning": "Back to the room in {seconds} s…",
   "roomSettingsTitle": "Room settings",
   "matchTypeLabel": "Match type",
-  "roomSettingsSaved": "Room settings updated — everyone readies up again"
+  "roomSettingsSaved": "Room settings updated — everyone readies up again",
+  "mmLobbyTitle": "Match lobby",
+  "mmLobbyWaiting": "Finding players… ({count}/{total})",
+  "mmLobbyLeaderSoon": "Once the lobby is full a random leader is picked; they start the match.",
+  "mmLobbyYouLead": "You lead this lobby! Start the match once everyone is ready.",
+  "mmLobbyLeaderIs": "Lobby leader: {name}. Get ready — the leader starts the match.",
+  "mmLobbyWaitReady": "Waiting for everyone to be ready",
+  "mmLobbySearchingSeat": "Finding a player…",
+  "mmLobbyDropped": "You were removed from the lobby for not getting ready in time.",
+  "mmLobbyExpired": "Not enough players were found; the lobby closed."
 }
