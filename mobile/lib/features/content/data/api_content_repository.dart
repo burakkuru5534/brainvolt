@@ -25,6 +25,7 @@ class ApiContentRepository implements ContentRepository {
         CategoryInfo(
           (c as Map<String, dynamic>)['id'] as String,
           c['name'] as String? ?? '',
+          iconKey: c['icon_key'] as String? ?? '',
         ),
     ];
   }

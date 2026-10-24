@@ -10,7 +10,7 @@ class AppLocalizationsTr extends AppLocalizations {
   AppLocalizationsTr([String locale = 'tr']) : super(locale);
 
   @override
-  String get appTitle => 'WitClash';
+  String get appTitle => 'BrainVolt';
 
   @override
   String get homeWelcome => 'Bugün bilgini sınamaya hazır mısın?';
@@ -50,7 +50,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get ageGateBody =>
-      'WitClash\'ı kullanmak için en az 13 yaşında olmalısın.';
+      'BrainVolt\'u kullanmak için en az 13 yaşında olmalısın.';
 
   @override
   String get ageGateConfirm => '13 yaşından büyüğüm';
@@ -1075,7 +1075,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get appealRejected => 'İtiraz reddedildi';
 
   @override
-  String get quizzesTitle => 'Quizler';
+  String get quizzesTitle => 'Soru Atölyesi';
 
   @override
   String get quizzesMine => 'Quizlerim';
@@ -1223,7 +1223,7 @@ class AppLocalizationsTr extends AppLocalizations {
       'Yalnızca ev sahibinin arkadaşları katılabilir.';
 
   @override
-  String get homeQuizzes => 'Quizler';
+  String get homeQuizzes => 'Soru Atölyesi';
 
   @override
   String get homeQuickDuelSub => 'Sıradaki rakibini bul';
@@ -1241,7 +1241,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get homeDailySub => 'Günün 10 sorusu';
 
   @override
-  String get homeQuizzesSub => 'Oyuncuların quizleri';
+  String get homeQuizzesSub => 'Soru öner, quiz hazırla';
 
   @override
   String get homePracticeSub => 'Tek başına pratik yap';
@@ -1360,12 +1360,12 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String shareMatchText(String score, String result) {
-    return 'WitClash\'ta $score: $result Sıra sende!';
+    return 'BrainVolt\'ta $score: $result Sıra sende!';
   }
 
   @override
   String shareDailyText(int correct) {
-    return 'WitClash Günün Meydan Okuması: $correct/10 doğru. Sen kaç yaparsın?';
+    return 'BrainVolt Günün Meydan Okuması: $correct/10 doğru. Sen kaç yaparsın?';
   }
 
   @override
@@ -2004,4 +2004,50 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get resultRounds => 'Sorular';
+
+  @override
+  String get queueTip1 =>
+      'Doğru cevabı ne kadar hızlı verirsen o kadar çok puan kazanırsın.';
+
+  @override
+  String get queueTip2 =>
+      'Ani Ölüm\'de ilk yanlış cevap maçı bitirir: acele etme, emin ol.';
+
+  @override
+  String get queueTip3 =>
+      'Maraton uzun soluklu bir maç: dikkatini sona kadar koru.';
+
+  @override
+  String get queueTip4 =>
+      'Dereceli maçlar lig puanını değiştirir; Bronz\'dan Elmas\'a tırman.';
+
+  @override
+  String get queueTip5 =>
+      'Konu seçersen yalnızca aynı konuyu seçen oyuncularla eşleşirsin.';
+
+  @override
+  String get queueTip6 =>
+      'Günün Meydan Okuması\'nda herkes aynı 10 soruyu çözer; sıralamada yerini al.';
+
+  @override
+  String get queueTip7 =>
+      'Görevleri tamamlayıp XP kazan; beğenmediğin bir görevi günde bir kez değiştirebilirsin.';
+
+  @override
+  String get queueTip8 => 'Her gün en az bir maç oynayarak serini koru.';
+
+  @override
+  String get queueTip9 =>
+      'Arkadaş kodunu paylaş, Özel Oda kurup arkadaşlarınla oyna.';
+
+  @override
+  String get queueTip10 =>
+      'Takım kur, 2v2, 3v3 ve 4v4 maçlarda birlikte yarış.';
+
+  @override
+  String get queueTip11 =>
+      'Soru Atölyesi\'nde kendi sorularını öner; onaylananları herkes oynar.';
+
+  @override
+  String get queueTipLabel => 'İPUCU';
 }

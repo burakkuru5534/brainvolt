@@ -2,9 +2,12 @@ import 'credit.dart';
 
 /// A top-level category (Category Master, Mixed Battle picks).
 class CategoryInfo {
-  const CategoryInfo(this.id, this.name);
+  const CategoryInfo(this.id, this.name, {this.iconKey = ''});
   final String id;
   final String name;
+
+  /// The category's built-in icon (`icon_key`: history, geography, …).
+  final String iconKey;
 }
 
 /// The content endpoints of the backend (rest.md §2, `content` module).

@@ -12,7 +12,7 @@ const brandSeed = Color(0xFF7C3AED);
 /// The bundled typeface (Nunito, SIL OFL; assets/fonts).
 const brandFont = 'Nunito';
 
-/// Design tokens of the WitClash look (D-099) beyond Material's roles.
+/// Design tokens of the BrainVolt look (D-099) beyond Material's roles.
 @immutable
 class BvColors extends ThemeExtension<BvColors> {
   const BvColors({
@@ -37,7 +37,7 @@ class BvColors extends ThemeExtension<BvColors> {
     required this.glow,
   });
 
-  /// WitClash: deep navy star field, frosted glass, purple → orange.
+  /// BrainVolt: deep navy star field, frosted glass, purple → orange.
   static const witclash = BvColors(
     background: Color(0xFF0D0B26),
     backgroundTop: Color(0xFF16124A),
@@ -60,7 +60,7 @@ class BvColors extends ThemeExtension<BvColors> {
     glow: Color(0x667C3AED),
   );
 
-  /// WitClash has one look; both names keep older call sites working.
+  /// BrainVolt has one look; both names keep older call sites working.
   static const light = witclash;
   static const dark = witclash;
 
@@ -161,7 +161,7 @@ TextTheme _text(TextTheme base, Color ink, Color muted) {
   );
 }
 
-/// Wraps every routed page in the WitClash background (D-099), so each
+/// Wraps every routed page in the BrainVolt background (D-099), so each
 /// route paints its own star field during transitions and no screen can
 /// fall back to a plain colour.
 class WcPageTransitionsBuilder extends PageTransitionsBuilder {
@@ -186,7 +186,7 @@ class WcPageTransitionsBuilder extends PageTransitionsBuilder {
   );
 }
 
-/// The WitClash theme (D-099): dark only. [brightness] is accepted for
+/// The BrainVolt theme (D-099): dark only. [brightness] is accepted for
 /// older call sites and ignored. [background] wraps every page (see
 /// [WcPageTransitionsBuilder]); the app passes `WcBackground`.
 ThemeData buildTheme([
@@ -544,7 +544,7 @@ ThemeData buildTheme([
 
 const _themePrefsKey = 'theme_mode';
 
-/// The former light / dark choice (D-085). WitClash is dark only
+/// The former light / dark choice (D-085). BrainVolt is dark only
 /// (D-099); the stored value is kept but no longer applied.
 @Riverpod(keepAlive: true)
 class ThemeModeSetting extends _$ThemeModeSetting {

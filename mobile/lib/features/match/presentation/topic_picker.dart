@@ -31,14 +31,73 @@ String topicName(
       l10n.topicAll;
 }
 
+/// The icon of a category, by its `icon_key`.
+IconData topicIcon(String iconKey) => switch (iconKey) {
+  'history' => Icons.account_balance_rounded,
+  'geography' => Icons.public_rounded,
+  'science' => Icons.science_rounded,
+  'arts' => Icons.palette_rounded,
+  'sports' => Icons.sports_soccer_rounded,
+  'entertainment' => Icons.movie_rounded,
+  'technology' => Icons.memory_rounded,
+  'general' => Icons.lightbulb_rounded,
+  _ => Icons.local_offer_rounded,
+};
+
+/// The tint of a category's icon tile, by its `icon_key`.
+Color topicColor(String iconKey) => switch (iconKey) {
+  'history' => const Color(0xFFF59E0B),
+  'geography' => const Color(0xFF22C55E),
+  'science' => const Color(0xFF06B6D4),
+  'arts' => const Color(0xFFEC4899),
+  'sports' => const Color(0xFFF97316),
+  'entertainment' => const Color(0xFFA855F7),
+  'technology' => const Color(0xFF3B82F6),
+  'general' => const Color(0xFFFBBF24),
+  _ => const Color(0xFF8B5CF6),
+};
+
+/// A category's icon on a tinted gradient tile.
+class TopicIcon extends StatelessWidget {
+  const TopicIcon(this.iconKey, {this.size = 44, super.key});
+
+  final String iconKey;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = topicColor(iconKey);
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(size * 0.32),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [c, Color.lerp(c, Colors.black, 0.35)!],
+        ),
+        boxShadow: [BoxShadow(color: c.withAlpha(80), blurRadius: 10)],
+      ),
+      child: Icon(topicIcon(iconKey), color: Colors.white, size: size * 0.56),
+    );
+  }
+}
+
 /// Asks which topic to play before searching (D-095): "All topics" or one
 /// category. Players are matched only with players of the same topic.
-Future<TopicChoice?> pickTopic(BuildContext context) =>
-    showModalBottomSheet<TopicChoice>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => const _TopicSheet(),
-    );
+/// The categories are usually loaded already (Home warms them up).
+Future<TopicChoice?> pickTopic(BuildContext context) {
+  final container = ProviderScope.containerOf(context);
+  if (container.read(categoriesProvider).hasError) {
+    container.invalidate(categoriesProvider);
+  }
+  return showModalBottomSheet<TopicChoice>(
+    context: context,
+    isScrollControlled: true,
+    builder: (_) => const _TopicSheet(),
+  );
+}
 
 class _TopicSheet extends ConsumerWidget {
   const _TopicSheet();
@@ -49,10 +108,31 @@ class _TopicSheet extends ConsumerWidget {
     final text = Theme.of(context).textTheme;
     final bv = BvColors.of(context);
     final categories = ref.watch(categoriesProvider);
+    Widget tile(Key key, Widget icon, String name, VoidCallback onTap) =>
+        BvCard(
+          key: key,
+          radius: 18,
+          onTap: onTap,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              icon,
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: text.titleSmall,
+                ),
+              ),
+            ],
+          ),
+        );
     return SafeArea(
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.sizeOf(context).height * 0.8,
+          maxHeight: MediaQuery.sizeOf(context).height * 0.85,
         ),
         child: ListView(
           shrinkWrap: true,
@@ -71,29 +151,39 @@ class _TopicSheet extends ConsumerWidget {
             const SizedBox(height: 14),
             ActionCard(
               key: const Key('topic-all'),
-              icon: Icons.shuffle,
+              icon: Icons.shuffle_rounded,
               title: l10n.topicAll,
               subtitle: l10n.topicAllSub,
               onTap: () => Navigator.pop(context, const TopicChoice.all()),
             ),
             const SizedBox(height: 12),
             switch (categories) {
-              AsyncData(:final value) => Wrap(
-                spacing: 8,
-                runSpacing: 8,
+              AsyncValue(value: final value?) => GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 2.4,
                 children: [
                   for (final c in value)
-                    ActionChip(
-                      key: Key('topic-${c.id}'),
-                      avatar: const Icon(Icons.local_offer_outlined, size: 18),
-                      label: Text(c.name),
-                      onPressed: () =>
-                          Navigator.pop(context, TopicChoice(c.id)),
+                    tile(
+                      Key('topic-${c.id}'),
+                      TopicIcon(c.iconKey, size: 40),
+                      c.name,
+                      () => Navigator.pop(context, TopicChoice(c.id)),
                     ),
                 ],
               ),
-              AsyncError() => Text(l10n.topicLoadFailed),
-              _ => const LoadingView(),
+              AsyncValue(hasError: true) => ErrorView(
+                message: l10n.topicLoadFailed,
+                retryLabel: l10n.retry,
+                onRetry: () => ref.invalidate(categoriesProvider),
+              ),
+              _ => const Padding(
+                padding: EdgeInsets.all(24),
+                child: LoadingView(),
+              ),
             },
           ],
         ),
@@ -134,6 +224,7 @@ class TopicChips extends StatelessWidget {
         for (final c in categories)
           ChoiceChip(
             key: Key('topic-chip-${c.id}'),
+            avatar: Icon(topicIcon(c.iconKey), color: topicColor(c.iconKey)),
             label: Text(c.name),
             selected: selected == c.id,
             onSelected: enabled ? (_) => onSelected(c.id) : null,

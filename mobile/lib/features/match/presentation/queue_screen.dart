@@ -127,6 +127,8 @@ class _QueueScreenState extends ConsumerState<QueueScreen> {
                     l10n.queueFinding,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
+                  const SizedBox(height: 16),
+                  const _RotatingTip(),
                   if (widget.mode.categoryId case final cat?) ...[
                     const SizedBox(height: 8),
                     Pill(
@@ -155,6 +157,108 @@ class _QueueScreenState extends ConsumerState<QueueScreen> {
               ),
             },
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A game tip that changes every few seconds while the player waits.
+class _RotatingTip extends StatefulWidget {
+  const _RotatingTip();
+
+  static const every = Duration(seconds: 4);
+
+  @override
+  State<_RotatingTip> createState() => _RotatingTipState();
+}
+
+class _RotatingTipState extends State<_RotatingTip> {
+  // Each search starts where the last one stopped.
+  static int _next = 0;
+  late int _i = _next;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(_RotatingTip.every, (_) => setState(() => _i++));
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _next = _i + 1;
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final bv = BvColors.of(context);
+    final text = Theme.of(context).textTheme;
+    final tips = [
+      l10n.queueTip1,
+      l10n.queueTip2,
+      l10n.queueTip3,
+      l10n.queueTip4,
+      l10n.queueTip5,
+      l10n.queueTip6,
+      l10n.queueTip7,
+      l10n.queueTip8,
+      l10n.queueTip9,
+      l10n.queueTip10,
+      l10n.queueTip11,
+    ];
+    final tip = tips[_i % tips.length];
+    return SizedBox(
+      width: 320,
+      child: BvCard(
+        key: const Key('queue-tip'),
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.lightbulb_rounded, color: bv.gold),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.queueTipLabel,
+                    style: text.labelSmall?.copyWith(
+                      color: bv.gold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 400),
+                    transitionBuilder: (child, animation) => FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween(
+                          begin: const Offset(0, 0.25),
+                          end: Offset.zero,
+                        ).animate(animation),
+                        child: child,
+                      ),
+                    ),
+                    layoutBuilder: (current, previous) => Stack(
+                      alignment: Alignment.topLeft,
+                      children: [...previous, ?current],
+                    ),
+                    child: Text(
+                      tip,
+                      key: ValueKey(tip),
+                      style: text.bodyMedium,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

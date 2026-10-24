@@ -21,7 +21,7 @@ import '../domain/avatars.dart';
 import '../domain/me.dart';
 import 'profile_controllers.dart';
 
-/// The player's profile (WitClash, D-099): header with avatar, level and
+/// The player's profile (BrainVolt, D-099): header with avatar, level and
 /// league, stat boxes, earned badges, then editing of display name,
 /// username and avatar (roadmap 1.8.6). The server validates and filters
 /// every field; its errors are shown as they come.

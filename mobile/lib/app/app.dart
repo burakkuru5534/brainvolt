@@ -20,7 +20,7 @@ class BrainVoltApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) => MaterialApp.router(
     debugShowCheckedModeBanner: false,
     onGenerateTitle: (context) => context.l10n.appTitle,
-    // WitClash is dark only (D-099); every page gets the star field.
+    // BrainVolt is dark only (D-099); every page gets the star field.
     theme: _theme,
     darkTheme: _theme,
     themeMode: ThemeMode.dark,

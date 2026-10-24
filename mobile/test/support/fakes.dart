@@ -347,8 +347,8 @@ class FakeContentRepository implements ContentRepository {
 
   @override
   Future<List<CategoryInfo>> categories() async => const [
-    CategoryInfo('cat-history', 'Tarih'),
-    CategoryInfo('cat-science', 'Bilim'),
+    CategoryInfo('cat-history', 'Tarih', iconKey: 'history'),
+    CategoryInfo('cat-science', 'Bilim', iconKey: 'science'),
   ];
 }
 

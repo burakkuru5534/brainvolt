@@ -1,9 +1,12 @@
-# WitClash UI modernization (D-099)
+# BrainVolt UI modernization (D-099)
 
-The app moves from the BrainVolt look (D-085, light/dark) to the **WitClash**
-design system: one dark theme, a deep navy/indigo star field with a
+Designed under the working name "WitClash"; the owner kept the name
+**BrainVolt** (launcher name, texts, word mark "Brain" + "Volt", the
+BV mark in `mobile/assets/brand/brainvolt_logo.svg`).
+
+The app moves from the D-085 look (light/dark) to the new design system: one dark theme, a deep navy/indigo star field with a
 purple → orange glow, frosted glass cards, purple → orange gradient
-buttons, and the "WitClash" word mark. Platform identifiers
+buttons, and the "BrainVolt" word mark. Platform identifiers
 (`com.brainvolt.app`, the Dart package `brainvolt`, Firebase project, API
 hosts) do not change; only the user-visible name does.
 
@@ -14,24 +17,24 @@ Everything flows from shared pieces, so no screen gets a one-off patch:
 | Piece | Where | What it does |
 | --- | --- | --- |
 | Tokens | `lib/app/theme.dart` (`BvColors.witclash`) | background, glass fill/border, ink, muted, badge, gradient (purple → magenta → orange), accent, gold, success, danger, glow, surface for dialogs |
-| Theme | `buildTheme()` | single dark `ThemeData`: transparent scaffolds/app bars, glass inputs, gradient-friendly buttons, dialogs/sheets/snack bars/menus/chips/tabs/segmented buttons/switches/nav bar in WitClash colours |
+| Theme | `buildTheme()` | single dark `ThemeData`: transparent scaffolds/app bars, glass inputs, gradient-friendly buttons, dialogs/sheets/snack bars/menus/chips/tabs/segmented buttons/switches/nav bar in BrainVolt colours |
 | Background | `WcBackground` (`lib/core/widgets/wc_background.dart`) | gradient + still star field; sits under the navigator (`MaterialApp.builder`) and is also wrapped around every Material page transition, so every route — and any future one — gets it |
 | Kit | `lib/core/widgets/bv.dart` | `BvCard` (glass), `GradientButton`, `IconBadge`, `ActionCard`, `ChoiceTile`, `OptionTile`, `AvatarBubble`, `EmptyState`, `BrandMark` / `BrandLogo` / `BrandHero`, `SectionTitle(action:)`, `GradientProgressBar`, `Pill`, `GlassSection`, `TileCard`, `WcSegmented`, `StatBox`, `CountdownRing`, `NoticeBar`, `LoadingView`, `ErrorView` |
-| Strings | `app_tr.arb`, `app_en.arb` | "BrainVolt" → "WitClash" in user-visible text |
-| Platform | `AndroidManifest.xml` `android:label`, `Info.plist` `CFBundleDisplayName` | launcher name "WitClash" (ids unchanged) |
+| Strings | `app_tr.arb`, `app_en.arb` | "BrainVolt" → "BrainVolt" in user-visible text |
+| Platform | `AndroidManifest.xml` `android:label`, `Info.plist` `CFBundleDisplayName` | launcher name "BrainVolt" (ids unchanged) |
 
 The bottom bar (`MainNavBar`) sits on Home, Tournaments, Leaderboards and
 Profile. A tap goes to that screen as the new root (`context.go`); Back on
 a tab other than Home returns Home. The screens keep their routes, so deep
 links and pushes from elsewhere still work (then with a back arrow).
 
-The light/dark choice in Settings is removed: WitClash is dark only. The
+The light/dark choice in Settings is removed: BrainVolt is dark only. The
 stored `theme_mode` preference is ignored.
 
 ## Screen inventory
 
 Taken from `lib/app/router.dart` and every `Scaffold`, dialog and bottom
-sheet in `lib/`. ✅ = moved to the WitClash design (see the final
+sheet in `lib/`. ✅ = moved to the BrainVolt design (see the final
 checklist below for how each one was verified).
 
 ### Routes
@@ -183,3 +186,18 @@ Layout fixes found by the 360 dp / 130 % test: Home's mode and shortcut
 rows now grow with the text size, the queue screen scrolls, the profile
 badge strip is taller and keeps badge names to one line. The match timer
 ring moves in whole seconds (stable screenshots, in step with the number).
+
+## Later changes (owner feedback, 2026-10-24)
+
+- Name back to **BrainVolt**; the BV mark (`BrandMark`) is drawn in code
+  from the same geometry as `assets/brand/brainvolt_logo.svg` (1024 px
+  SVG for store and launcher icons).
+- "Quizler" → **Soru Atölyesi** / Question Lab (players suggest questions
+  and build quizzes there).
+- Topic sheet: the categories load in the background on Home and stay for
+  the session (per language), so the sheet opens with them; each topic is
+  a tile with its own icon and colour (`topicIcon` / `topicColor` by the
+  server's `icon_key`). Golden: `topic_sheet_dark.png`.
+- Queue: a tip card under the radar changes every 4 s (11 tips about
+  modes, scoring, leagues, daily challenge, quests, friends, teams).
+

@@ -18,6 +18,7 @@ import '../../auth/domain/session.dart';
 import '../../lobby/presentation/room_screen.dart';
 import '../../match/data/match_providers.dart';
 import '../../match/domain/match_repository.dart';
+import '../../match/presentation/mode_picker_screen.dart';
 import '../../match/presentation/topic_picker.dart';
 import '../../notifications/presentation/inbox_screen.dart';
 import '../../profile/domain/avatars.dart';
@@ -44,7 +45,7 @@ final pushTokenRefreshProvider = StreamProvider.autoDispose<String>(
   (ref) => ref.watch(pushServiceProvider).tokenRefresh,
 );
 
-/// Home (WitClash, D-099): logo bar, player card with level and XP, the
+/// Home (BrainVolt, D-099): logo bar, player card with level and XP, the
 /// daily challenge, the game modes, shortcuts, stats and the bottom bar.
 /// Development builds also offer a practice match against the server's bot
 /// (D-066).
@@ -71,6 +72,8 @@ class HomeScreen extends ConsumerWidget {
           openRoute(context, route);
         }
       })
+      // Loads the topics early, so the topic sheet opens with them.
+      ..listen(categoriesProvider, (_, _) {})
       ..listen(pushTokenRefreshProvider, (_, next) {
         if (next.value case final token?) {
           ref

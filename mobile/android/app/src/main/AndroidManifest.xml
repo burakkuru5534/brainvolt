@@ -3,7 +3,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <application
-        android:label="WitClash"
+        android:label="BrainVolt"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <!-- Disable automatic FCM registration at Android app startup to avoid

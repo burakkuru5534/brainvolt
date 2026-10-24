@@ -76,6 +76,7 @@ void main() {
       expect(tester.takeException(), isNull);
       if (route == Routes.play) {
         // Leave the queue, as a player would.
+        await tester.ensureVisible(find.byKey(const Key('queue-cancel')));
         await tester.tap(find.byKey(const Key('queue-cancel')));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 500));

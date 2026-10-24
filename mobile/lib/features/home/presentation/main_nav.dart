@@ -8,7 +8,7 @@ import '../../../core/l10n/l10n.dart';
 /// The four main destinations of the bottom bar (D-099).
 enum MainTab { home, tournaments, leaderboards, profile }
 
-/// The WitClash bottom bar: Home, Tournaments, Leaderboards, Profile. Each
+/// The BrainVolt bottom bar: Home, Tournaments, Leaderboards, Profile. Each
 /// destination screen shows it; a tap goes to that screen as the new root.
 /// On a tab other than Home with nothing to pop, Back returns to Home.
 class MainNavBar extends StatelessWidget {

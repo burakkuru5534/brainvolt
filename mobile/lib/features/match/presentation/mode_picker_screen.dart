@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/session_controller.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/l10n/locale_controller.dart';
 import '../../../core/widgets/bv.dart';
 import '../../content/data/content_providers.dart';
 import '../../content/domain/content_repository.dart';
@@ -25,9 +26,13 @@ final myTeamsProvider = FutureProvider.autoDispose<List<Team>>(
 );
 
 /// The active categories (Category Master).
-final categoriesProvider = FutureProvider.autoDispose<List<CategoryInfo>>(
-  (ref) => ref.watch(contentRepositoryProvider).categories(),
-);
+/// The active categories, kept for the session (D-095): Home loads them
+/// in the background so the topic sheet opens with them at once. A new
+/// app language loads them again (the names come translated).
+final categoriesProvider = FutureProvider<List<CategoryInfo>>((ref) {
+  ref.watch(localeOverrideProvider);
+  return ref.watch(contentRepositoryProvider).categories();
+});
 
 /// Picks the queue: match type and category mode (mode-matrix §2; Ranked
 /// has no category mode, Category Master needs a category).

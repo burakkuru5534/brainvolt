@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// App name shown in the task switcher and app bar.
   ///
   /// In tr, this message translates to:
-  /// **'WitClash'**
+  /// **'BrainVolt'**
   String get appTitle;
 
   /// Greeting on the home screen.
@@ -179,7 +179,7 @@ abstract class AppLocalizations {
   /// Age gate explanation.
   ///
   /// In tr, this message translates to:
-  /// **'WitClash\'ı kullanmak için en az 13 yaşında olmalısın.'**
+  /// **'BrainVolt\'u kullanmak için en az 13 yaşında olmalısın.'**
   String get ageGateBody;
 
   /// Age gate checkbox.
@@ -2021,7 +2021,7 @@ abstract class AppLocalizations {
   /// Creator Quiz screen title
   ///
   /// In tr, this message translates to:
-  /// **'Quizler'**
+  /// **'Soru Atölyesi'**
   String get quizzesTitle;
 
   /// Tab with the caller's quizzes
@@ -2279,7 +2279,7 @@ abstract class AppLocalizations {
   /// Home button to quizzes
   ///
   /// In tr, this message translates to:
-  /// **'Quizler'**
+  /// **'Soru Atölyesi'**
   String get homeQuizzes;
 
   /// Quick Duel hero subtitle
@@ -2315,7 +2315,7 @@ abstract class AppLocalizations {
   /// Quizzes tile subtitle
   ///
   /// In tr, this message translates to:
-  /// **'Oyuncuların quizleri'**
+  /// **'Soru öner, quiz hazırla'**
   String get homeQuizzesSub;
 
   /// Practice row subtitle
@@ -2549,13 +2549,13 @@ abstract class AppLocalizations {
   /// Share text for a match
   ///
   /// In tr, this message translates to:
-  /// **'WitClash\'ta {score}: {result} Sıra sende!'**
+  /// **'BrainVolt\'ta {score}: {result} Sıra sende!'**
   String shareMatchText(String score, String result);
 
   /// Share text for a daily run
   ///
   /// In tr, this message translates to:
-  /// **'WitClash Günün Meydan Okuması: {correct}/10 doğru. Sen kaç yaparsın?'**
+  /// **'BrainVolt Günün Meydan Okuması: {correct}/10 doğru. Sen kaç yaparsın?'**
   String shareDailyText(int correct);
 
   /// Correct answers line
@@ -3560,7 +3560,7 @@ abstract class AppLocalizations {
   /// **'Dereceli maçlar her zaman tüm konulardan oynanır.'**
   String get topicRankedNote;
 
-  /// The WitClash tagline under the word mark (splash, welcome).
+  /// The BrainVolt tagline under the word mark (splash, welcome).
   ///
   /// In tr, this message translates to:
   /// **'BİLGİNİ YARIŞTIR, ZİRVEYE ÇIK'**
@@ -3620,49 +3620,49 @@ abstract class AppLocalizations {
   /// **'Liderlik'**
   String get navLeaderboards;
 
-  /// Profile / badges (WitClash).
+  /// Profile / badges (BrainVolt).
   ///
   /// In tr, this message translates to:
   /// **'Profili düzenle'**
   String get profileEdit;
 
-  /// Profile / badges (WitClash).
+  /// Profile / badges (BrainVolt).
   ///
   /// In tr, this message translates to:
   /// **'Maç'**
   String get profileMatches;
 
-  /// Profile / badges (WitClash).
+  /// Profile / badges (BrainVolt).
   ///
   /// In tr, this message translates to:
   /// **'Galibiyet'**
   String get profileWins;
 
-  /// Profile / badges (WitClash).
+  /// Profile / badges (BrainVolt).
   ///
   /// In tr, this message translates to:
   /// **'Kazanma'**
   String get profileWinRate;
 
-  /// Profile / badges (WitClash).
+  /// Profile / badges (BrainVolt).
   ///
   /// In tr, this message translates to:
   /// **'En iyi seri'**
   String get profileBestStreak;
 
-  /// Profile / badges (WitClash).
+  /// Profile / badges (BrainVolt).
   ///
   /// In tr, this message translates to:
   /// **'Başarımlar'**
   String get profileAchievements;
 
-  /// Profile / badges (WitClash).
+  /// Profile / badges (BrainVolt).
   ///
   /// In tr, this message translates to:
   /// **'Henüz rozet kazanmadın. Maç oyna, görevleri tamamla!'**
   String get profileNoBadges;
 
-  /// Profile / badges (WitClash).
+  /// Profile / badges (BrainVolt).
   ///
   /// In tr, this message translates to:
   /// **'Henüz rozet yok.'**
@@ -3679,6 +3679,78 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Sorular'**
   String get resultRounds;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğru cevabı ne kadar hızlı verirsen o kadar çok puan kazanırsın.'**
+  String get queueTip1;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ani Ölüm\'de ilk yanlış cevap maçı bitirir: acele etme, emin ol.'**
+  String get queueTip2;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Maraton uzun soluklu bir maç: dikkatini sona kadar koru.'**
+  String get queueTip3;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dereceli maçlar lig puanını değiştirir; Bronz\'dan Elmas\'a tırman.'**
+  String get queueTip4;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu seçersen yalnızca aynı konuyu seçen oyuncularla eşleşirsin.'**
+  String get queueTip5;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Günün Meydan Okuması\'nda herkes aynı 10 soruyu çözer; sıralamada yerini al.'**
+  String get queueTip6;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görevleri tamamlayıp XP kazan; beğenmediğin bir görevi günde bir kez değiştirebilirsin.'**
+  String get queueTip7;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Her gün en az bir maç oynayarak serini koru.'**
+  String get queueTip8;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş kodunu paylaş, Özel Oda kurup arkadaşlarınla oyna.'**
+  String get queueTip9;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takım kur, 2v2, 3v3 ve 4v4 maçlarda birlikte yarış.'**
+  String get queueTip10;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Soru Atölyesi\'nde kendi sorularını öner; onaylananları herkes oynar.'**
+  String get queueTip11;
+
+  /// Label above the rotating tip on the queue screen.
+  ///
+  /// In tr, this message translates to:
+  /// **'İPUCU'**
+  String get queueTipLabel;
 }
 
 class _AppLocalizationsDelegate

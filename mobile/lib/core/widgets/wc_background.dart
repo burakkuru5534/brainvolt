@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
 
-/// The WitClash page background (D-099): a deep navy gradient, a purple
+/// The BrainVolt page background (D-099): a deep navy gradient, a purple
 /// glow at the top, an orange glow at the bottom and a still star field.
 /// Every routed page gets it through the theme's page transitions; use it
 /// directly only for surfaces outside the router (tests, overlays).

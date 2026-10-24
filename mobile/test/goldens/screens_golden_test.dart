@@ -19,7 +19,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fakes.dart';
 
-/// Screenshots of the screens in the WitClash design (D-099): the
+/// Screenshots of the screens in the BrainVolt design (D-099): the
 /// reference for visual changes. Regenerate with
 /// `flutter test --run-skipped --tags golden --update-goldens`.
 Future<void> loadFonts() async {
@@ -43,7 +43,7 @@ void main() {
     addTearDown(binding.platformDispatcher.clearLocalesTestValue);
   });
 
-  // WitClash has one (dark) theme (D-099); the files keep the `_dark` name.
+  // BrainVolt has one (dark) theme (D-099); the files keep the `_dark` name.
   for (final mode in [ThemeMode.dark]) {
     Future<TestApp> launch(WidgetTester tester, String route) async {
       tester.view.physicalSize = const Size(1170, 2532);
@@ -392,6 +392,22 @@ void main() {
         find.byType(ResultCard),
         matchesGoldenFile('share_card_${mode.name}.png'),
       );
+    });
+
+    testWidgets('topic sheet ${mode.name}', (tester) async {
+      final t = await launch(tester, Routes.home);
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('play-quick-duel')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.byKey(const Key('play-quick-duel')));
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(BrainVoltApp),
+        matchesGoldenFile('topic_sheet_${mode.name}.png'),
+      );
+      await finish(tester, t);
     });
 
     testWidgets('room sheet ${mode.name}', (tester) async {

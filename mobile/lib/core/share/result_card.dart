@@ -7,7 +7,7 @@ import '../widgets/bv.dart';
 import 'share_service.dart';
 
 /// A shareable result (D-087): the brand, a headline, a big line (score
-/// or correct answers) and a detail line, on the WitClash gradient.
+/// or correct answers) and a detail line, on the BrainVolt gradient.
 class ResultCard extends StatelessWidget {
   const ResultCard({
     required this.headline,
@@ -48,7 +48,7 @@ class ResultCard extends StatelessWidget {
               const BrandMark(size: 30),
               const SizedBox(width: 8),
               Text(
-                'WitClash',
+                'BrainVolt',
                 style: s(
                   22,
                   FontWeight.w900,

@@ -10,7 +10,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'WitClash';
+  String get appTitle => 'BrainVolt';
 
   @override
   String get homeWelcome => 'Ready to test your knowledge today?';
@@ -50,7 +50,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ageGateBody =>
-      'You must be at least 13 years old to use WitClash.';
+      'You must be at least 13 years old to use BrainVolt.';
 
   @override
   String get ageGateConfirm => 'I am 13 or older';
@@ -1077,7 +1077,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appealRejected => 'Appeal rejected';
 
   @override
-  String get quizzesTitle => 'Quizzes';
+  String get quizzesTitle => 'Question Lab';
 
   @override
   String get quizzesMine => 'My quizzes';
@@ -1224,7 +1224,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get roomFriendsOnly => 'Only the host\'s friends can join.';
 
   @override
-  String get homeQuizzes => 'Quizzes';
+  String get homeQuizzes => 'Question Lab';
 
   @override
   String get homeQuickDuelSub => 'Find your next opponent';
@@ -1242,7 +1242,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeDailySub => 'Today\'s 10 questions';
 
   @override
-  String get homeQuizzesSub => 'Made by players';
+  String get homeQuizzesSub => 'Suggest questions, build quizzes';
 
   @override
   String get homePracticeSub => 'Sharpen your skills in a solo match';
@@ -1361,12 +1361,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String shareMatchText(String score, String result) {
-    return 'WitClash $score: $result Your turn!';
+    return 'BrainVolt $score: $result Your turn!';
   }
 
   @override
   String shareDailyText(int correct) {
-    return 'WitClash Daily Challenge: $correct/10 correct. Can you beat it?';
+    return 'BrainVolt Daily Challenge: $correct/10 correct. Can you beat it?';
   }
 
   @override
@@ -1951,7 +1951,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get topicRankedNote => 'Ranked matches always use every topic.';
 
   @override
-  String get brandTagline => 'CLASH YOUR WITS, CLIMB TO THE TOP';
+  String get brandTagline => 'TEST YOUR KNOWLEDGE, REACH THE TOP';
 
   @override
   String get homeModesTitle => 'Game modes';
@@ -2010,4 +2010,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get resultRounds => 'Questions';
+
+  @override
+  String get queueTip1 =>
+      'The faster you answer correctly, the more points you score.';
+
+  @override
+  String get queueTip2 =>
+      'In Sudden Death the first wrong answer ends the match: be sure before you tap.';
+
+  @override
+  String get queueTip3 =>
+      'Marathon is a long match: keep your focus until the last question.';
+
+  @override
+  String get queueTip4 =>
+      'Ranked matches move your league points; climb from Bronze to Diamond.';
+
+  @override
+  String get queueTip5 =>
+      'Pick a topic and you are matched only with players who picked the same one.';
+
+  @override
+  String get queueTip6 =>
+      'In the Daily Challenge everyone answers the same 10 questions; claim your rank.';
+
+  @override
+  String get queueTip7 =>
+      'Finish quests for XP; you can swap a quest you do not like once a day.';
+
+  @override
+  String get queueTip8 => 'Play at least one match a day to keep your streak.';
+
+  @override
+  String get queueTip9 =>
+      'Share your friend code, open a Private Room and play with friends.';
+
+  @override
+  String get queueTip10 =>
+      'Build a team and compete together in 2v2, 3v3 and 4v4 matches.';
+
+  @override
+  String get queueTip11 =>
+      'Suggest your own questions in the Question Lab; approved ones are played by everyone.';
+
+  @override
+  String get queueTipLabel => 'TIP';
 }

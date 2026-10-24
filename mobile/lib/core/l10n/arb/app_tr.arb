@@ -1,6 +1,6 @@
 {
   "@@locale": "tr",
-  "appTitle": "WitClash",
+  "appTitle": "BrainVolt",
   "@appTitle": {
     "description": "App name shown in the task switcher and app bar."
   },
@@ -52,7 +52,7 @@
   "@ageGateTitle": {
     "description": "Age gate (D-020) title."
   },
-  "ageGateBody": "WitClash'ı kullanmak için en az 13 yaşında olmalısın.",
+  "ageGateBody": "BrainVolt'u kullanmak için en az 13 yaşında olmalısın.",
   "@ageGateBody": {
     "description": "Age gate explanation."
   },
@@ -1504,7 +1504,7 @@
   "@appealRejected": {
     "description": "Appeal status"
   },
-  "quizzesTitle": "Quizler",
+  "quizzesTitle": "Soru Atölyesi",
   "@quizzesTitle": {
     "description": "Creator Quiz screen title"
   },
@@ -1725,7 +1725,7 @@
   "@roomFriendsOnly": {
     "description": "Friends-only room note"
   },
-  "homeQuizzes": "Quizler",
+  "homeQuizzes": "Soru Atölyesi",
   "@homeQuizzes": {
     "description": "Home button to quizzes"
   },
@@ -1749,7 +1749,7 @@
   "@homeDailySub": {
     "description": "Daily tile subtitle"
   },
-  "homeQuizzesSub": "Oyuncuların quizleri",
+  "homeQuizzesSub": "Soru öner, quiz hazırla",
   "@homeQuizzesSub": {
     "description": "Quizzes tile subtitle"
   },
@@ -1905,7 +1905,7 @@
   "@shareResult": {
     "description": "Share tooltip"
   },
-  "shareMatchText": "WitClash'ta {score}: {result} Sıra sende!",
+  "shareMatchText": "BrainVolt'ta {score}: {result} Sıra sende!",
   "@shareMatchText": {
     "description": "Share text for a match",
     "placeholders": {
@@ -1917,7 +1917,7 @@
       }
     }
   },
-  "shareDailyText": "WitClash Günün Meydan Okuması: {correct}/10 doğru. Sen kaç yaparsın?",
+  "shareDailyText": "BrainVolt Günün Meydan Okuması: {correct}/10 doğru. Sen kaç yaparsın?",
   "@shareDailyText": {
     "description": "Share text for a daily run",
     "placeholders": {
@@ -2696,7 +2696,7 @@
   },
   "brandTagline": "BİLGİNİ YARIŞTIR, ZİRVEYE ÇIK",
   "@brandTagline": {
-    "description": "The WitClash tagline under the word mark (splash, welcome)."
+    "description": "The BrainVolt tagline under the word mark (splash, welcome)."
   },
   "homeModesTitle": "Oyun Modları",
   "@homeModesTitle": {
@@ -2736,35 +2736,35 @@
   },
   "profileEdit": "Profili düzenle",
   "@profileEdit": {
-    "description": "Profile / badges (WitClash)."
+    "description": "Profile / badges (BrainVolt)."
   },
   "profileMatches": "Maç",
   "@profileMatches": {
-    "description": "Profile / badges (WitClash)."
+    "description": "Profile / badges (BrainVolt)."
   },
   "profileWins": "Galibiyet",
   "@profileWins": {
-    "description": "Profile / badges (WitClash)."
+    "description": "Profile / badges (BrainVolt)."
   },
   "profileWinRate": "Kazanma",
   "@profileWinRate": {
-    "description": "Profile / badges (WitClash)."
+    "description": "Profile / badges (BrainVolt)."
   },
   "profileBestStreak": "En iyi seri",
   "@profileBestStreak": {
-    "description": "Profile / badges (WitClash)."
+    "description": "Profile / badges (BrainVolt)."
   },
   "profileAchievements": "Başarımlar",
   "@profileAchievements": {
-    "description": "Profile / badges (WitClash)."
+    "description": "Profile / badges (BrainVolt)."
   },
   "profileNoBadges": "Henüz rozet kazanmadın. Maç oyna, görevleri tamamla!",
   "@profileNoBadges": {
-    "description": "Profile / badges (WitClash)."
+    "description": "Profile / badges (BrainVolt)."
   },
   "badgesEmpty": "Henüz rozet yok.",
   "@badgesEmpty": {
-    "description": "Profile / badges (WitClash)."
+    "description": "Profile / badges (BrainVolt)."
   },
   "questsEmpty": "Şu an görev yok, yakında yenileri gelecek.",
   "@questsEmpty": {
@@ -2773,5 +2773,53 @@
   "resultRounds": "Sorular",
   "@resultRounds": {
     "description": "Result screen: heading above the round list."
+  },
+  "queueTip1": "Doğru cevabı ne kadar hızlı verirsen o kadar çok puan kazanırsın.",
+  "@queueTip1": {
+    "description": "A game tip shown in turn while searching for an opponent."
+  },
+  "queueTip2": "Ani Ölüm'de ilk yanlış cevap maçı bitirir: acele etme, emin ol.",
+  "@queueTip2": {
+    "description": "A game tip shown in turn while searching for an opponent."
+  },
+  "queueTip3": "Maraton uzun soluklu bir maç: dikkatini sona kadar koru.",
+  "@queueTip3": {
+    "description": "A game tip shown in turn while searching for an opponent."
+  },
+  "queueTip4": "Dereceli maçlar lig puanını değiştirir; Bronz'dan Elmas'a tırman.",
+  "@queueTip4": {
+    "description": "A game tip shown in turn while searching for an opponent."
+  },
+  "queueTip5": "Konu seçersen yalnızca aynı konuyu seçen oyuncularla eşleşirsin.",
+  "@queueTip5": {
+    "description": "A game tip shown in turn while searching for an opponent."
+  },
+  "queueTip6": "Günün Meydan Okuması'nda herkes aynı 10 soruyu çözer; sıralamada yerini al.",
+  "@queueTip6": {
+    "description": "A game tip shown in turn while searching for an opponent."
+  },
+  "queueTip7": "Görevleri tamamlayıp XP kazan; beğenmediğin bir görevi günde bir kez değiştirebilirsin.",
+  "@queueTip7": {
+    "description": "A game tip shown in turn while searching for an opponent."
+  },
+  "queueTip8": "Her gün en az bir maç oynayarak serini koru.",
+  "@queueTip8": {
+    "description": "A game tip shown in turn while searching for an opponent."
+  },
+  "queueTip9": "Arkadaş kodunu paylaş, Özel Oda kurup arkadaşlarınla oyna.",
+  "@queueTip9": {
+    "description": "A game tip shown in turn while searching for an opponent."
+  },
+  "queueTip10": "Takım kur, 2v2, 3v3 ve 4v4 maçlarda birlikte yarış.",
+  "@queueTip10": {
+    "description": "A game tip shown in turn while searching for an opponent."
+  },
+  "queueTip11": "Soru Atölyesi'nde kendi sorularını öner; onaylananları herkes oynar.",
+  "@queueTip11": {
+    "description": "A game tip shown in turn while searching for an opponent."
+  },
+  "queueTipLabel": "İPUCU",
+  "@queueTipLabel": {
+    "description": "Label above the rotating tip on the queue screen."
   }
 }
