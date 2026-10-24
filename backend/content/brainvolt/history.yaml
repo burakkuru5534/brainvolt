@@ -1,0 +1,87 @@
+# BrainVolt team pool — History. Format: content/README.md.
+# Multiple choice: the first option is the correct one (matches shuffle).
+source: brainvolt-team
+questions:
+  - ref: bv-history-001
+    subcategory: history/ottoman-empire
+    difficulty: 1
+    tr:
+      prompt: İstanbul, Osmanlılar tarafından hangi yıl fethedildi?
+      options: ["1453", "1071", "1299", "1517"]
+      explanation: Fatih Sultan Mehmet 29 Mayıs 1453'te İstanbul'u fethetti.
+    en:
+      prompt: In which year did the Ottomans conquer Constantinople (Istanbul)?
+      options: ["1453", "1071", "1299", "1517"]
+      explanation: Sultan Mehmed II took the city on 29 May 1453.
+
+  - ref: bv-history-002
+    subcategory: history/ottoman-empire
+    difficulty: 1
+    tr:
+      prompt: Osmanlı Devleti'nin kurucusu kimdir?
+      options: [Osman Bey, Orhan Bey, Ertuğrul Gazi, I. Murat]
+    en:
+      prompt: Who founded the Ottoman state?
+      options: [Osman I, Orhan, Ertuğrul, Murad I]
+
+  - ref: bv-history-003
+    subcategory: history/turkish-history
+    difficulty: 2
+    tr:
+      prompt: Malazgirt Meydan Muharebesi hangi yıl yapıldı?
+      options: ["1071", "1176", "1243", "1453"]
+    en:
+      prompt: In which year was the Battle of Manzikert fought?
+      options: ["1071", "1176", "1243", "1453"]
+
+  - ref: bv-history-004
+    subcategory: history/turkish-history
+    difficulty: 1
+    tr:
+      prompt: Türkiye Cumhuriyeti hangi tarihte ilan edildi?
+      options: [29 Ekim 1923, 23 Nisan 1920, 30 Ağustos 1922, 19 Mayıs 1919]
+    en:
+      prompt: On which date was the Republic of Turkey proclaimed?
+      options: [29 October 1923, 23 April 1920, 30 August 1922, 19 May 1919]
+
+  - ref: bv-history-005
+    subcategory: history/world-history
+    difficulty: 2
+    tr:
+      prompt: Fransız İhtilali hangi yıl başladı?
+      options: ["1789", "1776", "1815", "1848"]
+    en:
+      prompt: In which year did the French Revolution begin?
+      options: ["1789", "1776", "1815", "1848"]
+
+  - ref: bv-history-006
+    subcategory: history/world-history
+    difficulty: 2
+    tr:
+      prompt: Berlin Duvarı hangi yıl yıkıldı?
+      options: ["1989", "1991", "1985", "1961"]
+    en:
+      prompt: In which year did the Berlin Wall fall?
+      options: ["1989", "1991", "1985", "1961"]
+
+  - ref: bv-history-007
+    subcategory: history/ancient-civilizations
+    difficulty: 2
+    tr:
+      prompt: Çivi yazısını ilk kullanan uygarlık hangisidir?
+      options: [Sümerler, Hititler, Fenikeliler, Lidyalılar]
+    en:
+      prompt: Which civilization was the first to use cuneiform writing?
+      options: [The Sumerians, The Hittites, The Phoenicians, The Lydians]
+
+  - ref: bv-history-008
+    subcategory: history/ancient-civilizations
+    difficulty: 1
+    type: true_false
+    answer: true
+    tr:
+      prompt: Antik Truva kenti, bugünkü Türkiye sınırları içindedir.
+      explanation: Truva'nın kalıntıları Çanakkale'dedir.
+    en:
+      prompt: The ancient city of Troy lies within the borders of present-day Turkey.
+      explanation: Its ruins are in Çanakkale province.

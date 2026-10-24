@@ -1,24 +1,20 @@
-// Package live runs live matches (backend-modules §3.4, match-lifecycle
-// §5): one owner goroutine per match on the instance holding its Redis
-// lease, intents from the WebSocket routed to it from any instance, every
-// step persisted, saved to Redis and delivered as sequenced events; and
-// reconnect replays or snapshots built from Redis on any instance.
+// Package live runs live matches: one owner goroutine per match, intents
+// from the WebSocket routed to it, every step persisted to Postgres and
+// delivered as sequenced events; and reconnect replays or snapshots built
+// from in-memory match state.
 package live
 
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log/slog"
 	"maps"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
-	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/content"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/domain"
@@ -27,30 +23,13 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
-// Lease and retention (redis-keys §2, match-lifecycle §5).
+// Lease and retention.
 const (
-	LeaseTTL    = 10 * time.Second
-	LeaseRenew  = 3 * time.Second
 	FinishedTTL = time.Hour
 	maxEvents   = 1000
-	// SweepEvery is how often each instance looks for matches whose owner
-	// lease expired; TakeoverGiveUp cancels a match nobody resumed in time.
-	SweepEvery     = 2 * time.Second
-	TakeoverGiveUp = 30 * time.Second
 )
-
-var liveKey = redis.Key("game", "live")
-
-func ownerKey(m uuid.UUID) string  { return "game:{m:" + m.String() + "}:owner" }
-func stateKey(m uuid.UUID) string  { return "game:{m:" + m.String() + "}:state" }
-func eventsKey(m uuid.UUID) string { return "game:{m:" + m.String() + "}:events" }
-func userLiveKey(u uuid.UUID) string {
-	return redis.Key("game", "user", u.String(), "live")
-}
-func instChannel(instance string) string { return redis.Key("game", "ch", "inst", instance) }
 
 // Persister is the game service: it writes engine outputs to Postgres,
 // picks replacement questions and cancels matches whose live state is gone.
@@ -80,7 +59,6 @@ type Cards interface {
 
 // Deps are the manager's collaborators.
 type Deps struct {
-	Redis     *redis.Client
 	Persister Persister
 	RT        Realtime
 	Texts     Texts
@@ -97,9 +75,10 @@ type Manager struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	mu     sync.Mutex
-	owners map[uuid.UUID]*owner
-	ended  []EndFunc
+	mu       sync.Mutex
+	owners   map[uuid.UUID]*owner
+	userLive map[uuid.UUID]uuid.UUID
+	ended    []EndFunc
 }
 
 // Ended is a match that just reached completed or cancelled, as the
@@ -151,54 +130,17 @@ func (m *Manager) notifyEnded(ctx context.Context, match *engine.Match) {
 // New returns a manager; its owners run until Close.
 func New(d Deps) *Manager {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &Manager{d: d, ctx: ctx, cancel: cancel, owners: map[uuid.UUID]*owner{}}
+	return &Manager{
+		d: d, ctx: ctx, cancel: cancel,
+		owners:   map[uuid.UUID]*owner{},
+		userLive: map[uuid.UUID]uuid.UUID{},
+	}
 }
 
-// Close stops every local owner (process shutdown); their leases expire
-// and another instance takes the matches over (edge-cases §4).
+// Close stops every local owner (process shutdown).
 func (m *Manager) Close() { m.cancel() }
 
-var renewScript = goredis.NewScript(`
-if redis.call('GET', KEYS[1]) == ARGV[1] then
-  redis.call('PEXPIRE', KEYS[1], ARGV[2])
-  redis.call('ZADD', KEYS[2], ARGV[3], ARGV[4])
-  return 1
-end
-return 0`)
-
-var releaseScript = goredis.NewScript(`
-if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) end
-return 0`)
-
-func (m *Manager) renewLease(ctx context.Context, id uuid.UUID) bool {
-	n, err := renewScript.Run(ctx, m.d.Redis, []string{ownerKey(id), liveKey},
-		m.d.Instance, LeaseTTL.Milliseconds(), m.d.Clock.Now().UnixMilli(), id.String()).Int()
-	return err == nil && n == 1
-}
-
-func (m *Manager) releaseLease(ctx context.Context, id uuid.UUID) {
-	if err := releaseScript.Run(ctx, m.d.Redis, []string{ownerKey(id)}, m.d.Instance).Err(); err != nil {
-		m.d.Logger.WarnContext(ctx, "game: releasing a match lease failed", "match_id", id, "error", err)
-	}
-}
-
-func (m *Manager) local(id uuid.UUID) *owner {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	return m.owners[id]
-}
-
-func (m *Manager) forget(o *owner) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	if m.owners[o.match.ID] == o {
-		delete(m.owners, o.match.ID)
-	}
-}
-
-// Start takes ownership of a match just created in `waiting`, saves its
-// live state and delivers the creation events (T1).
-// bots are development practice opponents the owner plays (D-066).
+// Start creates an owner for match with out as its creation output.
 func (m *Manager) Start(ctx context.Context, match *engine.Match, out engine.Output, bots ...uuid.UUID) error {
 	users := make([]uuid.UUID, 0, len(match.Participants))
 	locales := map[string]bool{}
@@ -231,31 +173,24 @@ func (m *Manager) Start(ctx context.Context, match *engine.Match, out engine.Out
 		"question_count":   match.Derived.QuestionCount, "answer_window_ms": match.Derived.AnswerWindowMS,
 	}, Bots: bots}
 	mt.addCategories(qs)
-	metaJSON, err := json.Marshal(mt)
-	if err != nil {
-		return err
-	}
-	ok, err := m.d.Redis.SetNX(ctx, ownerKey(match.ID), m.d.Instance, LeaseTTL).Result()
-	if err != nil {
-		return err
-	}
-	if !ok {
+
+	m.mu.Lock()
+	if _, exists := m.owners[match.ID]; exists {
+		m.mu.Unlock()
 		return fmt.Errorf("game: match %s already has an owner", match.ID)
 	}
-	if err := m.d.Redis.HSet(ctx, stateKey(match.ID), "meta", metaJSON).Err(); err != nil {
-		return err
+	for _, p := range match.Participants {
+		m.userLive[p.UserID] = match.ID
 	}
-	m.d.Redis.ZAdd(ctx, liveKey, goredis.Z{Score: float64(m.d.Clock.Now().UnixMilli()), Member: match.ID.String()})
+	m.mu.Unlock()
+
 	o := m.newOwner(match, mt, map[uuid.UUID]uuid.UUID{})
-	// The owner outlives the request that created the match: it runs on
-	// the manager's context, stopped by Close.
-	if err := o.commit(m.ctx, out, m.d.Clock.Now().UnixMilli()); err != nil { //nolint:contextcheck // see above
+	if err := o.commit(m.ctx, out, m.d.Clock.Now().UnixMilli()); err != nil {
 		o.halt()
 		m.forget(o)
-		m.releaseLease(ctx, match.ID)
 		return err
 	}
-	go o.run(m.ctx) //nolint:contextcheck // the owner runs on the manager's context
+	go o.run(m.ctx)
 	return nil
 }
 
@@ -267,66 +202,36 @@ func (m *Manager) newOwner(match *engine.Match, mt *meta, seats map[uuid.UUID]uu
 	return o
 }
 
-// route delivers a command to the match's owner, here or on its instance.
+func (m *Manager) local(id uuid.UUID) *owner {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.owners[id]
+}
+
+func (m *Manager) forget(o *owner) {
+	m.mu.Lock()
+	delete(m.owners, o.match.ID)
+	for _, p := range o.match.Participants {
+		if m.userLive[p.UserID] == o.match.ID {
+			delete(m.userLive, p.UserID)
+		}
+	}
+	m.mu.Unlock()
+}
+
+// route delivers a command to the match's owner.
 func (m *Manager) route(ctx context.Context, c command) error {
 	if o := m.local(c.Match); o != nil {
 		return o.post(c)
 	}
-	inst, err := m.d.Redis.Get(ctx, ownerKey(c.Match)).Result()
-	if errors.Is(err, goredis.Nil) {
-		return apierror.New(apierror.MatchNotFound)
-	}
-	if err != nil {
-		return err
-	}
-	if inst == m.d.Instance {
-		return apierror.New(apierror.MatchNotFound) // lease left over from a stopped owner
-	}
-	b, err := json.Marshal(c)
-	if err != nil {
-		return err
-	}
-	return m.d.Redis.Publish(ctx, instChannel(inst), b).Err()
+	return apierror.New(apierror.MatchNotFound)
 }
 
-// Run receives commands forwarded from other instances until ctx ends.
+// Run waits until ctx ends.
 func (m *Manager) Run(ctx context.Context) error {
 	defer m.Close()
-	sub := m.d.Redis.Subscribe(ctx, instChannel(m.d.Instance))
-	defer sub.Close()
-	if _, err := sub.Receive(ctx); err != nil {
-		if ctx.Err() != nil {
-			return nil
-		}
-		return fmt.Errorf("game: subscribe: %w", err)
-	}
-	ch := sub.Channel()
-	sweep := m.d.Clock.NewTicker(SweepEvery)
-	defer sweep.Stop()
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		case <-sweep.C():
-			m.sweep(ctx)
-		case msg, ok := <-ch:
-			if !ok {
-				return nil
-			}
-			var c command
-			if err := json.Unmarshal([]byte(msg.Payload), &c); err != nil {
-				m.d.Logger.WarnContext(ctx, "game: bad forwarded command", "error", err)
-				continue
-			}
-			var err error = apierror.New(apierror.MatchNotFound)
-			if o := m.local(c.Match); o != nil {
-				err = o.post(c)
-			}
-			if err != nil && c.Re != "" {
-				_ = m.d.RT.Reply(ctx, c.Client, c.Re, err)
-			}
-		}
-	}
+	<-ctx.Done()
+	return nil
 }
 
 // ---------- WebSocket entry points ----------
@@ -382,14 +287,11 @@ func (m *Manager) LiveMatch(ctx context.Context, user uuid.UUID) (uuid.UUID, boo
 	return m.liveMatch(ctx, user)
 }
 
-// liveMatch returns the user's live match, if any.
 func (m *Manager) liveMatch(ctx context.Context, user uuid.UUID) (uuid.UUID, bool) {
-	v, err := m.d.Redis.Get(ctx, userLiveKey(user)).Result()
-	if err != nil {
-		return uuid.Nil, false
-	}
-	id, err := uuid.Parse(v)
-	return id, err == nil
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	id, ok := m.userLive[user]
+	return id, ok
 }
 
 // OnDisconnect tells the owner a seat's socket closed.
@@ -421,145 +323,33 @@ func (m *Manager) Resume(ctx context.Context, c realtime.Client, stream string, 
 	if err != nil {
 		return apierror.New(apierror.MatchNotFound)
 	}
-	vals, err := m.d.Redis.HMGet(ctx, stateKey(id), "engine", "meta").Result()
-	if err != nil {
-		return err
-	}
-	engineJSON, _ := vals[0].(string)
-	metaJSON, _ := vals[1].(string)
-	if engineJSON == "" || metaJSON == "" {
+	o := m.local(id)
+	if o == nil {
 		return apierror.New(apierror.MatchNotFound)
 	}
-	match, err := engine.Restore([]byte(engineJSON), m.d.Random)
-	if err != nil {
-		return err
-	}
-	var mt meta
-	if err := json.Unmarshal([]byte(metaJSON), &mt); err != nil {
-		return err
-	}
-	p := match.Participant(c.UserID)
+	p := o.match.Participant(c.UserID)
 	if p == nil {
 		return apierror.New(apierror.NotAParticipant)
 	}
 	r := recipient{UserID: c.UserID, Side: p.Side, Locale: p.Locale}
 	t := realtime.Target{User: c.UserID, Session: c.SessionID}
 	if lastSeq > 0 {
-		entries, err := m.d.Redis.XRange(ctx, eventsKey(id), "0-"+strconv.FormatInt(lastSeq+1, 10), "+").Result()
-		if err != nil {
-			return err
+		var replayed []stored
+		for _, s := range o.events {
+			if int64(s.Seq) > lastSeq {
+				replayed = append(replayed, s)
+			}
 		}
-		complete := (len(entries) == 0 && int64(match.Seq()) == lastSeq) ||
-			(len(entries) > 0 && entries[0].ID == "0-"+strconv.FormatInt(lastSeq+1, 10))
-		if complete {
-			for _, e := range entries {
-				raw, _ := e.Values["e"].(string)
-				var s stored
-				if err := json.Unmarshal([]byte(raw), &s); err != nil {
-					return err
-				}
-				if err := m.d.RT.Send(ctx, t, mt.render(s, r)); err != nil {
+		if len(replayed) > 0 && int64(replayed[0].Seq) == lastSeq+1 {
+			for _, s := range replayed {
+				if err := m.d.RT.Send(ctx, t, o.meta.render(s, r)); err != nil {
 					return err
 				}
 			}
 			return nil
 		}
 	}
-	return m.d.RT.Send(ctx, t, mt.snapshot(match, r, m.d.Clock.Now().UnixMilli()))
-}
-
-// ---------- Owner loss & takeover (edge-cases §4) ----------
-
-// sweep takes over matches whose owner stopped renewing its lease.
-func (m *Manager) sweep(ctx context.Context) {
-	now := m.d.Clock.Now()
-	stale, err := m.d.Redis.ZRangeByScoreWithScores(ctx, liveKey, &goredis.ZRangeBy{
-		Min: "-inf", Max: strconv.FormatInt(now.Add(-LeaseTTL).UnixMilli(), 10),
-	}).Result()
-	if err != nil {
-		m.d.Logger.WarnContext(ctx, "game: sweeping live matches failed", "error", err)
-		return
-	}
-	for _, z := range stale {
-		id, err := uuid.Parse(fmt.Sprint(z.Member))
-		if err != nil || m.local(id) != nil {
-			continue
-		}
-		ok, err := m.d.Redis.SetNX(ctx, ownerKey(id), m.d.Instance, LeaseTTL).Result()
-		if err != nil || !ok {
-			continue // another instance owns or is taking it
-		}
-		lost := now.Sub(time.UnixMilli(int64(z.Score)))
-		if err := m.takeover(ctx, id, lost); err != nil {
-			m.d.Logger.ErrorContext(ctx, "game: taking over a match failed", "match_id", id, "error", err)
-			m.releaseLease(ctx, id)
-		}
-	}
-}
-
-// takeover resumes a match from its Redis state on this instance.
-func (m *Manager) takeover(ctx context.Context, id uuid.UUID, lost time.Duration) error {
-	vals, err := m.d.Redis.HMGet(ctx, stateKey(id), "engine", "meta", "seats").Result()
-	if err != nil {
-		return err
-	}
-	engineJSON, _ := vals[0].(string)
-	metaJSON, _ := vals[1].(string)
-	seatsJSON, _ := vals[2].(string)
-	if engineJSON == "" || metaJSON == "" {
-		// Redis lost the live state: Postgres decides (edge-cases §4).
-		if err := m.d.Persister.CancelOrphan(ctx, id); err != nil {
-			return err
-		}
-		m.d.Redis.ZRem(ctx, liveKey, id.String())
-		m.releaseLease(ctx, id)
-		return nil
-	}
-	match, err := engine.Restore([]byte(engineJSON), m.d.Random)
-	if err != nil {
-		return err
-	}
-	if match.Status.Terminal() {
-		m.d.Redis.ZRem(ctx, liveKey, id.String())
-		m.releaseLease(ctx, id)
-		return nil
-	}
-	var mt meta
-	if err := json.Unmarshal([]byte(metaJSON), &mt); err != nil {
-		return err
-	}
-	seats := map[uuid.UUID]uuid.UUID{}
-	if seatsJSON != "" {
-		if err := json.Unmarshal([]byte(seatsJSON), &seats); err != nil {
-			return err
-		}
-	}
-	now := m.d.Clock.Now().UnixMilli()
-	var out engine.Output
-	if lost > TakeoverGiveUp+LeaseTTL {
-		out = match.Cancel(domain.CancelServerError, uuid.Nil, now)
-	} else {
-		spare, err := m.d.Persister.Spare(ctx, match)
-		if err != nil {
-			m.d.Logger.WarnContext(ctx, "game: no replacement question for a voided round", "match_id", id, "error", err)
-		}
-		if err := m.addTexts(ctx, &mt, match, spare); err != nil {
-			return err
-		}
-		out = match.Takeover(spare, now)
-	}
-	m.d.Redis.ZAdd(ctx, liveKey, goredis.Z{Score: float64(now), Member: id.String()})
-	o := m.newOwner(match, &mt, seats)
-	m.d.Logger.InfoContext(ctx, "game: match taken over", "match_id", id, "lost_ms", lost.Milliseconds())
-	if err := o.commit(m.ctx, out, now); err != nil { //nolint:contextcheck // the owner runs on the manager's context
-		return err
-	}
-	if match.Status.Terminal() {
-		o.finish(m.ctx) //nolint:contextcheck // as above
-		return nil
-	}
-	go o.run(m.ctx) //nolint:contextcheck // as above
-	return nil
+	return m.d.RT.Send(ctx, t, o.meta.snapshot(o.match, r, m.d.Clock.Now().UnixMilli()))
 }
 
 // addTexts loads the wording of replacement questions into meta.
@@ -588,9 +378,5 @@ func (m *Manager) addTexts(ctx context.Context, mt *meta, match *engine.Match, q
 	}
 	maps.Copy(mt.Texts, texts)
 	mt.addCategories(qs)
-	b, err := json.Marshal(mt)
-	if err != nil {
-		return err
-	}
-	return m.d.Redis.HSet(ctx, stateKey(match.ID), "meta", b).Err()
+	return nil
 }

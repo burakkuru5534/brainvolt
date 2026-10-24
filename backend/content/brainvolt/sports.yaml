@@ -1,0 +1,72 @@
+# BrainVolt team pool — Sports. Format: content/README.md.
+source: brainvolt-team
+questions:
+  - ref: bv-sports-001
+    subcategory: sports/football
+    difficulty: 1
+    tr:
+      prompt: Bir futbol takımı sahada kaç oyuncuyla oynar?
+      options: ["11", "10", "9", "12"]
+    en:
+      prompt: How many players does a football (soccer) team have on the pitch?
+      options: ["11", "10", "9", "12"]
+
+  - ref: bv-sports-002
+    subcategory: sports/football
+    difficulty: 1
+    tr:
+      prompt: FIFA Dünya Kupası kaç yılda bir düzenlenir?
+      options: ["4", "2", "3", "5"]
+    en:
+      prompt: How often is the FIFA World Cup held, in years?
+      options: ["4", "2", "3", "5"]
+
+  - ref: bv-sports-003
+    subcategory: sports/olympics
+    difficulty: 2
+    tr:
+      prompt: İlk modern Olimpiyat Oyunları 1896'da hangi şehirde düzenlendi?
+      options: [Atina, Paris, Londra, Roma]
+    en:
+      prompt: In which city were the first modern Olympic Games held in 1896?
+      options: [Athens, Paris, London, Rome]
+
+  - ref: bv-sports-004
+    subcategory: sports/olympics
+    difficulty: 1
+    tr:
+      prompt: Olimpiyat bayrağında kaç halka vardır?
+      options: ["5", "4", "6", "7"]
+    en:
+      prompt: How many rings are on the Olympic flag?
+      options: ["5", "4", "6", "7"]
+
+  - ref: bv-sports-005
+    subcategory: sports/other-sports
+    difficulty: 1
+    tr:
+      prompt: Basketbolda bir takım sahada kaç oyuncuyla yer alır?
+      options: ["5", "6", "7", "4"]
+    en:
+      prompt: How many players does a basketball team have on the court?
+      options: ["5", "6", "7", "4"]
+
+  - ref: bv-sports-006
+    subcategory: sports/other-sports
+    difficulty: 2
+    tr:
+      prompt: Tenisteki dört Grand Slam turnuvasından hangisi çim kortta oynanır?
+      options: [Wimbledon, Fransa Açık (Roland Garros), ABD Açık, Avustralya Açık]
+    en:
+      prompt: Which of the four tennis Grand Slam tournaments is played on grass?
+      options: [Wimbledon, French Open (Roland Garros), US Open, Australian Open]
+
+  - ref: bv-sports-007
+    subcategory: sports/other-sports
+    difficulty: 1
+    type: true_false
+    answer: true
+    tr:
+      prompt: Bir voleybol takımı sahada 6 oyuncuyla oynar.
+    en:
+      prompt: A volleyball team plays with 6 players on the court.

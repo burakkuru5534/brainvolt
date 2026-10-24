@@ -23,9 +23,7 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ids"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/testdb"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/testenv"
 )
 
 // users is the identity port: every known user is active.
@@ -42,7 +40,6 @@ type fixture struct {
 	t       *testing.T
 	svc     *Service
 	db      *pgxpool.Pool
-	rdb     *redis.Client
 	content *content.Module
 	clock   *clock.Fake
 	users   users
@@ -55,12 +52,7 @@ func newFixture(t *testing.T) *fixture {
 	t.Helper()
 	ctx := t.Context()
 	db := testdb.New(t)
-	rdb, err := redis.Connect(ctx, testenv.RedisURL(t), "brainvolt-test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { _ = rdb.Close() })
-	f := &fixture{t: t, db: db, rdb: rdb, users: users{}, cats: map[string]uuid.UUID{},
+	f := &fixture{t: t, db: db, users: users{}, cats: map[string]uuid.UUID{},
 		clock: clock.NewFake(time.Date(2026, 10, 18, 12, 0, 0, 0, time.UTC))}
 
 	bus := events.NewBus()
@@ -74,7 +66,7 @@ func newFixture(t *testing.T) *fixture {
 		t.Fatal(err)
 	}
 	bus.Attach(inserter)
-	f.svc = New(Deps{DB: db, Redis: rdb, Questions: f.content, Users: f.users, Events: bus, Clock: f.clock,
+	f.svc = New(Deps{DB: db, Questions: f.content, Users: f.users, Events: bus, Clock: f.clock,
 		Logger: slog.New(slog.NewTextHandler(io.Discard, nil))})
 
 	mod := f.user()
@@ -165,11 +157,11 @@ func (f *fixture) duel(c config.Config, a, b uuid.UUID) (*Created, error) {
 }
 
 func (f *fixture) lock(u uuid.UUID) string {
-	v, err := f.rdb.Get(f.t.Context(), liveKey(u)).Result()
-	if err != nil {
+	m, ok := f.svc.UserLock(u)
+	if !ok {
 		return ""
 	}
-	return v
+	return m.String()
 }
 
 func (f *fixture) count(sql string, args ...any) int {

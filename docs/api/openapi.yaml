@@ -2978,7 +2978,6 @@ components:
                 - format
                 - id
                 - match_type
-                - range
                 - state
                 - user_ids
                 - wait_ms

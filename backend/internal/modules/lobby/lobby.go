@@ -25,7 +25,6 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/idempotency"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
 // Event names (schema-social.md §5).
@@ -47,7 +46,6 @@ type Quizzes = service.Quizzes
 // Deps are the module's collaborators.
 type Deps struct {
 	DB       *pgxpool.Pool
-	Redis    *redis.Client
 	Identity *identity.Module
 	Profiles *profile.Module
 	Social   *social.Module
@@ -70,7 +68,7 @@ type Module struct {
 // and the room stream's resume.
 func New(d Deps) *Module {
 	svc := service.New(service.Deps{
-		DB: d.DB, Redis: d.Redis, Users: d.Identity, Profiles: d.Profiles, Social: d.Social, Teams: d.Teams, Game: d.Game, Quizzes: d.Quizzes,
+		DB: d.DB, Users: d.Identity, Profiles: d.Profiles, Social: d.Social, Teams: d.Teams, Game: d.Game, Quizzes: d.Quizzes,
 		RT: d.Realtime, Events: d.Events, Clock: d.Clock, Logger: d.Logger,
 	})
 	m := &Module{svc: svc}

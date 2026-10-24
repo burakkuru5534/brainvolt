@@ -11,16 +11,10 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
 // RematchWindow is how long after a match "play again" works (D-027).
 const RematchWindow = 30 * time.Second
-
-func rematchKey(match uuid.UUID) string { return redis.Key("lobby", "rematch", match.String()) }
-func rematchStartedKey(match uuid.UUID) string {
-	return redis.Key("lobby", "rematch", match.String(), "started")
-}
 
 // RespondRematch records a player's answer to "play again" on the
 // results screen. Everyone gets rematch.offer with who accepted; once
@@ -50,38 +44,53 @@ func (s *Service) RespondRematch(ctx context.Context, user, match uuid.UUID, acc
 	if !s.d.Clock.Now().Before(expires) {
 		return apierror.New(apierror.ChallengeExpired)
 	}
-	if exists, _ := s.d.Redis.Exists(ctx, rematchStartedKey(match)).Result(); exists > 0 {
+
+	s.rematchMu.Lock()
+	st, exists := s.rematches[match]
+	if !exists {
+		st = &rematchState{
+			accepted:  make(map[uuid.UUID]bool),
+			expiresAt: expires,
+		}
+		s.rematches[match] = st
+	}
+	if st.started {
+		s.rematchMu.Unlock()
 		return apierror.New(apierror.MatchStateInvalid).With("reason", "rematch_started")
 	}
-	key := rematchKey(match)
+
 	if !accept {
-		s.d.Redis.Del(ctx, key)
+		delete(s.rematches, match)
+		s.rematchMu.Unlock()
 		s.tell(ctx, users, realtime.Frame{T: "rematch.result", D: map[string]any{"match_id": match, "accepted": false, "declined_by": user}})
 		return nil
 	}
-	pipe := s.d.Redis.TxPipeline()
-	pipe.HSet(ctx, key, user.String(), "1")
-	pipe.PExpireAt(ctx, key, expires)
-	all := pipe.HGetAll(ctx, key)
-	if _, err := pipe.Exec(ctx); err != nil {
-		return err
-	}
+
+	st.accepted[user] = true
 	accepted := make([]uuid.UUID, 0, len(users))
 	for _, u := range users {
-		if all.Val()[u.String()] == "1" {
+		if st.accepted[u] {
 			accepted = append(accepted, u)
 		}
 	}
+	s.rematchMu.Unlock()
+
 	s.tell(ctx, users, realtime.Frame{T: "rematch.offer", D: map[string]any{
 		"match_id": match, "accepted_user_ids": accepted, "expires_at": expires.UnixMilli(),
 	}})
 	if len(accepted) < len(users) {
 		return nil
 	}
-	if ok, err := s.d.Redis.SetNX(ctx, rematchStartedKey(match), "1", RematchWindow).Result(); err != nil || !ok {
-		return err
+
+	s.rematchMu.Lock()
+	if st.started {
+		s.rematchMu.Unlock()
+		return nil
 	}
-	s.d.Redis.Del(ctx, key)
+	st.started = true
+	delete(s.rematches, match)
+	s.rematchMu.Unlock()
+
 	var sides [2][]game.Member
 	for _, p := range sum.Participants {
 		if len(sides[p.Side-1]) < p.Seat {

@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "684037840139-66gtnct9ba223rj3ak52auucl6g40kk0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.brainvolt.app",
+            "certificate_hash": "0d1dc1e4647aeae7a70d7902f1e1663127ba8bde"
+          }
+        },
+        {
+          "client_id": "684037840139-g8e05hd0n0me8c0dnhm4njq943ieu1k1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.brainvolt.app",
+            "certificate_hash": "371bcea6258b8fd5a0f7c7055ee17432c884cca8"
+          }
+        },
+        {
           "client_id": "684037840139-0movk1cnhr1l2pvid07c2ehaj0tpg6qd.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -29,6 +45,13 @@
             {
               "client_id": "684037840139-0movk1cnhr1l2pvid07c2ehaj0tpg6qd.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "684037840139-3hco6fgk8rn2ebglkvs038s8s46gjb2g.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.brainvolt.app"
+              }
             }
           ]
         }

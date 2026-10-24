@@ -15,7 +15,6 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime/internal/transport"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/wsserver"
 )
 
@@ -55,7 +54,6 @@ type Authenticator = service.Authenticator
 // Deps are the module's collaborators; Instance identifies this API
 // process for cross-instance delivery.
 type Deps struct {
-	Redis    *redis.Client
 	Auth     Authenticator
 	Clock    clock.Clock
 	Logger   *slog.Logger
@@ -70,7 +68,7 @@ type Module struct {
 
 // New builds the module.
 func New(d Deps) *Module {
-	return &Module{hub: service.New(service.Deps{Redis: d.Redis, Auth: d.Auth, Clock: d.Clock, Logger: d.Logger, Instance: d.Instance})}
+	return &Module{hub: service.New(service.Deps{Auth: d.Auth, Clock: d.Clock, Logger: d.Logger, Instance: d.Instance})}
 }
 
 // Register adds GET /v1/ws.

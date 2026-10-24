@@ -1,5 +1,5 @@
 {
   "FLAVOR": "prod",
-  "API_BASE_URL": "https://api.brainvolt.app",
-  "WS_URL": "wss://api.brainvolt.app/v1/ws"
+  "API_BASE_URL": "https://brainvolt-api-684037840139.europe-west3.run.app",
+  "WS_URL": "wss://brainvolt-api-684037840139.europe-west3.run.app/v1/ws"
 }

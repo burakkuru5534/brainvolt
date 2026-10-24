@@ -8,7 +8,6 @@ import (
 	"maps"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -23,7 +22,6 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/config"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/testdb"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/testenv"
 	"github.com/burakkuru5534/brainvolt/backend/migrations"
 )
 
@@ -121,12 +119,11 @@ func TestRunComponentFailureStopsOthers(t *testing.T) {
 }
 
 // devEnv is a valid local configuration (see .env.example) whose Postgres
-// and Redis cannot be reached; integrationEnv points them at the test services.
+// cannot be reached; integrationEnv points them at the test services.
 var devEnv = map[string]string{
 	"BRAINVOLT_LOG_FORMAT":          "text",
 	"BRAINVOLT_HTTP_ADDR":           "127.0.0.1:0",
 	"BRAINVOLT_POSTGRES_URL":        "postgres://brainvolt:pw@127.0.0.1:1/brainvolt?sslmode=disable",
-	"BRAINVOLT_REDIS_URL":           "redis://:pw@127.0.0.1:1/0",
 	"BRAINVOLT_FIREBASE_PROJECT_ID": "demo-brainvolt",
 	"FIREBASE_AUTH_EMULATOR_HOST":   "localhost:9099",
 }
@@ -135,7 +132,6 @@ func integrationEnv(t *testing.T) map[string]string {
 	t.Helper()
 	env := maps.Clone(devEnv)
 	env["BRAINVOLT_POSTGRES_URL"] = testdb.NewURL(t) // migrated throw-away database
-	env["BRAINVOLT_REDIS_URL"] = testenv.RedisURL(t)
 	return env
 }
 
@@ -189,16 +185,6 @@ func TestBuildFailsFastWhenDependenciesUnreachable(t *testing.T) {
 			t.Errorf("%s: error leaks the password: %v", name, err)
 		}
 	}
-
-	// Postgres reachable, Redis not: the API must still fail (and close the pool).
-	if pg := os.Getenv(testenv.PostgresVar); pg != "" {
-		env := maps.Clone(devEnv)
-		env["BRAINVOLT_POSTGRES_URL"] = pg
-		_, err := NewAPI(t.Context(), loadConfig(t, env), discard)
-		if err == nil || !strings.Contains(err.Error(), "redis: cannot reach 127.0.0.1:1") {
-			t.Errorf("api with unreachable redis: error = %v", err)
-		}
-	}
 }
 
 func TestClosersRunAfterComponentsInReverseOrder(t *testing.T) {
@@ -206,15 +192,15 @@ func TestClosersRunAfterComponentsInReverseOrder(t *testing.T) {
 	b := &blocker{name: "server"}
 	a := New(RoleAPI, discard, b)
 	a.closers = append(a.closers,
-		func() { order = append(order, "postgres:"+strconv.FormatBool(b.stopped.Load())) },
-		func() { order = append(order, "redis") },
+		func() { order = append(order, "first:"+strconv.FormatBool(b.stopped.Load())) },
+		func() { order = append(order, "second") },
 	)
 	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 	if err := a.Run(ctx); err != nil {
 		t.Fatal(err)
 	}
-	if want := []string{"redis", "postgres:true"}; !slices.Equal(order, want) {
+	if want := []string{"second", "first:true"}; !slices.Equal(order, want) {
 		t.Fatalf("close order = %v, want %v", order, want)
 	}
 }
@@ -242,7 +228,7 @@ func TestAPIReadiness(t *testing.T) {
 
 	for path, want := range map[string]string{
 		"/healthz": `{"status":"ok"}`,
-		"/readyz":  `{"checks":{"migrations":"ok","postgres":"ok","redis":"ok"},"status":"ready"}`,
+		"/readyz":  `{"checks":{"migrations":"ok","postgres":"ok"},"status":"ready"}`,
 	} {
 		rec := httptest.NewRecorder()
 		srv.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, path, http.NoBody))

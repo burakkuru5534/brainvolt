@@ -1,0 +1,64 @@
+# BrainVolt team pool — Entertainment. Format: content/README.md.
+source: brainvolt-team
+questions:
+  - ref: bv-entertainment-001
+    subcategory: entertainment/cinema
+    difficulty: 2
+    tr:
+      prompt: 1997 yapımı "Titanik" filminin yönetmeni kimdir?
+      options: [James Cameron, Steven Spielberg, Christopher Nolan, Ridley Scott]
+    en:
+      prompt: Who directed the 1997 film "Titanic"?
+      options: [James Cameron, Steven Spielberg, Christopher Nolan, Ridley Scott]
+
+  - ref: bv-entertainment-002
+    subcategory: entertainment/cinema
+    difficulty: 1
+    tr:
+      prompt: '"Yüzüklerin Efendisi"nde Yüzük''ü Hüküm Dağı''na götürmekle görevlendirilen hobbit kimdir?'
+      options: [Frodo Baggins, Samwise Gamgee, Bilbo Baggins, Peregrin Took]
+    en:
+      prompt: In "The Lord of the Rings", which hobbit is tasked with carrying the Ring to Mount Doom?
+      options: [Frodo Baggins, Samwise Gamgee, Bilbo Baggins, Peregrin Took]
+
+  - ref: bv-entertainment-003
+    subcategory: entertainment/cinema
+    difficulty: 1
+    tr:
+      prompt: Oscar (Akademi Ödülleri) töreni hangi ülkede düzenlenir?
+      options: [ABD, İngiltere, Fransa, Kanada]
+    en:
+      prompt: In which country is the Academy Awards (Oscars) ceremony held?
+      options: [United States, United Kingdom, France, Canada]
+
+  - ref: bv-entertainment-004
+    subcategory: entertainment/tv
+    difficulty: 1
+    tr:
+      prompt: '"The Simpsons" dizisinde ailenin babasının adı nedir?'
+      options: [Homer, Bart, Ned, Moe]
+    en:
+      prompt: In "The Simpsons", what is the name of the family's father?
+      options: [Homer, Bart, Ned, Moe]
+
+  - ref: bv-entertainment-005
+    subcategory: entertainment/video-games
+    difficulty: 1
+    tr:
+      prompt: Super Mario oyunlarını geliştiren şirket hangisidir?
+      options: [Nintendo, Sega, Sony, Atari]
+    en:
+      prompt: Which company created the Super Mario games?
+      options: [Nintendo, Sega, Sony, Atari]
+
+  - ref: bv-entertainment-006
+    subcategory: entertainment/video-games
+    difficulty: 3
+    tr:
+      prompt: Tetris ilk olarak hangi ülkede geliştirildi?
+      options: [Sovyetler Birliği, Japonya, ABD, Almanya]
+      explanation: Aleksey Pajitnov, Tetris'i 1984'te Moskova'da geliştirdi.
+    en:
+      prompt: In which country was Tetris first developed?
+      options: [Soviet Union, Japan, United States, Germany]
+      explanation: Alexey Pajitnov created Tetris in Moscow in 1984.

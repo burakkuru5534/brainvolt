@@ -30,7 +30,6 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/idempotency"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
 // Event names other modules subscribe to.
@@ -151,7 +150,6 @@ func ValidateConfig(c Config) []Violation { return config.Validate(config.Transf
 // or persist matches may leave them nil.
 type Deps struct {
 	DB        *pgxpool.Pool
-	Redis     *redis.Client
 	Content   *content.Module
 	Identity  *identity.Module
 	Profiles  *profile.Module
@@ -179,7 +177,7 @@ type Module struct {
 // match.* intents, match stream resume, disconnect and RTT hooks.
 func New(d Deps) *Module {
 	sd := service.Deps{
-		DB: d.DB, Redis: d.Redis, Questions: d.Content, Users: d.Identity, Cards: d.Profiles, Seasons: d.Seasons,
+		DB: d.DB, Questions: d.Content, Users: d.Identity, Cards: d.Profiles, Seasons: d.Seasons,
 		Sanctions: d.Sanctions, Events: d.Events, Clock: d.Clock, Logger: d.Logger,
 	}
 	if d.Teams != nil {
@@ -189,7 +187,7 @@ func New(d Deps) *Module {
 	m := &Module{svc: svc, identity: d.Identity, logger: d.Logger}
 	if d.Realtime != nil {
 		m.live = live.New(live.Deps{
-			Redis: d.Redis, Persister: svc, RT: d.Realtime, Texts: d.Content, Cards: d.Profiles,
+			Persister: svc, RT: d.Realtime, Texts: d.Content, Cards: d.Profiles,
 			Clock: d.Clock, Logger: d.Logger, Instance: d.Instance, Random: service.CryptoRandom{},
 		})
 		d.Realtime.Handle("match", m.live.Handle)

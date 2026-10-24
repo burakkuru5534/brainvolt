@@ -55,7 +55,8 @@ func SeedMain(args []string, stdout io.Writer) int {
 	fs := flag.NewFlagSet("seed", flag.ContinueOnError)
 	fs.SetOutput(os.Stderr)
 	dir := fs.String("dir", "../content", "content directory")
-	approveAs := fs.String("approve-as", "", "dev only: verify imported questions as this user id")
+	approveAs := fs.String("approve-as", "", "verify imported questions as this user id (or 'auto')")
+	approveAll := fs.Bool("approve-all", false, "automatically verify every imported question (uses first user or system seed user)")
 	if err := fs.Parse(args[1:]); err != nil {
 		return 2
 	}
@@ -64,7 +65,7 @@ func SeedMain(args []string, stdout io.Writer) int {
 	case "validate":
 		err = seedValidate(*dir, stdout)
 	case "import":
-		err = seedImport(ctx, *dir, *approveAs, stdout, logger)
+		err = seedImport(ctx, *dir, *approveAs, *approveAll, stdout, logger)
 	case "opentdb-fetch":
 		err = seedFetch(ctx, *dir, stdout)
 	case "opentdb-list":
@@ -94,18 +95,7 @@ func seedValidate(dir string, stdout io.Writer) error {
 	return nil
 }
 
-func seedImport(ctx context.Context, dir, approveAs string, stdout io.Writer, logger *slog.Logger) error {
-	var approver uuid.UUID
-	if approveAs != "" {
-		if config.Environment(os.Getenv("BRAINVOLT_ENV")) != config.EnvDev {
-			return errors.New("-approve-as is only allowed with BRAINVOLT_ENV=dev")
-		}
-		id, err := uuid.Parse(approveAs)
-		if err != nil {
-			return fmt.Errorf("-approve-as: want a BrainVolt user id: %w", err)
-		}
-		approver = id
-	}
+func seedImport(ctx context.Context, dir, approveAs string, approveAll bool, stdout io.Writer, logger *slog.Logger) error {
 	b, err := contentfiles.Load(dir)
 	if err != nil {
 		return err
@@ -119,6 +109,36 @@ func seedImport(ctx context.Context, dir, approveAs string, stdout io.Writer, lo
 		return err
 	}
 	defer db.Close()
+
+	var approver uuid.UUID
+	if approveAll || approveAs == "auto" {
+		var existingID uuid.UUID
+		err := db.QueryRow(ctx, "SELECT id FROM identity.users ORDER BY created_at ASC LIMIT 1").Scan(&existingID)
+		if err == nil {
+			approver = existingID
+		} else {
+			systemID := uuid.MustParse("01a1c4e0-0000-7000-8000-000000000001")
+			_, err = db.Exec(ctx, `
+				INSERT INTO identity.users (id, firebase_uid, account_tier, status, age_verified_at, last_seen_at, created_at, updated_at)
+				VALUES ($1, 'system:seed', 'full', 'active', now(), now(), now(), now())
+				ON CONFLICT (id) DO NOTHING;
+				INSERT INTO identity.user_roles (user_id, role, granted_at)
+				VALUES ($1, 'admin', now())
+				ON CONFLICT DO NOTHING;
+			`, systemID)
+			if err != nil {
+				return fmt.Errorf("creating system seed user: %w", err)
+			}
+			approver = systemID
+		}
+	} else if approveAs != "" {
+		id, err := uuid.Parse(approveAs)
+		if err != nil {
+			return fmt.Errorf("-approve-as: want a BrainVolt user id: %w", err)
+		}
+		approver = id
+	}
+
 	// The bus has no subscribers yet; once review events have consumers the
 	// seed gets an insert-only River client like the API.
 	m := content.New(db, clock.Real{}, events.NewBus())

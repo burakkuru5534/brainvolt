@@ -22,7 +22,6 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/idempotency"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ratelimit"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
 // Tier is the account tier: guest, unverified or full.
@@ -90,7 +89,6 @@ var (
 // Deps are the module's collaborators, built in internal/app.
 type Deps struct {
 	DB          *pgxpool.Pool
-	Redis       *redis.Client
 	Verifier    Verifier
 	Profiles    ProfileProvisioner
 	Events      *events.Bus
@@ -110,7 +108,7 @@ type Module struct {
 // New builds the module.
 func New(d Deps) *Module {
 	svc := service.New(service.Deps{
-		DB: d.DB, Redis: d.Redis, Verifier: d.Verifier, Profiles: d.Profiles,
+		DB: d.DB, Verifier: d.Verifier, Profiles: d.Profiles,
 		Events: d.Events, Clock: d.Clock, Logger: d.Logger,
 	})
 	return &Module{svc: svc, tr: transport.New(svc, d.Verifier, d.Limiter, d.Idempotency, d.Logger), verifier: d.Verifier}
@@ -157,6 +155,11 @@ func (m *Module) EnsureBot(ctx context.Context, key, displayName, locale string)
 // SetStatus suspends or restores an account (moderation).
 func (m *Module) SetStatus(ctx context.Context, user uuid.UUID, status Status) error {
 	return m.svc.SetStatus(ctx, user, status)
+}
+
+// Forget drops the cached principal for a firebaseUID (tests).
+func (m *Module) Forget(firebaseUID string) {
+	m.svc.Forget(firebaseUID)
 }
 
 // User returns the identity view of a user (NOT_FOUND if missing).

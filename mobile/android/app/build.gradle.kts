@@ -33,10 +33,6 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
-        // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
-        // You can force using the value of versionCode by specifying the `-P force-version-code-ignoring-abi=true`
-        // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -52,6 +48,14 @@ android {
 
     buildTypes {
         release {
+            // R8 / ProGuard optimizasyonlarını ve korumalarını aktif ediyoruz
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+
             signingConfig = if (keystorePropertiesFile.exists()) {
                 signingConfigs.getByName("release")
             } else {
@@ -76,6 +80,7 @@ configurations.all {
     resolutionStrategy {
         force("com.android.billingclient:billing:8.0.0")
         force("com.android.billingclient:billing-ktx:8.0.0")
+        force("com.google.android.gms:play-services-location:21.3.0")
     }
 }
 

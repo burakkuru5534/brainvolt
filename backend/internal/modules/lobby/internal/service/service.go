@@ -7,6 +7,8 @@ import (
 	"context"
 	"log/slog"
 	"slices"
+	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -19,7 +21,6 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
 // Event names (schema-social.md §5).
@@ -88,7 +89,6 @@ type Realtime interface {
 // Deps are the service's collaborators.
 type Deps struct {
 	DB       *pgxpool.Pool
-	Redis    *redis.Client
 	Users    Users
 	Profiles Profiles
 	Social   Social
@@ -103,15 +103,35 @@ type Deps struct {
 	Random func(n int) int
 }
 
+// rematchState tracks in-flight rematch responses.
+type rematchState struct {
+	accepted  map[uuid.UUID]bool
+	started   bool
+	expiresAt time.Time
+}
+
 // Service implements lobby's use cases.
-type Service struct{ d Deps }
+type Service struct {
+	d         Deps
+	roomsMu   sync.RWMutex
+	rooms     map[uuid.UUID]*room
+	userRooms map[uuid.UUID]uuid.UUID
+
+	rematchMu sync.Mutex
+	rematches map[uuid.UUID]*rematchState
+}
 
 // New returns the service.
 func New(d Deps) *Service {
 	if d.Random == nil {
 		d.Random = cryptoIntn
 	}
-	return &Service{d: d}
+	return &Service{
+		d:         d,
+		rooms:     make(map[uuid.UUID]*room),
+		userRooms: make(map[uuid.UUID]uuid.UUID),
+		rematches: make(map[uuid.UUID]*rematchState),
+	}
 }
 
 // send delivers a frame to a user's sessions; delivery problems are logged

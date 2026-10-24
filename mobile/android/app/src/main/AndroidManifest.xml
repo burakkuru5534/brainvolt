@@ -1,10 +1,25 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- REST, WebSocket and Firebase need the network in every build. -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <application
         android:label="BrainVolt"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- Disable automatic FCM registration at Android app startup to avoid
+             GMS binding crashes before the Flutter engine starts drawing.
+             Registration is initiated safely from Flutter via PushService. -->
+        <meta-data
+            android:name="firebase_messaging_auto_init_enabled"
+            android:value="false" />
+        <!-- Disable automatic Firebase Analytics and Advertising ID collection
+             to prevent Google Play Services Phenotype/Analytics API crashes on launch. -->
+        <meta-data
+            android:name="firebase_analytics_collection_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="google_analytics_adid_collection_enabled"
+            android:value="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

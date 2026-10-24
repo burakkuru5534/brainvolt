@@ -24,7 +24,6 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ids"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/postgres"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
 // Cards reads users' countries (profile).
@@ -48,7 +47,6 @@ type Pusher interface {
 // Deps are the service's collaborators.
 type Deps struct {
 	DB      *pgxpool.Pool
-	Redis   *redis.Client
 	Cards   Cards
 	Teams   Teams
 	Friends Friends

@@ -11,6 +11,8 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/matchmaking/internal/service"
@@ -21,7 +23,6 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/idempotency"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
 // RatingReader returns players' ratings (ranking implements it in Phase 7;
@@ -37,7 +38,7 @@ type Social = service.Social
 // Deps are the module's collaborators. Practice enables the development
 // bot opponent; only the dev composition sets it.
 type Deps struct {
-	Redis   *redis.Client
+	DB      *pgxpool.Pool
 	Ratings RatingReader
 	Social  Social
 	// Sanctions keeps sanctioned players out of the queues (moderation).
@@ -61,7 +62,7 @@ type Module struct {
 // cooldowns).
 func New(d Deps) *Module {
 	svc := service.New(service.Deps{
-		Redis: d.Redis, Game: games{d.Game}, Notifier: d.Realtime, Ratings: d.Ratings, Social: d.Social, Sanctions: d.Sanctions,
+		DB: d.DB, Game: games{d.Game}, Notifier: d.Realtime, Ratings: d.Ratings, Social: d.Social, Sanctions: d.Sanctions,
 		Clock: d.Clock, Logger: d.Logger, Practice: d.Practice,
 	})
 	if d.Teams != nil {

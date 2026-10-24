@@ -11,13 +11,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ids"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/testenv"
 )
 
@@ -82,17 +82,52 @@ type fixture struct {
 }
 
 // newFixture uses a queue of its own (a fresh Category Master category)
-// so tests sharing Redis do not meet.
+// so tests sharing PostgreSQL do not meet.
 func newFixture(t *testing.T) *fixture {
-	rdb, err := redis.Connect(t.Context(), testenv.RedisURL(t), "brainvolt-test")
+	pool, err := pgxpool.New(t.Context(), testenv.PostgresURL(t))
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { _ = rdb.Close() })
+	t.Cleanup(func() { pool.Close() })
+	_, _ = pool.Exec(t.Context(), `
+		CREATE SCHEMA IF NOT EXISTS matchmaking;
+		CREATE TABLE IF NOT EXISTS matchmaking.tickets (
+			id          uuid        PRIMARY KEY,
+			queue       text        NOT NULL,
+			user_ids    uuid[]      NOT NULL,
+			request     jsonb       NOT NULL,
+			entry_json  jsonb       NOT NULL,
+			rating      float8      NOT NULL,
+			rd          float8      NOT NULL,
+			status      text        NOT NULL DEFAULT 'searching',
+			match_id    uuid,
+			enqueued_at timestamptz NOT NULL DEFAULT now(),
+			expires_at  timestamptz NOT NULL,
+			updated_at  timestamptz NOT NULL DEFAULT now()
+		);
+		CREATE TABLE IF NOT EXISTS matchmaking.cooldowns (
+			user_id     uuid        PRIMARY KEY,
+			expires_at  timestamptz NOT NULL
+		);
+		CREATE TABLE IF NOT EXISTS matchmaking.event_counts (
+			id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+			user_id     uuid        NOT NULL,
+			event_kind  text        NOT NULL,
+			occurred_at timestamptz NOT NULL DEFAULT now()
+		);
+		CREATE TABLE IF NOT EXISTS matchmaking.match_memory (
+			match_id    uuid        NOT NULL,
+			user_id     uuid        NOT NULL,
+			entry_json  jsonb       NOT NULL,
+			created_at  timestamptz NOT NULL DEFAULT now(),
+			expires_at  timestamptz NOT NULL,
+			PRIMARY KEY (match_id, user_id)
+		);
+	`)
 	cat := ids.New()
 	f := &fixture{t: t, game: &fakeGame{}, clk: clock.NewFake(time.Now()), rates: ratings{}, block: blocks{},
 		req: Request{MatchType: "quick_duel", Format: "1v1", CategoryMode: "category_master", CategoryID: &cat}}
-	f.svc = New(Deps{Redis: rdb, Game: f.game, Notifier: &frames{sent: map[uuid.UUID][]realtime.Frame{}}, Ratings: f.rates,
+	f.svc = New(Deps{DB: pool, Game: f.game, Notifier: &frames{sent: map[uuid.UUID][]realtime.Frame{}}, Ratings: f.rates,
 		Social: f.block, Clock: f.clk, Logger: slog.New(slog.NewTextHandler(io.Discard, nil))})
 	return f
 }
@@ -190,13 +225,8 @@ func TestReadyCheckRequeueAndCooldowns(t *testing.T) {
 		t.Fatal("not paired")
 	}
 	// The match id is only known to the fake; find the remembered tickets.
-	keys, _ := f.svc.d.Redis.Keys(ctx, "mm:m:*").Result()
 	var matchID uuid.UUID
-	for _, k := range keys {
-		if ok, _ := f.svc.d.Redis.HExists(ctx, k, ready.String()).Result(); ok {
-			matchID = uuid.MustParse(k[len("mm:m:"):])
-		}
-	}
+	_ = f.svc.d.DB.QueryRow(ctx, `SELECT match_id FROM matchmaking.match_memory WHERE user_id = $1 LIMIT 1`, ready).Scan(&matchID)
 	cancelled := func(id uuid.UUID) game.Ended {
 		return game.Ended{MatchID: id, Origin: game.OriginMatchmaking, Status: game.StatusCancelled, CancelReason: game.CancelNotAllReady,
 			Participants: []game.EndedParticipant{{UserID: ready, Status: game.ParticipantReady}, {UserID: absent, Status: "joined"}}}
@@ -220,20 +250,28 @@ func TestReadyCheckRequeueAndCooldowns(t *testing.T) {
 		t.Fatalf("3 misses: %v", err)
 	}
 
+	cooldownOf := func(u uuid.UUID) time.Duration {
+		var exp time.Time
+		if err := f.svc.d.DB.QueryRow(ctx, `SELECT expires_at FROM matchmaking.cooldowns WHERE user_id = $1`, u).Scan(&exp); err != nil {
+			return 0
+		}
+		return exp.Sub(f.clk.Now())
+	}
+
 	// Leaving: the 2nd leave in 24 h → 5 min, the 3rd → 15 min.
 	leaver := f.player(1500)
 	left := game.Ended{MatchID: ids.New(), Origin: game.OriginMatchmaking, Status: game.StatusCompleted,
 		Participants: []game.EndedParticipant{{UserID: leaver, Status: game.ParticipantLeft}}}
 	f.svc.OnEnd(ctx, left)
-	if ttl, _ := f.svc.d.Redis.PTTL(ctx, cooldownKey(leaver)).Result(); ttl > 0 {
+	if ttl := cooldownOf(leaver); ttl > 0 {
 		t.Fatal("cooldown after the first leave")
 	}
 	f.svc.OnEnd(ctx, left)
-	if ttl, _ := f.svc.d.Redis.PTTL(ctx, cooldownKey(leaver)).Result(); ttl <= 4*time.Minute || ttl > SecondLeaveCooldown {
+	if ttl := cooldownOf(leaver); ttl <= 4*time.Minute || ttl > SecondLeaveCooldown {
 		t.Fatalf("2nd leave cooldown %s", ttl)
 	}
 	f.svc.OnEnd(ctx, left)
-	if ttl, _ := f.svc.d.Redis.PTTL(ctx, cooldownKey(leaver)).Result(); ttl <= 14*time.Minute {
+	if ttl := cooldownOf(leaver); ttl <= 14*time.Minute {
 		t.Fatalf("3rd leave cooldown %s", ttl)
 	}
 	// Other origins do not count.
@@ -242,7 +280,7 @@ func TestReadyCheckRequeueAndCooldowns(t *testing.T) {
 		f.svc.OnEnd(ctx, game.Ended{MatchID: ids.New(), Origin: game.OriginChallenge, Status: game.StatusCompleted,
 			Participants: []game.EndedParticipant{{UserID: other, Status: game.ParticipantLeft}}})
 	}
-	if ttl, _ := f.svc.d.Redis.PTTL(ctx, cooldownKey(other)).Result(); ttl > 0 {
+	if ttl := cooldownOf(other); ttl > 0 {
 		t.Fatal("challenge leaves count")
 	}
 }

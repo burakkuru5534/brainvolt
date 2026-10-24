@@ -245,7 +245,6 @@ func TestRoomsAndRematch(t *testing.T) {
 	if _, err := x.db.Exec(t.Context(), `UPDATE game.matches SET ended_at = now() - interval '1 minute' WHERE id = $1`, c.Match.ID); err != nil {
 		t.Fatal(err)
 	}
-	x.rdb.Del(t.Context(), "lobby:rematch:"+parent+":started")
 	if f := wh.answer(wh.send("rematch.respond", map[string]any{"match_id": parent, "accept": true})); data(f)["code"] != "CHALLENGE_EXPIRED" {
 		t.Fatalf("late rematch %v", f)
 	}

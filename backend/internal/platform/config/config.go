@@ -35,7 +35,6 @@ type Config struct {
 	HTTP     HTTP
 	Log      Log
 	Postgres Postgres
-	Redis    Redis
 	Firebase Firebase
 }
 
@@ -64,11 +63,6 @@ type Postgres struct {
 	WorkerStatementTimeout time.Duration `env:"BRAINVOLT_POSTGRES_WORKER_STATEMENT_TIMEOUT" envDefault:"60s"`
 }
 
-// Redis configures platform/redis.
-type Redis struct {
-	URL string `env:"BRAINVOLT_REDIS_URL,required,notEmpty"`
-}
-
 // Firebase configures ID-token verification (platform/firebase).
 type Firebase struct {
 	ProjectID string `env:"BRAINVOLT_FIREBASE_PROJECT_ID,required,notEmpty"`
@@ -76,8 +70,11 @@ type Firebase struct {
 	// SDK itself; set only in local development (ADR-0003).
 	AuthEmulatorHost string `env:"FIREBASE_AUTH_EMULATOR_HOST"`
 	// MessagingCredentialsFile is the service-account key the worker sends
-	// push with (FCM); without it pushes are only logged.
+	// push with (FCM); without it pushes are only logged in dev or use ADC in prod.
 	MessagingCredentialsFile string `env:"BRAINVOLT_FCM_CREDENTIALS_FILE"`
+	// MessagingCredentialsJSON allows supplying the service-account key as a raw JSON string
+	// (useful for GCP Secret Manager or direct environment variable injection).
+	MessagingCredentialsJSON string `env:"BRAINVOLT_FCM_CREDENTIALS_JSON"`
 }
 
 // Load reads the process environment.
@@ -184,9 +181,6 @@ func (c Config) Validate() error {
 	if err := checkURL(c.Postgres.URL, "postgres", "postgresql"); err != nil {
 		add("BRAINVOLT_POSTGRES_URL: %v", err)
 	}
-	if err := checkURL(c.Redis.URL, "redis", "rediss"); err != nil {
-		add("BRAINVOLT_REDIS_URL: %v", err)
-	}
 
 	demoProject := strings.HasPrefix(c.Firebase.ProjectID, "demo-")
 	if c.Env == EnvProd {
@@ -238,7 +232,6 @@ func (c Config) LogValue() slog.Value {
 		slog.String("log_format", string(c.Log.Format)),
 		slog.String("postgres_url", redact(c.Postgres.URL)),
 		slog.Duration("postgres_statement_timeout", c.Postgres.StatementTimeout),
-		slog.String("redis_url", redact(c.Redis.URL)),
 		slog.String("firebase_project_id", c.Firebase.ProjectID),
 		slog.String("firebase_auth_emulator_host", c.Firebase.AuthEmulatorHost),
 	)

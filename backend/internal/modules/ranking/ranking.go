@@ -20,7 +20,6 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
 // Subscriptions: game.MatchCompleted and identity.AccountTierChanged.
@@ -51,7 +50,6 @@ type Season = service.Season
 // Deps are the module's collaborators.
 type Deps struct {
 	DB       *pgxpool.Pool
-	Redis    *redis.Client
 	Profiles *profile.Module
 	Teams    *team.Module
 	Social   *social.Module
@@ -68,7 +66,7 @@ type Module struct {
 
 // New builds the module.
 func New(d Deps) *Module {
-	sd := service.Deps{DB: d.DB, Redis: d.Redis, Events: d.Events, Pusher: d.Pusher, Clock: d.Clock, Logger: d.Logger}
+	sd := service.Deps{DB: d.DB, Events: d.Events, Pusher: d.Pusher, Clock: d.Clock, Logger: d.Logger}
 	if d.Profiles != nil {
 		sd.Cards = d.Profiles
 	}

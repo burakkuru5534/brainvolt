@@ -3,12 +3,12 @@
 // limited resource.
 //
 // The first request with a key runs the handler; its response (any status
-// below 500) is stored in Redis under idem:<user_id>:<key> for 24 h and
+// below 500) is stored in Postgres under platform.idempotency_keys for 24 h and
 // replayed for every repeat with header Idempotent-Replayed: true. A repeat
 // with a different method, path or body gets 409 IDEMPOTENCY_KEY_REUSED; a
 // repeat while the first is still running gets 409
 // IDEMPOTENT_REQUEST_IN_PROGRESS. 5xx responses are not stored, so the
-// client can retry. If Redis is unreachable the request is refused with 503
+// client can retry. If Postgres is unreachable the request is refused with 503
 // (fail closed): running it without the guarantee could spend twice.
 package idempotency
 
@@ -24,11 +24,12 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ids"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/logging"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
 const (
@@ -65,15 +66,15 @@ type record struct {
 	Body    []byte            `json:"body,omitempty"`
 }
 
-// Store keeps idempotency records in Redis.
+// Store keeps idempotency records in PostgreSQL.
 type Store struct {
-	rdb    *redis.Client
+	db     *pgxpool.Pool
 	logger *slog.Logger
 }
 
 // New returns a store.
-func New(rdb *redis.Client, logger *slog.Logger) *Store {
-	return &Store{rdb: rdb, logger: logger}
+func New(db *pgxpool.Pool, logger *slog.Logger) *Store {
+	return &Store{db: db, logger: logger}
 }
 
 // Wrap guards h. The caller is identified by the user id in the request
@@ -102,9 +103,8 @@ func (s *Store) Wrap(mode Mode, h httpserver.HandlerFunc) httpserver.HandlerFunc
 		}
 		r.Body = io.NopCloser(bytes.NewReader(body))
 		hash := fingerprint(r, body)
-		rkey := redis.Key("idem", user, key)
 
-		claimed, existing, err := s.claim(r, rkey, hash)
+		claimed, existing, err := s.claim(r, user, key, hash)
 		if err != nil {
 			return apierror.Wrap(apierror.Unavailable, err).WithRetryAfter(time.Second)
 		}
@@ -116,7 +116,7 @@ func (s *Store) Wrap(mode Mode, h httpserver.HandlerFunc) httpserver.HandlerFunc
 		if err := h(rec, r); err != nil {
 			httpserver.WriteError(rec, r, s.logger, err)
 		}
-		s.finish(r, rkey, hash, rec)
+		s.finish(r, user, key, hash, rec)
 		rec.copyTo(w)
 		return nil
 	}
@@ -131,35 +131,61 @@ func fingerprint(r *http.Request, body []byte) string {
 }
 
 // claim stores a pending record if the key is new. Otherwise it returns the
-// existing record. A record that expires between SET and GET is retried.
-func (s *Store) claim(r *http.Request, rkey, hash string) (bool, record, error) {
+// existing record. A record that expires between check and insert is reclaimed.
+func (s *Store) claim(r *http.Request, user, key, hash string) (bool, record, error) {
+	if s.db == nil {
+		return false, record{}, errors.New("idempotency: db is nil")
+	}
 	ctx := r.Context()
-	pending, err := json.Marshal(record{State: "pending", Hash: hash})
+	fullKey := user + ":" + key
+
+	tag, err := s.db.Exec(ctx, `
+		INSERT INTO platform.idempotency_keys (key, user_id, state, hash, created_at, expires_at)
+		VALUES ($1, $2, 'pending', $3, now(), now() + interval '1 minute')
+		ON CONFLICT (key) DO NOTHING
+	`, fullKey, user, hash)
 	if err != nil {
 		return false, record{}, err
 	}
-	for range 3 {
-		ok, err := s.rdb.SetNX(ctx, rkey, pending, pendingTTL).Result()
-		if err != nil {
-			return false, record{}, err
-		}
-		if ok {
+	if tag.RowsAffected() == 1 {
+		return true, record{}, nil
+	}
+
+	var (
+		rec        record
+		headersRaw []byte
+		expiresAt  time.Time
+		status     *int
+	)
+	err = s.db.QueryRow(ctx, `
+		SELECT state, hash, status_code, headers, body, expires_at
+		FROM platform.idempotency_keys
+		WHERE key = $1
+	`, fullKey).Scan(&rec.State, &rec.Hash, &status, &headersRaw, &rec.Body, &expiresAt)
+	if err != nil {
+		return false, record{}, err
+	}
+
+	if status != nil {
+		rec.Status = *status
+	}
+	if len(headersRaw) > 0 {
+		_ = json.Unmarshal(headersRaw, &rec.Headers)
+	}
+
+	if time.Now().After(expiresAt) {
+		tag, err = s.db.Exec(ctx, `
+			UPDATE platform.idempotency_keys
+			SET state = 'pending', hash = $2, status_code = NULL, headers = NULL, body = NULL,
+			    created_at = now(), expires_at = now() + interval '1 minute'
+			WHERE key = $1 AND expires_at < now()
+		`, fullKey, hash)
+		if err == nil && tag.RowsAffected() == 1 {
 			return true, record{}, nil
 		}
-		raw, err := s.rdb.Get(ctx, rkey).Bytes()
-		if errors.Is(err, redis.ErrNil) {
-			continue
-		}
-		if err != nil {
-			return false, record{}, err
-		}
-		var existing record
-		if err := json.Unmarshal(raw, &existing); err != nil {
-			return false, record{}, fmt.Errorf("idempotency: corrupt record: %w", err)
-		}
-		return false, existing, nil
 	}
-	return false, record{}, errors.New("idempotency: key kept expiring while claiming")
+
+	return false, rec, nil
 }
 
 func (s *Store) replay(w http.ResponseWriter, rec record, hash string) error {
@@ -180,26 +206,35 @@ func (s *Store) replay(w http.ResponseWriter, rec record, hash string) error {
 
 // finish stores a completed response for Retention, or frees the key after
 // a 5xx so that a retry runs again.
-func (s *Store) finish(r *http.Request, rkey, hash string, c *capture) {
+func (s *Store) finish(r *http.Request, user, key, hash string, c *capture) {
+	if s.db == nil {
+		return
+	}
 	ctx := r.Context()
+	fullKey := user + ":" + key
+
 	if c.status >= http.StatusInternalServerError {
-		if err := s.rdb.Del(ctx, rkey).Err(); err != nil {
+		if _, err := s.db.Exec(ctx, `DELETE FROM platform.idempotency_keys WHERE key = $1`, fullKey); err != nil {
 			s.logger.WarnContext(ctx, "idempotency: releasing key failed", "error", err)
 		}
 		return
 	}
+
 	headers := map[string]string{}
 	for _, k := range replayedHeaders {
 		if v := c.header.Get(k); v != "" {
 			headers[k] = v
 		}
 	}
-	done, err := json.Marshal(record{State: "done", Hash: hash, Status: c.status, Headers: headers, Body: c.body.Bytes()})
-	if err == nil {
-		err = s.rdb.Set(ctx, rkey, done, Retention).Err()
-	}
+	headersJSON, _ := json.Marshal(headers)
+
+	_, err := s.db.Exec(ctx, `
+		UPDATE platform.idempotency_keys
+		SET state = 'done', hash = $2, status_code = $3, headers = $4, body = $5,
+		    expires_at = now() + interval '24 hours'
+		WHERE key = $1
+	`, fullKey, hash, c.status, headersJSON, c.body.Bytes())
 	if err != nil {
-		// The response is still sent; a repeat may then run the handler again.
 		s.logger.ErrorContext(ctx, "idempotency: storing response failed", "error", err)
 	}
 }

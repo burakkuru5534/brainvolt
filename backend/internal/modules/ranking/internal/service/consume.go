@@ -8,7 +8,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/ranking/internal/domain"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/ranking/internal/store/sqlc"
@@ -436,29 +435,32 @@ func ledger(ctx context.Context, q *sqlc.Queries, p *matchCompleted, sides [2]si
 // (redis-keys §6.2).
 const dirtyBoards = "rank:lbdirty"
 
-// applyBoards writes leaderboard changes to Redis. A failure is logged:
-// the ledger is committed and boards are rebuilt from it.
+// applyBoards writes leaderboard changes to PostgreSQL table ranking.leaderboard_entries.
 func (s *Service) applyBoards(ctx context.Context, incs []boardInc) {
-	if len(incs) == 0 || s.d.Redis == nil {
+	if len(incs) == 0 || s.d.DB == nil {
 		return
 	}
-	pipe := s.d.Redis.Pipeline()
-	var dirty []any
 	for _, b := range incs {
 		if b.set {
-			pipe.ZAdd(ctx, b.key, goredis.Z{Score: b.score, Member: b.member})
+			_, err := s.d.DB.Exec(ctx, `
+				INSERT INTO ranking.leaderboard_entries (board_key, member, score, updated_at)
+				VALUES ($1, $2, $3, now())
+				ON CONFLICT (board_key, member) DO UPDATE
+				SET score = EXCLUDED.score, updated_at = now()
+			`, b.key, b.member, b.score)
+			if err != nil && s.d.Logger != nil {
+				s.d.Logger.WarnContext(ctx, "ranking: leaderboard set failed", "error", err)
+			}
 		} else {
-			pipe.ZIncrBy(ctx, b.key, b.score, b.member)
+			_, err := s.d.DB.Exec(ctx, `
+				INSERT INTO ranking.leaderboard_entries (board_key, member, score, updated_at)
+				VALUES ($1, $2, $3, now())
+				ON CONFLICT (board_key, member) DO UPDATE
+				SET score = ranking.leaderboard_entries.score + EXCLUDED.score, updated_at = now()
+			`, b.key, b.member, b.score)
+			if err != nil && s.d.Logger != nil {
+				s.d.Logger.WarnContext(ctx, "ranking: leaderboard incr failed", "error", err)
+			}
 		}
-		if !b.expireAt.IsZero() {
-			pipe.ExpireAt(ctx, b.key, b.expireAt)
-			dirty = append(dirty, b.key)
-		}
-	}
-	if len(dirty) > 0 {
-		pipe.SAdd(ctx, dirtyBoards, dirty...)
-	}
-	if _, err := pipe.Exec(ctx); err != nil && s.d.Logger != nil {
-		s.d.Logger.WarnContext(ctx, "ranking: leaderboard update failed", "error", err)
 	}
 }

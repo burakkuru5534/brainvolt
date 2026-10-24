@@ -152,7 +152,7 @@ func TestProgressionFromMatches(t *testing.T) {
 	}
 	x.consume(completed(t, season, "1v1", [2][]uuid.UUID{{a}, {b}}, [2]*uuid.UUID{}))
 	cur, _ := x.mods.ranking.CurrentSeason(t.Context())
-	later := ranking.New(ranking.Deps{DB: x.db, Redis: x.rdb, Clock: clock.NewFake(cur.EndsAt.Add(time.Minute)), Logger: discard})
+	later := ranking.New(ranking.Deps{DB: x.db, Clock: clock.NewFake(cur.EndsAt.Add(time.Minute)), Logger: discard})
 	if err := later.Maintain(t.Context()); err != nil {
 		t.Fatal(err)
 	}
@@ -180,9 +180,9 @@ func TestMatchAwardsPushed(t *testing.T) {
 	tokA, a, _ := x.fullUser()
 	_, b, _ := x.fullUser()
 	w, _ := x.auth(tokA, "inst-awards", nil)
-	push := workerPusher(x.rdb, discard)
+	push := workerPusher(discard)
 	prog := progression.New(progression.Deps{DB: x.db, Pusher: push, Clock: clock.Real{}, Logger: discard})
-	rk := ranking.New(ranking.Deps{DB: x.db, Redis: x.rdb, Pusher: push, Clock: clock.Real{}, Logger: discard})
+	rk := ranking.New(ranking.Deps{DB: x.db, Pusher: push, Clock: clock.Real{}, Logger: discard})
 	season, _, err := rk.ActiveSeason(t.Context())
 	if err != nil {
 		t.Fatal(err)

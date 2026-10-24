@@ -15,6 +15,7 @@ import (
 	"log/slog"
 	"math/big"
 	"slices"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -35,7 +36,6 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/events"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ids"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/postgres"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
 // Event names (backend-modules.md §3.2).
@@ -49,8 +49,6 @@ const (
 const (
 	// NoRepeatWindow: questions seen in the last 30 days are avoided (D-032).
 	NoRepeatWindow = 30 * 24 * time.Hour
-	// liveLockTTL is the safety TTL of game:user:<id>:live (redis-keys §2).
-	liveLockTTL = 3 * time.Hour
 	// RevengeWindow and RevengeChain limit revenge challenges (D-045/D-046).
 	RevengeWindow = 24 * time.Hour
 	RevengeChain  = 3
@@ -113,7 +111,6 @@ func (NoSanctions) Blocking(context.Context, uuid.UUID, domain.MatchType, domain
 // Deps are the service's collaborators.
 type Deps struct {
 	DB        *pgxpool.Pool
-	Redis     *redis.Client
 	Questions Questions
 	Users     Users
 	Cards     Cards
@@ -129,7 +126,11 @@ type Deps struct {
 }
 
 // Service implements game's use cases.
-type Service struct{ d Deps }
+type Service struct {
+	d           Deps
+	userLocksMu sync.Mutex
+	userLocks   map[uuid.UUID]uuid.UUID
+}
 
 // New returns a service.
 func New(d Deps) *Service {
@@ -142,7 +143,10 @@ func New(d Deps) *Service {
 	if d.Sanctions == nil {
 		d.Sanctions = NoSanctions{}
 	}
-	return &Service{d: d}
+	return &Service{
+		d:         d,
+		userLocks: make(map[uuid.UUID]uuid.UUID),
+	}
 }
 
 // CryptoRandom shuffles options with crypto/rand (round-lifecycle §5).
@@ -523,38 +527,39 @@ func (s *Service) selectQuestions(ctx context.Context, cfg config.Config, d conf
 	return out, nil
 }
 
-func liveKey(user uuid.UUID) string { return redis.Key("game", "user", user.String(), "live") }
-
-// lockUsers takes game:user:<id>:live for every participant (one live
+// lockUsers records the active match for every participant (one live
 // match per user); on any failure the acquired locks are released.
 func (s *Service) lockUsers(ctx context.Context, match uuid.UUID, seats []engine.Seat) error {
-	var taken []engine.Seat
+	s.userLocksMu.Lock()
+	defer s.userLocksMu.Unlock()
 	for _, st := range seats {
-		ok, err := s.d.Redis.SetNX(ctx, liveKey(st.UserID), match.String(), liveLockTTL).Result()
-		if err == nil && !ok {
-			other, _ := s.d.Redis.Get(ctx, liveKey(st.UserID)).Result()
-			s.unlockUsers(context.WithoutCancel(ctx), match, taken)
+		if other, ok := s.userLocks[st.UserID]; ok {
 			return apierror.New(apierror.AlreadyInMatch).With("match_id", other).With("user_id", st.UserID)
 		}
-		if err != nil {
-			s.unlockUsers(context.WithoutCancel(ctx), match, taken)
-			return err
-		}
-		taken = append(taken, st)
+	}
+	for _, st := range seats {
+		s.userLocks[st.UserID] = match
 	}
 	return nil
 }
 
 // unlockUsers releases the locks that still point at match.
 func (s *Service) unlockUsers(ctx context.Context, match uuid.UUID, seats []engine.Seat) {
+	s.userLocksMu.Lock()
+	defer s.userLocksMu.Unlock()
 	for _, st := range seats {
-		key := liveKey(st.UserID)
-		if v, err := s.d.Redis.Get(ctx, key).Result(); err == nil && v == match.String() {
-			if err := s.d.Redis.Del(ctx, key).Err(); err != nil {
-				s.d.Logger.WarnContext(ctx, "live lock release failed", "user_id", st.UserID, "error", err)
-			}
+		if s.userLocks[st.UserID] == match {
+			delete(s.userLocks, st.UserID)
 		}
 	}
+}
+
+// UserLock returns the match ID a user is locked into, if any.
+func (s *Service) UserLock(user uuid.UUID) (uuid.UUID, bool) {
+	s.userLocksMu.Lock()
+	defer s.userLocksMu.Unlock()
+	m, ok := s.userLocks[user]
+	return m, ok
 }
 
 // extra is game.matches.config_extra.

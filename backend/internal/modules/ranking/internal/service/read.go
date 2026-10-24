@@ -15,7 +15,6 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/ranking/internal/store/sqlc"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/team"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
 // Friends lists a user's friends (social; friends boards, D-027).
@@ -156,14 +155,34 @@ func (s *Service) Leaderboard(ctx context.Context, q BoardQuery) (Board, error) 
 		}
 		more = end < len(all)
 	} else {
-		zs, err := s.d.Redis.ZRevRangeWithScores(ctx, key, int64(q.Offset), int64(q.Offset+q.Limit)).Result()
+		dbRows, err := s.d.DB.Query(ctx, `
+			SELECT member, score FROM ranking.leaderboard_entries
+			WHERE board_key = $1
+			ORDER BY score DESC, member ASC
+			OFFSET $2 LIMIT $3
+		`, key, q.Offset, q.Limit+1)
 		if err != nil {
 			return Board{}, err
 		}
-		more = len(zs) > q.Limit
-		for i, z := range zs[:min(len(zs), q.Limit)] {
-			id, _ := uuid.Parse(z.Member.(string)) //nolint:forcetypeassert // members are entity ids
-			rows = append(rows, Entry{Rank: q.Offset + i + 1, EntityID: id, Score: int64(z.Score)})
+		defer dbRows.Close()
+
+		var entries []Entry
+		for dbRows.Next() {
+			var (
+				member string
+				sc     float64
+			)
+			if err := dbRows.Scan(&member, &sc); err == nil {
+				id, _ := uuid.Parse(member)
+				entries = append(entries, Entry{EntityID: id, Score: int64(sc)})
+			}
+		}
+		dbRows.Close()
+
+		more = len(entries) > q.Limit
+		for i, e := range entries[:min(len(entries), q.Limit)] {
+			e.Rank = q.Offset + i + 1
+			rows = append(rows, e)
 		}
 		if q.Entity == "user" {
 			me, err := s.rankOf(ctx, key, q.Viewer)
@@ -193,22 +212,27 @@ func (s *Service) Leaderboard(ctx context.Context, q BoardQuery) (Board, error) 
 
 // rankOf is an entity's row on a board (nil when absent).
 func (s *Service) rankOf(ctx context.Context, key string, id uuid.UUID) (*Entry, error) {
-	rank, err := s.d.Redis.ZRevRank(ctx, key, id.String()).Result()
-	if errors.Is(err, redis.ErrNil) {
+	var (
+		rank  int
+		score float64
+	)
+	err := s.d.DB.QueryRow(ctx, `
+		SELECT rank, score FROM (
+			SELECT member, score, ROW_NUMBER() OVER (ORDER BY score DESC, member ASC) as rank
+			FROM ranking.leaderboard_entries
+			WHERE board_key = $1
+		) t WHERE member = $2
+	`, key, id.String()).Scan(&rank, &score)
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, nil //nolint:nilnil // not ranked
 	}
 	if err != nil {
 		return nil, err
 	}
-	score, err := s.d.Redis.ZScore(ctx, key, id.String()).Result()
-	if err != nil {
-		return nil, err
-	}
-	return &Entry{Rank: int(rank) + 1, EntityID: id, Score: int64(score)}, nil
+	return &Entry{Rank: rank, EntityID: id, Score: int64(score)}, nil
 }
 
-// friendRows ranks the viewer and up to 300 friends by their global
-// scores (redis-keys §6.3).
+// friendRows ranks the viewer and up to 300 friends by their global scores.
 func (s *Service) friendRows(ctx context.Context, key string, viewer uuid.UUID) ([]Entry, error) {
 	friends, err := s.d.Friends.FriendIDs(ctx, viewer)
 	if err != nil {
@@ -216,25 +240,33 @@ func (s *Service) friendRows(ctx context.Context, key string, viewer uuid.UUID) 
 	}
 	ids := append([]uuid.UUID{viewer}, friends[:min(len(friends), maxFriends)]...)
 	members := make([]string, len(ids))
+	idMap := make(map[string]uuid.UUID, len(ids))
 	for i, id := range ids {
 		members[i] = id.String()
+		idMap[id.String()] = id
 	}
-	scores, err := s.d.Redis.ZMScore(ctx, key, members...).Result()
+
+	rows, err := s.d.DB.Query(ctx, `
+		SELECT member, score FROM ranking.leaderboard_entries
+		WHERE board_key = $1 AND member = ANY($2)
+	`, key, members)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
+
 	out := []Entry{}
-	for i, sc := range scores {
-		// go-redis reports a missing member as 0; keep only real members.
-		if sc == 0 {
-			if _, err := s.d.Redis.ZScore(ctx, key, members[i]).Result(); errors.Is(err, redis.ErrNil) {
-				continue
-			} else if err != nil {
-				return nil, err
-			}
+	for rows.Next() {
+		var (
+			mem string
+			sc  float64
+		)
+		if err := rows.Scan(&mem, &sc); err == nil {
+			out = append(out, Entry{EntityID: idMap[mem], Score: int64(sc)})
 		}
-		out = append(out, Entry{EntityID: ids[i], Score: int64(sc)})
 	}
+	rows.Close()
+
 	slices.SortStableFunc(out, func(a, b Entry) int {
 		if a.Score != b.Score {
 			if a.Score > b.Score {

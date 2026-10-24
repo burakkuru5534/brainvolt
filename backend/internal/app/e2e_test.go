@@ -25,7 +25,6 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/idempotency"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ids"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ratelimit"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/testdb"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/testenv"
 )
@@ -88,7 +87,6 @@ type e2e struct {
 	t    *testing.T
 	srv  *httpserver.Server
 	db   *pgxpool.Pool
-	rdb  *redis.Client
 	emu  emulator
 	mods modules
 	// httpURL is the live test server started by url() for WebSocket tests.
@@ -99,17 +97,12 @@ func newE2E(t *testing.T) *e2e {
 	t.Helper()
 	host := testenv.FirebaseEmulatorHost(t)
 	db := testdb.New(t)
-	rdb, err := redis.Connect(t.Context(), testenv.RedisURL(t), "brainvolt-test")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { _ = rdb.Close() })
 	verifier, err := firebase.New(t.Context(), emulatorProject, host)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	bus := newBus(db, rdb, discard, nil)
+	bus := newBus(db, discard, nil)
 	for _, ev := range []string{identity.EventUserRegistered, identity.EventAccountTierChanged, identity.EventGuestAbandoned} {
 		bus.Subscribe(ev, "test.on_"+ev, func(context.Context, events.Envelope) error { return nil })
 	}
@@ -122,10 +115,10 @@ func newE2E(t *testing.T) *e2e {
 	cfg := config.HTTP{ReadTimeout: 10 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: time.Minute,
 		HandlerTimeout: 10 * time.Second, ShutdownTimeout: time.Second}
 	srv := httpserver.New(cfg, config.EnvDev, discard)
-	mods := registerModules(srv, moduleDeps{db: db, rdb: rdb, verifier: verifier, bus: bus,
-		limiter: ratelimit.New(rdb, clock.Real{}, discard), idem: idempotency.New(rdb, discard),
+	mods := registerModules(srv, moduleDeps{db: db, verifier: verifier, bus: bus,
+		limiter: ratelimit.New(clock.Real{}, discard), idem: idempotency.New(db, discard),
 		clock: clock.Real{}, logger: discard, instance: "test-" + ids.NewString(), env: config.EnvDev})
-	return &e2e{t: t, srv: srv, db: db, rdb: rdb, emu: emulator{t: t, host: host}, mods: mods}
+	return &e2e{t: t, srv: srv, db: db, emu: emulator{t: t, host: host}, mods: mods}
 }
 
 type response struct {
@@ -197,7 +190,7 @@ func (x *e2e) jobs(event string) int {
 }
 
 func (x *e2e) forgetPrincipal(firebaseUID string) {
-	x.rdb.Del(context.Background(), redis.Key("id", "fuid", firebaseUID))
+	x.mods.identity.Forget(firebaseUID)
 }
 
 func want(t *testing.T, what string, r response, code int, errCode string) {

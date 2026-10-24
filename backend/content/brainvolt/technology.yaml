@@ -1,0 +1,62 @@
+# BrainVolt team pool — Technology. Format: content/README.md.
+source: brainvolt-team
+questions:
+  - ref: bv-technology-001
+    subcategory: technology/computers-internet
+    difficulty: 1
+    tr:
+      prompt: '"WWW" kısaltmasının açılımı nedir?'
+      options: [World Wide Web, World Wide Wireless, Web Wide World, Wide World Web]
+    en:
+      prompt: What does "WWW" stand for?
+      options: [World Wide Web, World Wide Wireless, Web Wide World, Wide World Web]
+
+  - ref: bv-technology-002
+    subcategory: technology/computers-internet
+    difficulty: 1
+    tr:
+      prompt: 1 bayt kaç bitten oluşur?
+      options: ["8", "4", "16", "10"]
+    en:
+      prompt: How many bits are in one byte?
+      options: ["8", "4", "16", "10"]
+
+  - ref: bv-technology-003
+    subcategory: technology/computers-internet
+    difficulty: 1
+    tr:
+      prompt: Bilgisayarlarda "CPU" neyin kısaltmasıdır?
+      options: [Merkezi İşlem Birimi, Bilgisayar Güç Ünitesi, Merkezi Program Birimi, Kontrol İşlem Ünitesi]
+    en:
+      prompt: In computers, what does "CPU" stand for?
+      options: [Central Processing Unit, Computer Power Unit, Central Program Unit, Control Processing Unit]
+
+  - ref: bv-technology-004
+    subcategory: technology/inventions
+    difficulty: 1
+    tr:
+      prompt: Telefonun mucidi olarak bilinen kişi kimdir?
+      options: [Alexander Graham Bell, Thomas Edison, Nikola Tesla, Guglielmo Marconi]
+    en:
+      prompt: Who is usually credited with inventing the telephone?
+      options: [Alexander Graham Bell, Thomas Edison, Nikola Tesla, Guglielmo Marconi]
+
+  - ref: bv-technology-005
+    subcategory: technology/inventions
+    difficulty: 2
+    tr:
+      prompt: Avrupa'da hareketli harfli matbaayı geliştiren kişi kimdir?
+      options: [Johannes Gutenberg, Leonardo da Vinci, Galileo Galilei, Isaac Newton]
+    en:
+      prompt: Who developed the movable-type printing press in Europe?
+      options: [Johannes Gutenberg, Leonardo da Vinci, Galileo Galilei, Isaac Newton]
+
+  - ref: bv-technology-006
+    subcategory: technology/computers-internet
+    difficulty: 2
+    type: true_false
+    answer: true
+    tr:
+      prompt: TCP/IP, internetin temel iletişim protokollerindendir.
+    en:
+      prompt: TCP/IP is one of the core communication protocols of the internet.

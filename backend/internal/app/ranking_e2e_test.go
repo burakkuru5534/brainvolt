@@ -75,6 +75,12 @@ func (x *e2e) standing(season uuid.UUID, kind string, id uuid.UUID) (sp int, lea
 	return sp, league, matches
 }
 
+func (x *e2e) boardScore(board, member string) (float64, error) {
+	var score float64
+	err := x.db.QueryRow(x.t.Context(), `SELECT score FROM ranking.leaderboard_entries WHERE board_key = $1 AND member = $2`, board, member).Scan(&score)
+	return score, err
+}
+
 func (x *e2e) ledgerPoints(match uuid.UUID, kind string, id uuid.UUID) (overall, rows int) {
 	x.t.Helper()
 	if err := x.db.QueryRow(x.t.Context(), `SELECT coalesce(sum(points) FILTER (WHERE category_id IS NULL), 0), count(*)
@@ -127,14 +133,14 @@ func TestRankingConsumesRankedDuel(t *testing.T) {
 		t.Fatalf("loser ledger %d", pts)
 	}
 	week := weekBoard("user", "all")
-	if score, err := x.rdb.ZScore(t.Context(), week, a.String()).Result(); err != nil || score != 24 {
+	if score, err := x.boardScore(week, a.String()); err != nil || score != 24 {
 		t.Fatalf("weekly board %s: %v %v", week, score, err)
 	}
 	cat := "cat:" + p.Rounds[0].CategoryID.String()
-	if score, err := x.rdb.ZScore(t.Context(), "rank:lb:a:user:global:"+cat, a.String()).Result(); err != nil || score != 24 {
+	if score, err := x.boardScore("rank:lb:a:user:global:"+cat, a.String()); err != nil || score != 24 {
 		t.Fatalf("all-time category board: %v %v", score, err)
 	}
-	if score, err := x.rdb.ZScore(t.Context(), "rank:lb:s:"+jsonNum(float64(cur.Number))+":user:global:all", a.String()).Result(); err != nil || score != 30 {
+	if score, err := x.boardScore("rank:lb:s:"+jsonNum(float64(cur.Number))+":user:global:all", a.String()); err != nil || score != 30 {
 		t.Fatalf("season board: %v %v", score, err)
 	}
 
@@ -184,7 +190,7 @@ func TestRankingConsumesCoupleContest(t *testing.T) {
 	if pts, _ := x.ledgerPoints(p.MatchID, "couple", c2); pts != 2 {
 		t.Fatalf("losing couple ledger %d", pts)
 	}
-	if _, err := x.rdb.ZScore(t.Context(), weekBoard("couple", "all"), c1.String()).Result(); err != nil {
+	if _, err := x.boardScore(weekBoard("couple", "all"), c1.String()); err != nil {
 		t.Fatalf("couple weekly board: %v", err)
 	}
 }
@@ -287,7 +293,7 @@ func TestRankingReplaysUpgradedAccount(t *testing.T) {
 	p.Participants[0].TierAtStart = "guest"
 	x.consume(p)
 	week := weekBoard("user", "all")
-	if _, err := x.rdb.ZScore(t.Context(), week, guest.String()).Result(); err == nil {
+	if _, err := x.boardScore(week, guest.String()); err == nil {
 		t.Fatal("restricted player on a public board")
 	}
 	payload, _ := json.Marshal(identity.AccountTierChanged{UserID: guest, From: "guest", To: "full"})
@@ -296,11 +302,11 @@ func TestRankingReplaysUpgradedAccount(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if score, err := x.rdb.ZScore(t.Context(), week, guest.String()).Result(); err != nil || score != 24 {
+	if score, err := x.boardScore(week, guest.String()); err != nil || score != 24 {
 		t.Fatalf("replayed weekly score %v %v", score, err)
 	}
 	cur, _ := x.mods.ranking.CurrentSeason(t.Context())
-	if score, err := x.rdb.ZScore(t.Context(), "rank:lb:s:"+jsonNum(float64(cur.Number))+":user:global:all", guest.String()).Result(); err != nil || score != 30 {
+	if score, err := x.boardScore("rank:lb:s:"+jsonNum(float64(cur.Number))+":user:global:all", guest.String()); err != nil || score != 30 {
 		t.Fatalf("replayed season score %v %v", score, err)
 	}
 }
@@ -319,7 +325,7 @@ func TestSeasonCloseAndSnapshots(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	later := ranking.New(ranking.Deps{DB: x.db, Redis: x.rdb, Profiles: x.mods.profile, Teams: x.mods.team,
+	later := ranking.New(ranking.Deps{DB: x.db, Profiles: x.mods.profile, Teams: x.mods.team,
 		Clock: clock.NewFake(cur.EndsAt.Add(time.Hour)), Logger: discard})
 	for range 2 { // idempotent
 		if err := later.Maintain(t.Context()); err != nil {

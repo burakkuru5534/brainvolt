@@ -2,15 +2,12 @@ package live
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"math/rand/v2"
 	"slices"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
-	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/domain"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game/internal/domain/engine"
@@ -59,9 +56,7 @@ type command struct {
 	Phrase string `json:"phrase,omitempty"`
 }
 
-// owner runs one live match: the single writer of its state (match-
-// lifecycle §5). Every command is applied to the engine, persisted, saved
-// to Redis, delivered and its timers armed, in that order.
+// owner runs one live match: the single writer of its state.
 type owner struct {
 	m     *Manager
 	match *engine.Match
@@ -72,6 +67,7 @@ type owner struct {
 	inbox  chan command
 	stop   chan struct{}
 	timers []clock.Timer
+	events []stored
 
 	stopOnce sync.Once
 }
@@ -97,20 +93,11 @@ func (o *owner) post(c command) error {
 }
 
 func (o *owner) run(ctx context.Context) {
-	renew := o.m.d.Clock.NewTicker(LeaseRenew)
-	defer renew.Stop()
 	for {
 		select {
 		case <-ctx.Done():
 			o.halt()
 			return
-		case <-renew.C():
-			if !o.m.renewLease(ctx, o.match.ID) {
-				o.m.d.Logger.WarnContext(ctx, "game: match owner lease lost", "match_id", o.match.ID)
-				o.halt()
-				o.m.forget(o)
-				return
-			}
 		case c := <-o.inbox:
 			o.handle(ctx, c)
 			if o.match.Status.Terminal() {
@@ -282,31 +269,19 @@ func (o *owner) persist(ctx context.Context, out engine.Output) error {
 	return err
 }
 
-// save writes the engine state, the seats and the new events to Redis.
+// save records new events in memory.
 func (o *owner) save(ctx context.Context, events []engine.Event, now int64) error {
-	snap, err := o.match.Snapshot()
-	if err != nil {
-		return err
-	}
-	seats, err := json.Marshal(o.seats)
-	if err != nil {
-		return err
-	}
-	pipe := o.m.d.Redis.TxPipeline()
-	pipe.HSet(ctx, stateKey(o.match.ID), "engine", snap, "seats", seats, "status", string(o.match.Status))
 	for _, e := range events {
 		s, err := toStored(e, now)
 		if err != nil {
 			return err
 		}
-		b, err := json.Marshal(s)
-		if err != nil {
-			return err
+		o.events = append(o.events, s)
+		if len(o.events) > maxEvents {
+			o.events = o.events[len(o.events)-maxEvents:]
 		}
-		pipe.XAdd(ctx, &goredis.XAddArgs{Stream: eventsKey(o.match.ID), ID: fmt.Sprintf("0-%d", e.Seq), MaxLen: maxEvents, Approx: true, Values: []any{"e", b}})
 	}
-	_, err = pipe.Exec(ctx)
-	return err
+	return nil
 }
 
 func (o *owner) recipient(user uuid.UUID) recipient {
@@ -409,25 +384,15 @@ func (o *owner) halt() {
 	o.timers = nil
 }
 
-// finish ends a terminal match: timers stop, Redis keys expire after an
-// hour (late resumes still get the result), the lease is released.
+// finish ends a terminal match: timers stop, participants set to not playing.
 func (o *owner) finish(ctx context.Context) {
 	o.halt()
 	ctx = context.WithoutCancel(ctx)
-	id := o.match.ID
-	pipe := o.m.d.Redis.Pipeline()
-	pipe.Expire(ctx, stateKey(id), FinishedTTL)
-	pipe.Expire(ctx, eventsKey(id), FinishedTTL)
-	pipe.ZRem(ctx, liveKey, id.String())
-	if _, err := pipe.Exec(ctx); err != nil {
-		o.m.d.Logger.WarnContext(ctx, "game: cleaning up a finished match failed", "match_id", id, "error", err)
-	}
 	for user, session := range o.seats {
 		if err := o.m.d.RT.SetPlaying(ctx, realtime.Target{User: user, Session: session}, false); err != nil {
 			o.m.d.Logger.DebugContext(ctx, "game: heartbeat switch failed", "error", err)
 		}
 	}
-	o.m.releaseLease(ctx, id)
 	o.m.forget(o)
 	o.m.notifyEnded(ctx, o.match)
 }

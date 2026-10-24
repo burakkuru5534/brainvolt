@@ -1,14 +1,8 @@
 // Package ratelimit implements the fixed-window rate limiter of
-// docs/api/limits.md §1 on Redis counters rl:<name>:<subject>:<window_id>
-// (docs/domain/redis-keys.md §7.1).
+// docs/api/limits.md §1 using in-memory counters.
 //
-// Each window is a counter incremented with INCR and given the window's
-// length as TTL on first use, so keys clean themselves up. Exceeding a limit
+// Each window is a counter incremented on each request. Exceeding a limit
 // yields 429 RATE_LIMITED with Retry-After = time left in the window.
-//
-// If Redis is unreachable the limiter fails open (allows the request and
-// logs): rate limits protect the service, they must not take it down;
-// /readyz already reports Redis as failed (D-056).
 package ratelimit
 
 import (
@@ -17,14 +11,13 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
 // Limit is at most Max events per Window for one subject.
@@ -55,16 +48,27 @@ type Result struct {
 	RetryAfter time.Duration // time until the window resets; set when not allowed
 }
 
-// Limiter counts events in Redis.
-type Limiter struct {
-	rdb    *redis.Client
-	clock  clock.Clock
-	logger *slog.Logger
+type windowEntry struct {
+	count     int
+	expiresAt time.Time
 }
 
-// New returns a limiter.
-func New(rdb *redis.Client, c clock.Clock, logger *slog.Logger) *Limiter {
-	return &Limiter{rdb: rdb, clock: c, logger: logger}
+// Limiter counts events in memory.
+type Limiter struct {
+	mu      sync.Mutex
+	windows map[string]*windowEntry
+	clock   clock.Clock
+	logger  *slog.Logger
+}
+
+// New returns an in-memory limiter.
+func New(c clock.Clock, logger *slog.Logger) *Limiter {
+	lim := &Limiter{
+		windows: make(map[string]*windowEntry),
+		clock:   c,
+		logger:  logger,
+	}
+	return lim
 }
 
 // Allow counts one event for subject under l.
@@ -72,15 +76,31 @@ func (lim *Limiter) Allow(ctx context.Context, l Limit, subject string) (Result,
 	now := lim.clock.Now()
 	window := now.UnixMilli() / l.Window.Milliseconds()
 	resetAt := time.UnixMilli((window + 1) * l.Window.Milliseconds())
-	key := redis.Key("rl", l.Name, subject, strconv.FormatInt(window, 10))
+	key := fmt.Sprintf("%s:%s:%d", l.Name, subject, window)
 
-	pipe := lim.rdb.TxPipeline()
-	incr := pipe.Incr(ctx, key)
-	pipe.ExpireNX(ctx, key, l.Window)
-	if _, err := pipe.Exec(ctx); err != nil {
-		return Result{}, fmt.Errorf("ratelimit %s: %w", l.Name, err)
+	lim.mu.Lock()
+	defer lim.mu.Unlock()
+
+	// Opportunistic cleanup of expired windows if map gets large
+	if len(lim.windows) > 1000 {
+		for k, w := range lim.windows {
+			if now.After(w.expiresAt) {
+				delete(lim.windows, k)
+			}
+		}
 	}
-	count := int(incr.Val())
+
+	entry, ok := lim.windows[key]
+	if !ok {
+		entry = &windowEntry{
+			count:     0,
+			expiresAt: resetAt.Add(l.Window),
+		}
+		lim.windows[key] = entry
+	}
+	entry.count++
+	count := entry.count
+
 	res := Result{Allowed: count <= l.Max, Count: count, Remaining: max(l.Max-count, 0)}
 	if !res.Allowed {
 		res.RetryAfter = resetAt.Sub(now)
@@ -89,7 +109,7 @@ func (lim *Limiter) Allow(ctx context.Context, l Limit, subject string) (Result,
 }
 
 // Check is Allow for handlers: nil when allowed, RATE_LIMITED when not.
-// A Redis failure is logged and the event allowed (fail open).
+// Any failure is logged and the event allowed (fail open).
 func (lim *Limiter) Check(ctx context.Context, l Limit, subject string) error {
 	res, err := lim.Allow(ctx, l, subject)
 	if err != nil {

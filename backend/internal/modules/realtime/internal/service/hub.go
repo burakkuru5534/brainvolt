@@ -13,20 +13,16 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log/slog"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
-	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/i18n"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/wsserver"
 )
 
@@ -92,11 +88,16 @@ type Target struct {
 
 // Deps are the hub's collaborators.
 type Deps struct {
-	Redis    *redis.Client
 	Auth     Authenticator
 	Clock    clock.Clock
 	Logger   *slog.Logger
 	Instance string // this API instance's id
+}
+
+type resumableEntry struct {
+	userID    uuid.UUID
+	tokenHash string
+	expiresAt time.Time
 }
 
 // Hub holds this instance's sessions.
@@ -107,6 +108,7 @@ type Hub struct {
 	sessions       map[uuid.UUID]*Session
 	byUser         map[uuid.UUID]map[uuid.UUID]*Session
 	byInstallation map[string]*Session
+	resumables     map[uuid.UUID]resumableEntry
 
 	handlers     map[string]Handler
 	resumers     map[string]ResumeFunc
@@ -120,7 +122,8 @@ type Hub struct {
 func New(d Deps) *Hub {
 	return &Hub{
 		d: d, sessions: map[uuid.UUID]*Session{}, byUser: map[uuid.UUID]map[uuid.UUID]*Session{},
-		byInstallation: map[string]*Session{}, handlers: map[string]Handler{}, resumers: map[string]ResumeFunc{},
+		byInstallation: map[string]*Session{}, resumables: map[uuid.UUID]resumableEntry{},
+		handlers: map[string]Handler{}, resumers: map[string]ResumeFunc{},
 	}
 }
 
@@ -149,20 +152,7 @@ func (h *Hub) OnLive(fn LiveFunc) { h.live = append(h.live, fn) }
 // later with Reply (e.g. after the match owner processed it).
 var ErrDeferred = errors.New("realtime: reply deferred")
 
-// remote is a pub/sub message between instances.
-type remote struct {
-	Kind    string             `json:"kind"` // deliver | replace | playing
-	Playing bool               `json:"playing,omitempty"`
-	Target  Target             `json:"target"`
-	Frame   *wsserver.Outbound `json:"frame,omitempty"`
-}
-
-func instChannel(instance string) string { return redis.Key("rt", "ch", "inst", instance) }
-func presenceKey(user uuid.UUID) string  { return redis.Key("rt", "presence", user.String()) }
-func sessionKey(id uuid.UUID) string     { return redis.Key("rt", "sess", id.String()) }
-func installationKey(id string) string   { return redis.Key("rt", "installation", id) }
-
-// Send delivers a frame to the target's sessions on every instance. A
+// Send delivers a frame to the target's sessions on this instance. A
 // session that cannot keep up is closed; delivery is best effort, the
 // client recovers missed stream events by resume (websocket.md §6).
 func (h *Hub) Send(ctx context.Context, t Target, f wsserver.Outbound) error {
@@ -170,50 +160,7 @@ func (h *Hub) Send(ctx context.Context, t Target, f wsserver.Outbound) error {
 		f.TS = h.d.Clock.Now().UnixMilli()
 	}
 	h.deliverLocal(t, f)
-	instances, err := h.instancesOf(ctx, t)
-	if err != nil {
-		return err
-	}
-	if len(instances) == 0 {
-		return nil
-	}
-	msg, err := json.Marshal(remote{Kind: "deliver", Target: t, Frame: &f})
-	if err != nil {
-		return err
-	}
-	for _, inst := range instances {
-		if err := h.d.Redis.Publish(ctx, instChannel(inst), msg).Err(); err != nil {
-			return fmt.Errorf("realtime: publish to %s: %w", inst, err)
-		}
-	}
 	return nil
-}
-
-// instancesOf returns the other instances holding sessions of the target.
-func (h *Hub) instancesOf(ctx context.Context, t Target) ([]string, error) {
-	if t.Session != uuid.Nil {
-		inst, err := h.d.Redis.HGet(ctx, sessionKey(t.Session), "instance").Result()
-		if errors.Is(err, goredis.Nil) || inst == h.d.Instance {
-			return nil, nil
-		}
-		if err != nil {
-			return nil, err
-		}
-		return []string{inst}, nil
-	}
-	all, err := h.d.Redis.HGetAll(ctx, presenceKey(t.User)).Result()
-	if err != nil {
-		return nil, err
-	}
-	cutoff := h.d.Clock.Now().Add(-PresenceTTL).UnixMilli()
-	var out []string
-	for inst, seen := range all {
-		ms, _ := strconv.ParseInt(seen, 10, 64)
-		if inst != h.d.Instance && ms >= cutoff {
-			out = append(out, inst)
-		}
-	}
-	return out, nil
 }
 
 func (h *Hub) deliverLocal(t Target, f wsserver.Outbound) {
@@ -234,47 +181,11 @@ func (h *Hub) deliverLocal(t Target, f wsserver.Outbound) {
 	}
 }
 
-// Run receives deliveries for this instance until ctx ends.
+// Run waits until ctx ends, then closes all sessions.
 func (h *Hub) Run(ctx context.Context) error {
-	sub := h.d.Redis.Subscribe(ctx, instChannel(h.d.Instance))
-	defer sub.Close()
-	if _, err := sub.Receive(ctx); err != nil {
-		if ctx.Err() != nil {
-			return nil
-		}
-		return fmt.Errorf("realtime: subscribe: %w", err)
-	}
-	ch := sub.Channel()
-	for {
-		select {
-		case <-ctx.Done():
-			h.closeAll(wsserver.CloseGoingAway, "server shutting down")
-			return nil
-		case m, ok := <-ch:
-			if !ok {
-				return nil
-			}
-			var r remote
-			if err := json.Unmarshal([]byte(m.Payload), &r); err != nil {
-				h.d.Logger.WarnContext(ctx, "realtime: bad pub/sub message", "error", err)
-				continue
-			}
-			switch r.Kind {
-			case "deliver":
-				if r.Frame != nil {
-					h.deliverLocal(r.Target, *r.Frame)
-				}
-			case "replace":
-				if s := h.session(r.Target.Session); s != nil {
-					s.close(wsserver.CloseReplaced, "replaced by a newer session")
-				}
-			case "playing":
-				if s := h.session(r.Target.Session); s != nil {
-					s.setPlaying(r.Playing)
-				}
-			}
-		}
-	}
+	<-ctx.Done()
+	h.closeAll(wsserver.CloseGoingAway, "server shutting down")
+	return nil
 }
 
 func (h *Hub) closeAll(code wsserver.CloseCode, reason string) {
@@ -307,17 +218,21 @@ func hashToken(t string) string {
 // resumable checks a resume request: the session exists (within the
 // 2 min window), belongs to the user and the token matches.
 func (h *Hub) resumable(ctx context.Context, user, session uuid.UUID, token string) bool {
-	v, err := h.d.Redis.HMGet(ctx, sessionKey(session), "user_id", "token_hash").Result()
-	if err != nil || len(v) != 2 {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	entry, ok := h.resumables[session]
+	if !ok {
 		return false
 	}
-	u, _ := v[0].(string)
-	th, _ := v[1].(string)
-	return u == user.String() && th != "" && th == hashToken(token)
+	if h.d.Clock.Now().After(entry.expiresAt) {
+		delete(h.resumables, session)
+		return false
+	}
+	return entry.userID == user && entry.tokenHash != "" && entry.tokenHash == hashToken(token)
 }
 
 // register adds a session, replacing the installation's previous one
-// (close 4009, websocket.md §2), and writes its Redis records.
+// (close 4009, websocket.md §2).
 func (h *Hub) register(ctx context.Context, s *Session, tokenHash string) error {
 	c := s.client
 	h.mu.Lock()
@@ -328,43 +243,28 @@ func (h *Hub) register(ctx context.Context, s *Session, tokenHash string) error 
 	}
 	h.byUser[c.UserID][c.SessionID] = s
 	h.byInstallation[c.InstallationID] = s
+	h.resumables[c.SessionID] = resumableEntry{
+		userID:    c.UserID,
+		tokenHash: tokenHash,
+		expiresAt: h.d.Clock.Now().Add(ResumeWindow),
+	}
 	h.mu.Unlock()
 	if old != nil && old != s {
 		old.close(wsserver.CloseReplaced, "replaced by a newer session")
 	}
-
-	prev, err := h.d.Redis.SetArgs(ctx, installationKey(c.InstallationID), c.SessionID.String(),
-		goredis.SetArgs{Get: true, TTL: ResumeWindow}).Result()
-	if err != nil && !errors.Is(err, goredis.Nil) {
-		return err
-	}
-	if prevID, perr := uuid.Parse(prev); perr == nil && prevID != c.SessionID && (old == nil || old.client.SessionID != prevID) {
-		if inst, ierr := h.d.Redis.HGet(ctx, sessionKey(prevID), "instance").Result(); ierr == nil && inst != h.d.Instance {
-			msg, _ := json.Marshal(remote{Kind: "replace", Target: Target{User: c.UserID, Session: prevID}})
-			h.d.Redis.Publish(ctx, instChannel(inst), msg)
-		}
-	}
-	pipe := h.d.Redis.TxPipeline()
-	pipe.HSet(ctx, sessionKey(c.SessionID), "user_id", c.UserID.String(), "token_hash", tokenHash,
-		"installation_id", c.InstallationID, "instance", h.d.Instance)
-	pipe.Expire(ctx, sessionKey(c.SessionID), ResumeWindow)
-	_, err = pipe.Exec(ctx)
-	if err != nil {
-		return err
-	}
-	return h.touch(ctx, s)
+	return nil
 }
 
-// touch refreshes the session's resume window and the user's presence.
+// touch refreshes the session's resume window.
 func (h *Hub) touch(ctx context.Context, s *Session) error {
 	c := s.client
-	pipe := h.d.Redis.Pipeline()
-	pipe.Expire(ctx, sessionKey(c.SessionID), ResumeWindow)
-	pipe.Expire(ctx, installationKey(c.InstallationID), ResumeWindow)
-	pipe.HSet(ctx, presenceKey(c.UserID), h.d.Instance, h.d.Clock.Now().UnixMilli())
-	pipe.Expire(ctx, presenceKey(c.UserID), PresenceTTL)
-	_, err := pipe.Exec(ctx)
-	return err
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if entry, ok := h.resumables[c.SessionID]; ok {
+		entry.expiresAt = h.d.Clock.Now().Add(ResumeWindow)
+		h.resumables[c.SessionID] = entry
+	}
+	return nil
 }
 
 // unregister removes a closed session; its resume record stays for the
@@ -384,13 +284,8 @@ func (h *Hub) unregister(ctx context.Context, s *Session) {
 	if h.byInstallation[c.InstallationID] == s {
 		delete(h.byInstallation, c.InstallationID)
 	}
-	userGone := h.byUser[c.UserID] == nil
 	h.mu.Unlock()
-	if userGone {
-		if err := h.d.Redis.HDel(ctx, presenceKey(c.UserID), h.d.Instance).Err(); err != nil {
-			h.d.Logger.WarnContext(ctx, "realtime: presence cleanup failed", "error", err)
-		}
-	}
+
 	for _, fn := range h.onDisconnect {
 		fn(ctx, c)
 	}
@@ -404,21 +299,12 @@ func (h *Hub) session(id uuid.UUID) *Session {
 }
 
 // SetPlaying switches a session's heartbeat between 2 s (in a match) and
-// 20 s (websocket.md §4), on whichever instance holds it.
+// 20 s (websocket.md §4).
 func (h *Hub) SetPlaying(ctx context.Context, t Target, playing bool) error {
 	if s := h.session(t.Session); s != nil {
 		s.setPlaying(playing)
-		return nil
 	}
-	instances, err := h.instancesOf(ctx, t)
-	if err != nil || len(instances) == 0 {
-		return err
-	}
-	msg, err := json.Marshal(remote{Kind: "playing", Target: t, Playing: playing})
-	if err != nil {
-		return err
-	}
-	return h.d.Redis.Publish(ctx, instChannel(instances[0]), msg).Err()
+	return nil
 }
 
 // Reply answers an intent later (after ErrDeferred) on the client's session.
@@ -429,26 +315,11 @@ func (h *Hub) Reply(ctx context.Context, c Client, re string, err error) error {
 	return h.Send(ctx, Target{User: c.UserID, Session: c.SessionID}, h.replyFrame(ctx, c.Locale, re, err))
 }
 
-// Online reports whether the user has a session on any instance seen in
-// the last 60 s (presence, redis-keys §4).
+// Online reports whether the user has a session seen in the last 60 s.
 func (h *Hub) Online(ctx context.Context, user uuid.UUID) bool {
 	h.mu.Lock()
-	local := len(h.byUser[user]) > 0
-	h.mu.Unlock()
-	if local {
-		return true
-	}
-	all, err := h.d.Redis.HGetAll(ctx, presenceKey(user)).Result()
-	if err != nil {
-		return false
-	}
-	cutoff := h.d.Clock.Now().Add(-PresenceTTL).UnixMilli()
-	for _, seen := range all {
-		if ms, _ := strconv.ParseInt(seen, 10, 64); ms >= cutoff {
-			return true
-		}
-	}
-	return false
+	defer h.mu.Unlock()
+	return len(h.byUser[user]) > 0
 }
 
 // prefixOf returns the routing prefix of a message type ("match.answer" → "match").

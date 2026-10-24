@@ -44,9 +44,11 @@ class NoPushService implements PushService {
 /// `deep_link` data field.
 class FirebasePushService implements PushService {
   FirebasePushService([FirebaseMessaging? messaging])
-    : _fm = messaging ?? FirebaseMessaging.instance;
+    : _customMessaging = messaging;
 
-  final FirebaseMessaging _fm;
+  final FirebaseMessaging? _customMessaging;
+
+  FirebaseMessaging get _fm => _customMessaging ?? FirebaseMessaging.instance;
 
   @override
   Future<String?> token() async {
@@ -55,29 +57,54 @@ class FirebasePushService implements PushService {
       if (s.authorizationStatus == AuthorizationStatus.denied) {
         return null;
       }
-      final id = _fm.onRegistered.first.timeout(const Duration(seconds: 15));
+      await _fm.setAutoInitEnabled(true);
+      final id = _fm.onRegistered.first.timeout(const Duration(seconds: 10));
       await _fm.register();
       return await id;
     } on Object catch (e) {
-      // No Google Play services, simulator without APNs, …
+      // No Google Play services, simulator without APNs, GMS proxy failure, etc.
       _log.warning('no push token', e);
       return null;
     }
   }
 
   @override
-  Stream<String> get tokenRefresh => _fm.onRegistered;
+  Stream<String> get tokenRefresh {
+    try {
+      return _fm.onRegistered.handleError((Object e) {
+        _log.warning('tokenRefresh stream error', e);
+      });
+    } on Object catch (e) {
+      _log.warning('tokenRefresh setup failed', e);
+      return const Stream.empty();
+    }
+  }
 
   @override
-  Stream<String> get opened => FirebaseMessaging.onMessageOpenedApp
-      .map((m) => m.data['deep_link'] as String? ?? '')
-      .where((r) => r.startsWith('/'));
+  Stream<String> get opened {
+    try {
+      return FirebaseMessaging.onMessageOpenedApp
+          .map((m) => m.data['deep_link'] as String? ?? '')
+          .where((r) => r.startsWith('/'))
+          .handleError((Object e) {
+            _log.warning('opened push stream error', e);
+          });
+    } on Object catch (e) {
+      _log.warning('opened push stream setup failed', e);
+      return const Stream.empty();
+    }
+  }
 
   @override
   Future<String?> initialRoute() async {
-    final m = await _fm.getInitialMessage();
-    final r = m?.data['deep_link'] as String?;
-    return r != null && r.startsWith('/') ? r : null;
+    try {
+      final m = await _fm.getInitialMessage();
+      final r = m?.data['deep_link'] as String?;
+      return r != null && r.startsWith('/') ? r : null;
+    } on Object catch (e) {
+      _log.warning('initialRoute failed', e);
+      return null;
+    }
   }
 }
 

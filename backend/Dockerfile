@@ -24,7 +24,8 @@ RUN addgroup -S brainvolt && adduser -S -G brainvolt brainvolt
 # CA certificates: Firebase (token keys, Admin API) is reached over HTTPS.
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=build /out/ /app/
+COPY --from=build /src/content /app/content
 USER brainvolt
 EXPOSE 8080
-ENV BRAINVOLT_HTTP_ADDR=:8080 BRAINVOLT_LOG_FORMAT=json
+ENV BRAINVOLT_LOG_FORMAT=json
 CMD ["/app/api"]

@@ -1,0 +1,97 @@
+# Categories and sub-categories (schema-content §1). Order in this file is
+# the display order. Slugs never change once imported (question files and
+# match history refer to them); names and icons may.
+categories:
+  - slug: history
+    icon: history
+    name: {tr: Tarih, en: History}
+    subcategories:
+      - slug: world-history
+        name: {tr: Dünya Tarihi, en: World History}
+      - slug: turkish-history
+        name: {tr: Türk Tarihi, en: Turkish History}
+      - slug: ottoman-empire
+        name: {tr: Osmanlı İmparatorluğu, en: Ottoman Empire}
+      - slug: ancient-civilizations
+        name: {tr: Antik Uygarlıklar, en: Ancient Civilizations}
+
+  - slug: geography
+    icon: geography
+    name: {tr: Coğrafya, en: Geography}
+    subcategories:
+      - slug: countries-capitals
+        name: {tr: Ülkeler ve Başkentler, en: Countries and Capitals}
+      - slug: turkey
+        name: {tr: Türkiye Coğrafyası, en: Geography of Turkey}
+      - slug: physical-geography
+        name: {tr: Doğa ve Fiziki Coğrafya, en: Nature and Physical Geography}
+
+  - slug: science
+    icon: science
+    name: {tr: Bilim, en: Science}
+    subcategories:
+      - slug: physics
+        name: {tr: Fizik, en: Physics}
+      - slug: chemistry
+        name: {tr: Kimya, en: Chemistry}
+      - slug: biology
+        name: {tr: Biyoloji, en: Biology}
+      - slug: space
+        name: {tr: Uzay ve Astronomi, en: Space and Astronomy}
+      - slug: mathematics
+        name: {tr: Matematik, en: Mathematics}
+
+  - slug: arts-literature
+    icon: arts
+    name: {tr: Sanat ve Edebiyat, en: Arts and Literature}
+    subcategories:
+      - slug: turkish-literature
+        name: {tr: Türk Edebiyatı, en: Turkish Literature}
+      - slug: world-literature
+        name: {tr: Dünya Edebiyatı, en: World Literature}
+      - slug: visual-arts
+        name: {tr: Resim ve Heykel, en: Painting and Sculpture}
+      - slug: music
+        name: {tr: Müzik, en: Music}
+
+  - slug: sports
+    icon: sports
+    name: {tr: Spor, en: Sports}
+    subcategories:
+      - slug: football
+        name: {tr: Futbol, en: Football}
+      - slug: olympics
+        name: {tr: Olimpiyatlar, en: Olympics}
+      - slug: other-sports
+        name: {tr: Diğer Sporlar, en: Other Sports}
+
+  - slug: entertainment
+    icon: entertainment
+    name: {tr: Eğlence, en: Entertainment}
+    subcategories:
+      - slug: cinema
+        name: {tr: Sinema, en: Cinema}
+      - slug: tv
+        name: {tr: Dizi ve Televizyon, en: TV and Series}
+      - slug: video-games
+        name: {tr: Video Oyunları, en: Video Games}
+
+  - slug: technology
+    icon: technology
+    name: {tr: Teknoloji, en: Technology}
+    subcategories:
+      - slug: computers-internet
+        name: {tr: Bilgisayar ve İnternet, en: Computers and the Internet}
+      - slug: inventions
+        name: {tr: İcatlar, en: Inventions}
+
+  - slug: general-knowledge
+    icon: general
+    name: {tr: Genel Kültür, en: General Knowledge}
+    subcategories:
+      - slug: language
+        name: {tr: Dil ve Kelimeler, en: Language and Words}
+      - slug: food-drink
+        name: {tr: Yemek ve İçecek, en: Food and Drink}
+      - slug: mixed
+        name: {tr: Karışık, en: Mixed}

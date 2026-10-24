@@ -20,13 +20,33 @@ import 'firebase_options.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   _setUpLogging();
+
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    debugPrint('FlutterError: ${details.exceptionAsString()}');
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('PlatformDispatcher error: $error\n$stack');
+    return true; // Keep the engine alive
+  };
+
   final config = AppConfig.fromEnvironment();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  final emulator = config.authEmulator;
-  if (emulator != null) {
-    // Local development signs in against the Auth emulator (ADR-0003).
-    await FirebaseAuth.instance.useAuthEmulator(emulator.host, emulator.port);
+
+  var pushService = const NoPushService() as PushService;
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).timeout(const Duration(seconds: 5));
+    final emulator = config.authEmulator;
+    if (emulator != null) {
+      // Local development signs in against the Auth emulator (ADR-0003).
+      await FirebaseAuth.instance.useAuthEmulator(emulator.host, emulator.port);
+    }
+    pushService = FirebasePushService();
+  } catch (e, st) {
+    debugPrint('Firebase initialization failed: $e\n$st');
   }
+
   final prefs = await SharedPreferences.getInstance();
   final info = await PackageInfo.fromPlatform();
   runApp(
@@ -40,7 +60,7 @@ Future<void> main() async {
         appVersionProvider.overrideWithValue(
           '${info.version}+${info.buildNumber}',
         ),
-        pushServiceProvider.overrideWithValue(FirebasePushService()),
+        pushServiceProvider.overrideWithValue(pushService),
         tokenSourceProvider.overrideWith(
           (ref) => AuthTokenSource(ref.watch(authRepositoryProvider)),
         ),

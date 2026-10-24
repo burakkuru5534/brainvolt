@@ -28,22 +28,33 @@ func (s *Service) Maintain(ctx context.Context) error {
 }
 
 // snapshotEnded archives every touched daily, weekly or monthly board
-// whose period is over; Redis expires the boards on their own.
+// whose period is over.
 func (s *Service) snapshotEnded(ctx context.Context) error {
-	keys, err := s.d.Redis.SMembers(ctx, dirtyBoards).Result()
+	rows, err := s.d.DB.Query(ctx, `SELECT DISTINCT board_key FROM ranking.leaderboard_entries`)
 	if err != nil {
 		return err
 	}
+	defer rows.Close()
+
+	var keys []string
+	for rows.Next() {
+		var k string
+		if err := rows.Scan(&k); err == nil {
+			keys = append(keys, k)
+		}
+	}
+	rows.Close()
+
 	now := s.d.Clock.Now()
 	for _, key := range keys {
 		parts := strings.Split(key, ":")
 		if len(parts) < 5 {
-			s.d.Redis.SRem(ctx, dirtyBoards, key)
+			_, _ = s.d.DB.Exec(ctx, `DELETE FROM ranking.leaderboard_entries WHERE board_key = $1`, key)
 			continue
 		}
 		per, ok := domain.PeriodByID(parts[2] + ":" + parts[3])
 		if !ok {
-			s.d.Redis.SRem(ctx, dirtyBoards, key)
+			_, _ = s.d.DB.Exec(ctx, `DELETE FROM ranking.leaderboard_entries WHERE board_key = $1`, key)
 			continue
 		}
 		if per.End.After(now) {
@@ -52,9 +63,7 @@ func (s *Service) snapshotEnded(ctx context.Context) error {
 		if err := s.snapshot(ctx, key, parts[4], per.Start, per.End); err != nil {
 			return err
 		}
-		if err := s.d.Redis.SRem(ctx, dirtyBoards, key).Err(); err != nil {
-			return err
-		}
+		_, _ = s.d.DB.Exec(ctx, `DELETE FROM ranking.leaderboard_entries WHERE board_key = $1`, key)
 	}
 	return nil
 }
@@ -62,22 +71,45 @@ func (s *Service) snapshotEnded(ctx context.Context) error {
 // snapshot copies a board's top entries to leaderboard_snapshots under
 // the key without its "rank:lb:" prefix (idempotent).
 func (s *Service) snapshot(ctx context.Context, key, kind string, start, end time.Time) error {
-	zs, err := s.d.Redis.ZRevRangeWithScores(ctx, key, 0, snapshotTop-1).Result()
-	if err != nil || len(zs) == 0 {
+	rows, err := s.d.DB.Query(ctx, `
+		SELECT member, score FROM ranking.leaderboard_entries
+		WHERE board_key = $1
+		ORDER BY score DESC, member ASC
+		LIMIT $2
+	`, key, snapshotTop)
+	if err != nil {
 		return err
 	}
+	defer rows.Close()
+
+	type item struct {
+		member string
+		score  float64
+	}
+	var items []item
+	for rows.Next() {
+		var it item
+		if err := rows.Scan(&it.member, &it.score); err == nil {
+			items = append(items, it)
+		}
+	}
+	rows.Close()
+
+	if len(items) == 0 {
+		return nil
+	}
+
 	board := strings.TrimPrefix(key, "rank:lb:")
 	return postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error {
 		q := sqlc.New(tx)
-		for i, z := range zs {
-			member, _ := z.Member.(string)
-			id, err := uuid.Parse(member)
+		for i, it := range items {
+			id, err := uuid.Parse(it.member)
 			if err != nil {
 				continue
 			}
 			if err := q.InsertSnapshot(ctx, sqlc.InsertSnapshotParams{
 				BoardKey: board, PeriodStart: start, PeriodEnd: end, Rank: int32(i + 1),
-				EntityKind: kind, EntityID: id, Score: int64(z.Score),
+				EntityKind: kind, EntityID: id, Score: int64(it.score),
 			}); err != nil {
 				return err
 			}
@@ -106,22 +138,24 @@ func (s *Service) closeEndedSeason(ctx context.Context) error {
 	}
 	period := domain.SeasonPeriodID(se.Number)
 	for _, kind := range BoardEntities {
-		var cursor uint64
-		for {
-			keys, next, err := s.d.Redis.Scan(ctx, cursor, domain.BoardKey(period, kind, "*", "*"), 200).Result()
-			if err != nil {
-				return err
+		prefix := "rank:lb:" + period + ":" + kind + ":%"
+		rows, err := s.d.DB.Query(ctx, `
+			SELECT DISTINCT board_key FROM ranking.leaderboard_entries
+			WHERE board_key LIKE $1
+		`, prefix)
+		if err == nil {
+			var keys []string
+			for rows.Next() {
+				var k string
+				if err := rows.Scan(&k); err == nil {
+					keys = append(keys, k)
+				}
 			}
+			rows.Close()
 			for _, key := range keys {
 				if err := s.snapshot(ctx, key, kind, se.StartsAt, se.EndsAt); err != nil {
 					return err
 				}
-				if err := s.d.Redis.ExpireAt(ctx, key, now.Add(domain.SeasonTTL)).Err(); err != nil {
-					return err
-				}
-			}
-			if cursor = next; cursor == 0 {
-				break
 			}
 		}
 	}

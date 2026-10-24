@@ -180,7 +180,7 @@ func TestLiveQuickDuel(t *testing.T) {
 	if rounds != 7 {
 		t.Fatalf("%d rounds stored", rounds)
 	}
-	if v, _ := x.rdb.Exists(t.Context(), "game:user:"+a.String()+":live").Result(); v != 0 {
+	if _, ok := x.mods.game.LiveMatch(t.Context(), a); ok {
 		t.Fatal("live lock not released")
 	}
 	// Anti-cheat measures (D-084): A answered every round at show time, so
@@ -225,6 +225,7 @@ func (w *wsClient) findWithin(d time.Duration, typ string) map[string]any {
 // instance takes the match over after the lease expires, voids the round,
 // replays it with a new question and the match completes.
 func TestLiveTakeover(t *testing.T) {
+	t.Skip("cross-instance takeover removed in single-instance mode without Redis")
 	x := newE2E(t)
 	tokA, a := x.signedIn()
 	tokB, b := x.signedIn()
@@ -249,8 +250,8 @@ func TestLiveTakeover(t *testing.T) {
 	// The owner instance dies (lease kept, as after a crash).
 	x.mods.game.Close()
 	second := game.New(game.Deps{
-		DB: x.db, Redis: x.rdb, Content: x.mods.content, Identity: x.mods.identity, Profiles: x.mods.profile,
-		Realtime: x.mods.realtime, Events: newBus(x.db, x.rdb, discard, nil), Clock: clock.Real{}, Logger: discard, Instance: "test-second-" + id,
+		DB: x.db, Content: x.mods.content, Identity: x.mods.identity, Profiles: x.mods.profile,
+		Realtime: x.mods.realtime, Events: newBus(x.db, discard, nil), Clock: clock.Real{}, Logger: discard, Instance: "test-second-" + id,
 	})
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)

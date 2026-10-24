@@ -10,7 +10,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/lobby/internal/store/sqlc"
@@ -19,7 +18,6 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ids"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/postgres"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
 // Room settings (D-027).
@@ -107,8 +105,6 @@ func (r *room) unreadyAll() {
 	}
 }
 
-func roomKey(id uuid.UUID) string    { return redis.Key("lobby", "{r:"+id.String()+"}", "room") }
-func userRoomKey(u uuid.UUID) string { return redis.Key("lobby", "user", u.String(), "room") }
 func roomStream(id uuid.UUID) string { return "room:" + id.String() }
 func errRoomClosed() *apierror.Error { return apierror.New(apierror.RoomClosed) }
 func errNotHost() *apierror.Error    { return apierror.New(apierror.Forbidden).With("reason", "not_host") }
@@ -172,77 +168,56 @@ func (s *Service) render(ctx context.Context, r *room) (Room, error) {
 
 // load reads a room's live state; a missing room is closed.
 func (s *Service) load(ctx context.Context, id uuid.UUID) (*room, error) {
-	b, err := s.d.Redis.Get(ctx, roomKey(id)).Bytes()
-	if errors.Is(err, goredis.Nil) {
+	s.roomsMu.RLock()
+	defer s.roomsMu.RUnlock()
+	r, ok := s.rooms[id]
+	if !ok {
 		return nil, errRoomClosed()
 	}
-	if err != nil {
-		return nil, err
-	}
-	var r room
-	return &r, json.Unmarshal(b, &r)
+	rcopy := *r
+	rcopy.Members = slices.Clone(r.Members)
+	return &rcopy, nil
 }
 
 // errNoChange ends an update without writing.
 var errNoChange = errors.New("no change")
 
-// update applies fn to the room atomically (WATCH/MULTI, retried on
-// conflicts), mirrors it to Postgres and sends room.state to the members.
+// update applies fn to the room atomically, mirrors it to Postgres and sends room.state to the members.
 // fn returning errNoChange leaves the room as it is.
 func (s *Service) update(ctx context.Context, id uuid.UUID, fn func(r *room) error) (*room, error) {
-	key := roomKey(id)
-	var out *room
-	var before []uuid.UUID
-	for range updateTries {
-		err := s.d.Redis.Watch(ctx, func(tx *goredis.Tx) error {
-			b, err := tx.Get(ctx, key).Bytes()
-			if errors.Is(err, goredis.Nil) {
-				return errRoomClosed()
-			}
-			if err != nil {
-				return err
-			}
-			var r room
-			if err := json.Unmarshal(b, &r); err != nil {
-				return err
-			}
-			before = before[:0]
-			for _, m := range r.Members {
-				before = append(before, m.UserID)
-			}
-			if err := fn(&r); err != nil {
-				return err
-			}
-			r.Version++
-			nb, err := json.Marshal(r)
-			if err != nil {
-				return err
-			}
-			_, err = tx.TxPipelined(ctx, func(p goredis.Pipeliner) error {
-				p.Set(ctx, key, nb, roomTTL)
-				for _, m := range r.Members {
-					p.Set(ctx, userRoomKey(m.UserID), r.ID.String(), roomTTL)
-				}
-				return nil
-			})
-			out = &r
-			return err
-		}, key)
-		if errors.Is(err, goredis.TxFailedErr) {
-			continue
-		}
-		if errors.Is(err, errNoChange) {
-			r, lerr := s.load(ctx, id)
-			return r, lerr
-		}
-		if err != nil {
-			return nil, err
-		}
-		s.persist(ctx, out)
-		s.broadcast(ctx, out, before)
-		return out, nil
+	s.roomsMu.Lock()
+	r, ok := s.rooms[id]
+	if !ok {
+		s.roomsMu.Unlock()
+		return nil, errRoomClosed()
 	}
-	return nil, apierror.New(apierror.Unavailable).WithRetryAfter(time.Second)
+	before := make([]uuid.UUID, len(r.Members))
+	for i, m := range r.Members {
+		before[i] = m.UserID
+	}
+	if err := fn(r); err != nil {
+		s.roomsMu.Unlock()
+		if errors.Is(err, errNoChange) {
+			return s.load(ctx, id)
+		}
+		return nil, err
+	}
+	r.Version++
+	for _, m := range r.Members {
+		s.userRooms[m.UserID] = r.ID
+	}
+	for _, u := range before {
+		if r.member(u) == nil {
+			delete(s.userRooms, u)
+		}
+	}
+	out := *r
+	out.Members = slices.Clone(r.Members)
+	s.roomsMu.Unlock()
+
+	s.persist(ctx, &out)
+	s.broadcast(ctx, &out, before)
+	return &out, nil
 }
 
 // persist mirrors the durable part of a room to lobby.rooms.
@@ -271,11 +246,6 @@ func (s *Service) broadcast(ctx context.Context, r *room, before []uuid.UUID) {
 	f := realtime.Frame{T: "room.state", S: roomStream(r.ID), Seq: r.Version, TS: s.d.Clock.Now().UnixMilli(), D: map[string]any{"room": v}}
 	for _, m := range r.Members {
 		s.send(ctx, m.UserID, f)
-	}
-	for _, u := range before {
-		if r.member(u) == nil {
-			s.d.Redis.Del(ctx, userRoomKey(u))
-		}
 	}
 }
 
@@ -340,16 +310,10 @@ func (s *Service) CreateRoom(ctx context.Context, user uuid.UUID, locale string,
 	if err != nil {
 		return Room{}, err
 	}
-	b, err := json.Marshal(r)
-	if err != nil {
-		return Room{}, err
-	}
-	pipe := s.d.Redis.TxPipeline()
-	pipe.Set(ctx, roomKey(r.ID), b, roomTTL)
-	pipe.Set(ctx, userRoomKey(user), r.ID.String(), roomTTL)
-	if _, err := pipe.Exec(ctx); err != nil {
-		return Room{}, err
-	}
+	s.roomsMu.Lock()
+	s.rooms[r.ID] = r
+	s.userRooms[user] = r.ID
+	s.roomsMu.Unlock()
 	return s.render(ctx, r)
 }
 
@@ -367,12 +331,10 @@ func (s *Service) GetRoom(ctx context.Context, user, id uuid.UUID) (Room, error)
 
 // CurrentRoom is the caller's room id, if any.
 func (s *Service) CurrentRoom(ctx context.Context, user uuid.UUID) (uuid.UUID, bool) {
-	v, err := s.d.Redis.Get(ctx, userRoomKey(user)).Result()
-	if err != nil {
-		return uuid.Nil, false
-	}
-	id, err := uuid.Parse(v)
-	return id, err == nil
+	s.roomsMu.RLock()
+	defer s.roomsMu.RUnlock()
+	id, ok := s.userRooms[user]
+	return id, ok
 }
 
 // UpdateRoomConfig changes the match configuration (host, room open);
@@ -572,7 +534,11 @@ func (s *Service) leave(ctx context.Context, user, id uuid.UUID) error {
 	if closeReason != "" {
 		return s.closeRoom(ctx, id, closeReason)
 	}
-	s.d.Redis.Del(ctx, userRoomKey(user))
+	s.roomsMu.Lock()
+	if s.userRooms[user] == id {
+		delete(s.userRooms, user)
+	}
+	s.roomsMu.Unlock()
 	return nil
 }
 
@@ -601,13 +567,14 @@ func (s *Service) closeRoom(ctx context.Context, id uuid.UUID, reason string) er
 	if r == nil {
 		return nil
 	}
-	keys := []string{roomKey(id)}
+	s.roomsMu.Lock()
+	delete(s.rooms, id)
 	for _, m := range r.Members {
-		if cur, ok := s.CurrentRoom(ctx, m.UserID); ok && cur == id {
-			keys = append(keys, userRoomKey(m.UserID))
+		if cur, ok := s.userRooms[m.UserID]; ok && cur == id {
+			delete(s.userRooms, m.UserID)
 		}
 	}
-	s.d.Redis.Del(ctx, keys...)
+	s.roomsMu.Unlock()
 	for _, m := range r.Members {
 		s.send(ctx, m.UserID, realtime.Frame{T: "room.closed", S: roomStream(id), Seq: r.Version + 1, TS: now.UnixMilli(), D: map[string]any{"room_id": id, "reason": reason}})
 	}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	fb "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/messaging"
@@ -19,13 +20,19 @@ type Messenger struct {
 	client *messaging.Client
 }
 
-// NewMessenger returns an FCM client for projectID authenticated with the
-// service-account key at credentialsFile (Application Default Credentials
-// when empty).
-func NewMessenger(ctx context.Context, projectID, credentialsFile string) (*Messenger, error) {
+// NewMessenger returns an FCM client for projectID authenticated with:
+// - a raw JSON service-account key (if credentials starts with '{')
+// - a service-account key at credentialsFile (if non-empty)
+// - Application Default Credentials (when credentials is empty)
+func NewMessenger(ctx context.Context, projectID, credentials string) (*Messenger, error) {
 	var opts []option.ClientOption
-	if credentialsFile != "" {
-		opts = append(opts, option.WithAuthCredentialsFile(option.ServiceAccount, credentialsFile))
+	cred := strings.TrimSpace(credentials)
+	if cred != "" {
+		if strings.HasPrefix(cred, "{") {
+			opts = append(opts, option.WithCredentialsJSON([]byte(cred)))
+		} else {
+			opts = append(opts, option.WithAuthCredentialsFile(option.ServiceAccount, cred))
+		}
 	}
 	app, err := fb.NewApp(ctx, &fb.Config{ProjectID: projectID}, opts...)
 	if err != nil {

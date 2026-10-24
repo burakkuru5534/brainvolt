@@ -1,0 +1,21 @@
+# Every question source with its license (D-006, schema-content §2).
+# `key` is what question files refer to; `id` never changes once imported.
+sources:
+  - key: brainvolt-team
+    id: 01a14f8e-5782-7822-b3ce-2c32fbf52f2a
+    kind: brainvolt_team
+    name: BrainVolt
+    url: https://github.com/burakkuru5534/brainvolt
+    license: LicenseRef-BrainVolt
+    attribution: "Sorular / Questions: BrainVolt ekibi / BrainVolt team"
+    notes: Questions written by the BrainVolt team; all rights reserved.
+
+  - key: opentdb
+    id: 01a14f8e-5782-791c-bccb-1369f8008e95
+    kind: opentdb
+    name: Open Trivia Database
+    url: https://opentdb.com
+    license: CC-BY-SA-4.0
+    license_url: https://creativecommons.org/licenses/by-sa/4.0/
+    attribution: "Open Trivia Database (opentdb.com), CC BY-SA 4.0. Questions were selected, edited and translated into Turkish by BrainVolt; the translations are also CC BY-SA 4.0."
+    share_alike: true

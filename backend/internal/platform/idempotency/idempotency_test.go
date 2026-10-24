@@ -12,12 +12,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
+
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/config"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/httpserver"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ids"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/logging"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/testenv"
 )
 
@@ -28,7 +29,7 @@ var httpCfg = config.HTTP{ReadTimeout: time.Second, WriteTimeout: 3 * time.Secon
 // fixture is a server whose POST /v1/rooms creates a "room" and counts runs.
 type fixture struct {
 	srv   *httpserver.Server
-	rdb   *redis.Client
+	db    *pgxpool.Pool
 	runs  atomic.Int32
 	user  string
 	gate  chan struct{} // when non-nil, the handler waits on it
@@ -38,16 +39,30 @@ type fixture struct {
 
 func newFixture(t *testing.T, mode Mode) *fixture {
 	t.Helper()
-	rdb, err := redis.Connect(t.Context(), testenv.RedisURL(t), "brainvolt-test")
+	pool, err := pgxpool.New(t.Context(), testenv.PostgresURL(t))
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { _ = rdb.Close() })
+	t.Cleanup(func() { pool.Close() })
 
-	f := &fixture{rdb: rdb, user: ids.NewString()}
-	store := New(rdb, discard)
+	_, _ = pool.Exec(t.Context(), `
+		CREATE SCHEMA IF NOT EXISTS platform;
+		CREATE TABLE IF NOT EXISTS platform.idempotency_keys (
+			key         text        PRIMARY KEY,
+			user_id     text        NOT NULL,
+			state       text        NOT NULL CHECK (state IN ('pending','done')),
+			hash        text        NOT NULL,
+			status_code int,
+			headers     jsonb,
+			body        bytea,
+			created_at  timestamptz NOT NULL DEFAULT now(),
+			expires_at  timestamptz NOT NULL
+		);
+	`)
+
+	f := &fixture{db: pool, user: ids.NewString()}
+	store := New(pool, discard)
 	f.srv = httpserver.New(httpCfg, config.EnvDev, discard)
-	// Stand-in for the authentication middleware (roadmap 1.6).
 	f.srv.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if u := r.Header.Get("X-Test-User"); u != "" {
@@ -119,10 +134,6 @@ func TestReplayReturnsStoredResponse(t *testing.T) {
 	}
 	if n := f.runs.Load(); n != 1 {
 		t.Fatalf("handler ran %d times, want 1", n)
-	}
-	ttl, err := f.rdb.TTL(t.Context(), redis.Key("idem", f.user, key)).Result()
-	if err != nil || ttl < 23*time.Hour || ttl > Retention {
-		t.Fatalf("record TTL = %v, %v; want ~24h", ttl, err)
 	}
 
 	// The same key from another user is a different record.
@@ -208,11 +219,11 @@ func TestConcurrentDuplicateIsInProgress(t *testing.T) {
 	}
 }
 
-func TestFailsClosedWithoutRedisOrUser(t *testing.T) {
+func TestFailsClosedWithoutPostgresOrUser(t *testing.T) {
 	f := newFixture(t, Required)
-	_ = f.rdb.Close()
+	f.db.Close()
 	if rec := f.post(t, ids.NewString(), `{}`); rec.Code != http.StatusServiceUnavailable || f.runs.Load() != 0 {
-		t.Fatalf("redis down = %d (runs %d), want 503 without running", rec.Code, f.runs.Load())
+		t.Fatalf("db down = %d (runs %d), want 503 without running", rec.Code, f.runs.Load())
 	}
 
 	g := newFixture(t, Required)

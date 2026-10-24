@@ -7,6 +7,7 @@ allprojects {
         resolutionStrategy {
             force("com.android.billingclient:billing:8.0.0")
             force("com.android.billingclient:billing-ktx:8.0.0")
+            force("com.google.android.gms:play-services-location:21.3.0")
         }
     }
 }

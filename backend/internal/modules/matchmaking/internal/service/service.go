@@ -1,11 +1,10 @@
-// Package service is the matchmaking queue (redis-keys §3, mode-matrix
-// §3.4): one queue per matchmade 1v1 configuration, paired by rating with
-// a search range that widens while a ticket waits, never pairing players
-// who block each other. Matches cancelled before the start put the ready
-// players back at the front of the queue; missed ready checks and leaving
-// matches lead to short queue cooldowns (D-034, D-048). Team formats fill
-// each side from solo tickets, parties of friends, a persistent team or a
-// couple (Phase 6, D-072).
+// Package service is the matchmaking queue: one queue per matchmade 1v1
+// configuration, paired by rating with a search range that widens while a
+// ticket waits, never pairing players who block each other. Matches cancelled
+// before the start put the ready players back at the front of the queue;
+// missed ready checks and leaving matches lead to short queue cooldowns
+// (D-034, D-048). Team formats fill each side from solo tickets, parties of
+// friends, a persistent team or a couple (Phase 6, D-072).
 package service
 
 import (
@@ -16,12 +15,12 @@ import (
 	"log/slog"
 	"math"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
-	goredis "github.com/redis/go-redis/v9"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/realtime"
@@ -29,14 +28,12 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/clock"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ids"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
-// Queue settings (redis-keys §3, D-032, D-068).
+// Queue settings (D-032, D-068).
 const (
-	TicketTTL    = 10 * time.Minute
-	MatchEvery   = 500 * time.Millisecond
-	matcherLease = 5 * time.Second
+	TicketTTL  = 10 * time.Minute
+	MatchEvery = 500 * time.Millisecond
 	// matchMemory keeps the tickets of a new match until its ready check
 	// is over, to re-queue the ready players.
 	matchMemory = 2 * time.Minute
@@ -129,12 +126,11 @@ type Notifier interface {
 // Deps are the service's collaborators. Practice enables the development
 // bot opponent (D-066).
 type Deps struct {
-	Redis    *redis.Client
-	Game     Game
-	Notifier Notifier
-	Ratings  RatingReader
-	Social   Social
-	// Sanctions keeps sanctioned players out of the queues (moderation).
+	DB        *pgxpool.Pool
+	Game      Game
+	Notifier  Notifier
+	Ratings   RatingReader
+	Social    Social
 	Sanctions game.SanctionChecker
 	Teams     Teams
 	Locales   LocaleReader
@@ -179,40 +175,36 @@ type Request struct {
 
 // Ticket is a queue entry as the app sees it.
 type Ticket struct {
-	ID           uuid.UUID   `json:"id"`
-	MatchType    string      `json:"match_type"`
-	Format       string      `json:"format"`
-	CategoryMode string      `json:"category_mode,omitempty"`
-	CategoryID   *uuid.UUID  `json:"category_id,omitempty"`
+	ID           uuid.UUID  `json:"id"`
+	MatchType    string     `json:"match_type"`
+	Format       string     `json:"format"`
+	CategoryMode string     `json:"category_mode,omitempty"`
+	CategoryID   *uuid.UUID `json:"category_id,omitempty"`
 	UserIDs      []uuid.UUID `json:"user_ids"`
-	State        string      `json:"state"`
-	EnqueuedAt   time.Time   `json:"enqueued_at"`
-	WaitMS       int64       `json:"wait_ms"`
-	// Range is the current rating search range (±); null = anyone.
-	Range   *int       `json:"range"`
-	MatchID *uuid.UUID `json:"match_id,omitempty"`
+	State        string     `json:"state"`
+	EnqueuedAt   time.Time  `json:"enqueued_at"`
+	WaitMS       int64      `json:"wait_ms"`
+	Range        *int       `json:"range,omitempty"`
+	MatchID      *uuid.UUID `json:"match_id,omitempty"`
 }
 
-// member is one player of a ticket.
 type member struct {
 	UserID uuid.UUID `json:"user_id"`
 	Locale string    `json:"locale"`
 }
 
-// entry is a ticket as stored in mm:t:<id>: one player, a party, a team
-// lineup or a couple; it is also what a new match remembers to re-queue
-// its ready players.
+// entry is a ticket serialized in PostgreSQL.
 type entry struct {
-	ID         uuid.UUID   `json:"id"`
-	Members    []member    `json:"members"`
-	Queue      string      `json:"queue"`
-	Request    Request     `json:"request"`
-	Rating     float64     `json:"rating"`
-	RD         float64     `json:"rd"`
-	EnqueuedMS int64       `json:"enqueued_ms"`
-	Blocks     []uuid.UUID `json:"blocks"`
-	TeamID     *uuid.UUID  `json:"team_id,omitempty"`
-	CoupleID   *uuid.UUID  `json:"couple_id,omitempty"`
+	ID         uuid.UUID  `json:"id"`
+	Queue      string     `json:"queue"`
+	Request    Request    `json:"request"`
+	Members    []member   `json:"members"`
+	Rating     float64    `json:"rating"`
+	RD         float64    `json:"rd"`
+	Blocks     []uuid.UUID `json:"blocks,omitempty"`
+	EnqueuedMS int64      `json:"enqueued_ms"`
+	TeamID     *uuid.UUID `json:"team_id,omitempty"`
+	CoupleID   *uuid.UUID `json:"couple_id,omitempty"`
 }
 
 func (e *entry) users() []uuid.UUID {
@@ -226,16 +218,6 @@ func (e *entry) users() []uuid.UUID {
 // persistent tickets fill a whole side on their own.
 func (e *entry) persistent() bool { return e.TeamID != nil || e.CoupleID != nil }
 
-var queuesKey = redis.Key("mm", "queues")
-
-func queueKey(q string) string          { return redis.Key("mm", "q", q) }
-func lockKey(q string) string           { return redis.Key("mm", "lock", q) }
-func ticketKey(id uuid.UUID) string     { return redis.Key("mm", "t", id.String()) }
-func userKey(user uuid.UUID) string     { return redis.Key("mm", "user", user.String()) }
-func matchKey(id uuid.UUID) string      { return redis.Key("mm", "m", id.String()) }
-func cooldownKey(user uuid.UUID) string { return redis.Key("mm", "cooldown", user.String()) }
-func missedKey(user uuid.UUID) string   { return redis.Key("mm", "missed", user.String()) }
-func leavesKey(user uuid.UUID) string   { return redis.Key("mm", "leaves", user.String()) }
 func isRanked(r Request) bool           { return r.MatchType == "ranked" }
 func (r Request) config() game.Config   { return r.configWith(nil) }
 func (r Request) sideSize() int         { return game.Format(r.Format).SideSize() }
@@ -401,8 +383,12 @@ func (s *Service) Enqueue(ctx context.Context, user uuid.UUID, locale string, r 
 		return Ticket{}, err
 	}
 	for _, u := range users {
-		if ttl, _ := s.d.Redis.PTTL(ctx, cooldownKey(u)).Result(); ttl > 0 {
-			return Ticket{}, apierror.New(apierror.QueueCooldown).WithRetryAfter(ttl).With("user_id", u)
+		var expiresAt time.Time
+		err := s.d.DB.QueryRow(ctx, `SELECT expires_at FROM matchmaking.cooldowns WHERE user_id = $1`, u).Scan(&expiresAt)
+		if err == nil {
+			if remaining := expiresAt.Sub(s.d.Clock.Now()); remaining > 0 {
+				return Ticket{}, apierror.New(apierror.QueueCooldown).WithRetryAfter(remaining).With("user_id", u)
+			}
 		}
 		if _, live := s.d.Game.LiveMatch(ctx, u); live {
 			return Ticket{}, apierror.New(apierror.AlreadyInMatch).With("user_id", u)
@@ -418,7 +404,13 @@ func (s *Service) Enqueue(ctx context.Context, user uuid.UUID, locale string, r 
 		}
 	}
 	if r.Practice {
-		if exists, _ := s.d.Redis.Exists(ctx, userKey(user)).Result(); exists > 0 {
+		var activeID uuid.UUID
+		err := s.d.DB.QueryRow(ctx, `
+			SELECT id FROM matchmaking.tickets
+			WHERE user_ids @> ARRAY[$1]::uuid[] AND status = 'searching' AND expires_at > now()
+			LIMIT 1
+		`, user).Scan(&activeID)
+		if err == nil {
 			return Ticket{}, apierror.New(apierror.AlreadyQueued)
 		}
 		c, err := s.d.Game.Practice(ctx, user, locale)
@@ -468,38 +460,35 @@ func (s *Service) Enqueue(ctx context.Context, user uuid.UUID, locale string, r 
 
 // put stores a ticket and adds it to its queue (one ticket per user).
 func (s *Service) put(ctx context.Context, e *entry) error {
-	var taken []uuid.UUID
-	release := func() {
-		for _, u := range taken {
-			s.d.Redis.Del(ctx, userKey(u))
-		}
-	}
 	for _, u := range e.users() {
-		ok, err := s.d.Redis.SetNX(ctx, userKey(u), e.ID.String(), TicketTTL).Result()
-		if err != nil {
-			release()
-			return err
-		}
-		if !ok {
-			release()
+		var activeID uuid.UUID
+		err := s.d.DB.QueryRow(ctx, `
+			SELECT id FROM matchmaking.tickets
+			WHERE user_ids @> ARRAY[$1]::uuid[] AND status = 'searching' AND expires_at > now()
+			LIMIT 1
+		`, u).Scan(&activeID)
+		if err == nil {
 			return apierror.New(apierror.AlreadyQueued).With("user_id", u)
 		}
-		taken = append(taken, u)
 	}
+
 	b, err := json.Marshal(e)
 	if err != nil {
-		release()
 		return err
 	}
-	pipe := s.d.Redis.TxPipeline()
-	pipe.Set(ctx, ticketKey(e.ID), b, TicketTTL)
-	pipe.ZAdd(ctx, queueKey(e.Queue), goredis.Z{Score: e.Rating, Member: e.ID.String()})
-	pipe.SAdd(ctx, queuesKey, e.Queue)
-	if _, err := pipe.Exec(ctx); err != nil {
-		release()
+	reqJSON, err := json.Marshal(e.Request)
+	if err != nil {
 		return err
 	}
-	return nil
+
+	enqueuedAt := time.UnixMilli(e.EnqueuedMS).UTC()
+	expiresAt := enqueuedAt.Add(TicketTTL)
+
+	_, err = s.d.DB.Exec(ctx, `
+		INSERT INTO matchmaking.tickets (id, queue, user_ids, request, entry_json, rating, rd, status, enqueued_at, expires_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, 'searching', $8, $9, now())
+	`, e.ID, e.Queue, e.users(), reqJSON, b, e.Rating, e.RD, enqueuedAt, expiresAt)
+	return err
 }
 
 func (s *Service) ticket(e *entry) Ticket {
@@ -516,15 +505,19 @@ func (s *Service) ticket(e *entry) Ticket {
 }
 
 func (s *Service) load(ctx context.Context, id uuid.UUID) (*entry, error) {
-	b, err := s.d.Redis.Get(ctx, ticketKey(id)).Bytes()
-	if errors.Is(err, goredis.Nil) {
+	var raw []byte
+	err := s.d.DB.QueryRow(ctx, `
+		SELECT entry_json FROM matchmaking.tickets
+		WHERE id = $1 AND status = 'searching' AND expires_at > now()
+	`, id).Scan(&raw)
+	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, apierror.New(apierror.NotFound)
 	}
 	if err != nil {
 		return nil, err
 	}
 	var e entry
-	return &e, json.Unmarshal(b, &e)
+	return &e, json.Unmarshal(raw, &e)
 }
 
 // Current returns the caller's ticket (NOT_FOUND when not queued).
@@ -553,11 +546,10 @@ func (s *Service) Leave(ctx context.Context, user uuid.UUID) error {
 	}
 	e, err := s.load(ctx, id)
 	if err != nil {
-		s.d.Redis.Del(ctx, ticketKey(id), userKey(user))
-		return nil //nolint:nilerr // expired ticket: nothing left to leave
+		_, _ = s.d.DB.Exec(ctx, `UPDATE matchmaking.tickets SET status = 'cancelled', updated_at = now() WHERE id = $1`, id)
+		return nil
 	}
-	s.d.Redis.ZRem(ctx, queueKey(e.Queue), id.String())
-	s.drop(ctx, e)
+	_, _ = s.d.DB.Exec(ctx, `UPDATE matchmaking.tickets SET status = 'cancelled', updated_at = now() WHERE id = $1`, id)
 	for _, u := range e.users() {
 		if u != user {
 			s.notify(ctx, u, map[string]any{"ticket_id": id, "state": "cancelled", "reason": "party_left"})
@@ -567,63 +559,52 @@ func (s *Service) Leave(ctx context.Context, user uuid.UUID) error {
 }
 
 func (s *Service) ticketOf(ctx context.Context, user uuid.UUID) (uuid.UUID, error) {
-	v, err := s.d.Redis.Get(ctx, userKey(user)).Result()
-	if errors.Is(err, goredis.Nil) {
+	var id uuid.UUID
+	err := s.d.DB.QueryRow(ctx, `
+		SELECT id FROM matchmaking.tickets
+		WHERE user_ids @> ARRAY[$1]::uuid[] AND status = 'searching' AND expires_at > now()
+		ORDER BY enqueued_at DESC LIMIT 1
+	`, user).Scan(&id)
+	if errors.Is(err, pgx.ErrNoRows) {
 		return uuid.Nil, apierror.New(apierror.NotFound)
 	}
 	if err != nil {
 		return uuid.Nil, err
 	}
-	id, err := uuid.Parse(v)
-	if err != nil {
-		return uuid.Nil, apierror.New(apierror.NotFound)
-	}
 	return id, nil
 }
 
-// Run pairs tickets every 500 ms in every queue whose matcher lease this
-// instance holds.
+// Run pairs tickets every 500 ms in every queue.
 func (s *Service) Run(ctx context.Context) error {
 	tick := s.d.Clock.NewTicker(MatchEvery)
 	defer tick.Stop()
-	owner := ids.NewString()
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-tick.C():
-			queues, err := s.d.Redis.SMembers(ctx, queuesKey).Result()
+			rows, err := s.d.DB.Query(ctx, `
+				SELECT DISTINCT queue FROM matchmaking.tickets
+				WHERE status = 'searching' AND expires_at > now()
+			`)
 			if err != nil {
 				continue
 			}
-			for _, q := range queues {
-				if s.lease(ctx, q, owner) {
-					s.match(ctx, q)
+			var queues []string
+			for rows.Next() {
+				var q string
+				if err := rows.Scan(&q); err == nil {
+					queues = append(queues, q)
 				}
+			}
+			rows.Close()
+
+			for _, q := range queues {
+				s.match(ctx, q)
 			}
 		}
 	}
 }
-
-func (s *Service) lease(ctx context.Context, q, owner string) bool {
-	ok, err := s.d.Redis.SetNX(ctx, lockKey(q), owner, matcherLease).Result()
-	if err == nil && ok {
-		return true
-	}
-	if v, _ := s.d.Redis.Get(ctx, lockKey(q)).Result(); v == owner {
-		s.d.Redis.Expire(ctx, lockKey(q), matcherLease)
-		return true
-	}
-	return false
-}
-
-// claim removes tickets from a queue only if all of them are still there.
-var claim = goredis.NewScript(`
-for i = 1, #ARGV do
-  if not redis.call('ZSCORE', KEYS[1], ARGV[i]) then return 0 end
-end
-redis.call('ZREM', KEYS[1], unpack(ARGV))
-return 1`)
 
 // side is the tickets forming one side of a new match.
 type side []*entry
@@ -659,32 +640,50 @@ func fits(e, a *entry, chosen []*entry, now int64) bool {
 	return true
 }
 
-// match forms matches from the waiting tickets of a queue: the oldest
-// ticket anchors side 1, each side is a persistent team or couple ticket,
-// or temporary tickets (solo and parties) filled closest rating first;
-// side 2 starts from the closest rating that fits, never across a block.
-func (s *Service) match(ctx context.Context, q string) {
-	members, err := s.d.Redis.ZRange(ctx, queueKey(q), 0, -1).Result()
-	if err != nil || len(members) < 2 {
+// match forms matches from the waiting tickets of a queue using FOR UPDATE SKIP LOCKED
+// to prevent any race condition or duplication between matcher workers.
+func (s *Service) match(ctx context.Context, queueName string) {
+	tx, err := s.d.DB.Begin(ctx)
+	if err != nil {
 		return
 	}
-	var waiting []*entry
-	for _, m := range members {
-		id, err := uuid.Parse(m)
-		if err != nil {
-			s.d.Redis.ZRem(ctx, queueKey(q), m)
-			continue
-		}
-		e, err := s.load(ctx, id)
-		if err != nil {
-			s.d.Redis.ZRem(ctx, queueKey(q), m) // expired
-			continue
-		}
-		waiting = append(waiting, e)
+	defer tx.Rollback(ctx)
+
+	rows, err := tx.Query(ctx, `
+		SELECT id, entry_json FROM matchmaking.tickets
+		WHERE queue = $1 AND status = 'searching' AND expires_at > now()
+		ORDER BY rating ASC
+		FOR UPDATE SKIP LOCKED
+	`, queueName)
+	if err != nil {
+		return
 	}
+	defer rows.Close()
+
+	var waiting []*entry
+	for rows.Next() {
+		var (
+			id  uuid.UUID
+			raw []byte
+		)
+		if err := rows.Scan(&id, &raw); err != nil {
+			continue
+		}
+		var e entry
+		if err := json.Unmarshal(raw, &e); err == nil {
+			waiting = append(waiting, &e)
+		}
+	}
+	rows.Close()
+
+	if len(waiting) < 2 {
+		return
+	}
+
 	slices.SortFunc(waiting, func(a, b *entry) int { return int(a.EnqueuedMS - b.EnqueuedMS) })
 	now := s.nowMS()
 	taken := map[uuid.UUID]bool{}
+
 	for _, a := range waiting {
 		if taken[a.ID] {
 			continue
@@ -742,33 +741,41 @@ func (s *Service) match(ctx context.Context, q string) {
 		if !formed {
 			continue
 		}
-		claimed := make([]any, 0, len(chosen))
+
+		// Atomically claim chosen tickets in database
 		for _, e := range chosen {
-			claimed = append(claimed, e.ID.String())
-		}
-		if ok, err := claim.Run(ctx, s.d.Redis, []string{queueKey(q)}, claimed...).Int(); err != nil || ok != 1 {
-			continue
-		}
-		for _, e := range chosen {
+			_, err = tx.Exec(ctx, `UPDATE matchmaking.tickets SET status = 'matched', updated_at = now() WHERE id = $1`, e.ID)
+			if err != nil {
+				return
+			}
 			taken[e.ID] = true
 		}
+
+		if err := tx.Commit(ctx); err != nil {
+			return
+		}
+
 		s.start(ctx, sides)
+		return
 	}
 }
 
 func (s *Service) requeue(ctx context.Context, es ...*entry) {
 	for _, e := range es {
-		s.d.Redis.ZAdd(ctx, queueKey(e.Queue), goredis.Z{Score: e.Rating, Member: e.ID.String()})
+		_, _ = s.d.DB.Exec(ctx, `
+			UPDATE matchmaking.tickets
+			SET status = 'searching', updated_at = now()
+			WHERE id = $1
+		`, e.ID)
 	}
 }
 
 func (s *Service) drop(ctx context.Context, e *entry) {
-	keys := make([]string, 0, 1+len(e.Members))
-	keys = append(keys, ticketKey(e.ID))
-	for _, u := range e.users() {
-		keys = append(keys, userKey(u))
-	}
-	s.d.Redis.Del(ctx, keys...)
+	_, _ = s.d.DB.Exec(ctx, `
+		UPDATE matchmaking.tickets
+		SET status = 'cancelled', updated_at = now()
+		WHERE id = $1
+	`, e.ID)
 }
 
 // start creates the match of two sides: every player gets
@@ -814,19 +821,25 @@ func (s *Service) start(ctx context.Context, sides [2]side) {
 		}
 		return
 	}
-	// Remember the tickets until the ready check is over (re-queue, D-034).
-	pipe := s.d.Redis.TxPipeline()
+
+	// Update match_id on matched tickets
+	for _, x := range all {
+		_, _ = s.d.DB.Exec(ctx, `UPDATE matchmaking.tickets SET match_id = $2 WHERE id = $1`, x.ID, c.MatchID)
+	}
+
+	// Remember the tickets until the ready check is over (re-queue, D-034)
 	for _, x := range all {
 		if bs, err := json.Marshal(x); err == nil {
 			for _, u := range x.users() {
-				pipe.HSet(ctx, matchKey(c.MatchID), u.String(), bs)
+				_, _ = s.d.DB.Exec(ctx, `
+					INSERT INTO matchmaking.match_memory (match_id, user_id, entry_json, created_at, expires_at)
+					VALUES ($1, $2, $3, now(), now() + interval '2 minutes')
+					ON CONFLICT (match_id, user_id) DO UPDATE SET entry_json = EXCLUDED.entry_json
+				`, c.MatchID, u, bs)
 			}
 		}
 	}
-	pipe.Expire(ctx, matchKey(c.MatchID), matchMemory)
-	if _, err := pipe.Exec(ctx); err != nil {
-		s.d.Logger.WarnContext(ctx, "matchmaking: remembering a match failed", "error", err)
-	}
+
 	for _, x := range all {
 		s.drop(ctx, x)
 		for _, u := range x.users() {
@@ -866,7 +879,7 @@ func (s *Service) OnEnd(ctx context.Context, m game.Ended) {
 	if !beforeStart {
 		for _, p := range m.Participants {
 			if p.Status == game.ParticipantLeft || p.Status == game.ParticipantForfeited {
-				n := s.count(ctx, leavesKey(p.UserID), LeaveWindow)
+				n := s.count(ctx, p.UserID, "leave", LeaveWindow)
 				switch {
 				case n >= 3:
 					s.cooldown(ctx, p.UserID, ThirdLeaveCooldown)
@@ -877,15 +890,31 @@ func (s *Service) OnEnd(ctx context.Context, m game.Ended) {
 		}
 		return
 	}
-	saved, _ := s.d.Redis.HGetAll(ctx, matchKey(m.MatchID)).Result()
-	s.d.Redis.Del(ctx, matchKey(m.MatchID))
+
+	rows, err := s.d.DB.Query(ctx, `
+		SELECT user_id, entry_json FROM matchmaking.match_memory
+		WHERE match_id = $1
+	`, m.MatchID)
+	saved := map[string]string{}
+	if err == nil {
+		for rows.Next() {
+			var uid uuid.UUID
+			var b []byte
+			if err := rows.Scan(&uid, &b); err == nil {
+				saved[uid.String()] = string(b)
+			}
+		}
+		rows.Close()
+	}
+	_, _ = s.d.DB.Exec(ctx, `DELETE FROM matchmaking.match_memory WHERE match_id = $1`, m.MatchID)
+
 	ready := map[uuid.UUID]bool{}
 	for _, p := range m.Participants {
 		if p.Status == game.ParticipantReady {
 			ready[p.UserID] = true
 			continue
 		}
-		if s.count(ctx, missedKey(p.UserID), MissedReadyWindow) >= MissedReadyLimit {
+		if s.count(ctx, p.UserID, "missed_ready", MissedReadyWindow) >= MissedReadyLimit {
 			s.cooldown(ctx, p.UserID, MissedReadyCooldown)
 		}
 	}
@@ -909,24 +938,41 @@ func (s *Service) OnEnd(ctx context.Context, m game.Ended) {
 }
 
 // count records one occurrence now and returns the occurrences in window.
-func (s *Service) count(ctx context.Context, key string, window time.Duration) int64 {
-	now := s.nowMS()
-	pipe := s.d.Redis.TxPipeline()
-	pipe.ZAdd(ctx, key, goredis.Z{Score: float64(now), Member: ids.NewString()})
-	pipe.ZRemRangeByScore(ctx, key, "-inf", strconv.FormatInt(now-window.Milliseconds(), 10))
-	n := pipe.ZCard(ctx, key)
-	pipe.Expire(ctx, key, window)
-	if _, err := pipe.Exec(ctx); err != nil {
+func (s *Service) count(ctx context.Context, user uuid.UUID, kind string, window time.Duration) int64 {
+	_, err := s.d.DB.Exec(ctx, `
+		INSERT INTO matchmaking.event_counts (user_id, event_kind, occurred_at)
+		VALUES ($1, $2, now())
+	`, user, kind)
+	if err != nil {
 		return 0
 	}
-	return n.Val()
+	var count int64
+	err = s.d.DB.QueryRow(ctx, `
+		SELECT COUNT(*) FROM matchmaking.event_counts
+		WHERE user_id = $1 AND event_kind = $2 AND occurred_at > now() - $3::interval
+	`, user, kind, window.String()).Scan(&count)
+	if err != nil {
+		return 0
+	}
+	return count
 }
 
 // cooldown blocks queueing for d, keeping a longer running cooldown.
 func (s *Service) cooldown(ctx context.Context, user uuid.UUID, d time.Duration) {
-	if ttl, _ := s.d.Redis.PTTL(ctx, cooldownKey(user)).Result(); ttl >= d {
-		return
+	var expiresAt time.Time
+	err := s.d.DB.QueryRow(ctx, `SELECT expires_at FROM matchmaking.cooldowns WHERE user_id = $1`, user).Scan(&expiresAt)
+	if err == nil {
+		if expiresAt.Sub(s.d.Clock.Now()) >= d {
+			return
+		}
 	}
-	s.d.Redis.Set(ctx, cooldownKey(user), "1", d)
-	s.notify(ctx, user, map[string]any{"state": "cooldown", "ends_at": s.d.Clock.Now().Add(d).UnixMilli()})
+
+	endsAt := s.d.Clock.Now().Add(d)
+	_, _ = s.d.DB.Exec(ctx, `
+		INSERT INTO matchmaking.cooldowns (user_id, expires_at)
+		VALUES ($1, $2)
+		ON CONFLICT (user_id) DO UPDATE SET expires_at = EXCLUDED.expires_at
+	`, user, endsAt)
+
+	s.notify(ctx, user, map[string]any{"state": "cooldown", "ends_at": endsAt.UnixMilli()})
 }

@@ -1,0 +1,82 @@
+# BrainVolt team pool — Arts and Literature. Format: content/README.md.
+source: brainvolt-team
+questions:
+  - ref: bv-arts-001
+    subcategory: arts-literature/turkish-literature
+    difficulty: 1
+    tr:
+      prompt: İstiklal Marşı'nın şairi kimdir?
+      options: [Mehmet Akif Ersoy, Namık Kemal, Ziya Gökalp, Tevfik Fikret]
+    en:
+      prompt: Who wrote the lyrics of the Turkish national anthem, the İstiklal Marşı?
+      options: [Mehmet Akif Ersoy, Namık Kemal, Ziya Gökalp, Tevfik Fikret]
+
+  - ref: bv-arts-002
+    subcategory: arts-literature/turkish-literature
+    difficulty: 2
+    tr:
+      prompt: '"Çalıkuşu" romanının yazarı kimdir?'
+      options: [Reşat Nuri Güntekin, Halide Edib Adıvar, Yakup Kadri Karaosmanoğlu, Sabahattin Ali]
+    en:
+      prompt: Who wrote the novel "Çalıkuşu" (The Wren)?
+      options: [Reşat Nuri Güntekin, Halide Edib Adıvar, Yakup Kadri Karaosmanoğlu, Sabahattin Ali]
+
+  - ref: bv-arts-003
+    subcategory: arts-literature/world-literature
+    difficulty: 2
+    tr:
+      prompt: '"Suç ve Ceza" romanının yazarı kimdir?'
+      options: [Fyodor Dostoyevski, Lev Tolstoy, Anton Çehov, Nikolay Gogol]
+    en:
+      prompt: Who wrote "Crime and Punishment"?
+      options: [Fyodor Dostoevsky, Leo Tolstoy, Anton Chekhov, Nikolai Gogol]
+
+  - ref: bv-arts-004
+    subcategory: arts-literature/world-literature
+    difficulty: 2
+    tr:
+      prompt: '"Don Kişot" romanının yazarı kimdir?'
+      options: [Miguel de Cervantes, Dante Alighieri, William Shakespeare, Victor Hugo]
+    en:
+      prompt: Who wrote "Don Quixote"?
+      options: [Miguel de Cervantes, Dante Alighieri, William Shakespeare, Victor Hugo]
+
+  - ref: bv-arts-005
+    subcategory: arts-literature/visual-arts
+    difficulty: 1
+    tr:
+      prompt: Mona Lisa tablosunu hangi sanatçı yapmıştır?
+      options: [Leonardo da Vinci, Michelangelo, Rafael, Rembrandt]
+    en:
+      prompt: Which artist painted the Mona Lisa?
+      options: [Leonardo da Vinci, Michelangelo, Raphael, Rembrandt]
+
+  - ref: bv-arts-006
+    subcategory: arts-literature/visual-arts
+    difficulty: 2
+    tr:
+      prompt: '"Kaplumbağa Terbiyecisi" tablosunun ressamı kimdir?'
+      options: [Osman Hamdi Bey, Şeker Ahmed Paşa, İbrahim Çallı, Hoca Ali Rıza]
+    en:
+      prompt: Who painted "The Tortoise Trainer"?
+      options: [Osman Hamdi Bey, Şeker Ahmed Pasha, İbrahim Çallı, Hoca Ali Rıza]
+
+  - ref: bv-arts-007
+    subcategory: arts-literature/music
+    difficulty: 2
+    tr:
+      prompt: '"Ay Işığı Sonatı"nın bestecisi kimdir?'
+      options: [Ludwig van Beethoven, Wolfgang Amadeus Mozart, Frédéric Chopin, Johann Sebastian Bach]
+    en:
+      prompt: Who composed the "Moonlight Sonata"?
+      options: [Ludwig van Beethoven, Wolfgang Amadeus Mozart, Frédéric Chopin, Johann Sebastian Bach]
+
+  - ref: bv-arts-008
+    subcategory: arts-literature/music
+    difficulty: 3
+    type: true_false
+    answer: true
+    tr:
+      prompt: Standart bir piyanoda 88 tuş bulunur.
+    en:
+      prompt: A standard piano has 88 keys.

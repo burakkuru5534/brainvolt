@@ -6,10 +6,10 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -24,10 +24,9 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/firebase"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/ids"
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/postgres"
-	"github.com/burakkuru5534/brainvolt/backend/internal/platform/redis"
 )
 
-// principalTTL is the life of the id:fuid:* cache entry (redis-keys §7).
+// principalTTL is the life of the principal cache entry.
 const principalTTL = 10 * time.Minute
 
 // Verifier is the part of platform/firebase the service uses.
@@ -40,7 +39,6 @@ type Verifier interface {
 // Deps are the service's collaborators.
 type Deps struct {
 	DB       *pgxpool.Pool
-	Redis    *redis.Client
 	Verifier Verifier
 	Profiles domain.ProfileProvisioner
 	Events   *events.Bus
@@ -49,7 +47,10 @@ type Deps struct {
 }
 
 // Service implements identity's use cases.
-type Service struct{ d Deps }
+type Service struct {
+	d     Deps
+	cache sync.Map
+}
 
 // New returns a service.
 func New(d Deps) *Service { return &Service{d: d} }
@@ -223,16 +224,10 @@ func (s *Service) User(ctx context.Context, id uuid.UUID) (User, error) {
 	}, nil
 }
 
-// cachedPrincipal is the JSON stored under id:fuid:<firebase_uid>.
-type cachedPrincipal struct {
-	UserID              uuid.UUID     `json:"user_id"`
-	Tier                domain.Tier   `json:"tier"`
-	Status              domain.Status `json:"status"`
-	DeletionRequestedAt *time.Time    `json:"deletion_requested_at"`
-	Roles               []string      `json:"roles"`
+type cachedPrincipalEntry struct {
+	principal domain.Principal
+	expiresAt time.Time
 }
-
-func principalKey(firebaseUID string) string { return redis.Key("id", "fuid", firebaseUID) }
 
 // Principal resolves the caller of an authenticated request. A tier that no
 // longer matches the token's claims is re-synced first (schema-identity §1),
@@ -277,14 +272,12 @@ func (s *Service) resync(ctx context.Context, tok firebase.Token) error {
 }
 
 func (s *Service) loadPrincipal(ctx context.Context, firebaseUID string) (domain.Principal, error) {
-	key := principalKey(firebaseUID)
-	if raw, err := s.d.Redis.Get(ctx, key).Bytes(); err == nil {
-		var c cachedPrincipal
-		if json.Unmarshal(raw, &c) == nil {
-			return c.principal(firebaseUID), nil
+	if val, ok := s.cache.Load(firebaseUID); ok {
+		entry := val.(cachedPrincipalEntry)
+		if s.d.Clock.Now().Before(entry.expiresAt) {
+			return entry.principal, nil
 		}
-	} else if !errors.Is(err, redis.ErrNil) {
-		s.d.Logger.WarnContext(ctx, "principal cache read failed", "error", err)
+		s.cache.Delete(firebaseUID)
 	}
 
 	q := sqlc.New(s.d.DB)
@@ -300,27 +293,29 @@ func (s *Service) loadPrincipal(ctx context.Context, firebaseUID string) (domain
 	if err != nil {
 		return domain.Principal{}, err
 	}
-	c := cachedPrincipal{UserID: u.ID, Tier: domain.Tier(u.AccountTier), Status: domain.Status(u.Status),
-		DeletionRequestedAt: u.DeletionRequestedAt, Roles: roles}
-	if raw, err := json.Marshal(c); err == nil {
-		if err := s.d.Redis.Set(ctx, key, raw, principalTTL).Err(); err != nil {
-			s.d.Logger.WarnContext(ctx, "principal cache write failed", "error", err)
-		}
+	p := domain.Principal{
+		UserID:              u.ID,
+		FirebaseUID:         firebaseUID,
+		Tier:                domain.Tier(u.AccountTier),
+		Status:              domain.Status(u.Status),
+		DeletionRequestedAt: u.DeletionRequestedAt,
+		Roles:               roles,
 	}
-	return c.principal(firebaseUID), nil
+	s.cache.Store(firebaseUID, cachedPrincipalEntry{
+		principal: p,
+		expiresAt: s.d.Clock.Now().Add(principalTTL),
+	})
+	return p, nil
 }
 
-func (c cachedPrincipal) principal(firebaseUID string) domain.Principal {
-	return domain.Principal{UserID: c.UserID, FirebaseUID: firebaseUID, Tier: c.Tier, Status: c.Status,
-		DeletionRequestedAt: c.DeletionRequestedAt, Roles: c.Roles}
-}
-
-// forget drops the cached principal after a change; on failure the entry
-// still expires within principalTTL.
+// forget drops the cached principal after a change.
 func (s *Service) forget(ctx context.Context, firebaseUID string) {
-	if err := s.d.Redis.Del(context.WithoutCancel(ctx), principalKey(firebaseUID)).Err(); err != nil {
-		s.d.Logger.WarnContext(ctx, "principal cache invalidation failed", "error", err)
-	}
+	s.cache.Delete(firebaseUID)
+}
+
+// Forget drops the cached principal for a firebaseUID.
+func (s *Service) Forget(firebaseUID string) {
+	s.cache.Delete(firebaseUID)
 }
 
 // SetStatus suspends (StatusSuspended) or restores (StatusActive) an

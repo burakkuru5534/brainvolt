@@ -1,0 +1,3960 @@
+# OpenTDB questions picked for BrainVolt (CC BY-SA 4.0, see SOURCES.md).
+# English text comes from opentdb/raw/; Turkish below is a machine translation
+# that moderators review before it is used (D-065).
+questions:
+- ref: otdb-3e32a2a8b449
+  subcategory: history/ottoman-empire
+  difficulty: 1
+  tr:
+    prompt: Konstantinopolis (İstanbul) Türkler tarafından hangi yıl fethedildi?
+    options:
+    - '1453'
+    - '1435'
+    - '1454'
+    - '1440'
+    origin: machine_translation
+- ref: otdb-5c771d8a3a0c
+  subcategory: history/ottoman-empire
+  tr:
+    prompt: 1516'daki Mercidabık Savaşı'nın ardından Osmanlı Devleti Kudüs'ün kontrolünü hangi sultanlıktan aldı?
+    options:
+    - Memlük Sultanlığı
+    - Eyyubi Sultanlığı
+    - Emevi Halifeliği
+    - Selçuklu Sultanlığı
+    origin: machine_translation
+- ref: otdb-2373e17711ad
+  subcategory: history/ottoman-empire
+  tr:
+    prompt: Birinci Dünya Savaşı'nda Almanya, Avusturya-Macaristan, Osmanlı Devleti ve Bulgaristan'ın oluşturduğu ittifakın adı neydi?
+    options:
+    - İttifak Devletleri
+    - Mihver Devletleri
+    - İmparatorluklar Federasyonu
+    - Otoriter İttifak
+    origin: machine_translation
+- ref: otdb-7230513b09b6
+  subcategory: history/ottoman-empire
+  tr:
+    prompt: Osmanlı İmparatorluğu hangi savaşı kaybettikten sonra dağıldı?
+    options:
+    - Birinci Dünya Savaşı
+    - Kırım Savaşı
+    - Sırp Ayaklanması
+    - İkinci Balkan Savaşı
+    origin: machine_translation
+- ref: otdb-4aa3c70ce645
+  subcategory: history/ottoman-empire
+  tr:
+    prompt: Aşağıdaki ülkelerden hangisi Birinci Dünya Savaşı'nda İttifak Devletleri arasında yer almadı?
+    options:
+    - İspanya
+    - Avusturya-Macaristan
+    - Osmanlı Devleti
+    - Almanya
+    origin: machine_translation
+- ref: otdb-d92a6daec7a5
+  subcategory: history/ottoman-empire
+  tr:
+    prompt: Arnavut ulusal lideri İskender Bey'in (Skanderbeg) asıl adı neydi?
+    options:
+    - Gjergj Kastrioti
+    - Diturak Zhulati
+    - Iskander Bejko
+    - Mirash Krasniki
+    origin: machine_translation
+- ref: otdb-ea975c183cd2
+  subcategory: history/ottoman-empire
+  tr:
+    prompt: Osmanlı Devleti 1299 yılında kurulmuştur.
+    origin: machine_translation
+- ref: otdb-cf42dc75b3a4
+  subcategory: history/turkish-history
+  tr:
+    prompt: Çanakkale Savaşı hangi yıllar arasında yaşandı?
+    options:
+    - 1915 - 1916
+    - 1914 - 1918
+    - 1914 - 1915
+    - 1915 - 1918
+    origin: machine_translation
+- ref: otdb-346f83f3ba63
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Antik çağda Frigya olarak bilinen bölge bugün hangi ülkenin topraklarındadır?
+    options:
+    - Türkiye
+    - Suriye
+    - Yunanistan
+    - Mısır
+    origin: machine_translation
+- ref: otdb-f87a3a9f5fe6
+  subcategory: history/world-history
+  tr:
+    prompt: Ayasofya'yı hangi Bizans imparatoru yaptırmıştır?
+    options:
+    - I. Justinianus
+    - IV. Konstantinos
+    - Arcadius
+    - Büyük Theodosius
+    origin: machine_translation
+- ref: otdb-1634e49fe65b
+  subcategory: history/world-history
+  tr:
+    prompt: Bizans İmparatorluğu'nda yaşayanların çoğu kendilerini "Romalı" olarak adlandırırdı.
+    origin: machine_translation
+- ref: otdb-55e13bc9b9b0
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Yunan mitolojisinde Altın Post'u bulmak için Argonotlar'a kim önderlik etti?
+    options:
+    - Iason
+    - Kastor
+    - Daidalos
+    - Odysseus
+    origin: machine_translation
+- ref: otdb-e381c9ab3d63
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Mısır mitolojisindeki Osiris efsanesine göre Osiris'i kim öldürdü?
+    options:
+    - Set
+    - Horus
+    - Ra
+    - Anhur
+    origin: machine_translation
+- ref: otdb-29ca2e3a9b41
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Yunan mitolojisinde Persephone, hangi meyvenin tanelerini yediği için yeraltı dünyasına geri dönmek zorundadır?
+    options:
+    - Nar
+    - Ayçiçeği
+    - Portakal
+    - İncir
+    origin: machine_translation
+- ref: otdb-6ad1cd77dac4
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Tanrıların ziyafetinin ortasına üzerinde "En güzele" yazan altın elmayı atan Yunan tanrısı/tanrıçası kimdir?
+    options:
+    - Eris
+    - Hades
+    - Ares
+    - Artemis
+    origin: machine_translation
+- ref: otdb-5e56ba6d42c8
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Yeraltı dünyasının bekçi köpeği Kerberos'un kaç başı vardır?
+    options:
+    - '3'
+    - '2'
+    - '1'
+    - '5'
+    origin: machine_translation
+- ref: otdb-c59b3a6280a3
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Yunan mitolojisinde şarap tanrısı kimdir?
+    options:
+    - Dionysos
+    - Hephaistos
+    - Demeter
+    - Apollon
+    origin: machine_translation
+- ref: otdb-5f05dbfa447a
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Yunan mitolojisinde Akhilleus'u kim öldürdü?
+    options:
+    - Paris
+    - Hektor
+    - Helene
+    - Perikles
+    origin: machine_translation
+- ref: otdb-afd293336d14
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Yunan mitolojisinde karısı Eurydike'yi yaşayanlar dünyasına geri getirmek için yeraltına inen kahraman kimdir?
+    options:
+    - Orpheus
+    - Herkül
+    - Perseus
+    - Daidalos
+    origin: machine_translation
+- ref: otdb-9ca036aa0cd6
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Güneşe fazla yaklaşan İkaros'un babası kimdir?
+    options:
+    - Daidalos
+    - Minos
+    - Perseus
+    - Zeus
+    origin: machine_translation
+- ref: otdb-52f1e40e6946
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Gılgamış'ın dost olduğu ve birlikte maceralara atıldığı yabani adamın adı nedir?
+    options:
+    - Enkidu
+    - İştar
+    - İnanna
+    - Agga
+    origin: machine_translation
+- ref: otdb-38509fce0026
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Mitolojik dev tunç adam Talos hangi adanın koruyucusuydu?
+    options:
+    - Girit
+    - Sardinya
+    - Sicilya
+    - Kıbrıs
+    origin: machine_translation
+- ref: otdb-18e34349c543
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: İskandinav mitolojisinde Sleipnir adlı atın sahibi hangi tanrıdır?
+    options:
+    - Odin
+    - Thor
+    - Frigg
+    - Balder
+    origin: machine_translation
+- ref: otdb-4959095ff99c
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: İskandinav mitolojisinde Loki, Baldr'ı hangi bitkiden yapılmış büyülü bir mızrakla öldürmüştür?
+    options:
+    - Ökseotu
+    - Kurtboğan
+    - Cehri
+    - Baldıran
+    origin: machine_translation
+- ref: otdb-43c9c5db9c65
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Mısır hiyerogliflerindeki Ankh işareti neyi simgeler?
+    options:
+    - Yaşam
+    - Aşk
+    - Nefret
+    - Zehir
+    origin: machine_translation
+- ref: otdb-8f9c56456666
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Yunan mitolojisinde Sisifos'a kurnazlığı yüzünden verilen ceza neydi?
+    options:
+    - Sonsuza dek bir kayayı tepeye yuvarlamak
+    - Sonsuza dek bir kayaya bağlı kalıp kuşlara didiklenmek
+    - Suyunu içemediği bir gölün içinde durmak
+    - Her balta darbesinden sonra yeniden büyüyen bir ağacı kesmek
+    origin: machine_translation
+- ref: otdb-735afeefe453
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Aşağıdaki mitolojik yaratıklardan hangisinin yarı insan, yarı at olduğu söylenir?
+    options:
+    - Kentaur
+    - Minotor
+    - Pegasus
+    - Gorgon
+    origin: machine_translation
+- ref: otdb-5cc7657d7fa0
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Yunan mitolojisinde savaş tanrısının adı Mars'tır.
+    origin: machine_translation
+- ref: otdb-a387b88ddad0
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Aşağıdaki savaşlardan hangisi genellikle Batı Roma İmparatorluğu'nun çöküşünün başlangıcı olarak kabul edilir?
+    options:
+    - Edirne Savaşı
+    - Selanik Savaşı
+    - Pollentia Savaşı
+    - Konstantinopolis Savaşı
+    origin: machine_translation
+- ref: otdb-358650c32f75
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Vezüv Yanardağı Pompeii kentini hangi yılda yok etti?
+    options:
+    - MS 79
+    - MS 62
+    - MÖ 31
+    - MÖ 54
+    origin: machine_translation
+- ref: otdb-38871ba555ae
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: İkinci Pön Savaşı sırasında savaş filleri de içeren ordusuyla Alpler'i aşan ünlü komutan kimdir?
+    options:
+    - Hannibal
+    - Germanicus
+    - Büyük İskender
+    - Tiberius
+    origin: machine_translation
+- ref: otdb-01bd62c51769
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Roma İmparatorluğu hangi imparatorun döneminde en geniş sınırlarına ulaştı?
+    options:
+    - Traianus
+    - Sezar
+    - Claudius
+    - Büyük Konstantin
+    origin: machine_translation
+- ref: otdb-a3731cb09723
+  subcategory: history/ancient-civilizations
+  tr:
+    prompt: Antik Dünyanın Yedi Harikası'ndan günümüze ulaşabilen tek yapı hangisidir?
+    options:
+    - Giza'daki Büyük Piramit
+    - Rodos Heykeli
+    - İskenderiye Feneri
+    - Olympia'daki Zeus Heykeli
+    origin: machine_translation
+- ref: otdb-89a81f0367c4
+  subcategory: history/world-history
+  tr:
+    prompt: Napolyon Bonapart, Waterloo yenilgisinden sonra hangi adaya sürgün edildi?
+    options:
+    - Saint Helena
+    - Elba
+    - Korsika
+    - Kanarya Adaları
+    origin: machine_translation
+- ref: otdb-c3a6f3d905e8
+  subcategory: history/world-history
+  difficulty: 3
+  tr:
+    prompt: Birinci Dünya Savaşı'nın başlamasına hangi hanedan üyesinin suikaste uğraması yol açtı?
+    options:
+    - Arşidük Franz Ferdinand
+    - Louis Mountbatten
+    - Kral I. Charles
+    - II. Nikolay
+    origin: machine_translation
+- ref: otdb-7a708bed9d58
+  subcategory: history/world-history
+  tr:
+    prompt: Yaklaşık 303 gün süren, Birinci Dünya Savaşı'nın en uzun muharebesi hangisidir?
+    options:
+    - Verdun Muharebesi
+    - Passchendaele Muharebesi
+    - Amiens Muharebesi
+    - Stalingrad Muharebesi
+    origin: machine_translation
+- ref: otdb-b72f3d52453f
+  subcategory: history/world-history
+  tr:
+    prompt: Otuz Yıl Savaşları hangi antlaşmayla sona erdi?
+    options:
+    - Vestfalya Barışı
+    - Versay Antlaşması
+    - Paris Antlaşması
+    - Prag Barışı
+    origin: machine_translation
+- ref: otdb-6e91fb9a9e84
+  subcategory: history/world-history
+  tr:
+    prompt: Sovyetler Birliği hangi yıl dağıldı?
+    options:
+    - '1991'
+    - '1992'
+    - '1891'
+    - '1990'
+    origin: machine_translation
+- ref: otdb-278d9b41c8e2
+  subcategory: history/world-history
+  tr:
+    prompt: 1871'de birleşen Almanya'nın ilk şansölyesi kimdi?
+    options:
+    - Otto von Bismarck
+    - Kayzer Wilhelm
+    - II. Friedrich
+    - Robert Koch
+    origin: machine_translation
+- ref: otdb-1c3a8eeb2ec8
+  subcategory: history/world-history
+  tr:
+    prompt: 1939'da İngiltere ve Fransa, Almanya hangi ülkeyi işgal edince ona savaş ilan etti?
+    options:
+    - Polonya
+    - Çekoslovakya
+    - Avusturya
+    - Macaristan
+    origin: machine_translation
+- ref: otdb-905c9b9aa6a9
+  subcategory: history/world-history
+  tr:
+    prompt: İkinci Dünya Savaşı'nda Almanya'nın Sovyetler Birliği'ni işgal harekâtının kod adı neydi?
+    options:
+    - Barbarossa Harekâtı
+    - Kaiserschlacht Harekâtı
+    - Unthinkable Harekâtı
+    - Molotov Harekâtı
+    origin: machine_translation
+- ref: otdb-c32b015a3a06
+  subcategory: history/world-history
+  tr:
+    prompt: '"Güneş Kral" olarak bilinen Fransa kralı hangi Louis''dir?'
+    options:
+    - XIV. Louis
+    - XIII. Louis
+    - XV. Louis
+    - XVI. Louis
+    origin: machine_translation
+- ref: otdb-90b6de199b88
+  subcategory: history/world-history
+  tr:
+    prompt: Süveyş Kanalı projesini hayata geçiren kişi kimdir?
+    options:
+    - Ferdinand de Lesseps
+    - Louis-Eugène Cavaignac
+    - John Milton
+    - Johann Lukas von Hildebrandt
+    origin: machine_translation
+- ref: otdb-06a3eecae5ee
+  subcategory: history/world-history
+  tr:
+    prompt: İkinci Dünya Savaşı'nda Pasifik cephesinin dönüm noktası kabul edilen deniz muharebesi hangisidir?
+    options:
+    - Midway Muharebesi
+    - Truk Adası Saldırısı
+    - Pearl Harbor Baskını
+    - Mercan Denizi Muharebesi
+    origin: machine_translation
+- ref: otdb-923c34c4c28e
+  subcategory: history/world-history
+  tr:
+    prompt: 1547'de Rusya'nın ilk çarı olan hükümdar kimdir?
+    options:
+    - Korkunç İvan
+    - Aleksey Mihayloviç
+    - Mihail Romanov
+    - Büyük Petro
+    origin: machine_translation
+- ref: otdb-a319f094dc0d
+  subcategory: history/world-history
+  tr:
+    prompt: Cengiz Han'ın asıl adı neydi?
+    options:
+    - Temuçin
+    - Möngke
+    - Ögeday
+    - Temür
+    origin: machine_translation
+- ref: otdb-a2afe93ca1f6
+  subcategory: history/world-history
+  tr:
+    prompt: Kubilay Han, Cengiz Han'ın torunudur.
+    origin: machine_translation
+- ref: otdb-77a5d72207ca
+  subcategory: history/world-history
+  tr:
+    prompt: Moğolların Japonya'yı istila girişimlerinde Moğol gemileri büyük ölçüde ne tarafından durduruldu?
+    options:
+    - Tayfunlar
+    - Hortumlar
+    - Ekonomik buhran
+    - Samuraylar
+    origin: machine_translation
+- ref: otdb-98754b8e5c7d
+  subcategory: history/world-history
+  tr:
+    prompt: 1982'de Falkland Adaları için Birleşik Krallık'la savaşan Güney Amerika ülkesi hangisidir?
+    options:
+    - Arjantin
+    - Brezilya
+    - Şili
+    - Venezuela
+    origin: machine_translation
+- ref: otdb-543334c3ad70
+  subcategory: history/world-history
+  tr:
+    prompt: Hiroşima'ya "Little Boy" atom bombasını atan B-29 bombardıman uçağının adı neydi?
+    options:
+    - Enola Gay
+    - Necessary Evil
+    - The Great Artiste
+    - Full House
+    origin: machine_translation
+- ref: otdb-53548ae5fc7b
+  subcategory: history/world-history
+  tr:
+    prompt: Etiyopya takviminde 13 ay vardır.
+    origin: machine_translation
+- ref: otdb-3a60b5efceba
+  subcategory: history/world-history
+  tr:
+    prompt: Oxford Üniversitesi, Aztek İmparatorluğu'ndan daha eskidir.
+    origin: machine_translation
+- ref: otdb-141aaa3aa153
+  subcategory: history/world-history
+  tr:
+    prompt: Aşağıdaki Afrika ülkelerinden hangisi sömürgeleştirilmeye karşı koymakta en başarılı olmuştur?
+    options:
+    - Etiyopya
+    - Fildişi Sahili
+    - Kongo
+    - Namibya
+    origin: machine_translation
+- ref: otdb-e572cc1611f6
+  subcategory: history/world-history
+  tr:
+    prompt: Josef Stalin, bugün hangi ülkenin sınırları içinde kalan bir kentte doğmuştur?
+    options:
+    - Gürcistan
+    - Rusya
+    - Almanya
+    - Polonya
+    origin: machine_translation
+- ref: otdb-9aed4a5e94e1
+  subcategory: history/world-history
+  tr:
+    prompt: Yüz Yıl Savaşları aslında kaç yıl sürdü?
+    options:
+    - '116'
+    - '100'
+    - '90'
+    - '101'
+    origin: machine_translation
+- ref: otdb-72677adea446
+  subcategory: geography/turkey
+  tr:
+    prompt: Türkiye'nin bugün İstanbul olarak bilinen şehri tarihte hangi adla anılırdı?
+    options:
+    - Konstantinopolis
+    - Hüdavendigar
+    - Söğüt
+    - Adrianopolis
+    origin: machine_translation
+- ref: otdb-fc32b7b7e52a
+  subcategory: geography/turkey
+  difficulty: 1
+  tr:
+    prompt: Türkiye'nin başkenti neresidir?
+    options:
+    - Ankara
+    - İstanbul
+    - İzmir
+    - Bursa
+    origin: machine_translation
+- ref: otdb-39357a85cc3f
+  subcategory: geography/turkey
+  difficulty: 2
+  tr:
+    prompt: Günümüz Türkiye topraklarının büyük bölümünü oluşturan yarımada hangi adla bilinir?
+    options:
+    - Anadolu
+    - Osmanlı Kıstağı
+    - Otoma
+    - Anadolu Kıstağı
+    origin: machine_translation
+- ref: otdb-837212b99515
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Rio de Janeiro şehri hangi ülkededir?
+    options:
+    - Brezilya
+    - Peru
+    - Şili
+    - Venezuela
+    origin: machine_translation
+- ref: otdb-bfa26f371f9b
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Hindistan'ın başkenti neresidir?
+    options:
+    - Yeni Delhi
+    - Pekin
+    - Montreal
+    - Tithi
+    origin: machine_translation
+- ref: otdb-b89fd5ead9fa
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Danimarka'nın başkenti neresidir?
+    options:
+    - Kopenhag
+    - Aarhus
+    - Odense
+    - Aalborg
+    origin: machine_translation
+- ref: otdb-24af4bcb328a
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Romanya'nın başkenti neresidir?
+    options:
+    - Bükreş
+    - Bratislava
+    - Belgrad
+    - Budapeşte
+    origin: machine_translation
+- ref: otdb-156ea3268118
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Bangladeş'in başkenti neresidir?
+    options:
+    - Dakka
+    - Khulna
+    - Londra
+    - Lahor
+    origin: machine_translation
+- ref: otdb-59f9c9c9906f
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Doğu Avrupa'nın hangi bölgesi vampir efsaneleriyle ünlüdür?
+    options:
+    - Transilvanya
+    - Silezya
+    - Makedonya
+    - Slovakya
+    origin: machine_translation
+- ref: otdb-3921127a2dd4
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Tac Mahal hangi Hindistan şehrinde bulunur?
+    options:
+    - Agra
+    - Mumbai
+    - Faridabad
+    - Thane
+    origin: machine_translation
+- ref: otdb-43ac75071734
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Almanların Danzig adıyla andığı Polonya şehri hangisidir?
+    options:
+    - Gdańsk
+    - Varşova
+    - Zakopane
+    - Poznań
+    origin: machine_translation
+- ref: otdb-ba36fa52cf46
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Dünyanın en küçük ülkesi Vatikan, dört bir yandan hangi ülkeyle çevrilidir?
+    options:
+    - İtalya
+    - Fransa
+    - İspanya
+    - Almanya
+    origin: machine_translation
+- ref: otdb-3c513bd66728
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Grönland hangi krallığın bir parçasıdır?
+    options:
+    - Danimarka
+    - İsveç
+    - Norveç
+    - Birleşik Krallık
+    origin: machine_translation
+- ref: otdb-59a93b34763f
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Fransa ile İspanya arasında yer alan küçük ülke hangisidir?
+    options:
+    - Andorra
+    - San Marino
+    - Vatikan
+    - Lihtenştayn
+    origin: machine_translation
+- ref: otdb-252fab63cbbc
+  subcategory: geography/physical-geography
+  tr:
+    prompt: Dünyanın en büyük sıcak çölü hangisidir?
+    options:
+    - Sahra
+    - Gobi
+    - Mojave
+    - Kalahari
+    origin: machine_translation
+- ref: otdb-067782d1f616
+  subcategory: geography/physical-geography
+  tr:
+    prompt: İspanya ve Portekiz'in yer aldığı yarımadanın adı nedir?
+    options:
+    - İber Yarımadası
+    - Avrupa Yarımadası
+    - Mora Yarımadası
+    - İskandinav Yarımadası
+    origin: machine_translation
+- ref: otdb-e7885d3a1faf
+  subcategory: geography/physical-geography
+  tr:
+    prompt: Réunion Adası hangi okyanustadır?
+    options:
+    - Hint Okyanusu
+    - Atlas Okyanusu
+    - Güney Pasifik Okyanusu
+    - Kuzey Pasifik Okyanusu
+    origin: machine_translation
+- ref: otdb-39c42549a0b0
+  subcategory: geography/physical-geography
+  tr:
+    prompt: Halka biçimli mercan resiflerine, adalara ya da adacık dizilerine verilen ad nedir?
+    options:
+    - Atol
+    - Yarımada
+    - Kıstak
+    - Delta
+    origin: machine_translation
+- ref: otdb-af25ecb706fd
+  subcategory: geography/physical-geography
+  tr:
+    prompt: Aşağıdaki Japon adalarından hangisi en büyüğüdür?
+    options:
+    - Honşu
+    - Hokkaido
+    - Şikoku
+    - Kyuşu
+    origin: machine_translation
+- ref: otdb-eaebe7435e59
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Yüzölçümü bakımından dünyanın en büyük ikinci ülkesi hangisidir?
+    options:
+    - Kanada
+    - Rusya
+    - Çin
+    - Amerika Birleşik Devletleri
+    origin: machine_translation
+- ref: otdb-1e344a904ee2
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Kolombiya adını Kristof Kolomb'dan almıştır.
+    origin: machine_translation
+- ref: otdb-6f1a3dfe63ab
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Antik Petra kenti hangi ülkededir?
+    options:
+    - Ürdün
+    - Mısır
+    - İsrail
+    - İtalya
+    origin: machine_translation
+- ref: otdb-35e4daa07cf4
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Peru'nun başkenti neresidir?
+    options:
+    - Lima
+    - Santiago
+    - Montevideo
+    - Buenos Aires
+    origin: machine_translation
+- ref: otdb-022c3c578de1
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Afrika ülkesi Zimbabve'nin eski adı nedir?
+    options:
+    - Rodezya
+    - Zambiya
+    - Mozambik
+    - Bulawayo
+    origin: machine_translation
+- ref: otdb-615dc131a36c
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Maori dilinde Aotearoa olarak bilinen Okyanusya ülkesi hangisidir?
+    options:
+    - Yeni Zelanda
+    - Avustralya
+    - Solomon Adaları
+    - Yeni Kaledonya
+    origin: machine_translation
+- ref: otdb-a8bc0f0d9339
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Terakota Ordusu hangi şehirde bulunur?
+    options:
+    - Xi'an
+    - Pekin
+    - Şanghay
+    - Hong Kong
+    origin: machine_translation
+- ref: otdb-36194dd3aa8b
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Tarihi Timbuktu şehri hangi Batı Afrika ülkesindedir?
+    options:
+    - Mali
+    - Senegal
+    - Nijer
+    - Burkina Faso
+    origin: machine_translation
+- ref: otdb-d5d26ad8d3cc
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Dünyada hâlâ var olan tek büyük dükalık hangisidir?
+    options:
+    - Lüksemburg
+    - Karadağ
+    - Lihtenştayn
+    - Andorra
+    origin: machine_translation
+- ref: otdb-eacbb0d3595c
+  subcategory: geography/physical-geography
+  tr:
+    prompt: Afrika kıtasının en büyük gölü hangisidir?
+    options:
+    - Victoria Gölü
+    - Tanganika Gölü
+    - Malavi Gölü
+    - Turkana Gölü
+    origin: machine_translation
+- ref: otdb-fc7166d3ac2b
+  subcategory: geography/physical-geography
+  tr:
+    prompt: Pireneler hangi iki ülke arasındaki sınırda yer alır?
+    options:
+    - Fransa ve İspanya
+    - İtalya ve İsviçre
+    - Norveç ve İsveç
+    - Rusya ve Ukrayna
+    origin: machine_translation
+- ref: otdb-530519239598
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Nazca Çizgileri hangi ülkededir?
+    options:
+    - Peru
+    - Brezilya
+    - Kolombiya
+    - Ekvador
+    origin: machine_translation
+- ref: otdb-0cedecff8fc2
+  subcategory: geography/physical-geography
+  tr:
+    prompt: Avrupa'nın en uzun nehri hangisidir?
+    options:
+    - Volga
+    - Tuna
+    - Ren
+    - Thames
+    origin: machine_translation
+- ref: otdb-ba8926a6f60a
+  subcategory: geography/physical-geography
+  tr:
+    prompt: Hangi Alman şehri Isar Nehri kıyısında yer alır?
+    options:
+    - Münih
+    - Berlin
+    - Hamburg
+    - Dortmund
+    origin: machine_translation
+- ref: otdb-6128c3b6385f
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Eskiden Doğu Prusya'ya ait olan Königsberg şehri bugün hangi adla bilinen bir Rus şehridir?
+    options:
+    - Kaliningrad
+    - Kazan
+    - Kursk
+    - Krasnodar
+    origin: machine_translation
+- ref: otdb-635d43e33958
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Avustralya'nın başkenti neresidir?
+    options:
+    - Canberra
+    - Sidney
+    - Melbourne
+    - Brisbane
+    origin: machine_translation
+- ref: otdb-a14251396fb9
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: İsviçre'nin başkenti hangi şehirdir?
+    options:
+    - Bern
+    - Zürih
+    - Frankfurt
+    - Viyana
+    origin: machine_translation
+- ref: otdb-39041878feda
+  subcategory: geography/physical-geography
+  tr:
+    prompt: Atlas Okyanusu'nu Akdeniz'e bağlayan su yolu hangisidir?
+    options:
+    - Cebelitarık Boğazı
+    - Cebelitarık Geçidi
+    - İspanyol Boğazları
+    - Tanca Kanalı
+    origin: machine_translation
+- ref: otdb-5c05b6010203
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Aşağıdaki ülkelerden hangisi "çift kara ile çevrili", yani yalnızca denize kıyısı olmayan ülkelerle çevrili bir ülkedir?
+    options:
+    - Özbekistan
+    - İsviçre
+    - Bolivya
+    - Etiyopya
+    origin: machine_translation
+- ref: otdb-4024cf0388f0
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Hem Uruguay hem de Venezuela ile sınırı olan tek ülke hangisidir?
+    options:
+    - Brezilya
+    - Meksika
+    - Şili
+    - Panama
+    origin: machine_translation
+- ref: otdb-2bd6d3da9a85
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Aşağıdaki Akdeniz adalarından hangisi Fransa'nın egemenliği altındadır?
+    options:
+    - Korsika
+    - Mayorka
+    - Sardinya
+    - Malta
+    origin: machine_translation
+- ref: otdb-c7307c15ac0a
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Hangi ülkenin üç başkenti vardır?
+    options:
+    - Güney Afrika
+    - Somali
+    - Çin
+    - Birleşik Krallık
+    origin: machine_translation
+- ref: otdb-2a75c0bac0a9
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Güneydoğu Asya'daki Borneo Adası siyasi olarak 3 ülke arasında bölünmüştür.
+    origin: machine_translation
+- ref: otdb-a05ef16be7f2
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Rusya'nın Kuzey Kore ile kara sınırı vardır.
+    origin: machine_translation
+- ref: otdb-409f1e5afcea
+  subcategory: geography/physical-geography
+  tr:
+    prompt: Antarktika, dünyanın en büyük çölüdür.
+    origin: machine_translation
+- ref: otdb-6acc125c3940
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Svalbard Takımadaları hangi ülkeye bağlıdır?
+    options:
+    - Norveç
+    - Danimarka
+    - İzlanda
+    - Rusya
+    origin: machine_translation
+- ref: otdb-60e8be9cd0e4
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Mauritius'un başkenti neresidir?
+    options:
+    - Port Louis
+    - Port Moresby
+    - Port Vila
+    - Port-au-Prince
+    origin: machine_translation
+- ref: otdb-1d9cddf6bab1
+  subcategory: geography/physical-geography
+  tr:
+    prompt: Hacim bakımından dünyanın en büyük tatlı su gölü hangisidir?
+    options:
+    - Baykal Gölü
+    - Superior Gölü
+    - Huron Gölü
+    - Michigan Gölü
+    origin: machine_translation
+- ref: otdb-681f055f509c
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Burkina Faso'nun başkenti neresidir?
+    options:
+    - Vagadugu
+    - Yaounde
+    - Yamusukro
+    - Abidjan
+    origin: machine_translation
+- ref: otdb-ac7fed05b329
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Dört bir yanı tamamen Güney Afrika ile çevrili olan ülke hangisidir?
+    options:
+    - Lesotho
+    - Esvatini
+    - Botsvana
+    - Zimbabve
+    origin: machine_translation
+- ref: otdb-db3eb5a4269e
+  subcategory: geography/physical-geography
+  tr:
+    prompt: Kuzey Amerika ile Güney Amerika'yı birbirine bağlayan kara parçasının adı nedir?
+    options:
+    - Panama Kıstağı
+    - Süveyş Kıstağı
+    - Ural Dağları
+    - Avustralasya
+    origin: machine_translation
+- ref: otdb-8c12537978aa
+  subcategory: geography/physical-geography
+  tr:
+    prompt: Dağlık Hayber Geçidi hangi iki ülkeyi birbirine bağlar?
+    options:
+    - Afganistan ve Pakistan
+    - Hindistan ve Nepal
+    - Pakistan ve Hindistan
+    - Tacikistan ve Kırgızistan
+    origin: machine_translation
+- ref: otdb-1dd5b6e55801
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Baharat Adaları olarak da bilinen Maluku Adaları hangi ülkeye aittir?
+    options:
+    - Endonezya
+    - Şili
+    - Yeni Zelanda
+    - Fiji
+    origin: machine_translation
+- ref: otdb-551cc53f78eb
+  subcategory: geography/physical-geography
+  tr:
+    prompt: Titikaka Gölü'nü özel kılan nedir?
+    options:
+    - Gemiyle ulaşıma elverişli en yüksek göl olması
+    - Dünyanın en uzun gölü olması
+    - Dünyanın en derin gölü olması
+    - Yıl boyunca donmuş kalması
+    origin: machine_translation
+- ref: otdb-ace70c0324eb
+  subcategory: geography/countries-capitals
+  tr:
+    prompt: Fransa en uzun kara sınırını hangi ülkeyle paylaşır?
+    options:
+    - Brezilya
+    - Almanya
+    - İspanya
+    - Kanada
+    origin: machine_translation
+- ref: otdb-c8b9b4dbea91
+  subcategory: geography/physical-geography
+  tr:
+    prompt: Ürdün Nehri hangi havzaya dökülür?
+    options:
+    - Lut Gölü
+    - Aral Gölü
+    - Hazar Denizi
+    - Salton Gölü
+    origin: machine_translation
+- ref: otdb-d01c621b4177
+  subcategory: science/physics
+  tr:
+    prompt: Pozitron hangi parçacığın karşıt parçacığıdır?
+    options:
+    - Elektron
+    - Nötron
+    - Proton
+    - Foton
+    origin: machine_translation
+- ref: otdb-089825842f84
+  subcategory: science/physics
+  tr:
+    prompt: Elektrik akımının standart SI birimi nedir?
+    options:
+    - Amper
+    - Volt
+    - Ohm
+    - Watt
+    origin: machine_translation
+- ref: otdb-de73238e6055
+  subcategory: science/physics
+  tr:
+    prompt: Elektriksel direncin birimi nedir?
+    options:
+    - Ohm
+    - Mho
+    - Tesla
+    - Joule
+    origin: machine_translation
+- ref: otdb-efe1bda232aa
+  subcategory: science/physics
+  tr:
+    prompt: Elektriksel sığanın (kapasitansın) birimi nedir?
+    options:
+    - Farad
+    - Gauss
+    - Henry
+    - Watt
+    origin: machine_translation
+- ref: otdb-335ce1941bfe
+  subcategory: science/physics
+  tr:
+    prompt: Elektriksel indüktansın birimi nedir?
+    options:
+    - Henry
+    - Weber
+    - Coulomb
+    - Mho
+    origin: machine_translation
+- ref: otdb-a8c57643e9b7
+  subcategory: science/physics
+  tr:
+    prompt: Ses boşlukta (vakumda) yayılabilir.
+    origin: machine_translation
+- ref: otdb-9ece2193639f
+  subcategory: science/physics
+  tr:
+    prompt: Parçacık fiziğinin Standart Modeli'nde kaç tür kuark vardır?
+    options:
+    - '6'
+    - '2'
+    - '3'
+    - '4'
+    origin: machine_translation
+- ref: otdb-52e798b84cf5
+  subcategory: science/physics
+  tr:
+    prompt: X ışınlarını kim keşfetmiştir?
+    options:
+    - Wilhelm Conrad Röntgen
+    - Thomas Alva Edison
+    - James Watt
+    - Albert Einstein
+    origin: machine_translation
+- ref: otdb-c6b6f053734c
+  subcategory: science/physics
+  tr:
+    prompt: Atomun büyük ölçüde boşluktan oluştuğunu gösteren altın varak (folyo) deneyini hangi bilim insanı yapmıştır?
+    options:
+    - Ernest Rutherford
+    - Joseph John Thomson
+    - Arşimet
+    - Niels Bohr
+    origin: machine_translation
+- ref: otdb-7b85f04492a3
+  subcategory: science/physics
+  tr:
+    prompt: Işığın boşluktaki hızı nedir?
+    options:
+    - 299.792.458 m/s
+    - 50.461 m/s
+    - 308.215.043 m/s
+    - 751.665.014.151 m/s
+    origin: machine_translation
+- ref: otdb-f08c45a6e282
+  subcategory: science/physics
+  tr:
+    prompt: Sıcaklığın standart SI birimi nedir?
+    options:
+    - Kelvin
+    - Fahrenheit
+    - Celsius
+    - Rankine
+    origin: machine_translation
+- ref: otdb-67437da9c689
+  subcategory: science/chemistry
+  tr:
+    prompt: Döteryum hangi elementin bir izotopudur?
+    options:
+    - Hidrojen
+    - Azot
+    - Helyum
+    - Neon
+    origin: machine_translation
+- ref: otdb-8058a1e436e2
+  subcategory: science/chemistry
+  tr:
+    prompt: Atom numarası en küçük olan soy gaz hangisidir?
+    options:
+    - Helyum
+    - Neon
+    - Argon
+    - Kripton
+    origin: machine_translation
+- ref: otdb-76148459308d
+  subcategory: science/chemistry
+  tr:
+    prompt: Kuru buz hangi maddenin katı hâlidir?
+    options:
+    - Karbondioksit
+    - Azot
+    - Amonyak
+    - Oksijen
+    origin: machine_translation
+- ref: otdb-9450a1d61c04
+  subcategory: science/chemistry
+  tr:
+    prompt: Kimyasal sembolü "Fe" olan element hangisidir?
+    options:
+    - Demir
+    - Altın
+    - Gümüş
+    - Kalay
+    origin: machine_translation
+- ref: otdb-5dffee9d4d89
+  subcategory: science/chemistry
+  tr:
+    prompt: Kurşunun kimyasal sembolü nedir?
+    options:
+    - Pb
+    - Ld
+    - Le
+    - Pm
+    origin: machine_translation
+- ref: otdb-d2af4e735e5b
+  subcategory: science/chemistry
+  tr:
+    prompt: Amonyağın kimyasal formülü nedir?
+    options:
+    - NH3
+    - CO2
+    - NO3
+    - CH4
+    origin: machine_translation
+- ref: otdb-70f867d23921
+  subcategory: science/chemistry
+  tr:
+    prompt: Glikozun molekül formülü nedir?
+    options:
+    - C6H12O6
+    - C2H4O2
+    - K+
+    - CH4
+    origin: machine_translation
+- ref: otdb-0c08f289d519
+  subcategory: science/chemistry
+  tr:
+    prompt: Aşağıdaki metallerden hangisi oda sıcaklığında veya buna yakın bir sıcaklıkta sıvı DEĞİLDİR?
+    options:
+    - Berilyum
+    - Galyum
+    - Sezyum
+    - Cıva
+    origin: machine_translation
+- ref: otdb-88583b3e781a
+  subcategory: science/chemistry
+  tr:
+    prompt: Aşağıdaki bilim insanlarından hangisinin adı bir kimyasal elemente verilmemiştir?
+    options:
+    - Isaac Newton
+    - Albert Einstein
+    - Niels Bohr
+    - Enrico Fermi
+    origin: machine_translation
+- ref: otdb-3e1e85e60560
+  subcategory: science/chemistry
+  tr:
+    prompt: Periyodik tablodaki 72. element adını hangi Danimarka şehrinden alır?
+    options:
+    - Kopenhag
+    - Odense
+    - Herning
+    - Skagen
+    origin: machine_translation
+- ref: otdb-66e2bab0ba46
+  subcategory: science/chemistry
+  tr:
+    prompt: Bir mol kaç tanecik içerir?
+    options:
+    - 6,022 × 10²³
+    - 6,002 × 10²²
+    - 6,022 × 10²²
+    - 6,002 × 10²³
+    origin: machine_translation
+- ref: otdb-7fc268000990
+  subcategory: science/chemistry
+  tr:
+    prompt: İnorganik bileşiklerden sentezlenen ilk organik bileşik hangisidir?
+    options:
+    - Üre
+    - Propan
+    - Etanol
+    - Formaldehit
+    origin: machine_translation
+- ref: otdb-fbbd737e1213
+  subcategory: science/biology
+  difficulty: 3
+  tr:
+    prompt: DNA'da guanin hangi nükleotit ile eşleşir?
+    options:
+    - Sitozin
+    - Timin
+    - Adenin
+    - Urasil
+    origin: machine_translation
+- ref: otdb-2762a148d6b0
+  subcategory: science/biology
+  tr:
+    prompt: İnsan kalbi kaç odacıktan oluşur?
+    options:
+    - '4'
+    - '2'
+    - '6'
+    - '3'
+    origin: machine_translation
+- ref: otdb-bd2653bc4d56
+  subcategory: science/biology
+  tr:
+    prompt: Yetişkin bir insanın vücudunda kaç kemik bulunur?
+    options:
+    - '206'
+    - '203'
+    - '209'
+    - '200'
+    origin: machine_translation
+- ref: otdb-e22db9f2ee9f
+  subcategory: science/biology
+  tr:
+    prompt: Down sendromu genellikle hangi kromozomun fazladan bir kopyasından kaynaklanır?
+    options:
+    - '21'
+    - '23'
+    - '15'
+    - '24'
+    origin: machine_translation
+- ref: otdb-8b949e6ff14d
+  subcategory: science/biology
+  tr:
+    prompt: İnsülin vücudun hangi organında üretilir?
+    options:
+    - Pankreas
+    - Böbrek
+    - Karaciğer
+    - Mide
+    origin: machine_translation
+- ref: otdb-c27a58e6d75b
+  subcategory: science/biology
+  tr:
+    prompt: Bir ahtapotun kaç kalbi vardır?
+    options:
+    - Üç
+    - Bir
+    - İki
+    - Dört
+    origin: machine_translation
+- ref: otdb-38918bb2d48d
+  subcategory: science/biology
+  tr:
+    prompt: Karada yaşayan en hızlı hayvan hangisidir?
+    options:
+    - Çita
+    - Aslan
+    - Thomson ceylanı
+    - Çatal boynuzlu antilop
+    origin: machine_translation
+- ref: otdb-fd3a0f77f58a
+  subcategory: science/biology
+  tr:
+    prompt: Dünyanın en hızlı hayvanı hangisidir?
+    options:
+    - Gökdoğan
+    - Kaya kartalı
+    - Çita
+    - At sineği
+    origin: machine_translation
+- ref: otdb-88a5764fe567
+  subcategory: science/biology
+  tr:
+    prompt: Ornitorenk bir memelidir.
+    origin: machine_translation
+- ref: otdb-ca353b9c91c9
+  subcategory: science/biology
+  tr:
+    prompt: Katil balina (orka), bir yunus türü olarak kabul edilir.
+    origin: machine_translation
+- ref: otdb-3a71e58d3a50
+  subcategory: science/biology
+  tr:
+    prompt: Botanik açıdan aşağıdaki meyvelerden hangisi bir üzümsü meyve (bera) DEĞİLDİR?
+    options:
+    - Çilek
+    - Yaban mersini
+    - Muz
+    - Concord üzümü
+    origin: machine_translation
+- ref: otdb-5e808e7b4026
+  subcategory: science/biology
+  tr:
+    prompt: Antarktika ahtapotunun kanına mavi rengini veren, bakır bakımından zengin protein hangisidir?
+    options:
+    - Hemosiyanin
+    - Sitokrom
+    - Demir
+    - Metiyonin
+    origin: machine_translation
+- ref: otdb-1aed05f56004
+  subcategory: science/space
+  tr:
+    prompt: Güneş Sistemi'nin en sıcak gezegeni hangisidir?
+    options:
+    - Venüs
+    - Mars
+    - Merkür
+    - Jüpiter
+    origin: machine_translation
+- ref: otdb-6ed0dfa43268
+  subcategory: science/space
+  tr:
+    prompt: Güneş Sistemi'nin en büyük gezegeni hangisidir?
+    options:
+    - Jüpiter
+    - Satürn
+    - Dünya
+    - Mars
+    origin: machine_translation
+- ref: otdb-7a25be6b744f
+  subcategory: science/space
+  tr:
+    prompt: Asteroit kuşağı hangi iki gezegen arasında yer alır?
+    options:
+    - Mars ve Jüpiter
+    - Jüpiter ve Satürn
+    - Merkür ve Venüs
+    - Dünya ve Mars
+    origin: machine_translation
+- ref: otdb-982966c6555e
+  subcategory: science/space
+  tr:
+    prompt: Viking 1 uzay aracı 1976'dan itibaren hangi gezegenin yüzeyinden görüntüler göndermiştir?
+    options:
+    - Mars
+    - Satürn
+    - Jüpiter
+    - Venüs
+    origin: machine_translation
+- ref: otdb-31a85f399eda
+  subcategory: science/space
+  tr:
+    prompt: Uranüs'te bir yıl yaklaşık olarak ne kadar sürer?
+    options:
+    - 84 Dünya yılı
+    - 47 Dünya yılı
+    - 62 Dünya yılı
+    - 109 Dünya yılı
+    origin: machine_translation
+- ref: otdb-0e9288dbdeb8
+  subcategory: science/space
+  tr:
+    prompt: Ganymede hangi gezegenin en büyük uydusudur?
+    options:
+    - Jüpiter
+    - Uranüs
+    - Neptün
+    - Mars
+    origin: machine_translation
+- ref: otdb-61431527d5fe
+  subcategory: science/space
+  tr:
+    prompt: Güneş Sistemi'nde yoğun bir atmosfere sahip tek uydu hangisidir?
+    options:
+    - Titan
+    - Europa
+    - Miranda
+    - Kallisto
+    origin: machine_translation
+- ref: otdb-92fdd1f9c122
+  subcategory: science/space
+  tr:
+    prompt: Evren yaklaşık kaç yaşındadır?
+    options:
+    - 13,8 milyar yıl
+    - 4,5 milyar yıl
+    - 7,9 milyar yıl
+    - 16,2 milyar yıl
+    origin: machine_translation
+- ref: otdb-410b27b6a45b
+  subcategory: science/space
+  tr:
+    prompt: Ay'a iniş yapan ilk Apollo görevi hangisidir?
+    options:
+    - Apollo 11
+    - Apollo 10
+    - Apollo 9
+    - Apollo 13
+    origin: machine_translation
+- ref: otdb-5717e7637ce2
+  subcategory: science/space
+  tr:
+    prompt: Samanyolu'nun merkezindeki süper kütleli kara deliğin adı nedir?
+    options:
+    - Sagittarius A*
+    - Messier 87
+    - Alpha Centauri
+    - Andromeda
+    origin: machine_translation
+- ref: otdb-7681961c9332
+  subcategory: science/space
+  tr:
+    prompt: Bir astronomik birim, Dünya ile Ay arasındaki uzaklığa eşittir.
+    origin: machine_translation
+- ref: otdb-62cd951c404d
+  subcategory: science/space
+  tr:
+    prompt: Bir kuyruklu yıldızın kuyruğunu oluşturan gaz zarfına ne ad verilir?
+    options:
+    - Koma
+    - İz
+    - Burgaç
+    - Aşındırıcı tabaka
+    origin: machine_translation
+- ref: otdb-1769c06b37a2
+  subcategory: science/mathematics
+  tr:
+    prompt: 49'un karekökü kaçtır?
+    options:
+    - '7'
+    - '4'
+    - '12'
+    - '9'
+    origin: machine_translation
+- ref: otdb-9dcd2ce4afa5
+  subcategory: science/mathematics
+  tr:
+    prompt: Bir küpün kaç kare yüzü vardır?
+    options:
+    - '6'
+    - '4'
+    - '8'
+    - '10'
+    origin: machine_translation
+- ref: otdb-bf99c4d6aae9
+  subcategory: science/mathematics
+  tr:
+    prompt: 90°'den büyük (180°'den küçük) açıya ne ad verilir?
+    options:
+    - Geniş açı
+    - Dar açı
+    - Dik açı
+    - Doğru açı
+    origin: machine_translation
+- ref: otdb-04c75cf4205e
+  subcategory: science/mathematics
+  tr:
+    prompt: 19'dan sonra gelen ilk asal sayı hangisidir?
+    options:
+    - '23'
+    - '25'
+    - '21'
+    - '27'
+    origin: machine_translation
+- ref: otdb-292dd9c665cb
+  subcategory: science/mathematics
+  tr:
+    prompt: Kaldırma kuvveti ilkesini keşfettikten sonra Siraküza sokaklarında çıplak hâlde "Eureka!" diye bağırarak koştuğu anlatılan Yunan matematikçi kimdir?
+    options:
+    - Arşimet
+    - Öklid
+    - Homeros
+    - Eratosthenes
+    origin: machine_translation
+- ref: otdb-06b1e9eaa043
+  subcategory: science/mathematics
+  tr:
+    prompt: Fields Madalyası'nı reddeden matematikçi kimdir?
+    options:
+    - Grigori Perelman
+    - Andrew Wiles
+    - Terence Tao
+    - Edward Witten
+    origin: machine_translation
+- ref: otdb-6cb218a4fed0
+  subcategory: science/mathematics
+  tr:
+    prompt: 111.111.111 × 111.111.111 = 12.345.678.987.654.321 eşitliği doğrudur.
+    origin: machine_translation
+- ref: otdb-8881c55f357b
+  subcategory: science/mathematics
+  tr:
+    prompt: Sıfır faktöriyel (0!) sıfıra eşittir.
+    origin: machine_translation
+- ref: otdb-442f7bd2101d
+  subcategory: science/mathematics
+  tr:
+    prompt: İki pozitif tam sayının küplerinin toplamı olarak iki farklı şekilde yazılabilen en küçük sayı hangisidir?
+    options:
+    - '1729'
+    - '91'
+    - '561'
+    - '4104'
+    origin: machine_translation
+- ref: otdb-aa07274c8a92
+  subcategory: science/mathematics
+  tr:
+    prompt: Aşağıdaki ünlü matematikçilerden hangisi 20 yaşında bir düelloda hayatını kaybetmiştir?
+    options:
+    - Galois
+    - Abel
+    - Euler
+    - Gauss
+    origin: machine_translation
+- ref: otdb-2d9a56c2dab6
+  subcategory: science/mathematics
+  tr:
+    prompt: Matematiksel sabit e'nin yaklaşık değeri nedir?
+    options:
+    - 2,72
+    - 3,14
+    - 1,62
+    - 1,41
+    origin: machine_translation
+- ref: otdb-a2be9f1b287f
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: Küçük Prens kitabının yazarı kimdir?
+    options:
+    - Antoine de Saint-Exupéry
+    - Miguel de Cervantes Saavedra
+    - Jane Austen
+    - F. Scott Fitzgerald
+    origin: machine_translation
+- ref: otdb-1c26028a9dca
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: '"Modern Prometheus" alt başlığını taşıyan ünlü kitap hangisidir?'
+    options:
+    - Frankenstein
+    - Drakula
+    - Dr. Jekyll ile Bay Hyde
+    - Sleepy Hollow Efsanesi
+    origin: machine_translation
+- ref: otdb-d49368f92507
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: '"Bana İsmail deyin" cümlesiyle başlayan klasik roman hangisidir?'
+    options:
+    - Moby Dick
+    - İki Şehrin Hikâyesi
+    - Kaçırılan
+    - Uğultulu Tepeler
+    origin: machine_translation
+- ref: otdb-805653da2923
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: Savaş ve Barış adlı destansı romanı hangi Rus yazar kaleme almıştır?
+    options:
+    - Lev Tolstoy
+    - Fyodor Dostoyevski
+    - Aleksandr Puşkin
+    - Vladimir Nabokov
+    origin: machine_translation
+- ref: otdb-91a66cf19147
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: Aşağıdakilerden hangisi Fyodor Dostoyevski'nin eseri değildir?
+    options:
+    - Anna Karenina
+    - Yeraltından Notlar
+    - Suç ve Ceza
+    - Karamazov Kardeşler
+    origin: machine_translation
+- ref: otdb-8791ede4f9c1
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: Asıl adı Eric Blair olan yazar hangi adla tanınır?
+    options:
+    - George Orwell
+    - Aldous Huxley
+    - Ernest Hemingway
+    - Ray Bradbury
+    origin: machine_translation
+- ref: otdb-81ce05310822
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: George Orwell'in Hayvan Çiftliği romanı hangi tarihsel olaydan esinlenmiştir?
+    options:
+    - Komünizmin yükselişi ve Stalin'in politikaları
+    - Japon İmparatorluğu'nun yükselişi ve Pasifik'teki hâkimiyeti
+    - Faşizmin yükselişi ve Hitler'in etkisi
+    - Franklin D. Roosevelt'in New Deal politikası ve Büyük Buhran'a etkileri
+    origin: machine_translation
+- ref: otdb-c84eeee64385
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: İki Şehrin Hikâyesi romanını kim yazmıştır?
+    options:
+    - Charles Dickens
+    - Charles Darwin
+    - Mark Twain
+    - Roald Dahl
+    origin: machine_translation
+- ref: otdb-28d4866a28f2
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: Kibritçi Kız masalını kim yazmıştır?
+    options:
+    - Hans Christian Andersen
+    - Charles Dickens
+    - Lewis Carroll
+    - Oscar Wilde
+    origin: machine_translation
+- ref: otdb-6bbe9fe671ec
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: Denizler Altında Yirmi Bin Fersah'ta Kaptan Nemo'nun denizaltısının adı nedir?
+    options:
+    - Nautilus
+    - Neptün
+    - Poseidon
+    - Atlantis
+    origin: machine_translation
+- ref: otdb-d40810d118aa
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: Abel Magwitch, Charles Dickens'ın hangi romanının karakteridir?
+    options:
+    - Büyük Umutlar
+    - Pickwick Kulübü'nün Belgeleri
+    - Nicholas Nickleby
+    - Oliver Twist
+    origin: machine_translation
+- ref: otdb-ad1d73dc93fb
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: Shakespeare'in hangi oyununda Marcellus, "Danimarka krallığında çürümüş bir şeyler var" der?
+    options:
+    - Hamlet
+    - Macbeth
+    - Kral Lear
+    - On İkinci Gece
+    origin: machine_translation
+- ref: otdb-030ae4db3817
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: Shakespeare'in Julius Caesar oyununda Sezar'ın son sözleri nedir?
+    options:
+    - Et tu, Brute?
+    - Iacta alea est!
+    - Veni, vidi, vici.
+    - Aegri somnia vana.
+    origin: machine_translation
+- ref: otdb-3f8d649765fb
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: İngiltere'den sonra Shakespeare oyunlarının en çok geçtiği günümüz ülkesi hangisidir?
+    options:
+    - İtalya
+    - Amerika Birleşik Devletleri
+    - Yunanistan
+    - Fransa
+    origin: machine_translation
+- ref: otdb-66b1def2144b
+  subcategory: arts-literature/world-literature
+  difficulty: 4
+  tr:
+    prompt: '"Cehennem başkalarıdır" sözü hangi oyundan alınmıştır?'
+    options:
+    - Gizli Oturum
+    - Şeytan ile Yüce Tanrı
+    - Altona Mahpusları
+    - Sinekler
+    origin: machine_translation
+- ref: otdb-0718b53d9ddb
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: Bram Stoker'ın romanına göre Drakula, İngiltere'nin hangi sahil kasabasında karaya çıkar?
+    options:
+    - Whitby
+    - Scarborough
+    - Brighton
+    - Portsmouth
+    origin: machine_translation
+- ref: otdb-8a0b93310420
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: Sefiller'de 24601 numaralı mahkûm kimdir?
+    options:
+    - Jean Valjean
+    - Marius Pontmercy
+    - Javert
+    - Jean Claude Van Damme
+    origin: machine_translation
+- ref: otdb-253d3b27c359
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: Dünyanın bilinen en eski edebi kurgu eseri hangisidir?
+    options:
+    - Gılgamış Destanı
+    - Ani Papirüsü
+    - Hammurabi Kanunları
+    - Rosetta Taşı
+    origin: machine_translation
+- ref: otdb-64facacc118f
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: Otostopçunun Galaksi Rehberi'ne göre hayatın, evrenin ve her şeyin cevabı nedir?
+    options:
+    - '42'
+    - Etrafındaki herkesi sevmek
+    - Çikolata
+    - Ölüm
+    origin: machine_translation
+- ref: otdb-880710cb0e77
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: George Orwell'in 1984 romanı 1949 yılında yayımlanmıştır.
+    origin: machine_translation
+- ref: otdb-2b5a4e7680e7
+  subcategory: arts-literature/world-literature
+  tr:
+    prompt: Cadı Kazanı (The Crucible) oyununu William Shakespeare yazmıştır.
+    origin: machine_translation
+- ref: otdb-aa2a1d4a7137
+  subcategory: arts-literature/visual-arts
+  tr:
+    prompt: 15. yüzyılın sonlarında yapılan Son Akşam Yemeği duvar resmi hangi sanatçıya aittir?
+    options:
+    - Leonardo da Vinci
+    - Piero della Francesca
+    - Paolo Uccello
+    - Luca Pacioli
+    origin: machine_translation
+- ref: otdb-0bb268942173
+  subcategory: arts-literature/visual-arts
+  tr:
+    prompt: La Gioconda ya da La Joconde adlarıyla da bilinen tablo hangisidir?
+    options:
+    - Mona Lisa
+    - İnci Küpeli Kız
+    - Yıldızlı Gece
+    - Ayçiçekleri
+    origin: machine_translation
+- ref: otdb-6a5139f195dd
+  subcategory: arts-literature/visual-arts
+  tr:
+    prompt: Pablo Picasso'nun Guernica tablosu hangi savaşa duyulan dehşeti yansıtır?
+    options:
+    - İspanya İç Savaşı
+    - Birinci Dünya Savaşı
+    - Kırım Savaşı
+    - İspanyol-Amerikan Savaşı
+    origin: machine_translation
+- ref: otdb-0148e14e5ef9
+  subcategory: arts-literature/visual-arts
+  tr:
+    prompt: Çığlık tablosunu hangi ressam yapmıştır?
+    options:
+    - Edvard Munch
+    - Vincent van Gogh
+    - Picasso
+    - Henri Matisse
+    origin: machine_translation
+- ref: otdb-42697e6ab04f
+  subcategory: arts-literature/visual-arts
+  tr:
+    prompt: '"Filleri Yansıtan Kuğular", "Uyku" ve "Belleğin Azmi" tablolarını hangi ressam yapmıştır?'
+    options:
+    - Salvador Dalí
+    - Jackson Pollock
+    - Vincent van Gogh
+    - Edgar Degas
+    origin: machine_translation
+- ref: otdb-351b1a693d33
+  subcategory: arts-literature/visual-arts
+  tr:
+    prompt: Bir pipo ve altında "Bu bir pipo değildir" yazısı bulunan İmgelerin İhaneti tablosu hangi sanatçıya aittir?
+    options:
+    - Magritte
+    - Matisse
+    - Modigliani
+    - Munch
+    origin: machine_translation
+- ref: otdb-942d89569704
+  subcategory: arts-literature/visual-arts
+  tr:
+    prompt: Gece Kuşları (Nighthawks) tablosunu hangi ressam yapmıştır?
+    options:
+    - Edward Hopper
+    - Johannes Vermeer
+    - Vincent van Gogh
+    - Salvador Dalí
+    origin: machine_translation
+- ref: otdb-f00c6dee1780
+  subcategory: arts-literature/visual-arts
+  tr:
+    prompt: Resimlerini farklı renklerdeki küçük noktalarla oluşturma tarzıyla tanınan sanatçı kimdir?
+    options:
+    - Georges Seurat
+    - Paul Cézanne
+    - Vincent van Gogh
+    - Henri Rousseau
+    origin: machine_translation
+- ref: otdb-9cef32c9aac1
+  subcategory: arts-literature/visual-arts
+  tr:
+    prompt: Konusunu Kutsal Kitap'tan alan Âdem'in Yaratılışı freskini kim yapmıştır?
+    options:
+    - Michelangelo
+    - Leonardo da Vinci
+    - Caravaggio
+    - Rembrandt
+    origin: machine_translation
+- ref: otdb-42c78b30fd6b
+  subcategory: arts-literature/visual-arts
+  tr:
+    prompt: Van Gogh'un hangi tablosu, Fransa'nın güneyindeki Saint-Rémy-de-Provence'ta kaldığı akıl hastanesinden görülen manzarayı tasvir eder?
+    options:
+    - Yıldızlı Gece
+    - Kargalı Buğday Tarlası
+    - Batan Güneşte Ekinci
+    - Auvers'deki Kilise
+    origin: machine_translation
+- ref: otdb-574f397a691a
+  subcategory: arts-literature/visual-arts
+  tr:
+    prompt: Özgürlük Heykeli'ni tasarlayan Fransız heykeltıraş kimdir?
+    options:
+    - Frédéric Auguste Bartholdi
+    - Jean-Léon Gérôme
+    - Auguste Rodin
+    - Henri Matisse
+    origin: machine_translation
+- ref: otdb-140dfb8edb8b
+  subcategory: arts-literature/visual-arts
+  tr:
+    prompt: Parthenon'daki Athena Parthenos heykelini tasarlayan Antik Yunan heykeltıraşı kimdir?
+    options:
+    - Fidias
+    - Skopas
+    - Hesiodos
+    - Praksiteles
+    origin: machine_translation
+- ref: otdb-62adb00ca33d
+  subcategory: arts-literature/visual-arts
+  tr:
+    prompt: Vincent van Gogh kulaklarından birini kesmiştir.
+    origin: machine_translation
+- ref: otdb-4534b4179691
+  subcategory: arts-literature/visual-arts
+  tr:
+    prompt: Antik Yunan ve Romalı heykeltıraşlar heykellerini sıklıkla boyardı.
+    origin: machine_translation
+- ref: otdb-d00a0121b6e4
+  subcategory: arts-literature/visual-arts
+  tr:
+    prompt: '"Empresyonizm" adı bu akıma ilk kez bir eleştirmenin Monet''nin bir tablosu hakkında yazdığı alaycı bir yazıda verilmiştir.'
+    origin: machine_translation
+- ref: otdb-3ee981f457bc
+  subcategory: arts-literature/music
+  tr:
+    prompt: Pamina ve Papageno, Mozart'ın hangi operasının karakterleridir?
+    options:
+    - Sihirli Flüt
+    - Figaro'nun Düğünü
+    - Tiyatro Müdürü
+    - Kahire Kazı
+    origin: machine_translation
+- ref: otdb-1e86723ce613
+  subcategory: arts-literature/music
+  tr:
+    prompt: Ay Işığı Sonatı'nı hangi klasik müzik bestecisi yazmıştır?
+    options:
+    - Ludwig van Beethoven
+    - Chief Keef
+    - Wolfgang Amadeus Mozart
+    - Johannes Brahms
+    origin: machine_translation
+- ref: otdb-994142f20891
+  subcategory: arts-literature/music
+  tr:
+    prompt: Kızıl saçları nedeniyle "Kızıl Rahip" olarak anılan, 1678 doğumlu İtalyan besteci kimdir?
+    options:
+    - Vivaldi
+    - Puccini
+    - Verdi
+    - Monteverdi
+    origin: machine_translation
+- ref: otdb-7170fc8f2df7
+  subcategory: arts-literature/music
+  tr:
+    prompt: Georges Bizet'nin son operası hangisidir?
+    options:
+    - Carmen
+    - Don Rodrigue
+    - Grisélidis
+    - İnci Avcıları
+    origin: machine_translation
+- ref: otdb-fb44faec2e48
+  subcategory: arts-literature/music
+  tr:
+    prompt: '"Rhapsody in Blue" adlı eseri kim bestelemiştir?'
+    options:
+    - George Gershwin
+    - Irving Berlin
+    - Duke Ellington
+    - Johnny Mandel
+    origin: machine_translation
+- ref: otdb-7d801623e284
+  subcategory: arts-literature/music
+  tr:
+    prompt: Brian May hangi grubun gitaristiydi?
+    options:
+    - Queen
+    - Pink Floyd
+    - Rolling Stones
+    - The Doors
+    origin: machine_translation
+- ref: otdb-754d687c228d
+  subcategory: arts-literature/music
+  tr:
+    prompt: 1980'de New York'taki Dakota binasının önünde silahla vurularak öldürülen müzisyen kimdir?
+    options:
+    - John Lennon
+    - Johnny Thunders
+    - John Denver
+    - John Cascella
+    origin: machine_translation
+- ref: otdb-55f0ae5bcdea
+  subcategory: arts-literature/music
+  tr:
+    prompt: Dünya genelinde tüm zamanların en çok satan albümü hangisidir?
+    options:
+    - Thriller
+    - Back in Black
+    - Abbey Road
+    - The Dark Side of the Moon
+    origin: machine_translation
+- ref: otdb-927461d1b833
+  subcategory: arts-literature/music
+  tr:
+    prompt: '"Stairway to Heaven" şarkısı Led Zeppelin''in hangi albümünde yer alır?'
+    options:
+    - Led Zeppelin IV
+    - Houses of the Holy
+    - Physical Graffiti
+    - Led Zeppelin III
+    origin: machine_translation
+- ref: otdb-82360af10add
+  subcategory: arts-literature/music
+  tr:
+    prompt: Pikolo hangi çalgının küçük versiyonudur?
+    options:
+    - Flüt
+    - Trompet
+    - Arp
+    - Keman
+    origin: machine_translation
+- ref: otdb-4785ae01ba6b
+  subcategory: arts-literature/music
+  tr:
+    prompt: Bir piyanoda genellikle kaç tuş bulunur?
+    options:
+    - '88'
+    - '24'
+    - '12'
+    - '96'
+    origin: machine_translation
+- ref: otdb-e755ca736fe1
+  subcategory: arts-literature/music
+  tr:
+    prompt: West Side Story müzikali Shakespeare'in hangi oyunundan esinlenmiştir?
+    options:
+    - Romeo ve Juliet
+    - Hamlet
+    - Macbeth
+    - Othello
+    origin: machine_translation
+- ref: otdb-783fec5ec47e
+  subcategory: arts-literature/music
+  tr:
+    prompt: Andrew Lloyd Webber'in Cats müzikali hangi yazarın şiir kitabına dayanır?
+    options:
+    - T.S. Eliot
+    - Andrew Lloyd Webber
+    - Emily Dickinson
+    - Robert Frost
+    origin: machine_translation
+- ref: otdb-91af086ed211
+  subcategory: arts-literature/music
+  tr:
+    prompt: The Beatles'ın en genç üyesi kimdi?
+    options:
+    - George Harrison
+    - Paul McCartney
+    - John Lennon
+    - Ringo Starr
+    origin: machine_translation
+- ref: otdb-3066c1c73251
+  subcategory: arts-literature/music
+  tr:
+    prompt: Abbey Road albümünün kapağında hangi Beatles üyesi ayakkabısızdır?
+    options:
+    - Paul McCartney
+    - Ringo Starr
+    - John Lennon
+    - George Harrison
+    origin: machine_translation
+- ref: otdb-903ac26f0f6c
+  subcategory: arts-literature/music
+  tr:
+    prompt: Prokofiev'in Peter ile Kurt eserinde kurt, hangi çalgının üçlüsüyle temsil edilir?
+    options:
+    - Korno
+    - Obua
+    - Klarnet
+    - Viyolonsel
+    origin: machine_translation
+- ref: otdb-1ef8702d4604
+  subcategory: arts-literature/music
+  tr:
+    prompt: Star Wars filmlerinin müziklerini John Williams bestelemiştir.
+    origin: machine_translation
+- ref: otdb-4624df20b8b3
+  subcategory: arts-literature/music
+  tr:
+    prompt: Saksafon bir bakır üflemeli çalgıdır.
+    origin: machine_translation
+- ref: otdb-055494ef271e
+  subcategory: arts-literature/music
+  tr:
+    prompt: Çaykovski'nin 1812 Uvertürü, ABD ile Büyük Britanya arasındaki 1812 Savaşı'nı simgeler.
+    origin: machine_translation
+- ref: otdb-7b00d3ab7f9f
+  subcategory: sports/football
+  tr:
+    prompt: Rusya'nın ev sahipliğinde düzenlenen 2018 FIFA Dünya Kupası'nı hangi ülke kazandı?
+    options:
+    - Fransa
+    - Hırvatistan
+    - Belçika
+    - İngiltere
+    origin: machine_translation
+- ref: otdb-f44193787b61
+  subcategory: sports/football
+  tr:
+    prompt: İngiltere, 1966 Dünya Kupası finalinde hangi takımı yenerek şampiyon oldu?
+    options:
+    - Batı Almanya
+    - Sovyetler Birliği
+    - Portekiz
+    - Brezilya
+    origin: machine_translation
+- ref: otdb-c4d198678300
+  subcategory: sports/football
+  tr:
+    prompt: Cafu, Roberto Carlos ve Pelé gibi futbolcuları hangi ülke yetiştirmiştir?
+    options:
+    - Brezilya
+    - Arjantin
+    - Portekiz
+    - İspanya
+    origin: machine_translation
+- ref: otdb-7aa14bcd19a6
+  subcategory: sports/football
+  tr:
+    prompt: 2014 FIFA Dünya Kupası'ndaki Brezilya - Almanya maçı hangi skorla sona erdi?
+    options:
+    - 1-7
+    - 1-5
+    - 1-6
+    - 2-6
+    origin: machine_translation
+- ref: otdb-e8a03815416f
+  subcategory: sports/football
+  tr:
+    prompt: Brezilya'da düzenlenen 2014 FIFA Dünya Kupası'nı hangi takım kazandı?
+    options:
+    - Almanya
+    - Arjantin
+    - Brezilya
+    - Hollanda
+    origin: machine_translation
+- ref: otdb-d4b39ef97895
+  subcategory: sports/football
+  tr:
+    prompt: 2022 FIFA Dünya Kupası'na hangi ülke ev sahipliği yaptı?
+    options:
+    - Katar
+    - ABD
+    - Japonya
+    - İsviçre
+    origin: machine_translation
+- ref: otdb-bdbd6b04fcb4
+  subcategory: sports/olympics
+  tr:
+    prompt: 2020 Yaz Olimpiyat Oyunları'na hangi ülke ev sahipliği yaptı?
+    options:
+    - Japonya
+    - Çin
+    - Avustralya
+    - Almanya
+    origin: machine_translation
+- ref: otdb-d7d966afd9a1
+  subcategory: sports/other-sports
+  tr:
+    prompt: 1997'de Evander Holyfield'ın kulağını ısırdığı için men cezası alan boksör kimdir?
+    options:
+    - Mike Tyson
+    - Roy Jones Jr.
+    - Evander Holyfield
+    - Lennox Lewis
+    origin: machine_translation
+- ref: otdb-8b9893f4e0ca
+  subcategory: sports/other-sports
+  tr:
+    prompt: '"Tüy top" hangi sporda kullanılır?'
+    options:
+    - Badminton
+    - Masa tenisi
+    - Ragbi
+    - Kriket
+    origin: machine_translation
+- ref: otdb-94387905aec3
+  subcategory: sports/olympics
+  tr:
+    prompt: Aşağıdaki sporlardan hangisi triatlonun bir parçası değildir?
+    options:
+    - Binicilik
+    - Bisiklet
+    - Yüzme
+    - Koşu
+    origin: machine_translation
+- ref: otdb-9c5cbf1a5111
+  subcategory: sports/football
+  tr:
+    prompt: 2016'da UEFA Şampiyonlar Ligi'ni hangi takım kazandı?
+    options:
+    - Real Madrid
+    - Bayern Münih
+    - Atlético Madrid
+    - Manchester City
+    origin: machine_translation
+- ref: otdb-6a5f5e4b2ae2
+  subcategory: sports/football
+  tr:
+    prompt: 2015-2016 sezonunda masalsı bir yürüyüşle Premier Lig şampiyonu olan takım hangisidir?
+    options:
+    - Leicester City
+    - Tottenham Hotspur
+    - Watford
+    - Stoke City
+    origin: machine_translation
+- ref: otdb-6221083d8b84
+  subcategory: sports/other-sports
+  tr:
+    prompt: 2016 Formula 1 Pilotlar Şampiyonası'nı kim kazandı?
+    options:
+    - Nico Rosberg
+    - Lewis Hamilton
+    - Max Verstappen
+    - Kimi Räikkönen
+    origin: machine_translation
+- ref: otdb-bd2eae0346bc
+  subcategory: sports/other-sports
+  tr:
+    prompt: Bilardo ve snookerda beyaz topa vurmak için kullanılan aletin adı nedir?
+    options:
+    - Istaka
+    - Raket
+    - Sopa
+    - Tokmak
+    origin: machine_translation
+- ref: otdb-047c920d51a7
+  subcategory: sports/football
+  tr:
+    prompt: Manchester United'ın iç saha maçlarını oynadığı stadyumun adı nedir?
+    options:
+    - Old Trafford
+    - Anfield
+    - City of Manchester Stadium
+    - St James' Park
+    origin: machine_translation
+- ref: otdb-b4ca84b08bda
+  subcategory: sports/other-sports
+  tr:
+    prompt: Roger Federer ünlü bir futbolcudur.
+    origin: machine_translation
+- ref: otdb-4a17f197b9a1
+  subcategory: sports/football
+  tr:
+    prompt: Futbolda korner, bir gol atıldıktan sonra oyunun yeniden başlatılmasıdır.
+    origin: machine_translation
+- ref: otdb-70bdd297cd2d
+  subcategory: sports/other-sports
+  tr:
+    prompt: 1994 Formula 1 sezonu hangi trajik olayla hatırlanır?
+    options:
+    - Ayrton Senna'nın ölümü (San Marino)
+    - Şampiyonluk hesaplaşması (Avustralya)
+    - Verstappen'in aracının alev alması (Almanya)
+    - Schumacher'in men cezası (Britanya)
+    origin: machine_translation
+- ref: otdb-25f6c6afebc0
+  subcategory: sports/other-sports
+  tr:
+    prompt: Aşağıdaki Grand Slam tenis turnuvalarından hangisi takvim yılında en son oynanır?
+    options:
+    - Amerika Açık
+    - Fransa Açık
+    - Wimbledon
+    - Avustralya Açık
+    origin: machine_translation
+- ref: otdb-91a299fbb5a5
+  subcategory: sports/other-sports
+  tr:
+    prompt: Snookerda hangi renkteki top 3 puan değerindedir?
+    options:
+    - Yeşil
+    - Sarı
+    - Kahverengi
+    - Mavi
+    origin: machine_translation
+- ref: otdb-42b105a9cee0
+  subcategory: sports/football
+  tr:
+    prompt: 2016 UEFA Avrupa Futbol Şampiyonası'nı hangi milli takım kazandı?
+    options:
+    - Portekiz
+    - Fransa
+    - Almanya
+    - İngiltere
+    origin: machine_translation
+- ref: otdb-008e06b8a132
+  subcategory: sports/other-sports
+  tr:
+    prompt: '"Profesör" lakaplı Formula 1 pilotu kimdir?'
+    options:
+    - Alain Prost
+    - Ayrton Senna
+    - Niki Lauda
+    - Emerson Fittipaldi
+    origin: machine_translation
+- ref: otdb-4bd3a25af906
+  subcategory: sports/olympics
+  tr:
+    prompt: 2014 Kış Olimpiyat Oyunları'na hangi ülke ev sahipliği yaptı?
+    options:
+    - Rusya
+    - Kanada
+    - Amerika Birleşik Devletleri
+    - Almanya
+    origin: machine_translation
+- ref: otdb-369e8f1d094a
+  subcategory: sports/football
+  tr:
+    prompt: 2006 FIFA Dünya Kupası'na hangi ülke ev sahipliği yaptı?
+    options:
+    - Almanya
+    - Birleşik Krallık
+    - Brezilya
+    - Güney Afrika
+    origin: machine_translation
+- ref: otdb-2460221aba70
+  subcategory: sports/other-sports
+  tr:
+    prompt: Michael Schumacher, 1991 Belçika Grand Prix'sinde Formula 1'e hangi takımla adım attı?
+    options:
+    - Jordan
+    - Benetton
+    - Ferrari
+    - Mercedes
+    origin: machine_translation
+- ref: otdb-0ab59b0f9a68
+  subcategory: sports/football
+  tr:
+    prompt: Steaua Bükreş, Barcelona'yı yenerek Avrupa Şampiyon Kulüpler Kupası'nı (bugünkü Şampiyonlar Ligi) hangi yıl kazandı?
+    options:
+    - '1986'
+    - '1990'
+    - '1982'
+    - '1989'
+    origin: machine_translation
+- ref: otdb-ba7adea56721
+  subcategory: sports/football
+  tr:
+    prompt: Tüm zamanların en iyi Romen futbolcusu olarak kabul edilen isim kimdir?
+    options:
+    - Gheorghe Hagi
+    - Cristian Chivu
+    - Nicolae Dobrin
+    - Gheorghe Popescu
+    origin: machine_translation
+- ref: otdb-85967c8e8643
+  subcategory: sports/olympics
+  tr:
+    prompt: Usain Bolt, 2008'de 100 metre dünya rekorunu bir ayakkabısının bağcığı çözükken kırdı.
+    origin: machine_translation
+- ref: otdb-bc04aef75c5f
+  subcategory: sports/olympics
+  tr:
+    prompt: Kaykay, 2020 Tokyo Yaz Olimpiyat Oyunları'nın programında yer aldı.
+    origin: machine_translation
+- ref: otdb-0d0cfb2d3e92
+  subcategory: sports/other-sports
+  tr:
+    prompt: Formula E, hibrit elektrikli yarış araçlarının kullanıldığı bir otomobil yarışı serisidir.
+    origin: machine_translation
+- ref: otdb-4b5ea0014996
+  subcategory: sports/olympics
+  tr:
+    prompt: Aşağıdaki atletizm branşlarından hangisi olimpik erkekler dekatlonunda yer almaz?
+    options:
+    - Çekiç atma
+    - Sırıkla atlama
+    - Uzun atlama
+    - Gülle atma
+    origin: machine_translation
+- ref: otdb-e5d9b9e33415
+  subcategory: sports/football
+  tr:
+    prompt: Edson Arantes do Nascimento, hangi efsanevi futbolcunun tam adıdır?
+    options:
+    - Pelé
+    - Romário
+    - Zico
+    - Ronaldinho
+    origin: machine_translation
+- ref: otdb-ada94b5d27dc
+  subcategory: sports/football
+  tr:
+    prompt: 2014 FIFA Dünya Kupası'nın gol kralı kimdi?
+    options:
+    - James Rodríguez
+    - Thomas Müller
+    - Lionel Messi
+    - Neymar
+    origin: machine_translation
+- ref: otdb-f569a6c928ff
+  subcategory: sports/football
+  tr:
+    prompt: 1999'da Şampiyonlar Ligi'ni hangi takım kazandı?
+    options:
+    - Manchester United
+    - Barcelona
+    - Bayern Münih
+    - Liverpool
+    origin: machine_translation
+- ref: otdb-9e49f95cd231
+  subcategory: sports/other-sports
+  tr:
+    prompt: 1999-2000 NBA sezonunda En Değerli Oyuncu (MVP) ödülünü hangi oyuncu kazandı?
+    options:
+    - Shaquille O'Neal
+    - Allen Iverson
+    - Kobe Bryant
+    - Paul Pierce
+    origin: machine_translation
+- ref: otdb-5b2baf57415f
+  subcategory: sports/olympics
+  tr:
+    prompt: Modern Yaz Olimpiyat Oyunları'na üç kez ev sahipliği yapan ilk Avrupa şehri hangisidir?
+    options:
+    - Londra
+    - Paris
+    - Atina
+    - Roma
+    origin: machine_translation
+- ref: otdb-b32a11f98b6c
+  subcategory: sports/olympics
+  tr:
+    prompt: XXII. Olimpiyat Oyunları hangi şehirde düzenlendi?
+    options:
+    - Moskova
+    - Barselona
+    - Tokyo
+    - Los Angeles
+    origin: machine_translation
+- ref: otdb-8b5f6ffc54f1
+  subcategory: sports/football
+  tr:
+    prompt: 1999 UEFA Şampiyonlar Ligi finalinde Manchester United'ın Bayern Münih'e karşı uzatma dakikalarında attığı galibiyet golünün sahibi kimdir?
+    options:
+    - Ole Gunnar Solskjær
+    - Dwight Yorke
+    - Andy Cole
+    - David Beckham
+    origin: machine_translation
+- ref: otdb-fa34bf981b3a
+  subcategory: sports/football
+  tr:
+    prompt: 1966 Dünya Kupası'nı kazanan İngiltere, yarı finalde hangi takımı yendi?
+    options:
+    - Portekiz
+    - Batı Almanya
+    - Sovyetler Birliği
+    - Brezilya
+    origin: machine_translation
+- ref: otdb-047a8793f89c
+  subcategory: sports/other-sports
+  tr:
+    prompt: Martina Navratilova, Wimbledon'da kadınlar tekler şampiyonluğunu kaç kez kazandı?
+    options:
+    - Dokuz
+    - 'On'
+    - Yedi
+    - Sekiz
+    origin: machine_translation
+- ref: otdb-3f3696ab4e4c
+  subcategory: sports/other-sports
+  tr:
+    prompt: Mazda 787B, Le Mans 24 Saat yarışını hangi yıl kazandı?
+    options:
+    - '1991'
+    - '1990'
+    - '2000'
+    - '1987'
+    origin: machine_translation
+- ref: otdb-9cf5ce6c8043
+  subcategory: sports/football
+  tr:
+    prompt: Ocak 1995'te bir Crystal Palace taraftarına "kung-fu tekmesi" atan futbolcu kimdir?
+    options:
+    - Eric Cantona
+    - David Seaman
+    - Ashley Cole
+    - Mark Hughes
+    origin: machine_translation
+- ref: otdb-6a635e22f718
+  subcategory: sports/olympics
+  tr:
+    prompt: 2016 Olimpiyat Oyunları'nda masa tenisi erkekler tekler altın madalyasını kim kazandı?
+    options:
+    - Ma Long (Çin)
+    - Zhang Jike (Çin)
+    - Jun Mizutani (Japonya)
+    - Vladimir Samsonov (Belarus)
+    origin: machine_translation
+- ref: otdb-a4c0c87249a0
+  subcategory: sports/football
+  tr:
+    prompt: Aşağıdaki Rus şehirlerinden hangisinde 2018 FIFA Dünya Kupası'nda kullanılan bir stadyum yoktu?
+    options:
+    - Vladivostok
+    - Rostov-na-Donu
+    - Yekaterinburg
+    - Kaliningrad
+    origin: machine_translation
+- ref: otdb-ea751b71b3d5
+  subcategory: sports/football
+  tr:
+    prompt: '"Kaplanlar" (The Tigers) lakaplı İngiliz futbol takımı hangisidir?'
+    options:
+    - Hull City
+    - Cardiff City
+    - Bristol City
+    - Manchester City
+    origin: machine_translation
+- ref: otdb-4265eab6ca0c
+  subcategory: entertainment/cinema
+  tr:
+    prompt: Kill Bill filmlerini kim yönetmiştir?
+    options:
+    - Quentin Tarantino
+    - Arnold Schwarzenegger
+    - David Lean
+    - Stanley Kubrick
+    origin: machine_translation
+- ref: otdb-8e1aef634af4
+  subcategory: entertainment/cinema
+  tr:
+    prompt: Disney'in ilk uzun metrajlı animasyon filmi hangisidir?
+    options:
+    - Pamuk Prenses ve Yedi Cüceler
+    - Pinokyo
+    - Dumbo
+    - Fantazya
+    origin: machine_translation
+- ref: otdb-ca4c7fc7cfe2
+  subcategory: entertainment/cinema
+  tr:
+    prompt: Tamamen bilgisayar animasyonuyla yapılan ilk uzun metrajlı film hangisidir?
+    options:
+    - Oyuncak Hikayesi
+    - Tron
+    - Aslan Kral
+    - 101 Dalmaçyalı
+    origin: machine_translation
+- ref: otdb-d449a4678c07
+  subcategory: entertainment/cinema
+  tr:
+    prompt: İlk James Bond filmi hangisidir?
+    options:
+    - Dr. No
+    - Goldfinger
+    - Rusya'dan Sevgilerle
+    - Thunderball
+    origin: machine_translation
+- ref: otdb-04fa41a59597
+  subcategory: entertainment/cinema
+  tr:
+    prompt: 1985 yapımı "Geleceğe Dönüş" filminin ana karakteri kimdir?
+    options:
+    - Marty McFly
+    - Emmett "Doc" Brown
+    - Biff Tannen
+    - George McFly
+    origin: machine_translation
+- ref: otdb-761df64f7fc2
+  subcategory: entertainment/cinema
+  tr:
+    prompt: '"E.T." (1982) filmini kim yönetmiştir?'
+    options:
+    - Steven Spielberg
+    - Stanley Kubrick
+    - James Cameron
+    - Tim Burton
+    origin: machine_translation
+- ref: otdb-fa5dfcdeff7d
+  subcategory: entertainment/cinema
+  tr:
+    prompt: Star Wars ana film serisinde Han Solo'yu hangi oyuncu canlandırmıştır?
+    options:
+    - Harrison Ford
+    - Peter Cushing
+    - Mark Hamill
+    - Alec Guinness
+    origin: machine_translation
+- ref: otdb-821454088c1e
+  subcategory: entertainment/cinema
+  tr:
+    prompt: Orijinal Star Wars üçlemesinde Darth Vader'ı Alec Guinness seslendirmiştir.
+    origin: machine_translation
+- ref: otdb-dd51823b5dfe
+  subcategory: entertainment/cinema
+  tr:
+    prompt: James Cameron'ın "Titanic" filmi hangi yıl vizyona girmiştir?
+    options:
+    - '1997'
+    - '1996'
+    - '1998'
+    - '1999'
+    origin: machine_translation
+- ref: otdb-ca680e8ac0c4
+  subcategory: entertainment/cinema
+  tr:
+    prompt: '"Yaratık" (Alien) filmini kim yönetmiştir?'
+    options:
+    - Ridley Scott
+    - Christopher Nolan
+    - Michael Bay
+    - James Cameron
+    origin: machine_translation
+- ref: otdb-f37408d8f056
+  subcategory: entertainment/cinema
+  tr:
+    prompt: 1984 yapımı "Terminatör" filminde Arnold Schwarzenegger'in canlandırdığı Terminatör hangi modeldir?
+    options:
+    - T-800
+    - I-950
+    - T-888
+    - T-1000
+    origin: machine_translation
+- ref: otdb-97162a1e71ab
+  subcategory: entertainment/cinema
+  tr:
+    prompt: '"Geleceğe Dönüş" filminde Doc Brown''ın DeLorean''ının zamanda yolculuk yapabilmesi için hangi hıza ulaşması gerekir?'
+    options:
+    - 88 mil/saat
+    - 77 mil/saat
+    - 100 mil/saat
+    - 70 mil/saat
+    origin: machine_translation
+- ref: otdb-2fb8663c2678
+  subcategory: entertainment/cinema
+  tr:
+    prompt: Peter Jackson'ın "Yüzüklerin Efendisi" film serisi tamamen hangi ülkede çekilmiştir?
+    options:
+    - Yeni Zelanda
+    - İskoçya
+    - Kanada
+    - İzlanda
+    origin: machine_translation
+- ref: otdb-3534bcfadbbf
+  subcategory: entertainment/cinema
+  tr:
+    prompt: Çıkış sırasına göre ilk "Star Wars" filminin adı nedir?
+    options:
+    - Yeni Umut
+    - Gizli Tehlike
+    - Güç Uyanıyor
+    - Sith'in İntikamı
+    origin: machine_translation
+- ref: otdb-b5e00b34148a
+  subcategory: entertainment/cinema
+  tr:
+    prompt: Leonardo DiCaprio ilk En İyi Erkek Oyuncu Oscar'ını hangi filmdeki performansıyla kazanmıştır?
+    options:
+    - Diriliş
+    - Para Avcısı
+    - Zindan Adası
+    - Başlangıç
+    origin: machine_translation
+- ref: otdb-7f24f94db642
+  subcategory: entertainment/cinema
+  tr:
+    prompt: Stanley Kubrick'in hangi filmi bir Stephen King romanından uyarlanmıştır?
+    options:
+    - Cinnet
+    - '2001: Bir Uzay Destanı'
+    - Dr. Strangelove
+    - Gözü Tamamen Kapalı
+    origin: machine_translation
+- ref: otdb-08649e1bd909
+  subcategory: entertainment/cinema
+  tr:
+    prompt: '"Yaratık" (Alien) filmindeki Xenomorph''un kanı asitlidir.'
+    origin: machine_translation
+- ref: otdb-a2aafca428cc
+  subcategory: entertainment/cinema
+  tr:
+    prompt: Alfred Hitchcock, "Sapık" (Psycho) filminde kan olarak ne kullanmıştır?
+    options:
+    - Çikolata şurubu
+    - Ketçap
+    - Kırmızı gıda boyası
+    - Akçaağaç şurubu
+    origin: machine_translation
+- ref: otdb-9084f719133a
+  subcategory: entertainment/cinema
+  tr:
+    prompt: Alfred Hitchcock'un renkli çekilen ilk filmi hangisidir?
+    options:
+    - İp
+    - Sapık
+    - Vertigo
+    - Rebecca
+    origin: machine_translation
+- ref: otdb-a488bc42427a
+  subcategory: entertainment/cinema
+  difficulty: 4
+  tr:
+    prompt: Star Wars evrenine göre Han Solo'nun memleketi hangi gezegendir?
+    options:
+    - Corellia
+    - Tatooine
+    - Naboo
+    - Coruscant
+    origin: machine_translation
+- ref: otdb-b430932a2464
+  subcategory: entertainment/tv
+  tr:
+    prompt: '"Stranger Things" dizisinde hangi karakterin telekinezi gücü vardır?'
+    options:
+    - Eleven
+    - Mike
+    - Lucas
+    - Karen
+    origin: machine_translation
+- ref: otdb-119c7958805e
+  subcategory: entertainment/tv
+  tr:
+    prompt: '"Breaking Bad" dizisinde lise öğretmeni Walter White''a hangi tür kanser teşhisi konur?'
+    options:
+    - Akciğer kanseri
+    - Prostat kanseri
+    - Beyin kanseri
+    - Testis kanseri
+    origin: machine_translation
+- ref: otdb-18f498d42aa1
+  subcategory: entertainment/tv
+  tr:
+    prompt: '"Breaking Bad" dizisinde Walter White''ı hangi oyuncu canlandırmıştır?'
+    options:
+    - Bryan Cranston
+    - Andrew Lincoln
+    - Aaron Paul
+    - RJ Mitte
+    origin: machine_translation
+- ref: otdb-581045325b5d
+  subcategory: entertainment/tv
+  tr:
+    prompt: ABD'nin Springfield kentinde, 742 Evergreen Terrace adresinde hangi çizgi film ailesi yaşar?
+    options:
+    - Simpsonlar
+    - Hill ailesi
+    - Çakmaktaşlar
+    - Griffin ailesi
+    origin: machine_translation
+- ref: otdb-e8ee4f22f513
+  subcategory: entertainment/tv
+  tr:
+    prompt: HBO dizisi "Game of Thrones" hangi kitap serisine dayanır?
+    options:
+    - Buz ve Ateşin Şarkısı
+    - Zaman Çarkı
+    - Harry Potter
+    - Not Defteri
+    origin: machine_translation
+- ref: otdb-be0814aa178e
+  subcategory: entertainment/tv
+  tr:
+    prompt: Pokémon'da Ash Ketchum yolculuğuna başladığında kaç yaşındadır?
+    options:
+    - '10'
+    - '11'
+    - '12'
+    - '9'
+    origin: machine_translation
+- ref: otdb-15acaf9a60cf
+  subcategory: entertainment/tv
+  tr:
+    prompt: Ninja Kaplumbağalar'dan hangisi geleneksel olarak turuncu bandana takar?
+    options:
+    - Michelangelo
+    - Leonardo
+    - Donatello
+    - Raphael
+    origin: machine_translation
+- ref: otdb-3f0df2f5c4fe
+  subcategory: entertainment/tv
+  tr:
+    prompt: '"Friends" dizisinde Ross''un evcil maymununun adı neydi?'
+    options:
+    - Marcel
+    - Jojo
+    - George
+    - Champ
+    origin: machine_translation
+- ref: otdb-798cac889fcd
+  subcategory: entertainment/tv
+  tr:
+    prompt: '"The Big Bang Theory" dizisindeki Wolowitz, Cooper, Hofstadter ve Koothrappali hangi üniversitede çalışır?'
+    options:
+    - Caltech
+    - UCLA
+    - MIT
+    - UC Berkeley
+    origin: machine_translation
+- ref: otdb-3916a4955b10
+  subcategory: entertainment/tv
+  tr:
+    prompt: '"Breaking Bad" dizisinde 1. sezonda öldürülmesi planlanan ama dizinin yaratıcısı oyuncuyu sevdiği için hayatta kalan ana karakter kimdir?'
+    options:
+    - Jesse Pinkman
+    - Saul Goodman
+    - Gus Fring
+    - Hank Schrader
+    origin: machine_translation
+- ref: otdb-fdabff0e6453
+  subcategory: entertainment/cinema
+  tr:
+    prompt: '"Ruhların Kaçışı" (2001) animasyon filminin senaristi ve yönetmeni kimdir?'
+    options:
+    - Hayao Miyazaki
+    - Isao Takahata
+    - Mamoru Hosoda
+    - Hidetaka Miyazaki
+    origin: machine_translation
+- ref: otdb-5af46751d695
+  subcategory: entertainment/tv
+  tr:
+    prompt: Scooby-Doo hangi köpek ırkındandır?
+    options:
+    - Danua (Great Dane)
+    - Pitbull
+    - Boksör
+    - Doberman
+    origin: machine_translation
+- ref: otdb-06f01f7b037b
+  subcategory: entertainment/tv
+  tr:
+    prompt: One Piece'in ana karakteri kimdir?
+    options:
+    - Luffy
+    - Shanks
+    - Zoro
+    - Smoker
+    origin: machine_translation
+- ref: otdb-4c5be490c805
+  subcategory: entertainment/tv
+  difficulty: 3
+  tr:
+    prompt: '"Simpsonlar" ailesindeki karakterlerin çoğu, adını dizinin yaratıcısı Matt Groening''in gerçek ailesinden alır.'
+    origin: machine_translation
+- ref: otdb-da82dab9e688
+  subcategory: entertainment/tv
+  tr:
+    prompt: '"Dragon Ball" serisinde Goku''nun ağabeyinin adı nedir?'
+    options:
+    - Raditz
+    - Gohan
+    - Vegeta
+    - Bardock
+    origin: machine_translation
+- ref: otdb-755b87acd197
+  subcategory: entertainment/video-games
+  tr:
+    prompt: Blinky, Pinky, Inky ve Clyde hangi klasik video oyununun karakterleridir?
+    options:
+    - Pac-Man
+    - Gauntlet
+    - Space Invaders
+    - Street Fighter
+    origin: machine_translation
+- ref: otdb-154d27d514f9
+  subcategory: entertainment/video-games
+  tr:
+    prompt: Sonic'in yardımcısı kimdir?
+    options:
+    - Tails
+    - Shadow
+    - Amy
+    - Knuckles
+    origin: machine_translation
+- ref: otdb-a1252bd9d62b
+  subcategory: entertainment/video-games
+  tr:
+    prompt: '"The Legend of Zelda" serisinin ana kahramanının adı nedir?'
+    options:
+    - Link
+    - Mario
+    - Zelda
+    - Pit
+    origin: machine_translation
+- ref: otdb-5ec378f96964
+  subcategory: entertainment/video-games
+  tr:
+    prompt: Tetris'te kaç farklı şekilli parça vardır?
+    options:
+    - '7'
+    - '5'
+    - '6'
+    - '8'
+    origin: machine_translation
+- ref: otdb-f11af1411a84
+  subcategory: entertainment/video-games
+  tr:
+    prompt: Minecraft'ta meşale yapmak için hangi iki malzeme birleştirilir?
+    options:
+    - Çubuk ve kömür
+    - Çubuk ve ateş
+    - Odun ve kömür
+    - Odun ve ateş
+    origin: machine_translation
+- ref: otdb-9fa3664e8cff
+  subcategory: entertainment/video-games
+  tr:
+    prompt: Super Mario Bros.'ta Mario'ya prensesin başka bir kalede olduğunu kim söyler?
+    options:
+    - Toad
+    - Luigi
+    - Yoshi
+    - Bowser
+    origin: machine_translation
+- ref: otdb-67869f0aa688
+  subcategory: entertainment/video-games
+  tr:
+    prompt: Aşağıdakilerden hangisi Grand Theft Auto V'in hikâye modundaki ana karakterlerden biri değildir?
+    options:
+    - Tommy Vercetti
+    - Michael De Santa
+    - Franklin Clinton
+    - Trevor Philips
+    origin: machine_translation
+- ref: otdb-8186cd11cb11
+  subcategory: entertainment/video-games
+  tr:
+    prompt: Super Mario Bros. yapılmış ilk video oyunudur.
+    origin: machine_translation
+- ref: otdb-6af899686bee
+  subcategory: entertainment/video-games
+  tr:
+    prompt: Hangi iki Grand Theft Auto (GTA) oyunu aynı mekânda geçer?
+    options:
+    - GTA V ve GTA San Andreas
+    - GTA V ve GTA Vice City
+    - GTA IV ve GTA San Andreas
+    - GTA IV ve GTA Vice City
+    origin: machine_translation
+- ref: otdb-0c1ddcd27e01
+  subcategory: entertainment/video-games
+  tr:
+    prompt: Nintendo, iş hayatına oyun kartı üreticisi olarak başlamıştır.
+    origin: machine_translation
+- ref: otdb-9cc00e42ac64
+  subcategory: entertainment/video-games
+  tr:
+    prompt: Tetris'i kim yaratmıştır?
+    options:
+    - Alexey Pajitnov
+    - Toru Iwatani
+    - Allan Alcorn
+    - William Higinbotham
+    origin: machine_translation
+- ref: otdb-cb497e8ecfc4
+  subcategory: entertainment/video-games
+  tr:
+    prompt: İlk Sonic the Hedgehog oyunu hangi yıl çıkmıştır?
+    options:
+    - '1991'
+    - '1989'
+    - '1993'
+    - '1995'
+    origin: machine_translation
+- ref: otdb-1f6afd48958b
+  subcategory: entertainment/video-games
+  tr:
+    prompt: Nintendo 64 konsolunun adındaki "64" neyi ifade eder?
+    options:
+    - İşlemci mimarisindeki bit sayısını
+    - Megabayt cinsinden RAM miktarını
+    - Megabayt cinsinden kartuş kapasitesini
+    - Hertz cinsinden işlemci saat hızını
+    origin: machine_translation
+- ref: otdb-3b327ac694ff
+  subcategory: entertainment/video-games
+  tr:
+    prompt: Nintendo'nun ünlü karakteri Mario adını nereden almıştır?
+    options:
+    - Nintendo'nun Amerika merkezinin ev sahibinden
+    - Shigeru Miyamoto'nun kayınpederinden
+    - Satoru Iwata'nın tesisatçısından
+    - Donkey Kong'un çıkış tarihinden (10 Mart)
+    origin: machine_translation
+- ref: otdb-ba2b48c53dca
+  subcategory: entertainment/video-games
+  tr:
+    prompt: Super Mario 64'te toplanacak kaç yıldız vardır?
+    options:
+    - '120'
+    - '60'
+    - '80'
+    - '100'
+    origin: machine_translation
+- ref: otdb-0058c5648f7f
+  subcategory: entertainment/video-games
+  tr:
+    prompt: Minecraft'ın ilk adı neydi?
+    options:
+    - Cave Game
+    - 'Minecraft: Order of the Stone'
+    - Dig And Build
+    - Infiniminer
+    origin: machine_translation
+- ref: otdb-6b51eb54a5ae
+  subcategory: entertainment/video-games
+  tr:
+    prompt: Mario karakteri ilk kez hangi oyunda ortaya çıkmıştır?
+    options:
+    - Donkey Kong
+    - Super Mario Bros.
+    - Super Mario Land
+    - Mario Bros.
+    origin: machine_translation
+- ref: otdb-b61f0f6b4eda
+  subcategory: entertainment/video-games
+  tr:
+    prompt: Minecraft'taki Creeper, hangi yaratık oyuna eklenirken yapılan bir hatanın sonucunda ortaya çıkmıştır?
+    options:
+    - Domuz
+    - Zombi
+    - Tavuk
+    - İnek
+    origin: machine_translation
+- ref: otdb-fd596f111889
+  subcategory: entertainment/video-games
+  tr:
+    prompt: Aşağıdaki retro video oyunlarından hangisi ilk çıkmıştır?
+    options:
+    - Space Invaders
+    - Galaga
+    - Pac-Man
+    - Asteroids
+    origin: machine_translation
+- ref: otdb-9b4d817a2c94
+  subcategory: technology/computers-internet
+  tr:
+    prompt: 1 Nisan 1976'da Steve Jobs, Steve Wozniak ve Ronald Wayne tarafından hangi şirket kuruldu?
+    options:
+    - Apple
+    - Microsoft
+    - Atari
+    - Commodore
+    origin: machine_translation
+- ref: otdb-058c7c746d97
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Windows işletim sistemi hangi şirket tarafından geliştirildi?
+    options:
+    - Microsoft
+    - Apple
+    - Nokia
+    - IBM
+    origin: machine_translation
+- ref: otdb-15d26634fec7
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Bir bayt genellikle kaç bitten oluşur?
+    options:
+    - Sekiz bit
+    - Altı bit
+    - On iki bit
+    - On beş bit
+    origin: machine_translation
+- ref: otdb-22387989784b
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Tek bir bayt kaç farklı değer gösterebilir?
+    options:
+    - '256'
+    - '8'
+    - '1'
+    - '1024'
+    origin: machine_translation
+- ref: otdb-6d9aa1b3f454
+  subcategory: technology/computers-internet
+  tr:
+    prompt: HTML ne tür bir dildir?
+    options:
+    - İşaretleme dili
+    - Makro dili
+    - Programlama dili
+    - Betik dili
+    origin: machine_translation
+- ref: otdb-8a7b4caa9413
+  subcategory: technology/computers-internet
+  tr:
+    prompt: C programlama dilini hangi Amerikalı bilgisayar bilimci yarattı?
+    options:
+    - Dennis Ritchie
+    - Tim Berners-Lee
+    - Harezmi
+    - Willis Ware
+    origin: machine_translation
+- ref: otdb-578243d08833
+  subcategory: technology/computers-internet
+  tr:
+    prompt: İlk iPhone hangi yıl piyasaya çıktı?
+    options:
+    - '2007'
+    - '2005'
+    - '2006'
+    - '2004'
+    origin: machine_translation
+- ref: otdb-c7d6542bd5fd
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Amazon'un geliştirdiği sanal asistan hangisidir?
+    options:
+    - Alexa
+    - Google Assistant
+    - Siri
+    - Cortana
+    origin: machine_translation
+- ref: otdb-0d39176407b5
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Bilgisayar ağlarında LAN kısaltmasının açılımı nedir?
+    options:
+    - Local Area Network
+    - Long Antenna Node
+    - Light Access Node
+    - Land Address Navigation
+    origin: machine_translation
+- ref: otdb-640b0362a52d
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Onaltılık (hexadecimal) renk kodu "#00FF00" hangi rengi gösterir?
+    options:
+    - Yeşil
+    - Kırmızı
+    - Mavi
+    - Sarı
+    origin: machine_translation
+- ref: otdb-d9aa8fe0b8f5
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Twitter'da bir tweet için ilk karakter sınırı kaçtı?
+    options:
+    - '140'
+    - '120'
+    - '160'
+    - '100'
+    origin: machine_translation
+- ref: otdb-09ad0a92cf79
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Ada Lovelace genellikle ilk bilgisayar programcısı olarak kabul edilir.
+    origin: machine_translation
+- ref: otdb-bfed1adcd2a5
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Python programlama dili adını İngiliz komedi grubu "Monty Python"dan almıştır.
+    origin: machine_translation
+- ref: otdb-8c34a46205fd
+  subcategory: technology/computers-internet
+  difficulty: 2
+  tr:
+    prompt: Bilgisayarın "beyni" olarak bilinen bileşen hangisidir?
+    options:
+    - Merkezi işlem birimi (CPU)
+    - Anakart
+    - Grafik işlem birimi (GPU)
+    - Klavye
+    origin: machine_translation
+- ref: otdb-71fcd41ca67b
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Hangi internet şirketi, "Cadabra" adlı bir çevrimiçi kitapçı olarak hayata başladı?
+    options:
+    - Amazon
+    - eBay
+    - Overstock
+    - Shopify
+    origin: machine_translation
+- ref: otdb-88abfab08879
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Linus Torvalds aşağıdakilerden hangisini yarattı?
+    options:
+    - Linux
+    - Microsoft Windows
+    - Python
+    - Wikipedia
+    origin: machine_translation
+- ref: otdb-1245a7cabf21
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Sun Microsystems'in 1995'te geliştirdiği programlama dili hangisidir?
+    options:
+    - Java
+    - Python
+    - Solaris OS
+    - C++
+    origin: machine_translation
+- ref: otdb-f0ef5c948209
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Aşağıdakilerden hangisi Apple'ın kurucularından biri değildir?
+    options:
+    - Jonathan Ive
+    - Steve Jobs
+    - Ronald Wayne
+    - Steve Wozniak
+    origin: machine_translation
+- ref: otdb-16dc94a01473
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Teknoloji şirketi HP'nin adı neyin kısaltmasıdır?
+    options:
+    - Hewlett-Packard
+    - Howard Packmann
+    - Husker-Pollosk
+    - Hellman-Pohl
+    origin: machine_translation
+- ref: otdb-5db43e288bde
+  subcategory: technology/computers-internet
+  tr:
+    prompt: World Wide Web hangi gün çevrimiçi oldu?
+    options:
+    - 20 Aralık 1990
+    - 17 Aralık 1996
+    - 12 Kasım 1990
+    - 24 Kasım 1995
+    origin: machine_translation
+- ref: otdb-e735e79a26ac
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Windows XP'nin varsayılan masaüstü arka planı olan görüntünün adı nedir?
+    options:
+    - Bliss
+    - Azul
+    - Red Moon Desert
+    - Tulips
+    origin: machine_translation
+- ref: otdb-40912711f613
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Apple Kaliforniya'da kurulmuştu; peki Microsoft ABD'nin hangi batı eyaletinde kuruldu?
+    options:
+    - New Mexico
+    - Washington
+    - Colorado
+    - Arizona
+    origin: machine_translation
+- ref: otdb-e4c0373d990e
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Apple'ın sesli asistanı Siri ilk kez hangi iPhone modeliyle tanıtıldı?
+    options:
+    - iPhone 4S
+    - iPhone 6S
+    - iPhone 3GS
+    - iPhone 5S
+    origin: machine_translation
+- ref: otdb-63b89c858f03
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Ticari olarak satışa sunulan ilk mikroişlemci hangisidir?
+    options:
+    - Intel 4004
+    - Intel 486SX
+    - TMS 1000
+    - AMD AM386
+    origin: machine_translation
+- ref: otdb-9b28ec24da37
+  subcategory: technology/computers-internet
+  tr:
+    prompt: ARM işlemci mimarisi ilk olarak Acorn Computers tarafından geliştirilmiştir.
+    origin: machine_translation
+- ref: otdb-f5513be24989
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Nisan 2014'te herkese açık OpenSSL şifreleme kütüphanesinde bulunan güvenlik açığının adı neydi?
+    options:
+    - Heartbleed
+    - Shellshock
+    - Corrupted Blood
+    - Shellscript
+    origin: machine_translation
+- ref: otdb-2c473e80f51a
+  subcategory: technology/computers-internet
+  tr:
+    prompt: 32 bitlik işaretli (signed) bir tam sayının alabileceği en büyük değer nedir?
+    options:
+    - 2.147.483.647
+    - '255'
+    - '2048'
+    - 9.223.372.036.854.775.807
+    origin: machine_translation
+- ref: otdb-6cfbd6ddd41d
+  subcategory: technology/computers-internet
+  tr:
+    prompt: Lenovo, ThinkPad serisi dahil IBM'in kişisel bilgisayar bölümünü hangi yıl satın aldı?
+    options:
+    - '2005'
+    - '1999'
+    - '2002'
+    - '2008'
+    origin: machine_translation
+- ref: otdb-a75052352107
+  subcategory: technology/inventions
+  tr:
+    prompt: CD (kompakt disk) tüketici pazarında ilk kez hangi yıl görülmeye başladı?
+    options:
+    - '1982'
+    - '1992'
+    - '1972'
+    - '1962'
+    origin: machine_translation
+- ref: otdb-16dab5822c0d
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: İtalyan otomobil üreticisi Lamborghini'nin logosunda hangi hayvan yer alır?
+    options:
+    - Boğa
+    - Yarasa
+    - At
+    - Yılan
+    origin: machine_translation
+- ref: otdb-f54f251253cc
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Trabant 601 otomobili hangi ülkede üretildi?
+    options:
+    - Doğu Almanya
+    - Sovyetler Birliği
+    - Macaristan
+    - Fransa
+    origin: machine_translation
+- ref: otdb-1aa7af0690fb
+  subcategory: technology/inventions
+  tr:
+    prompt: Sürekli dönme hareketi üreten buhar makinesinin patentini kim aldı?
+    options:
+    - James Watt
+    - Nikola Tesla
+    - Albert Einstein
+    - Alessandro Volta
+    origin: machine_translation
+- ref: otdb-dab28d2abedc
+  subcategory: technology/inventions
+  tr:
+    prompt: Yapılmış ilk gerçek otomobil, 1886 tarihli Benz Patent-Motorwagen'dir.
+    origin: machine_translation
+- ref: otdb-caa5788ee33e
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: '"Geleceğe Dönüş" filminde kullanılan otomobili hangi üretici yaptı?'
+    options:
+    - DeLorean
+    - Ford
+    - Toyota
+    - Daihatsu
+    origin: machine_translation
+- ref: otdb-65dba1074731
+  subcategory: technology/inventions
+  tr:
+    prompt: NASA'nın uzay mekiklerinden hangi ikisi felaketlerde yok oldu?
+    options:
+    - Challenger ve Columbia
+    - Enterprise ve Atlantis
+    - Discovery ve Endeavour
+    - Hiçbiri
+    origin: machine_translation
+- ref: otdb-436a05dfbbca
+  subcategory: general-knowledge/mixed
+  difficulty: 4
+  tr:
+    prompt: 1983'te yakıtı bittikten sonra süzülerek güvenle iniş yapan Air Canada'nın 143 sefer sayılı uçağına hangi lakap verildi?
+    options:
+    - Gimli Glider
+    - Gimli Microlight
+    - Gimli Chaser
+    - Gimli Superb
+    origin: machine_translation
+- ref: otdb-b4fc37af928c
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Enzo Ferrari, kendi otomobil şirketini kurmadan önce hangi marka için yarış pilotluğu yaptı?
+    options:
+    - Alfa Romeo
+    - Auto Union
+    - Mercedes-Benz
+    - Bentley
+    origin: machine_translation
+- ref: otdb-29f1756833e5
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Audi logosundaki dört halka neyi temsil eder?
+    options:
+    - Daha önce bağımsız olan otomobil üreticilerini
+    - Audi'nin en çok satış yaptığı eyaletleri
+    - Audi için hayati önemdeki ana şehirleri
+    - Audi'nin en çok satış yaptığı ülkeleri
+    origin: machine_translation
+- ref: otdb-c624b8d949a6
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: BMW 1916'da kurulduğunda otomobil üretiyordu.
+    origin: machine_translation
+- ref: otdb-6129386c0cad
+  subcategory: technology/inventions
+  tr:
+    prompt: Hangi otomobil üreticisi, hayat kurtarmak amacıyla emniyet kemeri patentini herkesin kullanımına açtı?
+    options:
+    - Volvo
+    - Ferrari
+    - Ford
+    - Renault
+    origin: machine_translation
+- ref: otdb-34720959aeda
+  subcategory: technology/inventions
+  tr:
+    prompt: Seri üretilen ilk hibrit otomobil hangisidir?
+    options:
+    - Toyota Prius
+    - Chevrolet Volt
+    - Honda Fit
+    - Peugeot 308 R HYbrid
+    origin: machine_translation
+- ref: otdb-43ed55125d8a
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: 1965'te Fransız hükümetinin Yuri Gagarin'e hediye ettiği spor otomobilin modeli neydi?
+    options:
+    - Matra Djet
+    - Porsche 911
+    - Alpine A110
+    - AC Cobra
+    origin: machine_translation
+- ref: otdb-b4cfecaa9d2b
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: 2014'te 6 milyondan fazla General Motors aracı hangi kritik kusur nedeniyle geri çağrıldı?
+    options:
+    - Arızalı kontak anahtarı
+    - Bozuk gaz pedalı
+    - Kırılan yakıt hatları
+    - Kusurlu fren balatası
+    origin: machine_translation
+- ref: otdb-c0dc2786c0d1
+  subcategory: technology/inventions
+  tr:
+    prompt: İsveçli otomobil üreticisi Saab, 1993'te bir Saab 9000'de direksiyon simidi yerine joystick kullanmayı denedi.
+    origin: machine_translation
+- ref: otdb-839ba6a6f8e4
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Datsun'un (bugünkü Nissan) ürettiği ilk önden çekişli otomobilin adı neydi?
+    options:
+    - Cherry
+    - Sunny
+    - Bluebird
+    - Skyline
+    origin: machine_translation
+- ref: otdb-cf774a5a9ac8
+  subcategory: general-knowledge/food-drink
+  tr:
+    prompt: Marzipan yapımında hangi kuruyemiş kullanılır?
+    options:
+    - Badem
+    - Yer fıstığı
+    - Ceviz
+    - Antep fıstığı
+    origin: machine_translation
+- ref: otdb-d9c39db6ca9c
+  subcategory: general-knowledge/food-drink
+  tr:
+    prompt: Gouda peyniri hangi Avrupa ülkesine aittir?
+    options:
+    - Hollanda
+    - Belçika
+    - Almanya
+    - Fransa
+    origin: machine_translation
+- ref: otdb-ad23c1c0c37f
+  subcategory: general-knowledge/food-drink
+  tr:
+    prompt: Bir Fransız lezzeti olan foie gras, genellikle ördek ya da kazın hangi organından yapılır?
+    options:
+    - Karaciğer
+    - Kalp
+    - Mide
+    - Bağırsak
+    origin: machine_translation
+- ref: otdb-8d085cd04656
+  subcategory: general-knowledge/food-drink
+  tr:
+    prompt: Şeker kamışı melasından yapılan alkollü içki hangisidir?
+    options:
+    - Rom
+    - Cin
+    - Votka
+    - Viski
+    origin: machine_translation
+- ref: otdb-577ebc885fba
+  subcategory: general-knowledge/food-drink
+  tr:
+    prompt: Geleneksel Kara Orman pastasında hangi meyve kullanılır?
+    options:
+    - Vişne
+    - Kayısı
+    - Kuru üzüm
+    - Elma
+    origin: machine_translation
+- ref: otdb-6fcf2c944eff
+  subcategory: general-knowledge/food-drink
+  tr:
+    prompt: '"Japon yabanturpu" olarak da bilinen vazgeçilmez Japon çeşnisi hangisidir?'
+    options:
+    - Wasabi
+    - Mentsuyu
+    - Karashi
+    - Ponzu
+    origin: machine_translation
+- ref: otdb-490328098d20
+  subcategory: general-knowledge/food-drink
+  tr:
+    prompt: Earl Grey çayı, neyle aromalandırılmış siyah çaydır?
+    options:
+    - Bergamot yağı
+    - Lavanta
+    - Vanilya
+    - Bal
+    origin: machine_translation
+- ref: otdb-9cca52c90b28
+  subcategory: general-knowledge/food-drink
+  tr:
+    prompt: Ağırlıklı olarak ardıç meyvesinden yapılan alkollü içki hangisidir?
+    options:
+    - Cin
+    - Votka
+    - Rom
+    - Tekila
+    origin: machine_translation
+- ref: otdb-b79ec55de3eb
+  subcategory: general-knowledge/food-drink
+  tr:
+    prompt: Ağırlık başına dünyanın en pahalı baharatı hangisidir?
+    options:
+    - Safran
+    - Tarçın
+    - Kakule
+    - Vanilya
+    origin: machine_translation
+- ref: otdb-cf9687217cc1
+  subcategory: general-knowledge/food-drink
+  tr:
+    prompt: Kil fırında odun kömürü ateşiyle pişirilen Hint yemeklerine ne ad verilir?
+    options:
+    - Tandoori
+    - Biryani
+    - Pani puri
+    - Tikka masala
+    origin: machine_translation
+- ref: otdb-fc31a6102f99
+  subcategory: general-knowledge/food-drink
+  tr:
+    prompt: Dünya vanilya üretiminin yaklaşık yüzde 40'ını hangi ülke karşılar?
+    options:
+    - Madagaskar
+    - Endonezya
+    - Çin
+    - Meksika
+    origin: machine_translation
+- ref: otdb-95c6f394a79c
+  subcategory: general-knowledge/food-drink
+  tr:
+    prompt: Patlıcan çekirdeklerinde aşağıdaki kimyasallardan hangisi bulunur?
+    options:
+    - Nikotin
+    - Meskalin
+    - Siyanür
+    - Psilosibin
+    origin: machine_translation
+- ref: otdb-f0df06b7375a
+  subcategory: general-knowledge/language
+  difficulty: 2
+  tr:
+    prompt: Aşağıdaki dillerden hangisinin dilbilgisinde cinsiyet ayrımı yoktur?
+    options:
+    - Türkçe
+    - Almanca
+    - Danca
+    - Lehçe
+    origin: machine_translation
+- ref: otdb-339bd63da586
+  subcategory: general-knowledge/language
+  tr:
+    prompt: Hollandalılar kendi dillerine ne ad verir?
+    options:
+    - Nederlands
+    - Dansk
+    - Deutsch
+    - Hollander
+    origin: machine_translation
+- ref: otdb-f1f93dfb8e0e
+  subcategory: general-knowledge/language
+  tr:
+    prompt: Küba'nın resmî ve en yaygın konuşulan dili hangisidir?
+    options:
+    - İspanyolca
+    - Portekizce
+    - Fransızca
+    - İtalyanca
+    origin: machine_translation
+- ref: otdb-2174eac6a833
+  subcategory: general-knowledge/language
+  tr:
+    prompt: Barselona'da İspanyolcanın yanı sıra resmî dil olarak kullanılan dil hangisidir?
+    options:
+    - Katalanca
+    - Galiçyaca
+    - Fransızca
+    - Baskça
+    origin: machine_translation
+- ref: otdb-c41403c86eaf
+  subcategory: general-knowledge/language
+  tr:
+    prompt: Aşağıdaki Hindistan dillerinden hangisi Hint-Avrupa dil ailesine ait değildir?
+    options:
+    - Tamilce
+    - Hintçe
+    - Pencapça
+    - Urduca
+    origin: machine_translation
+- ref: otdb-e0661c40db17
+  subcategory: general-knowledge/language
+  tr:
+    prompt: '"Bungalov" ve "şampuan" kelimelerinin kökeni hangi ülkenin dillerine dayanır?'
+    options:
+    - Hindistan
+    - Papua Yeni Gine
+    - Etiyopya
+    - Çin
+    origin: machine_translation
+- ref: otdb-1ced8c405a91
+  subcategory: general-knowledge/language
+  tr:
+    prompt: Japoncadaki temel cümle öge dizilişi aşağıdakilerden hangisidir?
+    options:
+    - Özne-Nesne-Yüklem
+    - Özne-Yüklem-Nesne
+    - Yüklem-Özne-Nesne
+    - Yüklem-Nesne-Özne
+    origin: machine_translation
+- ref: otdb-fbd256e4b267
+  subcategory: general-knowledge/language
+  tr:
+    prompt: İsviçre'de en yaygın konuşulan dil hangisidir?
+    options:
+    - Almanca
+    - Fransızca
+    - İtalyanca
+    - İsviçrece
+    origin: machine_translation
+- ref: otdb-7bb56a9efb46
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: '"Modern felsefenin babası" olarak kabul edilen düşünür kimdir?'
+    options:
+    - René Descartes
+    - Platon
+    - Albert Einstein
+    - Antoine Lavoisier
+    origin: machine_translation
+- ref: otdb-67060e303306
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Suşi ve karaoke hangi ülkeden çıkmıştır?
+    options:
+    - Japonya
+    - Çin
+    - Güney Kore
+    - Vietnam
+    origin: machine_translation
+- ref: otdb-760194e033ff
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Macar profesör Ernő Rubik'in icat ettiği oyuncak hangi şekildedir?
+    options:
+    - Küp
+    - Küre
+    - Silindir
+    - Piramit
+    origin: machine_translation
+- ref: otdb-e2d56524ceb2
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Şili'deki El Teniente, hangi metalin dünyadaki en büyük yer altı madenidir?
+    options:
+    - Bakır
+    - Demir
+    - Nikel
+    - Gümüş
+    origin: machine_translation
+- ref: otdb-a8518ec97a53
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Afrika'nın en yüksek zirvesi hangi dağdadır?
+    options:
+    - Kilimanjaro Dağı, Tanzanya
+    - Kenya Dağı, Kenya
+    - Stanley Dağı, KDC/Uganda
+    - Speke Dağı, Uganda
+    origin: machine_translation
+- ref: otdb-38f9b270a5b3
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Kafkasya Avrupa'ya dahil sayıldığında, Avrupa'nın en yüksek zirvesi hangi dağdadır?
+    options:
+    - Elbruz Dağı, Rusya
+    - Şhara Dağı, Gürcistan
+    - Ağrı Dağı, Türkiye
+    - Mont Blanc, Fransa
+    origin: machine_translation
+- ref: otdb-70697b742ffb
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Dünyanın bilinen en eski masa oyunu hangisidir?
+    options:
+    - Senet
+    - Satranç
+    - Dama
+    - Go
+    origin: machine_translation
+- ref: otdb-f22bf68116d0
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Akdeniz'i Kızıldeniz'e bağlayan kanal hangisidir?
+    options:
+    - Süveyş Kanalı
+    - Panama Kanalı
+    - Sina Kanalı
+    - Karakum Kanalı
+    origin: machine_translation
+- ref: otdb-10e59df534c9
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Aşağıdaki Amerikalı şarkıcı-söz yazarlarından hangisi Nobel Edebiyat Ödülü kazanmıştır?
+    options:
+    - Bob Dylan
+    - Buddy Holly
+    - Johnny Cash
+    - Alice Cooper
+    origin: machine_translation
+- ref: otdb-b8e132d35912
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Matematiğin en prestijli ödüllerinden Fields Madalyası kaç yılda bir verilir?
+    options:
+    - '4'
+    - '3'
+    - '5'
+    - '6'
+    origin: machine_translation
+- ref: otdb-f549c168076d
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Satrançta vezir, hangi iki taşın hareketlerini birleştirir?
+    options:
+    - Fil ve kale
+    - Kale ve şah
+    - At ve fil
+    - Şah ve at
+    origin: machine_translation
+- ref: otdb-12f6b9acb204
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: İlk resmî dünya satranç şampiyonu kimdir?
+    options:
+    - Wilhelm Steinitz
+    - José Raúl Capablanca
+    - Emanuel Lasker
+    - Bobby Fischer
+    origin: machine_translation
+- ref: otdb-95422135cab5
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Ünlü şarkıcı Freddie Mercury'nin dini neydi?
+    options:
+    - Zerdüştlük
+    - Paganizm
+    - Asurculuk
+    - Yahudilik
+    origin: machine_translation
+- ref: otdb-b8ad8fa60c76
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: 12. ve 19. yüzyıllar arasında Japonya'yı yöneten askerî diktatörlere ne ad verilirdi?
+    options:
+    - Şogun
+    - Ninja
+    - Samuray
+    - Şinobi
+    origin: machine_translation
+- ref: otdb-58a49ec9b22c
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: 2019'da 102 yaşında hayatını kaybeden, Paris'teki Louvre Müzesi'nin cam piramidini tasarlayan ünlü mimar kimdir?
+    options:
+    - I. M. Pei
+    - Pascale Guédot
+    - Frank Gehry
+    - Wang Shu
+    origin: machine_translation
+- ref: otdb-7f61bdbcf838
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Hangi teknoloji adını 10. yüzyılda yaşamış bir Danimarka ve Norveç hükümdarından alır?
+    options:
+    - Bluetooth
+    - Wi-Fi
+    - GPS
+    - İnternet
+    origin: machine_translation
+- ref: otdb-a286b72f0134
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Aşağıdaki ülkelerden hangisinde trafik soldan akar?
+    options:
+    - Japonya
+    - Almanya
+    - Rusya
+    - Çin
+    origin: machine_translation
+- ref: otdb-73863e8f6ae6
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Avrupa Birliği bayrağında kaç yıldız vardır?
+    options:
+    - '12'
+    - '10'
+    - '14'
+    - '16'
+    origin: machine_translation
+- ref: otdb-e66cd6e82602
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Standart bir kuyruklu piyanoda kaç tuş (nota) bulunur?
+    options:
+    - '88'
+    - '98'
+    - '108'
+    - '78'
+    origin: machine_translation
+- ref: otdb-521bcd315925
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Telekomünikasyon şirketi Nokia ilk olarak hangi ürünü satıyordu?
+    options:
+    - Kâğıt
+    - Telefon
+    - Bilgisayar
+    - İşlemci
+    origin: machine_translation
+- ref: otdb-2c81df45560a
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Lastik üreticisi Michelin 1889'da hangi ülkede kurulmuştur?
+    options:
+    - Fransa
+    - Birleşik Krallık
+    - İtalya
+    - Almanya
+    origin: machine_translation
+- ref: otdb-1e6c943f6152
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: 2061 yılına kadar yeniden görünmeyecek olan Halley Kuyruklu Yıldızı, Dünya'ya en son hangi yıl yaklaşmıştır?
+    options:
+    - '1986'
+    - '2001'
+    - '1942'
+    - '1909'
+    origin: machine_translation
+- ref: otdb-c6b641866432
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Hyundai Motor Company hangi ülkede kurulmuştur?
+    options:
+    - Güney Kore
+    - Rusya
+    - Japonya
+    - Çin
+    origin: machine_translation
+- ref: otdb-2ce830ab9111
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Japon şiir türü haiku toplam kaç heceden oluşur?
+    options:
+    - '17'
+    - '15'
+    - '10'
+    - '21'
+    origin: machine_translation
+- ref: otdb-32f2d6947bfe
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Le Corbusier olarak bilinen mimar, hangi mimari akımın önemli isimlerinden biridir?
+    options:
+    - Modernizm
+    - Neoklasisizm
+    - Barok
+    - Gotik Uyanış
+    origin: machine_translation
+- ref: otdb-6942b9ec7965
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Go masa oyunundaki olası geçerli pozisyon sayısı, gözlemlenebilir evrendeki atom sayısından fazladır.
+    origin: machine_translation
+- ref: otdb-5ff7949ae4c6
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Çin Seddi Ay'dan görülebilir.
+    origin: machine_translation
+- ref: otdb-07050d3a689a
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Kurşun kalemin ucu kurşundan değil, genellikle grafitten yapılır.
+    origin: machine_translation
+- ref: otdb-cbbaa5d725e8
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Bikini, adını ABD'nin atom bombası denemeleri yaptığı Bikini Atolü'nden almıştır.
+    origin: machine_translation
+- ref: otdb-77b861799aaf
+  subcategory: general-knowledge/mixed
+  tr:
+    prompt: Yılan ve merdiven oyunu ilk olarak Hindistan'da ortaya çıkmıştır.
+    origin: machine_translation

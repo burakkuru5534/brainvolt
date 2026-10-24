@@ -23,7 +23,6 @@ func devVars() map[string]string {
 		"BRAINVOLT_LOG_LEVEL":           "debug",
 		"BRAINVOLT_LOG_FORMAT":          "text",
 		"BRAINVOLT_POSTGRES_URL":        "postgres://brainvolt:pg_secret@localhost:5432/brainvolt?sslmode=disable",
-		"BRAINVOLT_REDIS_URL":           "redis://:redis_secret@localhost:6379/0",
 		"BRAINVOLT_FIREBASE_PROJECT_ID": "demo-brainvolt",
 		"FIREBASE_AUTH_EMULATOR_HOST":   "localhost:9099",
 	}
@@ -57,7 +56,6 @@ func TestLoadDevDefaults(t *testing.T) {
 			URL:              "postgres://brainvolt:pg_secret@localhost:5432/brainvolt?sslmode=disable",
 			StatementTimeout: 3 * time.Second, WorkerStatementTimeout: 60 * time.Second,
 		},
-		Redis:    Redis{URL: "redis://:redis_secret@localhost:6379/0"},
 		Firebase: Firebase{ProjectID: "demo-brainvolt", AuthEmulatorHost: "localhost:9099"},
 	}
 	if diff := cmp.Diff(want, got); diff != "" {
@@ -92,8 +90,8 @@ func TestLoadErrors(t *testing.T) {
 		vars map[string]string
 		want []string // substrings of the error
 	}{
-		{"missing required", with(devVars(), "BRAINVOLT_POSTGRES_URL", "<unset>", "BRAINVOLT_REDIS_URL", "<unset>"),
-			[]string{"BRAINVOLT_POSTGRES_URL", "BRAINVOLT_REDIS_URL"}},
+		{"missing required", with(devVars(), "BRAINVOLT_POSTGRES_URL", "<unset>"),
+			[]string{"BRAINVOLT_POSTGRES_URL"}},
 		{"empty required", with(devVars(), "BRAINVOLT_FIREBASE_PROJECT_ID", ""),
 			[]string{"BRAINVOLT_FIREBASE_PROJECT_ID"}},
 		{"bad env", with(devVars(), "BRAINVOLT_ENV", "staging"), []string{"BRAINVOLT_ENV"}},
@@ -105,8 +103,6 @@ func TestLoadErrors(t *testing.T) {
 		{"handler timeout not below write timeout", with(devVars(), "BRAINVOLT_HTTP_HANDLER_TIMEOUT", "15s"),
 			[]string{"must be shorter than BRAINVOLT_HTTP_WRITE_TIMEOUT"}},
 		{"bad addr", with(devVars(), "BRAINVOLT_HTTP_ADDR", "8080"), []string{"BRAINVOLT_HTTP_ADDR"}},
-		{"wrong scheme", with(devVars(), "BRAINVOLT_REDIS_URL", "http://localhost:6379"),
-			[]string{"BRAINVOLT_REDIS_URL", `scheme "http"`}},
 		{"no host", with(devVars(), "BRAINVOLT_POSTGRES_URL", "postgres:///db"),
 			[]string{"BRAINVOLT_POSTGRES_URL", "missing host"}},
 		{"emulator in prod", with(devVars(), "BRAINVOLT_ENV", "prod", "BRAINVOLT_FIREBASE_PROJECT_ID", "brainvolt"),
@@ -131,7 +127,7 @@ func TestLoadErrors(t *testing.T) {
 					t.Errorf("error %q does not mention %q", err, w)
 				}
 			}
-			for _, secret := range []string{"pg_secret", "redis_secret"} {
+			for _, secret := range []string{"pg_secret"} {
 				if strings.Contains(err.Error(), secret) {
 					t.Errorf("error leaks a password: %q", err)
 				}
@@ -148,7 +144,7 @@ func TestLogValueRedactsPasswords(t *testing.T) {
 	var buf bytes.Buffer
 	slog.New(slog.NewTextHandler(&buf, nil)).Info("config", "config", cfg)
 	out := buf.String()
-	for _, secret := range []string{"pg_secret", "redis_secret"} {
+	for _, secret := range []string{"pg_secret"} {
 		if strings.Contains(out, secret) {
 			t.Errorf("log output leaks %q:\n%s", secret, out)
 		}
@@ -247,7 +243,6 @@ func TestReadEnvFileRejectsMalformedLines(t *testing.T) {
 }
 
 func TestLoadPostgresNeedsOnlyPostgres(t *testing.T) {
-	t.Setenv("BRAINVOLT_REDIS_URL", "")
 	t.Setenv("BRAINVOLT_FIREBASE_PROJECT_ID", "")
 	t.Setenv("BRAINVOLT_POSTGRES_URL", "postgres://u:secret@db:5432/x")
 	pg, err := LoadPostgres()

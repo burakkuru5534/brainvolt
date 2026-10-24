@@ -285,13 +285,9 @@ type CurrentMatch struct {
 
 // Current returns the caller's live match, if any.
 func (s *Service) Current(ctx context.Context, user uuid.UUID) (Current, error) {
-	v, err := s.d.Redis.Get(ctx, liveKey(user)).Result()
-	if err != nil {
-		return Current{}, nil //nolint:nilerr // no live lock (or Redis down): no live match to resume
-	}
-	id, err := uuid.Parse(v)
-	if err != nil {
-		return Current{}, nil //nolint:nilerr // corrupted lock value: nothing to resume
+	id, ok := s.UserLock(user)
+	if !ok {
+		return Current{}, nil
 	}
 	m, err := sqlc.New(s.d.DB).GetMatch(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) || (err == nil && domain.Status(m.Status).Terminal()) {
