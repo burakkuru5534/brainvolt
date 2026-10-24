@@ -67,7 +67,7 @@
 |---|---|---|---|---|---|
 | POST | `/v1/rooms` | any | ✓ | 5 | Create private room `{match_config}` → room + invite code; the caller leaves a previous room. A Creator Quiz room sends `category_mode: creator_quiz` + `creator_quiz_id` (own or published quiz; lobby fills the question set, length and window; unpublished → friends of host only, D-083). |
 | GET | `/v1/rooms/{id}` | member | — | 5 | Room state (live updates via WS). |
-| PATCH | `/v1/rooms/{id}` | host | — | 5 | Change config (`If-Match: <room version>`, optional); ready flags reset. |
+| PATCH | `/v1/rooms/{id}` | host | — | 5 | Change config (`If-Match: <room version>`, optional): any room mode — match type, format 1v1–4v4 / couple, team answer mode, category mode, Creator Quiz (D-093); members whose seat disappears with a smaller format move to free seats (`ROOM_FULL` when too many); ready flags reset. |
 | POST | `/v1/rooms/join` | any | — | 5 | `{code}` → join (friends-of-host rule for unverified quizzes, D-023). |
 | POST | `/v1/rooms/{id}/leave` | member | — | 5 | Leave; the host leaving (or the last member) closes the room. |
 | POST | `/v1/challenges` | any | ✓ | 5 | Direct challenge `{target_user_id|target_team_id|target_couple_id, match_config}`. |

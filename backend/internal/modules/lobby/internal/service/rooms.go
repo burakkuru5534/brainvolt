@@ -99,6 +99,25 @@ func (r *room) freeSeat() (side, seat int, ok bool) {
 	return 0, 0, false
 }
 
+// reseat moves members whose seat no longer exists (the format got
+// smaller, D-093) to the first free seats of the new layout, side 1 first;
+// everyone else keeps their place. The caller checked the capacity.
+func (r *room) reseat() {
+	size := r.Config.Format.SideSize()
+	var moved []int
+	for i := range r.Members {
+		if r.Members[i].Seat > size || r.Members[i].Side < 1 || r.Members[i].Side > 2 {
+			r.Members[i].Side, r.Members[i].Seat = 0, 0
+			moved = append(moved, i)
+		}
+	}
+	for _, i := range moved {
+		if side, seat, ok := r.freeSeat(); ok {
+			r.Members[i].Side, r.Members[i].Seat = side, seat
+		}
+	}
+}
+
 func (r *room) unreadyAll() {
 	for i := range r.Members {
 		r.Members[i].Ready = false
@@ -359,8 +378,12 @@ func (s *Service) CurrentRoom(ctx context.Context, user uuid.UUID) (uuid.UUID, b
 	return id, ok
 }
 
-// UpdateRoomConfig changes the match configuration (host, room open);
-// version, when given, must be the current one. Ready flags reset.
+// UpdateRoomConfig changes the match configuration (host, room open):
+// every room mode — match type, format 1v1–4v4 / couple, team answer
+// mode, category mode, Creator Quiz — can be changed between matches
+// (D-093). Version, when given, must be the current one. Members whose
+// seat disappears with a smaller format are moved to free seats; ready
+// flags reset.
 func (s *Service) UpdateRoomConfig(ctx context.Context, user, id uuid.UUID, cfg game.Config, version *int64) (Room, error) {
 	// A finished match returns the room to open first.
 	if _, err := s.refresh(ctx, id); err != nil {
@@ -396,6 +419,7 @@ func (s *Service) UpdateRoomConfig(ctx context.Context, user, id uuid.UUID, cfg 
 			return apierror.New(apierror.RoomFull)
 		}
 		r.Config, r.FriendsOnly = cfg, friendsOnly(quiz)
+		r.reseat()
 		r.unreadyAll()
 		return nil
 	})

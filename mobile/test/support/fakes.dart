@@ -510,6 +510,20 @@ class FakeLobbyRepository implements LobbyRepository {
   }
 
   @override
+  Future<Room> updateRoom(
+    String id,
+    RoomSettings settings, {
+    String? creatorQuizId,
+    int? version,
+  }) async {
+    calls.add(
+      'updateRoom:$id:${settings.matchType.wire}:${settings.format}'
+      ':${settings.teamMode}:v$version',
+    );
+    return room1;
+  }
+
+  @override
   Future<Room> joinRoom(String code) async {
     calls.add('joinRoom:$code');
     return room1;

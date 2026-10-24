@@ -2611,5 +2611,17 @@
         "type": "int"
       }
     }
+  },
+  "roomSettingsTitle": "Oda ayarları",
+  "@roomSettingsTitle": {
+    "description": "Room settings dialog / host button (D-093)."
+  },
+  "matchTypeLabel": "Maç tipi",
+  "@matchTypeLabel": {
+    "description": "Match type picker label."
+  },
+  "roomSettingsSaved": "Oda ayarları güncellendi, herkes tekrar hazır olmalı",
+  "@roomSettingsSaved": {
+    "description": "Snack bar after the host changed the room settings."
   }
 }

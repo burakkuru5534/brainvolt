@@ -3463,6 +3463,24 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{seconds} sn içinde odaya dönülüyor…'**
   String roomReturning(int seconds);
+
+  /// Room settings dialog / host button (D-093).
+  ///
+  /// In tr, this message translates to:
+  /// **'Oda ayarları'**
+  String get roomSettingsTitle;
+
+  /// Match type picker label.
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç tipi'**
+  String get matchTypeLabel;
+
+  /// Snack bar after the host changed the room settings.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oda ayarları güncellendi, herkes tekrar hazır olmalı'**
+  String get roomSettingsSaved;
 }
 
 class _AppLocalizationsDelegate

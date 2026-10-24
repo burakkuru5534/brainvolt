@@ -124,6 +124,35 @@ class Room {
   bool get full => members.length >= capacity;
 }
 
+/// What the host picks for a room (D-093): every room mode can be set at
+/// creation and changed between matches.
+class RoomSettings {
+  const RoomSettings({
+    this.matchType = MatchType.quickDuel,
+    this.format = '1v1',
+    this.teamMode,
+    this.categoryMode,
+  });
+
+  /// The settings a room plays now.
+  factory RoomSettings.of(Room r) => RoomSettings(
+    matchType: MatchType.parse(r.matchType) ?? MatchType.quickDuel,
+    format: r.format,
+    teamMode: r.teamMode,
+    categoryMode: r.categoryMode,
+  );
+
+  final MatchType matchType;
+
+  /// 1v1 / 2v2 / 3v3 / 4v4 / couple.
+  final String format;
+
+  /// Team formats only (fast_team_round / shared_answer /
+  /// individual_turns).
+  final String? teamMode;
+  final String? categoryMode;
+}
+
 /// Challenge actions.
 enum ChallengeAction { accept, decline, cancel }
 
@@ -146,6 +175,16 @@ abstract interface class LobbyRepository {
     String format = '1v1',
     String? teamMode,
     String? creatorQuizId,
+  });
+
+  /// Changes a room's settings (host, room open, D-093); [creatorQuizId]
+  /// keeps the room's Creator Quiz. [version] guards against a change
+  /// made meanwhile (If-Match).
+  Future<Room> updateRoom(
+    String id,
+    RoomSettings settings, {
+    String? creatorQuizId,
+    int? version,
   });
 
   /// Joins the room of an invite code.

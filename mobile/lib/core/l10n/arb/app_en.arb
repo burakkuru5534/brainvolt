@@ -560,5 +560,8 @@
   "error_USERNAME_TAKEN": "This username is already taken.",
   "error_VALIDATION_FAILED": "Some of the submitted data is invalid.",
   "error_VERSION_CONFLICT": "Someone else changed this. Refresh and try again.",
-  "roomReturning": "Back to the room in {seconds} s…"
+  "roomReturning": "Back to the room in {seconds} s…",
+  "roomSettingsTitle": "Room settings",
+  "matchTypeLabel": "Match type",
+  "roomSettingsSaved": "Room settings updated — everyone readies up again"
 }

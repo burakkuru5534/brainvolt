@@ -227,6 +227,20 @@ void main() {
     await step(tester);
     expect(find.text('Oda kodu: ROOM23'), findsOneWidget);
     expect(find.text('Ayşe'), findsOneWidget);
+    // D-093: the host changes the room to Marathon 2v2, Shared Answer.
+    await tester.tap(find.byKey(const Key('room-settings')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('match-type-marathon')));
+    await tester.tap(find.byKey(const Key('format-2v2')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('team-mode-shared_answer')));
+    await tester.tap(find.byKey(const Key('format-ok')));
+    await tester.pumpAndSettle();
+    expect(t.lobby.calls.last, 'updateRoom:r1:marathon:2v2:shared_answer:v2');
+    expect(
+      find.text('Oda ayarları güncellendi, herkes tekrar hazır olmalı'),
+      findsOneWidget,
+    );
     final start = find.byKey(const Key('room-start'));
     expect(tester.widget<ButtonStyleButton>(start).onPressed, isNull);
     s.serverSends(state(ready: true));

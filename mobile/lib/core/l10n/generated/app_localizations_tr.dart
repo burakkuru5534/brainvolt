@@ -1883,4 +1883,14 @@ class AppLocalizationsTr extends AppLocalizations {
   String roomReturning(int seconds) {
     return '$seconds sn içinde odaya dönülüyor…';
   }
+
+  @override
+  String get roomSettingsTitle => 'Oda ayarları';
+
+  @override
+  String get matchTypeLabel => 'Maç tipi';
+
+  @override
+  String get roomSettingsSaved =>
+      'Oda ayarları güncellendi, herkes tekrar hazır olmalı';
 }

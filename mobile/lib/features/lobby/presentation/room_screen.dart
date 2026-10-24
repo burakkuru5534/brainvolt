@@ -37,14 +37,19 @@ Future<void> showRoomSheet(BuildContext context, WidgetRef ref) async {
     if (choice.startsWith('code:')) {
       room = await repo.joinRoom(choice.substring(5));
     } else {
-      final format = await pickFormat(context);
-      if (format == null) {
+      final settings = await pickRoomSettings(
+        context,
+        initial: RoomSettings(matchType: MatchType.parse(choice)!),
+        title: context.l10n.createRoom,
+      );
+      if (settings == null) {
         return;
       }
       room = await repo.createRoom(
-        MatchType.parse(choice)!,
-        format: format.$1,
-        teamMode: format.$2,
+        settings.matchType,
+        format: settings.format,
+        teamMode: settings.teamMode,
+        categoryMode: settings.categoryMode,
       );
     }
     if (context.mounted) {
@@ -195,6 +200,34 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
     }
   }
 
+  /// The host changes any room mode between matches (D-093).
+  Future<void> _settings(Room room) async {
+    final l10n = context.l10n;
+    final s = await pickRoomSettings(
+      context,
+      initial: RoomSettings.of(room),
+      quizLocked: room.creatorQuizId != null,
+      members: room.members.length,
+    );
+    if (s == null || !mounted) {
+      return;
+    }
+    await _run(() async {
+      await ref
+          .read(lobbyRepositoryProvider)
+          .updateRoom(
+            room.id,
+            s,
+            creatorQuizId: room.creatorQuizId,
+            version: room.version,
+          );
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l10n.roomSettingsSaved)));
+      }
+    });
+  }
+
   Future<void> _leave() async {
     await ref
         .read(lobbyRepositoryProvider)
@@ -287,6 +320,16 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
             },
           ),
         ),
+        if (host)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              key: const Key('room-settings'),
+              icon: const Icon(Icons.tune),
+              onPressed: room.status == 'open' ? () => _settings(room) : null,
+              label: Text(l10n.roomSettingsTitle),
+            ),
+          ),
         if (room.friendsOnly)
           ListTile(
             key: const Key('room-friends-only'),

@@ -146,6 +146,32 @@ class ApiLobbyRepository implements LobbyRepository {
   }
 
   @override
+  Future<Room> updateRoom(
+    String id,
+    RoomSettings settings, {
+    String? creatorQuizId,
+    int? version,
+  }) async => roomFromJson(
+    await api.patchJson(
+      '/v1/rooms/$id',
+      body: {
+        'match_config': {
+          'match_type': settings.matchType.wire,
+          'format': settings.format,
+          'team_answer_mode': ?(settings.format == '1v1'
+              ? null
+              : settings.teamMode),
+          'category_mode': ?(creatorQuizId != null
+              ? 'creator_quiz'
+              : settings.categoryMode),
+          'creator_quiz_id': ?creatorQuizId,
+        },
+      },
+      ifMatch: version?.toString(),
+    ),
+  );
+
+  @override
   Future<Room> room(String id) async =>
       roomFromJson(await api.getJson('/v1/rooms/$id'));
 

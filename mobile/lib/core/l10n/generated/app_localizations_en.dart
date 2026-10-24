@@ -1888,4 +1888,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String roomReturning(int seconds) {
     return 'Back to the room in $seconds s…';
   }
+
+  @override
+  String get roomSettingsTitle => 'Room settings';
+
+  @override
+  String get matchTypeLabel => 'Match type';
+
+  @override
+  String get roomSettingsSaved =>
+      'Room settings updated — everyone readies up again';
 }
