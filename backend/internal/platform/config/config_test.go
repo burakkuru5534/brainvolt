@@ -55,6 +55,8 @@ func TestLoadDevDefaults(t *testing.T) {
 		Postgres: Postgres{
 			URL:              "postgres://brainvolt:pg_secret@localhost:5432/brainvolt?sslmode=disable",
 			StatementTimeout: 3 * time.Second, WorkerStatementTimeout: 60 * time.Second,
+			// D-098: pools that fit Supabase's connection limit.
+			MaxConns: 8, JobsMaxConns: 3, MaxConnIdleTime: time.Minute, MaxConnLifetime: 30 * time.Minute,
 		},
 		Firebase: Firebase{ProjectID: "demo-brainvolt", AuthEmulatorHost: "localhost:9099"},
 	}

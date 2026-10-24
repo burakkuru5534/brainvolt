@@ -66,6 +66,14 @@ type Postgres struct {
 	URL                    string        `env:"BRAINVOLT_POSTGRES_URL,required,notEmpty"`
 	StatementTimeout       time.Duration `env:"BRAINVOLT_POSTGRES_STATEMENT_TIMEOUT" envDefault:"3s"`
 	WorkerStatementTimeout time.Duration `env:"BRAINVOLT_POSTGRES_WORKER_STATEMENT_TIMEOUT" envDefault:"60s"`
+	// Pool sizes and connection ages (D-098). Supabase limits connections
+	// (Supavisor session mode: about 15 per database on the free plan), so
+	// the API pool, the embedded jobs pool and nothing else must fit, and
+	// idle connections are given back quickly.
+	MaxConns        int32         `env:"BRAINVOLT_POSTGRES_MAX_CONNS" envDefault:"8"`
+	JobsMaxConns    int32         `env:"BRAINVOLT_POSTGRES_JOBS_MAX_CONNS" envDefault:"3"`
+	MaxConnIdleTime time.Duration `env:"BRAINVOLT_POSTGRES_MAX_CONN_IDLE_TIME" envDefault:"1m"`
+	MaxConnLifetime time.Duration `env:"BRAINVOLT_POSTGRES_MAX_CONN_LIFETIME" envDefault:"30m"`
 }
 
 // Firebase configures ID-token verification (platform/firebase).

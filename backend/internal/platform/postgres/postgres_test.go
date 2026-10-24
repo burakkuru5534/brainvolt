@@ -67,3 +67,55 @@ func TestStatementTimeoutCancelsSlowQuery(t *testing.T) {
 		t.Fatalf("err = %v, want SQLSTATE 57014 from statement_timeout", err)
 	}
 }
+
+// D-098: the pool is capped, keeps nothing at rest and gives idle
+// connections back after MaxConnIdleTime.
+func TestPoolLimitsAndIdleRelease(t *testing.T) {
+	pool, err := Connect(t.Context(), Options{
+		URL: testenv.PostgresURL(t), ApplicationName: "brainvolt-test-pool",
+		MaxConns: 3, MaxConnIdleTime: 2 * time.Second,
+	})
+	if err != nil {
+		t.Fatalf("Connect: %v", err)
+	}
+	t.Cleanup(pool.Close)
+	c := pool.Config()
+	if c.MaxConns != 3 || c.MinConns != 0 || c.MaxConnIdleTime != 2*time.Second ||
+		c.MaxConnLifetime != DefaultMaxConnLifetime || c.MaxConnLifetimeJitter != DefaultMaxConnLifetime/10 ||
+		c.HealthCheckPeriod != time.Second {
+		t.Fatalf("pool config %+v", c)
+	}
+
+	// Use three connections at once, then let them sit idle.
+	conns := make([]*pgxpool.Conn, 0, 3)
+	for range 3 {
+		conn, err := pool.Acquire(t.Context())
+		if err != nil {
+			t.Fatal(err)
+		}
+		conns = append(conns, conn)
+	}
+	if n := pool.Stat().TotalConns(); n != 3 {
+		t.Fatalf("total conns %d, want 3", n)
+	}
+	for _, conn := range conns {
+		conn.Release()
+	}
+	deadline := time.Now().Add(10 * time.Second)
+	for pool.Stat().TotalConns() > 0 {
+		if time.Now().After(deadline) {
+			t.Fatalf("%d idle connections still open", pool.Stat().TotalConns())
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
+
+	// Defaults when nothing is set.
+	def, err := Connect(t.Context(), Options{URL: testenv.PostgresURL(t)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer def.Close()
+	if d := def.Config(); d.MaxConnIdleTime != DefaultMaxConnIdleTime || d.HealthCheckPeriod != 30*time.Second {
+		t.Fatalf("default pool config idle %s health %s", d.MaxConnIdleTime, d.HealthCheckPeriod)
+	}
+}

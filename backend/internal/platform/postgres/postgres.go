@@ -7,6 +7,7 @@
 package postgres
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -26,7 +27,22 @@ type Options struct {
 	StatementTimeout time.Duration
 	// ApplicationName shows up in pg_stat_activity ("brainvolt-api", "brainvolt-worker").
 	ApplicationName string
+	// MaxConns caps the pool (0: pgxpool's default, max(4, CPUs)). No
+	// connection is kept open at rest: the pool starts empty and grows on
+	// demand (D-098).
+	MaxConns int32
+	// MaxConnIdleTime closes a connection unused this long (0: 1 minute);
+	// MaxConnLifetime replaces older connections, with 10 % jitter so they
+	// do not all reconnect at once (0: 30 minutes).
+	MaxConnIdleTime time.Duration
+	MaxConnLifetime time.Duration
 }
+
+// Pool defaults (D-098): idle connections go back to the database fast.
+const (
+	DefaultMaxConnIdleTime = time.Minute
+	DefaultMaxConnLifetime = 30 * time.Minute
+)
 
 // Connect creates the pool and verifies the database is reachable. The
 // returned error never contains the URL (it may hold a password).
@@ -44,6 +60,17 @@ func Connect(ctx context.Context, opts Options) (*pgxpool.Pool, error) {
 	}
 	// Times are stored and compared in UTC (conventions.md §1).
 	params["timezone"] = "UTC"
+
+	if opts.MaxConns > 0 {
+		cfg.MaxConns = opts.MaxConns
+	}
+	cfg.MinConns = 0
+	cfg.MaxConnIdleTime = cmp.Or(opts.MaxConnIdleTime, DefaultMaxConnIdleTime)
+	cfg.MaxConnLifetime = cmp.Or(opts.MaxConnLifetime, DefaultMaxConnLifetime)
+	cfg.MaxConnLifetimeJitter = cfg.MaxConnLifetime / 10
+	// Idle connections are closed by the pool's health check, so it runs
+	// often enough for the idle limit to hold.
+	cfg.HealthCheckPeriod = max(time.Second, min(time.Minute, cfg.MaxConnIdleTime/2))
 
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {

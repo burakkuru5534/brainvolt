@@ -50,4 +50,10 @@ Cloud Run job) before a release that needs them.
 Use the **Supavisor session-mode** connection string (port **5432**). The
 transaction-mode pooler (6543) does not support the session settings each
 connection gets (`statement_timeout`, `application_name`) or River's
-`LISTEN/NOTIFY`. Pool sizes are set by the backend (D-098).
+`LISTEN/NOTIFY`. Pool sizes are set by the backend (D-098): at most 8
+connections for the API and 3 for the embedded jobs (11 per instance, one
+instance), none kept at rest and idle ones closed after a minute. Override
+with `BRAINVOLT_POSTGRES_MAX_CONNS`, `BRAINVOLT_POSTGRES_JOBS_MAX_CONNS`,
+`BRAINVOLT_POSTGRES_MAX_CONN_IDLE_TIME` and
+`BRAINVOLT_POSTGRES_MAX_CONN_LIFETIME` (env entries in
+`api.service.yaml`).

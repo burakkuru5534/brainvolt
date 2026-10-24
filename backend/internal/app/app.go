@@ -94,16 +94,17 @@ func New(role Role, logger *slog.Logger, components ...Component) *App {
 // and notification routes and the WebSocket gateway. Matchmaking loops
 // (Phase 5) join it later.
 func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, error) {
-	db, err := postgres.Connect(ctx, postgres.Options{
-		URL:              cfg.Postgres.URL,
-		StatementTimeout: cfg.Postgres.StatementTimeout,
-		ApplicationName:  "brainvolt-api",
-	})
+	db, err := postgres.Connect(ctx, poolOptions(cfg, cfg.Postgres.StatementTimeout, "brainvolt-api", cfg.Postgres.MaxConns))
 	if err != nil {
 		return nil, err
 	}
 
+	// database/sql wrapper for the migrations check: it borrows pool
+	// connections and must not keep any idle (Go's default keeps 2 forever).
 	sqlDB := stdlib.OpenDBFromPool(db)
+	sqlDB.SetMaxOpenConns(1)
+	sqlDB.SetMaxIdleConns(0)
+	sqlDB.SetConnMaxLifetime(cfg.Postgres.MaxConnLifetime)
 	schema, err := migrations.NewProvider(sqlDB)
 	if err != nil {
 		_ = sqlDB.Close()
@@ -127,11 +128,7 @@ func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, 
 		// One process does it all (D-096): the API also works the jobs, on
 		// a small pool of its own with the worker's statement timeout, so a
 		// single Cloud Run service can scale to zero.
-		jobsDB, err := postgres.Connect(ctx, postgres.Options{
-			URL:              cfg.Postgres.URL,
-			StatementTimeout: cfg.Postgres.WorkerStatementTimeout,
-			ApplicationName:  "brainvolt-api-jobs",
-		})
+		jobsDB, err := postgres.Connect(ctx, poolOptions(cfg, cfg.Postgres.WorkerStatementTimeout, "brainvolt-api-jobs", cfg.Postgres.JobsMaxConns))
 		if err != nil {
 			_ = sqlDB.Close()
 			db.Close()
@@ -175,6 +172,16 @@ func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, 
 	a.closers = append(a.closers, db.Close, func() { _ = sqlDB.Close() })
 	a.closers = append(a.closers, closers...)
 	return a, nil
+}
+
+// poolOptions are a Postgres pool's settings from the configuration
+// (D-098): capped size, no connection kept at rest, idle ones closed after
+// a minute.
+func poolOptions(cfg config.Config, timeout time.Duration, name string, maxConns int32) postgres.Options {
+	return postgres.Options{
+		URL: cfg.Postgres.URL, StatementTimeout: timeout, ApplicationName: name, MaxConns: maxConns,
+		MaxConnIdleTime: cfg.Postgres.MaxConnIdleTime, MaxConnLifetime: cfg.Postgres.MaxConnLifetime,
+	}
 }
 
 // moduleDeps are the shared collaborators of the business modules.
@@ -428,11 +435,7 @@ func (p *livePusher) Push(ctx context.Context, user uuid.UUID, typ string, data 
 // $PORT immediately at start-up (before this wiring runs) so that Cloud Run
 // health probes pass within the startup timeout.
 func NewWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, error) {
-	db, err := postgres.Connect(ctx, postgres.Options{
-		URL:              cfg.Postgres.URL,
-		StatementTimeout: cfg.Postgres.WorkerStatementTimeout,
-		ApplicationName:  "brainvolt-worker",
-	})
+	db, err := postgres.Connect(ctx, poolOptions(cfg, cfg.Postgres.WorkerStatementTimeout, "brainvolt-worker", cfg.Postgres.MaxConns))
 	if err != nil {
 		return nil, err
 	}
@@ -472,10 +475,15 @@ func newJobs(ctx context.Context, cfg config.Config, db *pgxpool.Pool, logger *s
 	periodic := addJobs(workers, newRanking(db, bus, logger, live), content.New(db, clock.Real{}, bus), newNotification(db, logger, push, live),
 		chat.New(chat.Deps{DB: db, Clock: clock.Real{}}), newTournament(db, bus, logger, live))
 	client, err := river.NewClient(riverpgxv5.New(db), &river.Config{
-		Queues:       map[string]river.QueueConfig{river.QueueDefault: {MaxWorkers: 10}},
-		Workers:      workers,
-		PeriodicJobs: periodic,
-		Logger:       logger,
+		// One connection stays for River's LISTEN and leader election; the
+		// rest of the pool runs jobs (D-098).
+		Queues: map[string]river.QueueConfig{river.QueueDefault: {MaxWorkers: max(1, int(db.Config().MaxConns)-1)}},
+		// New jobs arrive by LISTEN/NOTIFY; polling is only the fallback,
+		// so it need not hit the database every second.
+		FetchPollInterval: 5 * time.Second,
+		Workers:           workers,
+		PeriodicJobs:      periodic,
+		Logger:            logger,
 	})
 	if err != nil {
 		return jobs{}, err
