@@ -69,7 +69,7 @@
 | `QUESTION_IN_USE` | 409 | — | structural edit of a used question (schema-content §4.3) |
 | `QUESTION_STATE_INVALID` | 409 | — | action not allowed in the question's (or translation's) current status, e.g. review of a draft, edit of a retired question; `details.status` (added in Phase 2, D-063) |
 | `QUESTION_DUPLICATE` | 409 | — | same normalised prompt + options already exist; `details.question_id` (added in Phase 2, D-063) |
-| `QUIZ_LIMIT_REACHED` / `QUIZ_SIZE_INVALID` | 409 / 422 | — | 20 quizzes, 5–30 questions (D-031) |
+| `QUIZ_LIMIT_REACHED` / `QUIZ_SIZE_INVALID` | 409 / 422 | — | 20 quizzes, 1–30 questions (D-031) |
 | `REPORT_LIMIT_REACHED` | 429 | — | 20/day (D-030) |
 | `ALREADY_REPORTED` | 409 | — | one report per target |
 | `APPEAL_EXISTS` | 409 | — | one appeal per sanction |

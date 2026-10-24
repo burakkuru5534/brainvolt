@@ -35,7 +35,7 @@ type Config struct {
 	SubcategoryID *uuid.UUID `json:"subcategory_id,omitempty"`
 	// QuestionSetID is the Creator Quiz's question set.
 	QuestionSetID *uuid.UUID `json:"question_set_id,omitempty"`
-	// QuizLength and QuizWindowMS are the Creator Quiz's length (5–30) and
+	// QuizLength and QuizWindowMS are the Creator Quiz's length (1–30) and
 	// the author's answer window (10/15/20 s, R21).
 	QuizLength   int `json:"quiz_length,omitempty"`
 	QuizWindowMS int `json:"quiz_window_ms,omitempty"`
@@ -177,8 +177,8 @@ func checkModeParams(c Config) []Violation {
 		if c.QuestionSetID == nil {
 			add("P02", "Creator Quiz needs the quiz's question set")
 		}
-		if c.QuizLength < 5 || c.QuizLength > 30 {
-			add("P03", "Creator Quiz length is 5–30 questions (D-031)")
+		if c.QuizLength < 1 || c.QuizLength > 30 {
+			add("P03", "Creator Quiz length is 1–30 questions (D-031)")
 		}
 		if !slices.Contains([]int{10_000, 15_000, 20_000}, c.QuizWindowMS) {
 			add("R21", "Creator Quiz answer window is 10, 15 or 20 s (D-044)")

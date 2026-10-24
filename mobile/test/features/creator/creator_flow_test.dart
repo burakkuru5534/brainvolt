@@ -86,7 +86,19 @@ void main() {
     await tester.tap(find.byKey(const Key('quiz-q-0-tf')));
     await tester.pump();
     await tester.tap(find.byKey(const Key('quiz-q-0-correct-1')));
-    for (var i = 0; i < 5; i++) {
+    // A new quiz starts with one question; "Add question" adds the next.
+    expect(find.byKey(const Key('quiz-q-1')), findsNothing);
+    // One question is the minimum: it cannot be removed.
+    expect(
+      tester
+          .widget<IconButton>(find.byKey(const Key('quiz-q-0-remove')))
+          .onPressed,
+      isNull,
+    );
+    await tester.ensureVisible(find.byKey(const Key('quiz-add-question')));
+    await tester.tap(find.byKey(const Key('quiz-add-question')));
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 2; i++) {
       await tester.enterText(find.byKey(Key('quiz-q-$i-prompt')), 'Soru $i?');
       if (i > 0) {
         for (var j = 0; j < 4; j++) {
@@ -97,16 +109,9 @@ void main() {
         }
       }
     }
-    // Five is the minimum: a question cannot be removed.
-    expect(
-      tester
-          .widget<IconButton>(find.byKey(const Key('quiz-q-0-remove')))
-          .onPressed,
-      isNull,
-    );
     await tester.tap(find.byKey(const Key('quiz-save')));
     await tester.pumpAndSettle();
-    expect(t.creator.calls, ['create:Başkentler:5']);
+    expect(t.creator.calls, ['create:Başkentler:2']);
     final d = t.creator.saved!;
     expect(d.categoryId, 'cat-history');
     expect(d.locale, 'tr');

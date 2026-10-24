@@ -126,7 +126,7 @@ class QuizDraft {
 }
 
 /// Quiz limits (D-031).
-const quizMinQuestions = 5;
+const quizMinQuestions = 1;
 const quizMaxQuestions = 30;
 const quizWindows = [10000, 15000, 20000];
 

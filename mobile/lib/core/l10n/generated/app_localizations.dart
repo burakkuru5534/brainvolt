@@ -2171,7 +2171,7 @@ abstract class AppLocalizations {
   /// Question count rule
   ///
   /// In tr, this message translates to:
-  /// **'{min}–{max} soru gerekli.'**
+  /// **'{min}–{max} soru ekleyebilirsin.'**
   String quizCountRule(int min, int max);
 
   /// Status

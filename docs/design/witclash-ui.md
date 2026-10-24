@@ -189,9 +189,12 @@ ring moves in whole seconds (stable screenshots, in step with the number).
 
 ## Later changes (owner feedback, 2026-10-24)
 
-- Name back to **BrainVolt**; the BV mark (`BrandMark`) is drawn in code
-  from the same geometry as `assets/brand/brainvolt_logo.svg` (1024 px
-  SVG for store and launcher icons).
+- Name back to **BrainVolt**. Logo: the owner's brain + bolt artwork.
+  `BrandMark` shows `assets/brand/brainvolt_mark.png` (the brain crop);
+  `assets/brand/brainvolt_icon_1024.png` is the store icon. Generated from
+  it: Android launcher icons (legacy + adaptive: brain on #100B2E), Android
+  splash (pre-12 `launch_background`, 12+ `windowSplashScreen*`), iOS app
+  icons and launch screen (navy background).
 - "Quizler" → **Soru Atölyesi** / Question Lab (players suggest questions
   and build quizzes there).
 - Topic sheet: the categories load in the background on Home and stay for
@@ -200,4 +203,3 @@ ring moves in whole seconds (stable screenshots, in step with the number).
   server's `icon_key`). Golden: `topic_sheet_dark.png`.
 - Queue: a tip card under the radar changes every 4 s (11 tips about
   modes, scoring, leagues, daily challenge, quests, friends, teams).
-

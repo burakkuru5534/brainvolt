@@ -10,6 +10,7 @@ import 'package:brainvolt/app/theme.dart';
 import 'package:brainvolt/core/network/api_exception.dart';
 import 'package:brainvolt/core/realtime/realtime_providers.dart';
 import 'package:brainvolt/core/share/result_card.dart';
+import 'package:brainvolt/core/widgets/bv.dart';
 import 'package:brainvolt/features/match/domain/match_repository.dart';
 import 'package:brainvolt/features/progress/domain/progress_repository.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +34,15 @@ Future<void> loadFonts() async {
   await (FontLoader(
     'MaterialIcons',
   )..addFont(Future.value(ByteData.view(icons.buffer)))).load();
+}
+
+/// Decodes the bundled images for real (test time is fake), then repaints.
+Future<void> loadImages(WidgetTester tester) async {
+  await tester.runAsync(() async {
+    final context = tester.element(find.byType(Navigator).first);
+    await precacheImage(const AssetImage(BrandMark.asset), context);
+  });
+  await tester.pump();
 }
 
 void main() {
@@ -63,6 +73,7 @@ void main() {
       for (var i = 0; i < 20; i++) {
         await tester.pump(const Duration(milliseconds: 50));
       }
+      await loadImages(tester);
       return t;
     }
 
@@ -83,6 +94,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      await loadImages(tester);
       await expectLater(
         find.byType(BrainVoltApp),
         matchesGoldenFile('${name}_${mode.name}.png'),
@@ -388,6 +400,7 @@ void main() {
           ),
         ),
       );
+      await loadImages(tester);
       await expectLater(
         find.byType(ResultCard),
         matchesGoldenFile('share_card_${mode.name}.png'),

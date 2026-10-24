@@ -1619,7 +1619,7 @@
   "@quizInvalid": {
     "description": "Client validation"
   },
-  "quizCountRule": "{min}–{max} soru gerekli.",
+  "quizCountRule": "{min}–{max} soru ekleyebilirsin.",
   "@quizCountRule": {
     "description": "Question count rule",
     "placeholders": {

@@ -59,10 +59,10 @@ type Service struct {
 // New builds the service.
 func New(d Deps) *Service { return &Service{d: d} }
 
-// Quiz rules (D-031).
+// Quiz rules (D-031; 1–30 questions since 2026-10-24).
 const (
 	MaxQuizzes   = 20
-	MinQuestions = 5
+	MinQuestions = 1
 	MaxQuestions = 30
 )
 
@@ -157,7 +157,7 @@ func (s *Service) storeQuestions(ctx context.Context, author uuid.UUID, set *uui
 	return s.d.Questions.SaveQuestionSet(ctx, set, "creator", &author, qids)
 }
 
-// Create stores a draft quiz (max 20 per author, 5–30 questions).
+// Create stores a draft quiz (max 20 per author, 1–30 questions).
 func (s *Service) Create(ctx context.Context, author uuid.UUID, in QuizInput) (Quiz, error) {
 	if err := s.full(ctx, author, "creator_quiz"); err != nil {
 		return Quiz{}, err

@@ -1158,7 +1158,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String quizCountRule(int min, int max) {
-    return '$min–$max soru gerekli.';
+    return '$min–$max soru ekleyebilirsin.';
   }
 
   @override

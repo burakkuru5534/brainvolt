@@ -461,125 +461,40 @@ class Pill extends StatelessWidget {
   }
 }
 
-/// The BrainVolt mark: "BV" on the brand gradient, split by a bolt. The
-/// same drawing as `assets/brand/brainvolt_logo.svg` (100 × 100 units).
+/// The BrainVolt mark: the brain struck by a bolt, on a rounded tile
+/// (`assets/brand/brainvolt_mark.png`, from the app icon artwork).
 class BrandMark extends StatelessWidget {
   const BrandMark({this.size = 40, super.key});
+
+  static const asset = 'assets/brand/brainvolt_mark.png';
 
   final double size;
 
   @override
   Widget build(BuildContext context) {
     final bv = BvColors.of(context);
-    return DecoratedBox(
+    final radius = BorderRadius.circular(size * 0.28);
+    return Container(
+      width: size,
+      height: size,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(size * 0.28),
+        borderRadius: radius,
+        color: bv.surface,
         boxShadow: [BoxShadow(color: bv.glow, blurRadius: size * 0.4)],
       ),
-      child: CustomPaint(
-        size: Size.square(size),
-        painter: _BrandMarkPainter(bv),
+      child: ClipRRect(
+        borderRadius: radius,
+        child: Image.asset(
+          asset,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          filterQuality: FilterQuality.medium,
+          semanticLabel: 'BrainVolt',
+        ),
       ),
     );
   }
-}
-
-class _BrandMarkPainter extends CustomPainter {
-  _BrandMarkPainter(this.bv);
-
-  final BvColors bv;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.scale(size.width / 100, size.height / 100);
-    const box = Rect.fromLTWH(0, 0, 100, 100);
-    final tile = RRect.fromRectAndRadius(box, const Radius.circular(28));
-    canvas
-      ..drawRRect(
-        tile,
-        Paint()
-          ..shader = LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [bv.gradientStart, bv.gradientMid, bv.gradientEnd],
-            stops: const [0, 0.55, 1],
-          ).createShader(box),
-      )
-      ..drawRRect(
-        tile,
-        Paint()
-          ..shader = const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0x47FFFFFF), Color(0x00FFFFFF)],
-            stops: [0, 0.5],
-          ).createShader(box),
-      );
-
-    // "BV", slanted like the word mark.
-    final letters = Path()
-      ..moveTo(20, 27)
-      ..lineTo(20, 73)
-      ..moveTo(20, 27)
-      ..lineTo(36, 27)
-      ..cubicTo(44.5, 27, 49, 31.5, 49, 38.25)
-      ..cubicTo(49, 45, 44.5, 50, 36, 50)
-      ..lineTo(20, 50)
-      ..moveTo(20, 50)
-      ..lineTo(38, 50)
-      ..cubicTo(47, 50, 52, 55, 52, 61.5)
-      ..cubicTo(52, 68, 47, 73, 38, 73)
-      ..lineTo(20, 73)
-      ..moveTo(60, 27)
-      ..lineTo(71, 73)
-      ..lineTo(83, 27);
-    canvas
-      ..save()
-      ..translate(50, 50)
-      ..transform(Matrix4.skewX(-0.13963).storage)
-      ..translate(-50, -50)
-      ..drawPath(
-        letters,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 9
-          ..strokeCap = StrokeCap.round
-          ..strokeJoin = StrokeJoin.round
-          ..color = Colors.white,
-      )
-      ..restore();
-
-    final bolt = Path()
-      ..moveTo(60, 4)
-      ..lineTo(49, 30)
-      ..lineTo(56, 30)
-      ..lineTo(51, 52)
-      ..lineTo(67, 24)
-      ..lineTo(60, 24)
-      ..lineTo(65, 4)
-      ..close();
-    canvas
-      ..drawPath(
-        bolt,
-        Paint()
-          ..shader = const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFFFE27A), Color(0xFFFBBF24)],
-          ).createShader(const Rect.fromLTWH(49, 4, 18, 48)),
-      )
-      ..drawPath(
-        bolt,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.2
-          ..strokeJoin = StrokeJoin.round
-          ..color = const Color(0xFF3B1A6B),
-      );
-  }
-
-  @override
-  bool shouldRepaint(_BrandMarkPainter old) => old.bv != bv;
 }
 
 /// The word mark: "Brain" in white, "Volt" in the purple → orange

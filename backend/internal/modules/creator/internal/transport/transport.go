@@ -47,7 +47,7 @@ func (t *Transport) Register(s *httpserver.Server) {
 	idem := []apierror.Code{apierror.IdempotencyKeyReused, apierror.IdempotencyInProgress}
 	s.Handle("POST /v1/creator/quizzes", a(t.idem.Wrap(idempotency.Required, t.create)), doc(httpserver.Doc{
 		Auth: "full", Idempotency: true, Status: http.StatusCreated,
-		Summary: "Create a draft quiz with its questions (5–30, 20 quizzes per author; D-031)",
+		Summary: "Create a draft quiz with its questions (1–30, 20 quizzes per author; D-031)",
 		Request: service.QuizInput{}, Response: service.Quiz{},
 		Errors: append([]apierror.Code{apierror.ValidationFailed, apierror.AccountUpgradeRequired, apierror.QuizLimitReached,
 			apierror.QuizSizeInvalid}, idem...),

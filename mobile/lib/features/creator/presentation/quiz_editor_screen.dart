@@ -37,7 +37,8 @@ class _Draft {
 }
 
 /// Writes a new quiz or edits one of the caller's ([quizId]): details,
-/// answer window and 5–30 questions (D-031, D-083). Saving a submitted or
+/// answer window and 1–30 questions (D-031, D-083): a new quiz starts
+/// with one question template and grows with "Add question". Saving a submitted or
 /// published quiz sends it back to review.
 class QuizEditorScreen extends ConsumerStatefulWidget {
   const QuizEditorScreen({this.quizId, super.key});

@@ -345,7 +345,7 @@
   "quizSave": "Save",
   "quizSaved": "Quiz saved.",
   "quizInvalid": "The title needs 3–60 characters and every question and option must be filled in.",
-  "quizCountRule": "{min}–{max} questions are needed.",
+  "quizCountRule": "You can add {min}–{max} questions.",
   "quizStatusDraft": "Draft",
   "quizStatusSubmitted": "In review",
   "quizStatusPublished": "Published",

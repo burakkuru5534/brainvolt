@@ -5620,7 +5620,7 @@ paths:
                     description: 'Error codes: UNAVAILABLE'
             security:
                 - firebase: []
-            summary: Create a draft quiz with its questions (5–30, 20 quizzes per author; D-031)
+            summary: Create a draft quiz with its questions (1–30, 20 quizzes per author; D-031)
             tags:
                 - creator
             x-auth: full

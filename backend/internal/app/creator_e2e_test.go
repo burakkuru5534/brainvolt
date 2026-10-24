@@ -42,7 +42,7 @@ func TestCreatorQuiz(t *testing.T) {
 
 	// Authoring rules.
 	want(t, "guest", x.post("/v1/creator/quizzes", guest, quizBody(cat, 5)), 403, "ACCOUNT_UPGRADE_REQUIRED")
-	want(t, "too short", x.post("/v1/creator/quizzes", tokA, quizBody(cat, 4)), 422, "QUIZ_SIZE_INVALID")
+	want(t, "too short", x.post("/v1/creator/quizzes", tokA, quizBody(cat, 0)), 422, "QUIZ_SIZE_INVALID")
 	bad := quizBody(cat, 5)
 	bad["answer_window_ms"] = 12_000
 	want(t, "window", x.post("/v1/creator/quizzes", tokA, bad), 400, "VALIDATION_FAILED")

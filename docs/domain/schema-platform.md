@@ -332,7 +332,7 @@ CREATE TABLE creator.quiz_likes (
   PRIMARY KEY (quiz_id, user_id)
 );
 ```
-Rules (P): only **full accounts** create quizzes; **5–30 questions** per quiz; max **20 quizzes** per author; author's own questions go through `TextFilter`; submitting sends every question + translation to moderation review (D-007); a published quiz edited goes back to `submitted`. Creator Quiz matches are **never rated** and never give SP or leaderboard points (D-023 for unverified; proposal extends to published quizzes too, since authors know the answers).
+Rules (P): only **full accounts** create quizzes; **1–30 questions** per quiz; max **20 quizzes** per author; author's own questions go through `TextFilter`; submitting sends every question + translation to moderation review (D-007); a published quiz edited goes back to `submitted`. Creator Quiz matches are **never rated** and never give SP or leaderboard points (D-023 for unverified; proposal extends to published quizzes too, since authors know the answers).
 
 ---
 
@@ -402,5 +402,5 @@ Rules: starting an official run when one is `in_progress`/`completed` for that d
 4. **Premium perks:** no interstitials, exclusive cosmetics, +1 daily quest, extended stats — no gameplay advantage.
 5. **Ads:** interstitial at most every 3 matches (never mid-match, never for premium); max 5 rewarded ads/day; rewarded placements = quest reroll, bonus XP after match, cosmetic trial.
 6. **No soft currency** at launch.
-7. **Creator Quiz:** full accounts only; 5–30 questions; max 20 quizzes per author; published quizzes also never rated / no SP.
+7. **Creator Quiz:** full accounts only; 1–30 questions; max 20 quizzes per author; published quizzes also never rated / no SP.
 8. **Daily Challenge:** first completed attempt per day counts, later ones are practice. *(Refined by D-040: solo score race, isolated tables above.)*

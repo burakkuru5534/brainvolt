@@ -95,7 +95,7 @@ Boards: global, country, friends (friends computed at read time); restricted acc
 - Event: `game.DailyRunCompleted` (official completed runs only) → ranking (daily board), progression (XP, quest, streak), notification.
 
 ## 6. Creator Quiz (`creator_quiz`)  (D-044)
-- **Select:** the quiz's question set **in the author's order**; the author defines questions, options, order and the quiz category; question count = quiz length (5–30, D-031). Options shuffled per match.
+- **Select:** the quiz's question set **in the author's order**; the author defines questions, options, order and the quiz category; question count = quiz length (1–30, D-031). Options shuffled per match.
 - **Answer window:** the author picks **10, 15 or 20 s** per quiz (default 15 s).
 - **Match types:** fixed-length play only (Quick Duel rules with the quiz's length) — never Ranked, Sudden Death or Marathon.
 - **Where it can be played:**
