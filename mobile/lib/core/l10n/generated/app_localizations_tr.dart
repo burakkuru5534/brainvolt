@@ -546,16 +546,16 @@ class AppLocalizationsTr extends AppLocalizations {
   String get playNow => 'Oyna';
 
   @override
-  String get rematchButton => 'Rövanş';
+  String get rematchButton => 'Tekrar Oyna';
 
   @override
-  String get rematchWaiting => 'Rakibin bekleniyor…';
+  String get rematchWaiting => 'Diğer oyuncular bekleniyor…';
 
   @override
-  String get rematchOffered => 'Rakibin rövanş istiyor!';
+  String get rematchOffered => 'Tekrar oynama teklifi geldi!';
 
   @override
-  String get rematchDeclined => 'Rövanş olmadı.';
+  String get rematchDeclined => 'Bu sefer tekrar oynanmayacak.';
 
   @override
   String get playModes => 'Diğer modlar';
@@ -925,20 +925,6 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String awardsQuests(int count) {
     return '$count görev tamamlandı';
-  }
-
-  @override
-  String get revengeButton => 'Rövanş iste';
-
-  @override
-  String get revengePickCategory => 'Ev sahibi kategorini seç';
-
-  @override
-  String get revengeSent => 'Rövanş isteği gönderildi';
-
-  @override
-  String revengeSeries(int wins, int losses) {
-    return 'Rövanş serisi: $wins–$losses';
   }
 
   @override
@@ -1447,18 +1433,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get chatQuickGg => 'GG';
 
   @override
-  String get chatQuickRematch => 'Rövanş?';
-
-  @override
-  String revengeIncoming(String name) {
-    return '$name rövanş istiyor!';
-  }
-
-  @override
-  String get revengeDeclined => 'Rövanş isteği kabul edilmedi';
-
-  @override
-  String get revengeWaiting => 'Rövanş cevabı bekleniyor…';
+  String get chatQuickRematch => 'Tekrar oynayalım mı?';
 
   @override
   String get tournamentsTitle => 'Turnuvalar';

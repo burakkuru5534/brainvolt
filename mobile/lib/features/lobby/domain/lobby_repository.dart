@@ -47,7 +47,7 @@ class Challenge {
 
   final String id;
 
-  /// direct / rematch / revenge.
+  /// direct / rematch (revenge only on old rows, D-091).
   final String kind;
 
   /// pending / declined / cancelled / expired / started / failed.
@@ -58,7 +58,7 @@ class Challenge {
   final DateTime expiresAt;
   final String? matchId;
 
-  /// The match a revenge answers.
+  /// The match an old revenge answered (D-091 removed revenge).
   final String? parentMatchId;
 }
 
@@ -137,9 +137,6 @@ abstract interface class LobbyRepository {
   Future<List<Challenge>> challenges({required bool incoming});
 
   Future<Challenge> respondChallenge(String id, ChallengeAction action);
-
-  /// Revenge to the winners of [matchId] with a home category (D-045).
-  Future<Challenge> revenge(String matchId, String homeCategoryId);
 
   /// Creates a room hosted by the caller (who leaves a previous room);
   /// [creatorQuizId] plays a Creator Quiz (Quick Duel).

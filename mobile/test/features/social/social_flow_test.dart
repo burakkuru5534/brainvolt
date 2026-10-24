@@ -174,7 +174,7 @@ void main() {
     await finish(tester, t);
   });
 
-  testWidgets('result: rematch asked, accepted, opens the new match', (
+  testWidgets('result: play again offered, accepted, opens the new match', (
     tester,
   ) async {
     final t = await launch(tester, (t) {
@@ -222,7 +222,7 @@ void main() {
       },
     });
     await step(tester);
-    expect(find.text('Rakibin rövanş istiyor!'), findsOneWidget);
+    expect(find.text('Tekrar oynama teklifi geldi!'), findsOneWidget);
     await tester.tap(find.byKey(const Key('rematch')));
     await step(tester);
     expect(s.lastSent('rematch.respond')['d'], {

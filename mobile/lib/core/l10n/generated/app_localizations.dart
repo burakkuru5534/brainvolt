@@ -1058,28 +1058,28 @@ abstract class AppLocalizations {
   /// **'Oyna'**
   String get playNow;
 
-  /// Result screen: ask for a rematch.
+  /// Match end / result screen: offer or accept "Play again" (D-091).
   ///
   /// In tr, this message translates to:
-  /// **'Rövanş'**
+  /// **'Tekrar Oyna'**
   String get rematchButton;
 
-  /// Rematch asked, waiting.
+  /// Play again offered, waiting for the others.
   ///
   /// In tr, this message translates to:
-  /// **'Rakibin bekleniyor…'**
+  /// **'Diğer oyuncular bekleniyor…'**
   String get rematchWaiting;
 
-  /// The opponent asked for a rematch.
+  /// Another player offered to play again.
   ///
   /// In tr, this message translates to:
-  /// **'Rakibin rövanş istiyor!'**
+  /// **'Tekrar oynama teklifi geldi!'**
   String get rematchOffered;
 
-  /// Rematch declined or failed.
+  /// Play again declined or failed.
   ///
   /// In tr, this message translates to:
-  /// **'Rövanş olmadı.'**
+  /// **'Bu sefer tekrar oynanmayacak.'**
   String get rematchDeclined;
 
   /// Home: open the mode picker.
@@ -1741,30 +1741,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{count} görev tamamlandı'**
   String awardsQuests(int count);
-
-  /// Revenge button on the result screen
-  ///
-  /// In tr, this message translates to:
-  /// **'Rövanş iste'**
-  String get revengeButton;
-
-  /// Revenge home category dialog title
-  ///
-  /// In tr, this message translates to:
-  /// **'Ev sahibi kategorini seç'**
-  String get revengePickCategory;
-
-  /// After sending revenge
-  ///
-  /// In tr, this message translates to:
-  /// **'Rövanş isteği gönderildi'**
-  String get revengeSent;
-
-  /// Series score
-  ///
-  /// In tr, this message translates to:
-  /// **'Rövanş serisi: {wins}–{losses}'**
-  String revengeSeries(int wins, int losses);
 
   /// Revenge challenge label
   ///
@@ -2705,26 +2681,8 @@ abstract class AppLocalizations {
   /// Quick phrase
   ///
   /// In tr, this message translates to:
-  /// **'Rövanş?'**
+  /// **'Tekrar oynayalım mı?'**
   String get chatQuickRematch;
-
-  /// A revenge request arrived on the match-end screen
-  ///
-  /// In tr, this message translates to:
-  /// **'{name} rövanş istiyor!'**
-  String revengeIncoming(String name);
-
-  /// The winners declined or let the revenge expire
-  ///
-  /// In tr, this message translates to:
-  /// **'Rövanş isteği kabul edilmedi'**
-  String get revengeDeclined;
-
-  /// Revenge sent, waiting for the winners
-  ///
-  /// In tr, this message translates to:
-  /// **'Rövanş cevabı bekleniyor…'**
-  String get revengeWaiting;
 
   /// Tournaments screen title
   ///

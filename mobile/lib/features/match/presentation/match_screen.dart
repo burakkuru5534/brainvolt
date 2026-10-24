@@ -16,9 +16,9 @@ import '../../chat/presentation/chat_screen.dart';
 import '../../profile/domain/avatars.dart';
 import '../domain/match_state.dart';
 import 'match_type_name.dart';
+import 'play_again.dart';
 import 'play_controllers.dart';
 import 'play_error_text.dart';
-import 'revenge.dart';
 
 /// The live match: ready, countdown, questions shown at `show_at`, the
 /// answer, the reveal and the end. Every number comes from the server; the
@@ -795,7 +795,7 @@ class _End extends StatelessWidget {
               style: Theme.of(context).textTheme.displaySmall,
             ),
             if (state.phase == MatchPhase.completed)
-              RevengePanel(matchId: state.matchId),
+              PlayAgainPanel(matchId: state.matchId),
             const SizedBox(height: 24),
             if (state.phase == MatchPhase.completed)
               OutlinedButton(

@@ -735,21 +735,21 @@
   "@playNow": {
     "description": "Snack bar action: go to the match."
   },
-  "rematchButton": "Rövanş",
+  "rematchButton": "Tekrar Oyna",
   "@rematchButton": {
-    "description": "Result screen: ask for a rematch."
+    "description": "Match end / result screen: offer or accept \"Play again\" (D-091)."
   },
-  "rematchWaiting": "Rakibin bekleniyor…",
+  "rematchWaiting": "Diğer oyuncular bekleniyor…",
   "@rematchWaiting": {
-    "description": "Rematch asked, waiting."
+    "description": "Play again offered, waiting for the others."
   },
-  "rematchOffered": "Rakibin rövanş istiyor!",
+  "rematchOffered": "Tekrar oynama teklifi geldi!",
   "@rematchOffered": {
-    "description": "The opponent asked for a rematch."
+    "description": "Another player offered to play again."
   },
-  "rematchDeclined": "Rövanş olmadı.",
+  "rematchDeclined": "Bu sefer tekrar oynanmayacak.",
   "@rematchDeclined": {
-    "description": "Rematch declined or failed."
+    "description": "Play again declined or failed."
   },
   "playModes": "Diğer modlar",
   "@playModes": {
@@ -1290,30 +1290,6 @@
     "description": "Quests completed by the match",
     "placeholders": {
       "count": {
-        "type": "int"
-      }
-    }
-  },
-  "revengeButton": "Rövanş iste",
-  "@revengeButton": {
-    "description": "Revenge button on the result screen"
-  },
-  "revengePickCategory": "Ev sahibi kategorini seç",
-  "@revengePickCategory": {
-    "description": "Revenge home category dialog title"
-  },
-  "revengeSent": "Rövanş isteği gönderildi",
-  "@revengeSent": {
-    "description": "After sending revenge"
-  },
-  "revengeSeries": "Rövanş serisi: {wins}–{losses}",
-  "@revengeSeries": {
-    "description": "Series score",
-    "placeholders": {
-      "wins": {
-        "type": "int"
-      },
-      "losses": {
         "type": "int"
       }
     }
@@ -2043,26 +2019,9 @@
   "@chatQuickGg": {
     "description": "Quick phrase"
   },
-  "chatQuickRematch": "Rövanş?",
+  "chatQuickRematch": "Tekrar oynayalım mı?",
   "@chatQuickRematch": {
     "description": "Quick phrase"
-  },
-  "revengeIncoming": "{name} rövanş istiyor!",
-  "@revengeIncoming": {
-    "description": "A revenge request arrived on the match-end screen",
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "revengeDeclined": "Rövanş isteği kabul edilmedi",
-  "@revengeDeclined": {
-    "description": "The winners declined or let the revenge expire"
-  },
-  "revengeWaiting": "Rövanş cevabı bekleniyor…",
-  "@revengeWaiting": {
-    "description": "Revenge sent, waiting for the winners"
   },
   "tournamentsTitle": "Turnuvalar",
   "@tournamentsTitle": {

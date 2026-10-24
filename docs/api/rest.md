@@ -71,7 +71,6 @@
 | POST | `/v1/rooms/join` | any | — | 5 | `{code}` → join (friends-of-host rule for unverified quizzes, D-023). |
 | POST | `/v1/rooms/{id}/leave` | member | — | 5 | Leave; the host leaving (or the last member) closes the room. |
 | POST | `/v1/challenges` | any | ✓ | 5 | Direct challenge `{target_user_id|target_team_id|target_couple_id, match_config}`. |
-| POST | `/v1/matches/{id}/revenge` | loser side | ✓ | 8 | Revenge challenge `{home_category_id}` (D-045). |
 | GET | `/v1/challenges?box=in|out` | any | — | 5 | Pending challenges. |
 | POST | `/v1/challenges/{id}/accept` · `/decline` · `/cancel` | target / challenger | — | 5 | Respond. |
 | GET | `/v1/invite-codes/{code}` | any | — | 5 | Resolve a code (what it opens) before joining. |

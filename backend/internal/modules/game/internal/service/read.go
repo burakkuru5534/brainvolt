@@ -40,18 +40,6 @@ type MatchView struct {
 	Sides        []SideView        `json:"sides"`
 	Participants []ParticipantView `json:"participants"`
 	Rounds       []RoundView       `json:"rounds"`
-	// Revenge is the caller's revenge state once the match is over.
-	Revenge *RevengeView `json:"revenge,omitempty"`
-}
-
-// RevengeView says whether the caller may ask for revenge (losing side,
-// 24 h, chain < 3, D-045/D-046) and the series score of the revenge chain
-// from the caller's view (first match included).
-type RevengeView struct {
-	Available bool `json:"available"`
-	Wins      int  `json:"wins"`
-	Losses    int  `json:"losses"`
-	Chain     int  `json:"chain"`
 }
 
 // SideView is one side's total.
@@ -164,49 +152,7 @@ func (s *Service) Match(ctx context.Context, caller, id uuid.UUID, locale string
 	if v.Rounds, err = s.rounds(ctx, q, id, locale); err != nil {
 		return MatchView{}, err
 	}
-	if m.Status == string(domain.StatusCompleted) {
-		if v.Revenge, err = s.revengeView(ctx, q, &m, caller); err != nil {
-			return MatchView{}, err
-		}
-	}
 	return v, nil
-}
-
-// revengeView walks the revenge chain back to its first match.
-func (s *Service) revengeView(ctx context.Context, q *sqlc.Queries, m *sqlc.GameMatch, caller uuid.UUID) (*RevengeView, error) {
-	out := &RevengeView{}
-	lost := false
-	for cur, first := m, true; cur != nil; first = false {
-		ps, err := q.ListParticipants(ctx, cur.ID)
-		if err != nil {
-			return nil, err
-		}
-		side := int16(0)
-		for i := range ps {
-			if ps[i].UserID == caller {
-				side = ps[i].SideNo
-			}
-		}
-		if cur.WinnerSideNo != nil && side != 0 {
-			if *cur.WinnerSideNo == side {
-				out.Wins++
-			} else {
-				out.Losses++
-				lost = lost || first
-			}
-		}
-		if cur.Origin != string(domain.Revenge) || cur.ParentMatchID == nil {
-			break
-		}
-		out.Chain++
-		parent, err := q.GetMatch(ctx, *cur.ParentMatchID)
-		if err != nil {
-			return nil, err
-		}
-		cur = &parent
-	}
-	out.Available = lost && m.EndedAt != nil && s.d.Clock.Now().Sub(*m.EndedAt) < RevengeWindow && out.Chain < RevengeChain
-	return out, nil
 }
 
 func (s *Service) rounds(ctx context.Context, q *sqlc.Queries, id uuid.UUID, locale string) ([]RoundView, error) {

@@ -292,7 +292,7 @@ GoRouter router(Ref ref) {
       ),
       GoRoute(
         path: '/match/:id',
-        // Keyed by id: going from one match straight to the next (revenge)
+        // Keyed by id: going from one match straight to the next (play again)
         // must start a fresh screen, not keep the old one's ready state.
         builder: (context, state) => MatchScreen(
           key: ValueKey(state.pathParameters['id']),

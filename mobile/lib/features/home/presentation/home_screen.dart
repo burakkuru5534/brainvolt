@@ -95,6 +95,40 @@ class HomeScreen extends ConsumerWidget {
               name: session?.profile.displayName,
               avatar: session?.profile.avatarId,
             ),
+            const SizedBox(height: 10),
+            _Tiles(
+              height: 96,
+              tiles: [
+                _Tile(
+                  const Key('open-leaderboards'),
+                  Icons.leaderboard,
+                  l10n.leaderboardsTitle,
+                  null,
+                  () => context.push(Routes.leaderboards),
+                ),
+                _Tile(
+                  const Key('open-quests'),
+                  Icons.flag,
+                  l10n.questsTitle,
+                  null,
+                  () => context.push(Routes.quests),
+                ),
+                _Tile(
+                  const Key('open-badges'),
+                  Icons.workspace_premium,
+                  l10n.badgesTitle,
+                  null,
+                  () => context.push(Routes.badges),
+                ),
+                _Tile(
+                  const Key('open-friends'),
+                  Icons.people,
+                  l10n.homeFriends,
+                  null,
+                  () => context.push(Routes.friends),
+                ),
+              ],
+            ),
             gap,
             if (resume != null)
               _QuickDuel(
@@ -174,41 +208,7 @@ class HomeScreen extends ConsumerWidget {
                 onTap: () => context.push(Routes.practice),
               ),
             ],
-            gap,
-            if (session != null) ...[const StatsRow(), gap],
-            _Tiles(
-              height: 86,
-              tiles: [
-                _Tile(
-                  const Key('open-leaderboards'),
-                  Icons.leaderboard,
-                  l10n.leaderboardsTitle,
-                  null,
-                  () => context.push(Routes.leaderboards),
-                ),
-                _Tile(
-                  const Key('open-quests'),
-                  Icons.flag,
-                  l10n.questsTitle,
-                  null,
-                  () => context.push(Routes.quests),
-                ),
-                _Tile(
-                  const Key('open-badges'),
-                  Icons.workspace_premium,
-                  l10n.badgesTitle,
-                  null,
-                  () => context.push(Routes.badges),
-                ),
-                _Tile(
-                  const Key('open-friends'),
-                  Icons.people,
-                  l10n.homeFriends,
-                  null,
-                  () => context.push(Routes.friends),
-                ),
-              ],
-            ),
+            if (session != null) ...[gap, const StatsRow()],
           ],
         ),
       ),
@@ -287,22 +287,32 @@ class _Hero extends StatelessWidget {
     final bv = BvColors.of(context);
     final text = Theme.of(context).textTheme;
     return BvCard(
-      padding: const EdgeInsets.fromLTRB(20, 18, 12, 18),
+      padding: const EdgeInsets.fromLTRB(16, 10, 10, 10),
       child: Row(
         children: [
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 if (name != null)
-                  Text(l10n.homeGreeting(name!), style: text.headlineSmall),
-                const SizedBox(height: 4),
+                  Text(
+                    l10n.homeGreeting(name!),
+                    style: text.titleLarge,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                const SizedBox(height: 2),
                 Text(
                   l10n.homeWelcome,
-                  style: text.bodyMedium?.copyWith(color: bv.muted),
+                  style: text.bodySmall?.copyWith(color: bv.muted),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 14),
-                if (name != null) const LevelSummary(),
+                if (name != null) ...[
+                  const SizedBox(height: 8),
+                  const LevelSummary(),
+                ],
               ],
             ),
           ),
@@ -311,14 +321,14 @@ class _Hero extends StatelessWidget {
             alignment: Alignment.topCenter,
             children: [
               Padding(
-                padding: const EdgeInsets.only(top: 22),
+                padding: const EdgeInsets.only(top: 14),
                 child: AvatarBubble(
                   avatarFor(avatar ?? 'penguin'),
-                  size: 96,
+                  size: 60,
                   ring: false,
                 ),
               ),
-              const Text('👑', style: TextStyle(fontSize: 34)),
+              const Text('👑', style: TextStyle(fontSize: 22)),
             ],
           ),
         ],

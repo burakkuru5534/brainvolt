@@ -61,15 +61,6 @@ class ApiMatchRepository implements MatchRepository {
       isDraw: j['is_draw'] == true,
       endReason: j['end_reason'] as String?,
       cancelReason: j['cancel_reason'] as String?,
-      revenge: switch (j['revenge']) {
-        final Map<String, dynamic> r => RevengeInfo(
-          available: r['available'] == true,
-          wins: _int(r['wins']),
-          losses: _int(r['losses']),
-          chain: _int(r['chain']),
-        ),
-        _ => null,
-      },
       scores: [
         for (var side = 1; side <= 2; side++)
           _int(

@@ -105,7 +105,7 @@ No pong for **3 consecutive pings** (in match: 6 s; outside: 60 s) → server tr
 | `match.propose` | `{match_id, round_no, option_id}` | `question`, Shared Answer | live teammate picks (D-035) |
 | `match.lock` | `{match_id, round_no, option_id}` | `question`, Shared Answer | locks side answer |
 | `match.quick_chat` | `{match_id, phrase_id}` | live | preset phrases/emotes (all sides, D-031) |
-| `rematch.respond` | `{match_id, accept: bool}` | results screen, 30 s | D-027 |
+| `rematch.respond` | `{match_id, accept: bool}` | match end / results screen "Play again", any participant (winner or loser), 60 s; not for private room (`use_room`) or tournament (`tournament`) matches | D-027, D-091 |
 | `daily.join` | `{run_id}` | owner | start/continue a daily run |
 | `daily.answer` | `{run_id, position, option_id}` | open question | solo run |
 | `chat.send` | `{channel_id, body}` or `{channel_id, quick_id}` | member, not muted | persistent team / couple channels (D-031, D-088): 1–300 chars, blocked words masked, slurs refused (`TEXT_REJECTED`), 5 / 10 s (`RATE_LIMITED`), `SANCTIONED` while muted; quick ids `good_luck`, `well_played`, `nice`, `thanks`, `oops`, `lets_go`, `gg`, `rematch` |
@@ -155,7 +155,7 @@ No pong for **3 consecutive pings** (in match: 6 s; outside: 60 s) → server tr
 | `match.awards` | ranking: `{match_id, sp_delta, season_points, league, division, league_up}` (ranked only); progression: `{match_id, xp, xp_total, level, level_up, streak, badges, quests}` | personal, two messages once ranking and progression processed (D-077) |
 | `match.cancelled` | `{reason}` | |
 | `match.quick_chat` | `{match_id, user_id, phrase_id}` | to every participant; not stored (D-088) |
-| `rematch.offer` / `rematch.result` | `{match_id, accepted_user_ids, expires_at}` / `{match_id, accepted, new_match_id?, declined_by?, reason?}` | personal deliveries (no stream seq); the window ends 30 s after the match ended |
+| `rematch.offer` / `rematch.result` | `{match_id, accepted_user_ids, expires_at}` / `{match_id, accepted, new_match_id?, declined_by?, reason?}` | personal deliveries (no stream seq); the window ends 60 s after the match ended (D-091) |
 
 **Tournaments (personal deliveries, D-090):** `tournament.updated {tournament_id}` — the bracket, entries or status changed, reload; `tournament.match_ready {tournament_id, match_id}` — both sides are present, join the match.
 

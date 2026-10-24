@@ -23,7 +23,7 @@ final lobbyEventsProvider = StreamProvider.autoDispose<ServerFrame>((ref) {
 });
 
 /// Shows challenges in a snack bar on every screen (D-089). The match
-/// screens are left alone: the end screen answers revenge itself.
+/// screens are left alone: the end screen answers "Play again" itself.
 class ChallengeListener extends ConsumerWidget {
   const ChallengeListener({required this.child, super.key});
 
@@ -62,11 +62,7 @@ class ChallengeListener extends ConsumerWidget {
         final from = (c?['challenger'] as Map?)?['display_name'] as String?;
         messenger.showSnackBar(
           SnackBar(
-            content: Text(
-              c?['kind'] == 'revenge'
-                  ? l10n.revengeIncoming(from ?? '')
-                  : l10n.challengeReceived(from ?? ''),
-            ),
+            content: Text(l10n.challengeReceived(from ?? '')),
             action: SnackBarAction(
               label: l10n.view,
               onPressed: () => router.push(Routes.challenges),

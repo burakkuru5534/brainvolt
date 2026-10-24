@@ -13,15 +13,18 @@ import (
 	"github.com/burakkuru5534/brainvolt/backend/internal/platform/apierror"
 )
 
-// RematchWindow is how long after a match "play again" works (D-027).
-const RematchWindow = 30 * time.Second
+// RematchWindow is how long after a match "Play again" works (D-027,
+// widened by D-091).
+const RematchWindow = 60 * time.Second
 
-// RespondRematch records a player's answer to "play again" on the
-// results screen. Everyone gets rematch.offer with who accepted; once
-// all participants accepted within 30 s of the end, game creates the
-// rematch (same configuration, ranked converts, D-053) and everyone gets
-// rematch.result with the new match. One decline ends the offer. Private
-// room matches play again through the room.
+// RespondRematch records a player's answer to "Play again" on the match
+// end and result screens (D-091: replaces revenge). Any participant —
+// winner or loser, every format — may make the offer; everyone gets
+// rematch.offer with who accepted; once all participants accepted within
+// RematchWindow of the end, game creates the rematch (same configuration,
+// ranked converts, D-053) and everyone gets rematch.result with the new
+// match. One decline ends the offer. Private room matches play again
+// through the room; tournament matches belong to their bracket.
 func (s *Service) RespondRematch(ctx context.Context, user, match uuid.UUID, accept bool) error {
 	sum, err := s.d.Game.Summary(ctx, match)
 	if err != nil {
@@ -39,6 +42,9 @@ func (s *Service) RespondRematch(ctx context.Context, user, match uuid.UUID, acc
 	}
 	if sum.Origin == game.OriginPrivateRoom {
 		return apierror.New(apierror.MatchStateInvalid).With("reason", "use_room")
+	}
+	if sum.Origin == game.OriginTournament {
+		return apierror.New(apierror.MatchStateInvalid).With("reason", "tournament")
 	}
 	expires := sum.EndedAt.Add(RematchWindow)
 	if !s.d.Clock.Now().Before(expires) {

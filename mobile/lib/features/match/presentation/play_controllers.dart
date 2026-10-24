@@ -259,7 +259,7 @@ class RematchState {
   final bool declined;
 }
 
-/// "Play again" on the result screen: everyone accepts within 30 s of the
+/// "Play again" (D-091): everyone accepts within 60 s of the
 /// end → game creates the rematch (rematch.result carries its id).
 @riverpod
 class RematchController extends _$RematchController {

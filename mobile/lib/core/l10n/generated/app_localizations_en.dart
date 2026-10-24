@@ -547,16 +547,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get playNow => 'Play';
 
   @override
-  String get rematchButton => 'Rematch';
+  String get rematchButton => 'Play again';
 
   @override
-  String get rematchWaiting => 'Waiting for your opponent…';
+  String get rematchWaiting => 'Waiting for the other players…';
 
   @override
-  String get rematchOffered => 'Your opponent wants a rematch!';
+  String get rematchOffered => 'You were asked to play again!';
 
   @override
-  String get rematchDeclined => 'No rematch this time.';
+  String get rematchDeclined => 'No replay this time.';
 
   @override
   String get playModes => 'More modes';
@@ -927,20 +927,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String awardsQuests(int count) {
     return '$count quests completed';
-  }
-
-  @override
-  String get revengeButton => 'Ask for revenge';
-
-  @override
-  String get revengePickCategory => 'Pick your home category';
-
-  @override
-  String get revengeSent => 'Revenge request sent';
-
-  @override
-  String revengeSeries(int wins, int losses) {
-    return 'Revenge series: $wins–$losses';
   }
 
   @override
@@ -1448,18 +1434,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chatQuickGg => 'GG';
 
   @override
-  String get chatQuickRematch => 'Rematch?';
-
-  @override
-  String revengeIncoming(String name) {
-    return '$name wants revenge!';
-  }
-
-  @override
-  String get revengeDeclined => 'Your revenge request was not accepted';
-
-  @override
-  String get revengeWaiting => 'Waiting for their answer…';
+  String get chatQuickRematch => 'Play again?';
 
   @override
   String get tournamentsTitle => 'Tournaments';

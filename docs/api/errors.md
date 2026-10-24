@@ -41,7 +41,7 @@
 | `ROOM_FULL` / `ROOM_CLOSED` | 409 / 410 | ✓ | |
 | `ROOM_FRIENDS_ONLY` | 403 | ✓ | unverified creator quiz room (D-023) |
 | `CHALLENGE_EXPIRED` | 410 | ✓ | |
-| `REVENGE_NOT_ALLOWED` | 403 | — | not the losing side / window passed / chain limit (D-045) |
+| `REVENGE_NOT_ALLOWED` | 403 | — | retired with revenge (D-091); kept so old clients still get a text |
 | `TEAM_LIMIT_REACHED` / `TEAM_FULL` | 409 | — | 3 teams per user, 4 members (D-027) |
 | `NOT_CAPTAIN` | 403 | — | |
 | `COUPLE_EXISTS` / `COUPLE_COOLDOWN` | 409 | — | one live couple; 7-day cooldown (D-047), `details.available_at` |

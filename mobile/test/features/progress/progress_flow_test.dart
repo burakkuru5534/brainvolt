@@ -3,10 +3,8 @@ import 'dart:async';
 import 'package:brainvolt/app/app.dart';
 import 'package:brainvolt/app/router.dart';
 import 'package:brainvolt/core/realtime/realtime_providers.dart';
-import 'package:brainvolt/features/lobby/domain/lobby_repository.dart';
 import 'package:brainvolt/features/match/domain/match_repository.dart';
 import 'package:brainvolt/features/progress/domain/progress_repository.dart';
-import 'package:brainvolt/features/social/domain/social_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -246,33 +244,23 @@ void main() {
     await finish(tester, t);
   });
 
-  testWidgets('revenge: series shown, home category picked, request sent', (
-    tester,
-  ) async {
+  testWidgets('result screen: "Play again" for both sides, never revenge '
+      '(D-091)', (tester) async {
     final t = await launch(tester, (t) {
-      t.lobby.responded = Challenge(
-        id: 'c9',
-        status: 'pending',
-        kind: 'revenge',
-        challenger: const UserCard(userId: 'user-guest-1', displayName: 'Ben'),
-        target: const UserCard(userId: 'opp', displayName: 'Rakip'),
-        matchType: 'quick_duel',
-        expiresAt: DateTime(2030),
-      );
       t.matches.matchResult = MatchResult(
         id: 'm2',
         status: 'completed',
-        origin: 'revenge',
+        origin: 'rematch',
         endedAt: DateTime.now(),
-        scores: const [100, 300],
-        winnerSide: 2,
+        scores: const [300, 100],
+        winnerSide: 1,
         players: const [
           ResultPlayer(
             userId: 'user-guest-1',
             side: 1,
             displayName: 'Ben',
             avatarId: 'fox',
-            correct: 1,
+            correct: 3,
             status: 'finished',
           ),
           ResultPlayer(
@@ -280,28 +268,18 @@ void main() {
             side: 2,
             displayName: 'Rakip',
             avatarId: 'owl',
-            correct: 3,
+            correct: 1,
             status: 'finished',
           ),
         ],
         rounds: const [],
-        revenge: const RevengeInfo(
-          available: true,
-          wins: 1,
-          losses: 1,
-          chain: 1,
-        ),
       );
     });
     t.container.read(routerProvider).go(Routes.matchResult('m2'));
     await tester.pumpAndSettle();
-    expect(find.text('Rövanş serisi: 1–1'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('revenge')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('revenge-cat-cat-science')));
-    await tester.pumpAndSettle();
-    expect(t.lobby.calls, contains('revenge:m2:cat-science'));
-    expect(find.text('Rövanş isteği gönderildi'), findsWidgets);
+    expect(find.byKey(const Key('revenge')), findsNothing);
+    expect(find.byKey(const Key('play-again')), findsOneWidget);
+    expect(find.text('Tekrar Oyna'), findsOneWidget);
     await finish(tester, t);
   });
 }

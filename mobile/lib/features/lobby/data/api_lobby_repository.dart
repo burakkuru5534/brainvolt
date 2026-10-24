@@ -114,16 +114,6 @@ class ApiLobbyRepository implements LobbyRepository {
   }
 
   @override
-  Future<Challenge> revenge(String matchId, String homeCategoryId) async =>
-      challengeFromJson(
-        (await api.postJson(
-          '/v1/matches/$matchId/revenge',
-          body: {'home_category_id': homeCategoryId},
-          idempotencyKey: const Uuid().v7(),
-        ))!,
-      );
-
-  @override
   Future<Room> createRoom(
     MatchType type, {
     String? categoryMode,
