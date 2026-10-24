@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/l10n/l10n.dart';
+import '../../content/domain/content_repository.dart';
 import '../../lobby/domain/lobby_repository.dart';
 import 'match_type_name.dart';
+import 'topic_picker.dart';
 
 /// The formats the app offers (mode-matrix §1).
 const formats = ['1v1', '2v2', '3v3', '4v4', 'couple'];
@@ -28,8 +30,9 @@ int formatCapacity(String format) => switch (format) {
 };
 
 /// Asks for every room mode (D-093): match type, format and, for team
-/// formats, the team answer mode. [initial] preselects the current
-/// settings; [quizLocked] keeps Quick Duel (a Creator Quiz room, R07);
+/// formats, the team answer mode, plus the topic among [categories]
+/// (D-095). [initial] preselects the current settings; [quizLocked] keeps
+/// Quick Duel and the quiz's questions (a Creator Quiz room, R07);
 /// [members] greys out formats with too few seats for the room.
 Future<RoomSettings?> pickRoomSettings(
   BuildContext context, {
@@ -37,6 +40,7 @@ Future<RoomSettings?> pickRoomSettings(
   bool quizLocked = false,
   int members = 0,
   String? title,
+  List<CategoryInfo> categories = const [],
 }) => showDialog<RoomSettings>(
   context: context,
   builder: (_) => _SettingsDialog(
@@ -44,6 +48,7 @@ Future<RoomSettings?> pickRoomSettings(
     quizLocked: quizLocked,
     members: members,
     title: title,
+    categories: categories,
   ),
 );
 
@@ -53,9 +58,11 @@ class _SettingsDialog extends StatefulWidget {
     required this.quizLocked,
     required this.members,
     this.title,
+    this.categories = const [],
   });
 
   final RoomSettings initial;
+  final List<CategoryInfo> categories;
   final bool quizLocked;
   final int members;
   final String? title;
@@ -68,6 +75,19 @@ class _SettingsDialogState extends State<_SettingsDialog> {
   late MatchType _type = widget.initial.matchType;
   late String _format = widget.initial.format;
   late String _mode = widget.initial.teamMode ?? teamModes.first;
+  late String? _topic = widget.initial.topic;
+
+  /// The category mode and ids the chosen topic plays (D-095): a topic is
+  /// Category Master on it; "All topics" keeps Blind / Mixed or none.
+  (String?, List<String>) get _categories {
+    if (_topic case final t?) {
+      return ('category_master', [t]);
+    }
+    if (widget.initial.categoryMode == 'category_master') {
+      return (null, const []);
+    }
+    return (widget.initial.categoryMode, widget.initial.categoryIds);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +104,14 @@ class _SettingsDialogState extends State<_SettingsDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (!widget.quizLocked) ...[
+              label(l10n.topicLabel),
+              TopicChips(
+                categories: widget.categories,
+                selected: _topic,
+                onSelected: (id) => setState(() => _topic = id),
+              ),
+            ],
             label(l10n.matchTypeLabel),
             Wrap(
               spacing: 6,
@@ -148,7 +176,8 @@ class _SettingsDialogState extends State<_SettingsDialog> {
               matchType: widget.quizLocked ? MatchType.quickDuel : _type,
               format: _format,
               teamMode: _format == '1v1' ? null : _mode,
-              categoryMode: widget.initial.categoryMode,
+              categoryMode: _categories.$1,
+              categoryIds: _categories.$2,
             ),
           ),
           child: Text(l10n.continueButton),

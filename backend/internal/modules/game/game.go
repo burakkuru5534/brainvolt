@@ -122,6 +122,12 @@ const (
 	OriginTournament  = domain.Tournament
 )
 
+// Topic category modes (D-095): one chosen category, or three.
+const (
+	CategoryMaster = domain.CategoryMaster
+	MixedBattle    = domain.MixedBattle
+)
+
 // CategoryCreatorQuiz is the Creator Quiz category mode.
 const CategoryCreatorQuiz = domain.CreatorQuiz
 

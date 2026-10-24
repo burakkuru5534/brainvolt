@@ -51,6 +51,9 @@ void main() {
   /// Opens the queue and lets the server find a match.
   Future<FakeSocket> queueAndMatch(WidgetTester tester, TestApp t) async {
     await tester.tap(find.byKey(const Key('play-quick-duel')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.byKey(const Key('topic-all')));
     await step(tester);
     expect(find.byKey(const Key('queue-searching')), findsOneWidget);
     expect(t.matches.calls, ['enqueue']);
@@ -247,9 +250,32 @@ void main() {
     await finish(tester, t);
   });
 
+  testWidgets('Quick Duel asks for the topic and queues in it (D-095)', (
+    tester,
+  ) async {
+    final t = await launch(tester);
+    await tester.tap(find.byKey(const Key('play-quick-duel')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('Hangi konuda yarışmak istersin?'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('topic-cat-history')));
+    await step(tester);
+    await step(tester);
+    expect(t.matches.calls, [
+      'enqueue:quick_duel:1v1:category_master:cat-history::null',
+    ]);
+    expect(find.text('Konu: Tarih'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('queue-cancel')));
+    await step(tester);
+    await finish(tester, t);
+  });
+
   testWidgets('cancelling the search leaves the queue', (tester) async {
     final t = await launch(tester);
     await tester.tap(find.byKey(const Key('play-quick-duel')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.byKey(const Key('topic-all')));
     await step(tester);
     await tester.tap(find.byKey(const Key('queue-cancel')));
     await step(tester);

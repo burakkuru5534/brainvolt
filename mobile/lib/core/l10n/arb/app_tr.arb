@@ -2672,5 +2672,42 @@
   "mmLobbyExpired": "Yeterli oyuncu bulunamadı, lobi kapandı.",
   "@mmLobbyExpired": {
     "description": "Waiting lobby expired."
+  },
+  "topicLabel": "Konu",
+  "@topicLabel": {
+    "description": "Topic section label (D-095)."
+  },
+  "topicAll": "Tüm konular",
+  "@topicAll": {
+    "description": "Every topic mixed."
+  },
+  "topicAllSub": "Her konudan karışık sorular",
+  "@topicAllSub": {
+    "description": "Subtitle of \"All topics\"."
+  },
+  "topicPickTitle": "Hangi konuda yarışmak istersin?",
+  "@topicPickTitle": {
+    "description": "Topic sheet title before searching."
+  },
+  "topicPickSub": "Sadece aynı konuyu seçen oyuncularla eşleşirsin.",
+  "@topicPickSub": {
+    "description": "Topic sheet subtitle."
+  },
+  "topicLine": "Konu: {name}",
+  "@topicLine": {
+    "description": "The topic of a queue or room.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "topicLoadFailed": "Konular yüklenemedi; \"Tüm konular\" ile oynayabilirsin.",
+  "@topicLoadFailed": {
+    "description": "Categories failed to load."
+  },
+  "topicRankedNote": "Dereceli maçlar her zaman tüm konulardan oynanır.",
+  "@topicRankedNote": {
+    "description": "Ranked has no topic (R04)."
   }
 }

@@ -572,5 +572,13 @@
   "mmLobbyWaitReady": "Waiting for everyone to be ready",
   "mmLobbySearchingSeat": "Finding a player…",
   "mmLobbyDropped": "You were removed from the lobby for not getting ready in time.",
-  "mmLobbyExpired": "Not enough players were found; the lobby closed."
+  "mmLobbyExpired": "Not enough players were found; the lobby closed.",
+  "topicLabel": "Topic",
+  "topicAll": "All topics",
+  "topicAllSub": "Mixed questions from every topic",
+  "topicPickTitle": "Which topic do you want to play?",
+  "topicPickSub": "You are matched only with players who chose the same topic.",
+  "topicLine": "Topic: {name}",
+  "topicLoadFailed": "Topics could not be loaded; you can still play All topics.",
+  "topicRankedNote": "Ranked matches always use every topic."
 }

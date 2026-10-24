@@ -1927,4 +1927,32 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get mmLobbyExpired => 'Yeterli oyuncu bulunamadı, lobi kapandı.';
+
+  @override
+  String get topicLabel => 'Konu';
+
+  @override
+  String get topicAll => 'Tüm konular';
+
+  @override
+  String get topicAllSub => 'Her konudan karışık sorular';
+
+  @override
+  String get topicPickTitle => 'Hangi konuda yarışmak istersin?';
+
+  @override
+  String get topicPickSub => 'Sadece aynı konuyu seçen oyuncularla eşleşirsin.';
+
+  @override
+  String topicLine(String name) {
+    return 'Konu: $name';
+  }
+
+  @override
+  String get topicLoadFailed =>
+      'Konular yüklenemedi; \"Tüm konular\" ile oynayabilirsin.';
+
+  @override
+  String get topicRankedNote =>
+      'Dereceli maçlar her zaman tüm konulardan oynanır.';
 }

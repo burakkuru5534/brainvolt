@@ -37,6 +37,9 @@ Room roomFromJson(Map<String, dynamic> j) {
     format: cfg['format'] as String? ?? '1v1',
     teamMode: cfg['team_answer_mode'] as String?,
     categoryMode: cfg['category_mode'] as String?,
+    categoryIds: [
+      for (final id in (cfg['category_ids'] as List?) ?? const []) '$id',
+    ],
     capacity: (j['capacity'] as num?)?.toInt() ?? 2,
     matchId: j['match_id'] as String?,
     creatorQuizId: cfg['creator_quiz_id'] as String?,
@@ -122,6 +125,7 @@ class ApiLobbyRepository implements LobbyRepository {
     String format = '1v1',
     String? teamMode,
     String? creatorQuizId,
+    List<String> categoryIds = const [],
   }) async {
     final j = await api.postJson(
       '/v1/rooms',
@@ -134,6 +138,8 @@ class ApiLobbyRepository implements LobbyRepository {
               ? 'creator_quiz'
               : categoryMode),
           'creator_quiz_id': ?creatorQuizId,
+          if (creatorQuizId == null && categoryIds.isNotEmpty)
+            'category_ids': categoryIds,
         },
       },
       idempotencyKey: const Uuid().v7(),
@@ -167,6 +173,8 @@ class ApiLobbyRepository implements LobbyRepository {
               ? 'creator_quiz'
               : settings.categoryMode),
           'creator_quiz_id': ?creatorQuizId,
+          if (creatorQuizId == null && settings.categoryIds.isNotEmpty)
+            'category_ids': settings.categoryIds,
         },
       },
       ifMatch: version?.toString(),

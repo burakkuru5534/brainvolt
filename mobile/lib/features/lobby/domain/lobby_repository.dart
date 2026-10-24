@@ -93,6 +93,7 @@ class Room {
     this.format = '1v1',
     this.teamMode,
     this.categoryMode,
+    this.categoryIds = const [],
     this.matchId,
     this.creatorQuizId,
     this.quizLength,
@@ -121,6 +122,9 @@ class Room {
   final String format;
   final String? teamMode;
   final String? categoryMode;
+
+  /// The room's topic (D-095): Category Master's category.
+  final List<String> categoryIds;
   final int capacity;
   final List<RoomMember> members;
   final String? matchId;
@@ -143,6 +147,7 @@ class RoomSettings {
     this.format = '1v1',
     this.teamMode,
     this.categoryMode,
+    this.categoryIds = const [],
   });
 
   /// The settings a room plays now.
@@ -151,7 +156,12 @@ class RoomSettings {
     format: r.format,
     teamMode: r.teamMode,
     categoryMode: r.categoryMode,
+    categoryIds: r.categoryIds,
   );
+
+  /// The topic the host chose (D-095), null for every topic.
+  String? get topic =>
+      categoryMode == 'category_master' ? categoryIds.firstOrNull : null;
 
   final MatchType matchType;
 
@@ -162,6 +172,7 @@ class RoomSettings {
   /// individual_turns).
   final String? teamMode;
   final String? categoryMode;
+  final List<String> categoryIds;
 }
 
 /// Challenge actions.
@@ -186,6 +197,7 @@ abstract interface class LobbyRepository {
     String format = '1v1',
     String? teamMode,
     String? creatorQuizId,
+    List<String> categoryIds = const [],
   });
 
   /// Changes a room's settings (host, room open, D-093); [creatorQuizId]

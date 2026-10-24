@@ -1933,4 +1933,32 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get mmLobbyExpired =>
       'Not enough players were found; the lobby closed.';
+
+  @override
+  String get topicLabel => 'Topic';
+
+  @override
+  String get topicAll => 'All topics';
+
+  @override
+  String get topicAllSub => 'Mixed questions from every topic';
+
+  @override
+  String get topicPickTitle => 'Which topic do you want to play?';
+
+  @override
+  String get topicPickSub =>
+      'You are matched only with players who chose the same topic.';
+
+  @override
+  String topicLine(String name) {
+    return 'Topic: $name';
+  }
+
+  @override
+  String get topicLoadFailed =>
+      'Topics could not be loaded; you can still play All topics.';
+
+  @override
+  String get topicRankedNote => 'Ranked matches always use every topic.';
 }

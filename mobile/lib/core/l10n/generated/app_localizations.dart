@@ -3535,6 +3535,54 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Yeterli oyuncu bulunamadı, lobi kapandı.'**
   String get mmLobbyExpired;
+
+  /// Topic section label (D-095).
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu'**
+  String get topicLabel;
+
+  /// Every topic mixed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm konular'**
+  String get topicAll;
+
+  /// Subtitle of "All topics".
+  ///
+  /// In tr, this message translates to:
+  /// **'Her konudan karışık sorular'**
+  String get topicAllSub;
+
+  /// Topic sheet title before searching.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hangi konuda yarışmak istersin?'**
+  String get topicPickTitle;
+
+  /// Topic sheet subtitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sadece aynı konuyu seçen oyuncularla eşleşirsin.'**
+  String get topicPickSub;
+
+  /// The topic of a queue or room.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu: {name}'**
+  String topicLine(String name);
+
+  /// Categories failed to load.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konular yüklenemedi; \"Tüm konular\" ile oynayabilirsin.'**
+  String get topicLoadFailed;
+
+  /// Ranked has no topic (R04).
+  ///
+  /// In tr, this message translates to:
+  /// **'Dereceli maçlar her zaman tüm konulardan oynanır.'**
+  String get topicRankedNote;
 }
 
 class _AppLocalizationsDelegate

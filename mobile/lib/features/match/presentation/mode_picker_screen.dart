@@ -14,6 +14,7 @@ import '../../team/data/team_providers.dart';
 import '../../team/domain/team_repository.dart';
 import '../domain/match_repository.dart';
 import 'format_picker.dart';
+import 'topic_picker.dart';
 
 /// The player's teams (to queue as a team).
 final myTeamsProvider = FutureProvider.autoDispose<List<Team>>(
@@ -134,6 +135,33 @@ class _ModePickerScreenState extends ConsumerState<ModePickerScreen> {
                 ),
             ],
           ),
+          SectionTitle(l10n.topicLabel),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: TopicChips(
+              key: const Key('mode-topics'),
+              categories: categories,
+              enabled: !ranked,
+              // A topic is Category Master on that category (D-095).
+              selected: _mode == 'category_master' ? _category : null,
+              onSelected: (id) => setState(() {
+                if (id == null) {
+                  if (_mode == 'category_master') {
+                    _mode = null;
+                  }
+                  _category = null;
+                } else {
+                  _mode = 'category_master';
+                  _category = id;
+                }
+              }),
+            ),
+          ),
+          if (ranked)
+            Text(
+              l10n.topicRankedNote,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           SectionTitle(l10n.categoryModeLabel),
           _Grid(
             children: [

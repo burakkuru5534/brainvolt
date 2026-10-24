@@ -13,8 +13,10 @@ import '../../../core/widgets/bv.dart';
 import '../../profile/domain/avatars.dart';
 import '../domain/match_repository.dart';
 import 'match_type_name.dart';
+import 'mode_picker_screen.dart';
 import 'play_controllers.dart';
 import 'play_error_text.dart';
+import 'topic_picker.dart';
 
 /// Looking for an opponent (or starting a practice match), then straight
 /// to the match screen.
@@ -117,6 +119,22 @@ class _QueueScreenState extends ConsumerState<QueueScreen> {
                     l10n.queueFinding,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
+                  if (widget.mode.categoryId case final cat?) ...[
+                    const SizedBox(height: 8),
+                    Chip(
+                      key: const Key('queue-topic'),
+                      avatar: const Icon(Icons.local_offer_outlined, size: 18),
+                      label: Text(
+                        l10n.topicLine(
+                          topicName(
+                            l10n,
+                            cat,
+                            ref.watch(categoriesProvider).value ?? const [],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 28),
                   SizedBox(
                     width: 260,

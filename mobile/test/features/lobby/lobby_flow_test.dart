@@ -85,6 +85,25 @@ void main() {
     await finish(tester, t);
   });
 
+  testWidgets('mode picker: a topic queues Category Master on it (D-095)', (
+    tester,
+  ) async {
+    final t = await launch(tester);
+    await tester.tap(find.byKey(const Key('play-modes')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('topic-chip-cat-science')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('mode-search')));
+    await tester.tap(find.byKey(const Key('mode-search')));
+    await step(tester);
+    expect(t.matches.calls, [
+      'enqueue:quick_duel:1v1:category_master:cat-science::null',
+    ]);
+    await tester.tap(find.byKey(const Key('queue-cancel')));
+    await step(tester);
+    await finish(tester, t);
+  });
+
   testWidgets('mode picker: a 2v2 queue with a friend in the party', (
     tester,
   ) async {
@@ -234,9 +253,14 @@ void main() {
     await tester.tap(find.byKey(const Key('format-2v2')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('team-mode-shared_answer')));
+    // D-095: the host picks the room's topic.
+    await tester.tap(find.byKey(const Key('topic-chip-cat-history')));
     await tester.tap(find.byKey(const Key('format-ok')));
     await tester.pumpAndSettle();
-    expect(t.lobby.calls.last, 'updateRoom:r1:marathon:2v2:shared_answer:v2');
+    expect(
+      t.lobby.calls.last,
+      'updateRoom:r1:marathon:2v2:shared_answer:cat-history:v2',
+    );
     expect(
       find.text('Oda ayarları güncellendi, herkes tekrar hazır olmalı'),
       findsOneWidget,
@@ -451,6 +475,9 @@ void main() {
     final s = welcome(t);
     await step(tester);
     await tester.tap(find.byKey(const Key('play-quick-duel')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.byKey(const Key('topic-all')));
     await step(tester);
     s.serverSends({
       't': 'mm.lobby',

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +16,8 @@ import '../../auth/data/auth_providers.dart';
 import '../../auth/domain/session.dart';
 import '../../lobby/presentation/room_screen.dart';
 import '../../match/data/match_providers.dart';
+import '../../match/domain/match_repository.dart';
+import '../../match/presentation/topic_picker.dart';
 import '../../notifications/presentation/inbox_screen.dart';
 import '../../profile/domain/avatars.dart';
 import '../../progress/presentation/progress_widgets.dart';
@@ -144,7 +148,7 @@ class HomeScreen extends ConsumerWidget {
                 title: l10n.playQuickDuel,
                 subtitle: l10n.homeQuickDuelSub,
                 icon: Icons.bolt,
-                onTap: () => context.push(Routes.play),
+                onTap: () => _quickDuel(context),
               ),
             gap,
             _Tiles(
@@ -214,6 +218,26 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Quick Duel asks for the topic first (D-095), then searches.
+Future<void> _quickDuel(BuildContext context) async {
+  final topic = await pickTopic(context);
+  if (topic == null || !context.mounted) {
+    return;
+  }
+  unawaited(
+    context.push(
+      topic.all
+          ? Routes.play
+          : Routes.playMode(
+              QueueMode(
+                categoryMode: 'category_master',
+                categoryId: topic.categoryId,
+              ),
+            ),
+    ),
+  );
 }
 
 class _TopBar extends ConsumerWidget {

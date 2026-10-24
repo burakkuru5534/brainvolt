@@ -498,10 +498,13 @@ class FakeLobbyRepository implements LobbyRepository {
     String format = '1v1',
     String? teamMode,
     String? creatorQuizId,
+    List<String> categoryIds = const [],
   }) async {
     calls.add(
       creatorQuizId != null
           ? 'createRoom:${type.wire}:quiz:$creatorQuizId'
+          : categoryIds.isNotEmpty
+          ? 'createRoom:${type.wire}:topic:${categoryIds.join(',')}'
           : format == '1v1'
           ? 'createRoom:${type.wire}'
           : 'createRoom:${type.wire}:$format:$teamMode',
@@ -518,7 +521,7 @@ class FakeLobbyRepository implements LobbyRepository {
   }) async {
     calls.add(
       'updateRoom:$id:${settings.matchType.wire}:${settings.format}'
-      ':${settings.teamMode}:v$version',
+      ':${settings.teamMode}:${settings.topic ?? 'all'}:v$version',
     );
     return room1;
   }

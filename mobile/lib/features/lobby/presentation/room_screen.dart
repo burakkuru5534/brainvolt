@@ -10,9 +10,12 @@ import '../../../app/session_controller.dart';
 import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/widgets/bv.dart';
+import '../../content/domain/content_repository.dart';
 import '../../match/presentation/format_picker.dart';
 import '../../match/presentation/match_type_name.dart';
+import '../../match/presentation/mode_picker_screen.dart';
 import '../../match/presentation/play_error_text.dart';
+import '../../match/presentation/topic_picker.dart';
 import '../../profile/domain/avatars.dart';
 import '../data/lobby_providers.dart';
 import '../domain/lobby_repository.dart';
@@ -37,10 +40,17 @@ Future<void> showRoomSheet(BuildContext context, WidgetRef ref) async {
     if (choice.startsWith('code:')) {
       room = await repo.joinRoom(choice.substring(5));
     } else {
+      final categories = await ref
+          .read(categoriesProvider.future)
+          .catchError((Object _) => <CategoryInfo>[]);
+      if (!context.mounted) {
+        return;
+      }
       final settings = await pickRoomSettings(
         context,
         initial: RoomSettings(matchType: MatchType.parse(choice)!),
         title: context.l10n.createRoom,
+        categories: categories,
       );
       if (settings == null) {
         return;
@@ -50,6 +60,7 @@ Future<void> showRoomSheet(BuildContext context, WidgetRef ref) async {
         format: settings.format,
         teamMode: settings.teamMode,
         categoryMode: settings.categoryMode,
+        categoryIds: settings.categoryIds,
       );
     }
     if (context.mounted) {
@@ -203,11 +214,18 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
   /// The host changes any room mode between matches (D-093).
   Future<void> _settings(Room room) async {
     final l10n = context.l10n;
+    final categories = await ref
+        .read(categoriesProvider.future)
+        .catchError((Object _) => <CategoryInfo>[]);
+    if (!mounted) {
+      return;
+    }
     final s = await pickRoomSettings(
       context,
       initial: RoomSettings.of(room),
       quizLocked: room.creatorQuizId != null,
       members: room.members.length,
+      categories: categories,
     );
     if (s == null || !mounted) {
       return;
@@ -319,7 +337,15 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
               formatName(l10n, room.format),
               if (room.teamMode case final m?) teamModeName(l10n, m),
               if (room.quizLength case final n? when room.creatorQuizId != null)
-                l10n.roomQuiz(n),
+                l10n.roomQuiz(n)
+              else
+                l10n.topicLine(
+                  topicName(
+                    l10n,
+                    RoomSettings.of(room).topic,
+                    ref.watch(categoriesProvider).value ?? const [],
+                  ),
+                ),
             ].join(' · '),
           ),
           trailing: IconButton(
@@ -418,6 +444,13 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
                   matchTypeName(l10n, room.matchType),
                   formatName(l10n, room.format),
                   if (room.teamMode case final m?) teamModeName(l10n, m),
+                  l10n.topicLine(
+                    topicName(
+                      l10n,
+                      RoomSettings.of(room).topic,
+                      ref.watch(categoriesProvider).value ?? const [],
+                    ),
+                  ),
                 ].join(' · '),
                 style: text.titleMedium,
               ),

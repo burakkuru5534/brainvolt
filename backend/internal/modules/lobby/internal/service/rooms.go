@@ -355,6 +355,9 @@ func (s *Service) CreateRoom(ctx context.Context, user uuid.UUID, locale string,
 	if err := checkConfig(cfg); err != nil {
 		return Room{}, err
 	}
+	if err := s.checkTopics(ctx, cfg); err != nil {
+		return Room{}, err
+	}
 	if err := s.leaveCurrent(ctx, user); err != nil {
 		return Room{}, err
 	}
@@ -424,6 +427,9 @@ func (s *Service) UpdateRoomConfig(ctx context.Context, user, id uuid.UUID, cfg 
 	if err := checkConfig(cfg); err != nil {
 		return Room{}, err
 	}
+	if err := s.checkTopics(ctx, cfg); err != nil {
+		return Room{}, err
+	}
 	if friendsOnly(quiz) {
 		if err := s.allFriendsOfHost(ctx, id, user); err != nil {
 			return Room{}, err
@@ -457,6 +463,25 @@ func (s *Service) UpdateRoomConfig(ctx context.Context, user, id uuid.UUID, cfg 
 		return Room{}, err
 	}
 	return s.render(ctx, r)
+}
+
+// checkTopics makes sure the room's topic — the category of Category
+// Master, the three of Mixed Battle, chosen by the host (D-095) — are
+// active categories.
+func (s *Service) checkTopics(ctx context.Context, cfg game.Config) error {
+	if cfg.CategoryMode != game.CategoryMaster && cfg.CategoryMode != game.MixedBattle {
+		return nil
+	}
+	for _, id := range cfg.CategoryIDs {
+		ok, err := s.d.Game.CategoryExists(ctx, id)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return apierror.Validation(apierror.FieldError{Field: "match_config.category_ids", Rule: "active_category"})
+		}
+	}
+	return nil
 }
 
 // friendsOnly reports whether a room playing quiz is limited to the
