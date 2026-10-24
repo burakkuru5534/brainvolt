@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/widgets/bv.dart';
+import '../../home/presentation/main_nav.dart';
 import '../../match/presentation/play_error_text.dart';
 import '../../profile/domain/avatars.dart';
 import '../../team/domain/team_repository.dart';
@@ -60,7 +63,7 @@ class _LeaderboardsScreenState extends ConsumerState<LeaderboardsScreen> {
     final l10n = context.l10n;
     final filter = (period: _period, entity: _entity, scope: _scope);
     final board = ref.watch(boardProvider(filter));
-    Widget chips<T>(
+    Widget chips<T extends Enum>(
       List<T> values,
       T selected,
       String Function(T) name,
@@ -68,15 +71,17 @@ class _LeaderboardsScreenState extends ConsumerState<LeaderboardsScreen> {
       String key,
     ) => SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
           for (final v in values)
             Padding(
               padding: const EdgeInsets.only(right: 6),
               child: ChoiceChip(
-                key: Key('$key-${(v as Enum).name}'),
+                key: Key('$key-${v.name}'),
                 label: Text(name(v)),
+                showCheckmark: false,
+                visualDensity: VisualDensity.compact,
                 selected: v == selected,
                 onSelected: (_) => setState(() => pick(v)),
               ),
@@ -85,10 +90,26 @@ class _LeaderboardsScreenState extends ConsumerState<LeaderboardsScreen> {
       ),
     );
     return Scaffold(
+      bottomNavigationBar: const MainNavBar(current: MainTab.leaderboards),
       appBar: AppBar(title: Text(l10n.leaderboardsTitle)),
       body: Column(
         children: [
-          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+            child: WcSegmented<BoardScope>(
+              keyPrefix: 'scope',
+              selected: _scope,
+              onChanged: (s) => setState(() => _scope = s),
+              segments: [
+                for (final s in [
+                  BoardScope.global,
+                  BoardScope.country,
+                  if (_entity == BoardEntity.user) BoardScope.friends,
+                ])
+                  (s, scopeName(l10n, s)),
+              ],
+            ),
+          ),
           chips(
             BoardPeriod.values,
             _period,
@@ -96,50 +117,152 @@ class _LeaderboardsScreenState extends ConsumerState<LeaderboardsScreen> {
             (p) => _period = p,
             'period',
           ),
+          const SizedBox(height: 6),
           chips(BoardEntity.values, _entity, (e) => entityName(l10n, e), (e) {
             _entity = e;
             if (e != BoardEntity.user && _scope == BoardScope.friends) {
               _scope = BoardScope.global;
             }
           }, 'entity'),
-          chips(
-            [
-              BoardScope.global,
-              BoardScope.country,
-              if (_entity == BoardEntity.user) BoardScope.friends,
-            ],
-            _scope,
-            (s) => scopeName(l10n, s),
-            (s) => _scope = s,
-            'scope',
-          ),
-          const Divider(),
+          const SizedBox(height: 6),
           Expanded(
             child: switch (board) {
-              AsyncData(:final value) when value.entries.isEmpty => Center(
-                child: Text(
-                  l10n.leaderboardEmpty,
-                  key: const Key('board-empty'),
-                ),
+              AsyncData(:final value) when value.entries.isEmpty => EmptyState(
+                icon: Icons.leaderboard_rounded,
+                text: l10n.leaderboardEmpty,
+                textKey: const Key('board-empty'),
               ),
               AsyncData(:final value) => ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                 children: [
-                  for (final e in value.entries)
-                    _Row(entry: e, mine: e.entityId == value.me?.entityId),
+                  _Podium(
+                    entries: value.entries.take(3).toList(),
+                    me: value.me?.entityId,
+                  ),
+                  const SizedBox(height: 12),
+                  for (final e in value.entries.skip(3))
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _Row(
+                        entry: e,
+                        mine: e.entityId == value.me?.entityId,
+                      ),
+                    ),
                 ],
               ),
-              AsyncError(:final error) => Center(
-                child: Text(playErrorText(l10n, error)),
+              AsyncError(:final error) => ErrorView(
+                message: playErrorText(l10n, error),
+                retryLabel: l10n.retry,
+                onRetry: () => ref.invalidate(boardProvider(filter)),
               ),
-              _ => const Center(child: CircularProgressIndicator()),
+              _ => const LoadingView(),
             },
           ),
-          if (board.value?.me case final me?) ...[
-            const Divider(height: 1),
-            _Row(entry: me, mine: true, label: l10n.leaderboardMe),
-          ],
+          if (board.value?.me case final me?)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: _Row(entry: me, mine: true, label: l10n.leaderboardMe),
+            ),
         ],
       ),
+    );
+  }
+}
+
+String _leading(BoardEntry entry) => entry.emblemId.isNotEmpty
+    ? emblemEmoji[entry.emblemId] ?? '🛡️'
+    : entry.avatarId.isNotEmpty
+    ? avatarFor(entry.avatarId)
+    : '👥';
+
+const _medals = [Color(0xFFFBBF24), Color(0xFFCBD5E1), Color(0xFFF59E5B)];
+
+/// The top three on steps: second, first (with the crown), third.
+class _Podium extends StatelessWidget {
+  const _Podium({required this.entries, this.me});
+
+  final List<BoardEntry> entries;
+  final String? me;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final bv = BvColors.of(context);
+    final text = Theme.of(context).textTheme;
+    Widget place(int i) {
+      if (i >= entries.length) {
+        return const Expanded(child: SizedBox());
+      }
+      final e = entries[i];
+      final first = i == 0;
+      final medal = _medals[i];
+      return Expanded(
+        child: Column(
+          key: Key('board-row-${e.entityId}'),
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            if (first)
+              Icon(Icons.workspace_premium_rounded, color: bv.gold, size: 30),
+            Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(colors: [medal, medal.withAlpha(140)]),
+                boxShadow: [
+                  BoxShadow(color: medal.withAlpha(90), blurRadius: 14),
+                ],
+              ),
+              child: CircleAvatar(
+                radius: first ? 34 : 27,
+                backgroundColor: bv.surface,
+                child: Text(
+                  _leading(e),
+                  style: TextStyle(fontSize: first ? 32 : 26),
+                ),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              e.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: text.titleSmall?.copyWith(
+                color: e.entityId == me ? bv.accent : bv.ink,
+              ),
+            ),
+            Text(
+              l10n.boardPoints(e.score),
+              style: text.labelMedium?.copyWith(color: bv.muted),
+            ),
+            const SizedBox(height: 6),
+            Container(
+              height: first ? 64 : (i == 1 ? 46 : 34),
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: 6),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(14),
+                ),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [medal.withAlpha(150), medal.withAlpha(25)],
+                ),
+              ),
+              child: Text(
+                '${e.rank}',
+                style: text.headlineSmall?.copyWith(color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [place(1), place(0), place(2)],
     );
   }
 }
@@ -154,25 +277,44 @@ class _Row extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final leading = entry.emblemId.isNotEmpty
-        ? emblemEmoji[entry.emblemId] ?? '🛡️'
-        : entry.avatarId.isNotEmpty
-        ? avatarFor(entry.avatarId)
-        : '👥';
-    return ListTile(
+    final bv = BvColors.of(context);
+    final text = Theme.of(context).textTheme;
+    return BvCard(
       key: Key('board-row-${entry.entityId}'),
-      selected: mine,
-      leading: SizedBox(
-        width: 72,
-        child: Row(
-          children: [
-            SizedBox(width: 32, child: Text('#${entry.rank}')),
-            Text(leading, style: const TextStyle(fontSize: 24)),
-          ],
-        ),
+      radius: 18,
+      color: mine ? bv.gradientStart.withAlpha(70) : null,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 40,
+            child: Text(
+              '#${entry.rank}',
+              style: text.titleSmall?.copyWith(
+                color: entry.rank <= 3 ? bv.gold : bv.muted,
+              ),
+            ),
+          ),
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: bv.badge,
+            child: Text(_leading(entry), style: const TextStyle(fontSize: 20)),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label != null ? '$label · ${entry.name}' : entry.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: text.titleSmall,
+            ),
+          ),
+          Text(
+            l10n.boardPoints(entry.score),
+            style: text.labelLarge?.copyWith(color: bv.accent),
+          ),
+        ],
       ),
-      title: Text(label != null ? '$label · ${entry.name}' : entry.name),
-      trailing: Text(l10n.boardPoints(entry.score)),
     );
   }
 }

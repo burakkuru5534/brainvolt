@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/widgets/bv.dart';
 import '../domain/auth_repository.dart';
 import 'account_flows.dart';
 
@@ -76,13 +77,25 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            Center(
+              child: IconBadge(
+                widget.signUp
+                    ? Icons.person_add_alt_1_rounded
+                    : Icons.login_rounded,
+                size: 80,
+              ),
+            ),
+            const SizedBox(height: 20),
             TextFormField(
               key: const Key('email-field'),
               controller: _email,
               enabled: !_busy,
               keyboardType: TextInputType.emailAddress,
               autofillHints: const [AutofillHints.email],
-              decoration: InputDecoration(labelText: l10n.emailLabel),
+              decoration: InputDecoration(
+                labelText: l10n.emailLabel,
+                prefixIcon: const Icon(Icons.alternate_email_rounded),
+              ),
               validator: (v) => v != null && v.trim().contains('@')
                   ? null
                   : l10n.authErrorInvalidEmail,
@@ -100,6 +113,7 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen> {
                   AutofillHints.password,
               ],
               decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.lock_outline_rounded),
                 labelText: l10n.passwordLabel,
                 helperText: widget.signUp ? l10n.passwordHint : null,
               ),

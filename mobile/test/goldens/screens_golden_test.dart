@@ -7,9 +7,11 @@ import 'dart:io';
 import 'package:brainvolt/app/app.dart';
 import 'package:brainvolt/app/router.dart';
 import 'package:brainvolt/app/theme.dart';
+import 'package:brainvolt/core/network/api_exception.dart';
 import 'package:brainvolt/core/realtime/realtime_providers.dart';
 import 'package:brainvolt/core/share/result_card.dart';
 import 'package:brainvolt/features/match/domain/match_repository.dart';
+import 'package:brainvolt/features/progress/domain/progress_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,8 +19,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fakes.dart';
 
-/// Screenshots of the main screens in light and dark (D-085): the
-/// reference for the visual redesign. Regenerate with
+/// Screenshots of the screens in the WitClash design (D-099): the
+/// reference for visual changes. Regenerate with
 /// `flutter test --run-skipped --tags golden --update-goldens`.
 Future<void> loadFonts() async {
   final bytes = File('assets/fonts/Nunito-Variable.ttf').readAsBytesSync();
@@ -41,12 +43,14 @@ void main() {
     addTearDown(binding.platformDispatcher.clearLocalesTestValue);
   });
 
-  for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+  // WitClash has one (dark) theme (D-099); the files keep the `_dark` name.
+  for (final mode in [ThemeMode.dark]) {
     Future<TestApp> launch(WidgetTester tester, String route) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
       final t = await TestApp.create(prefs: {'theme_mode': mode.name});
+      _seedProgress(t);
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: t.container,
@@ -68,6 +72,35 @@ void main() {
       await tester.pump(const Duration(seconds: 5));
     }
 
+    Future<void> shoot(WidgetTester tester, TestApp t, String name) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: t.container,
+          child: const BrainVoltApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(BrainVoltApp),
+        matchesGoldenFile('${name}_${mode.name}.png'),
+      );
+      await finish(tester, t);
+    }
+
+    testWidgets('welcome ${mode.name}', (tester) async {
+      final t = await TestApp.create(ageConfirmed: false);
+      await shoot(tester, t, 'welcome');
+    });
+
+    testWidgets('splash error ${mode.name}', (tester) async {
+      final t = await TestApp.create();
+      t.sessions.syncError = const ApiException(code: ApiException.networkCode);
+      await shoot(tester, t, 'splash_error');
+    });
+
     testWidgets('home ${mode.name}', (tester) async {
       final t = await launch(tester, Routes.home);
       await expectLater(
@@ -88,6 +121,16 @@ void main() {
       ('quizzes', Routes.quizzes),
       ('settings', Routes.settings),
       ('profile', Routes.profile),
+      ('account', Routes.account),
+      ('email_sign_up', Routes.emailSignUp),
+      ('verify_email', Routes.verifyEmail),
+      ('credits', Routes.credits),
+      ('sanctions', Routes.sanctions),
+      ('inbox', Routes.inbox),
+      ('notification_settings', Routes.notificationSettings),
+      ('tournaments', Routes.tournaments),
+      ('tournament_new', Routes.tournamentNew),
+      ('quiz_new', Routes.quizNew),
     ]) {
       testWidgets('$name ${mode.name}', (tester) async {
         final t = await launch(tester, route);
@@ -246,6 +289,7 @@ void main() {
 
     testWidgets('result ${mode.name}', (tester) async {
       final t = await TestApp.create(prefs: {'theme_mode': mode.name});
+      _seedProgress(t);
       t.matches.matchResult = const MatchResult(
         id: 'm1',
         status: 'completed',
@@ -352,6 +396,11 @@ void main() {
 
     testWidgets('room sheet ${mode.name}', (tester) async {
       final t = await launch(tester, Routes.home);
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('private-room')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.tap(find.byKey(const Key('private-room')));
       await tester.pumpAndSettle();
       await expectLater(
@@ -361,4 +410,85 @@ void main() {
       await finish(tester, t);
     });
   }
+}
+
+/// Sample boards, quests and badges, so the screens show their rows.
+void _seedProgress(TestApp t) {
+  const names = ['Ali', 'Ayşe', 'Deniz', 'Ece', 'Mert', 'Ben'];
+  const avatars = ['fox', 'owl', 'cat', 'panda', 'lion', 'penguin'];
+  t.progress.boards['weekly/user/global'] = Board(
+    entries: [
+      for (var i = 0; i < names.length; i++)
+        BoardEntry(
+          rank: i + 1,
+          entityId: names[i] == 'Ben' ? 'me' : 'u$i',
+          score: 980 - i * 130,
+          name: names[i],
+          avatarId: avatars[i],
+        ),
+    ],
+    me: const BoardEntry(
+      rank: 6,
+      entityId: 'me',
+      score: 330,
+      name: 'Ben',
+      avatarId: 'penguin',
+    ),
+  );
+  Quest quest(
+    String id,
+    String title,
+    int progress,
+    int target, [
+    bool done = false,
+  ]) => Quest(
+    id: id,
+    cadence: 'daily',
+    title: title,
+    progress: progress,
+    target: target,
+    rewardXp: 50,
+    endsAt: DateTime(2030),
+    completedAt: done ? DateTime(2026) : null,
+  );
+  t.progress.questList = QuestList(
+    daily: [
+      quest('q1', '3 maç kazan', 3, 3, true),
+      quest('q2', '10 doğru cevap ver', 4, 10),
+    ],
+    weekly: [quest('w1', '15 maç oyna', 6, 15)],
+    rerollsLeft: 1,
+  );
+  t.progress.catalogue = [
+    BadgeInfo(
+      code: 'first_win',
+      family: 'wins',
+      tier: 1,
+      name: 'İlk Galibiyet',
+      description: 'İlk maçını kazan.',
+      earnedAt: DateTime(2026),
+    ),
+    BadgeInfo(
+      code: 'streak_3',
+      family: 'streak',
+      tier: 1,
+      name: '3 Gün Seri',
+      description: '3 gün üst üste oyna.',
+      earnedAt: DateTime(2026),
+    ),
+    const BadgeInfo(
+      code: 'wins_10',
+      family: 'wins',
+      tier: 2,
+      name: '10 Galibiyet',
+      description: '10 maç kazan.',
+    ),
+    const BadgeInfo(
+      code: 'quiz_master',
+      family: 'quiz',
+      tier: 1,
+      name: 'Quiz Ustası',
+      description: 'Bir quiz yayınla.',
+    ),
+  ];
 }

@@ -7,6 +7,7 @@ import '../../../app/router.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/l10n/locale_controller.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/widgets/bv.dart';
 import '../../../core/widgets/dialogs.dart';
 import '../data/profile_providers.dart';
 import '../domain/me.dart';
@@ -23,64 +24,73 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final settings = ref.watch(settingsControllerProvider);
+    Widget link(Key key, IconData icon, String title, String route) => ListTile(
+      key: key,
+      leading: IconBadge(icon, size: 36),
+      title: Text(title),
+      trailing: const Icon(Icons.chevron_right_rounded),
+      onTap: () => context.push(route),
+    );
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsTitle)),
       body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         children: [
-          ListTile(
-            key: const Key('open-profile'),
-            leading: const Icon(Icons.person_outline),
-            title: Text(l10n.profileTitle),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push(Routes.profile),
+          GlassSection(
+            children: [
+              link(
+                const Key('open-profile'),
+                Icons.person_rounded,
+                l10n.profileTitle,
+                Routes.profile,
+              ),
+              link(
+                const Key('open-account'),
+                Icons.account_circle_rounded,
+                l10n.accountTitle,
+                Routes.account,
+              ),
+              link(
+                const Key('open-sanctions'),
+                Icons.gavel_rounded,
+                l10n.sanctionsTitle,
+                Routes.sanctions,
+              ),
+              link(
+                const Key('open-notification-settings'),
+                Icons.notifications_rounded,
+                l10n.settingsNotifications,
+                Routes.notificationSettings,
+              ),
+              link(
+                const Key('open-credits'),
+                Icons.info_rounded,
+                l10n.creditsTitle,
+                Routes.credits,
+              ),
+            ],
           ),
-          ListTile(
-            key: const Key('open-account'),
-            leading: const Icon(Icons.account_circle_outlined),
-            title: Text(l10n.accountTitle),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push(Routes.account),
-          ),
-          ListTile(
-            key: const Key('open-sanctions'),
-            leading: const Icon(Icons.gavel_outlined),
-            title: Text(l10n.sanctionsTitle),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push(Routes.sanctions),
-          ),
-          ListTile(
-            key: const Key('open-notification-settings'),
-            leading: const Icon(Icons.notifications_outlined),
-            title: Text(l10n.settingsNotifications),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push(Routes.notificationSettings),
-          ),
-          ListTile(
-            key: const Key('open-credits'),
-            leading: const Icon(Icons.info_outline),
-            title: Text(l10n.creditsTitle),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => context.push(Routes.credits),
-          ),
-          const Divider(),
           const _LanguageSection(),
-          const Divider(),
           switch (settings) {
             AsyncValue(value: final s?) => _ServerSettings(settings: s),
-            AsyncValue(:final error?) => ListTile(
-              title: Text(
-                error is ApiException
-                    ? error.localizedMessage(l10n)
-                    : l10n.errorUnknown,
-              ),
-              trailing: TextButton(
-                onPressed: () => ref.invalidate(settingsControllerProvider),
-                child: Text(l10n.retry),
-              ),
+            AsyncValue(:final error?) => GlassSection(
+              children: [
+                ListTile(
+                  title: Text(
+                    error is ApiException
+                        ? error.localizedMessage(l10n)
+                        : l10n.errorUnknown,
+                  ),
+                  trailing: TextButton(
+                    onPressed: () => ref.invalidate(settingsControllerProvider),
+                    child: Text(l10n.retry),
+                  ),
+                ),
+              ],
             ),
             _ => const Padding(
               padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
+              child: LoadingView(),
             ),
           },
         ],
@@ -101,10 +111,9 @@ class _LanguageSection extends ConsumerWidget {
       ('tr', l10n.languageTurkish),
       ('en', l10n.languageEnglish),
     ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return GlassSection(
+      title: l10n.settingsLanguage,
       children: [
-        _Header(l10n.settingsLanguage),
         RadioGroup<String?>(
           groupValue: selected,
           onChanged: (code) async {
@@ -171,69 +180,64 @@ class _ServerSettings extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _Header(l10n.settingsGame),
-        toggle(
-          'sound',
-          l10n.settingsSound,
-          s.soundEnabled,
-          s.copyWith(soundEnabled: !s.soundEnabled),
+        GlassSection(
+          title: l10n.settingsGame,
+          children: [
+            toggle(
+              'sound',
+              l10n.settingsSound,
+              s.soundEnabled,
+              s.copyWith(soundEnabled: !s.soundEnabled),
+            ),
+            toggle(
+              'music',
+              l10n.settingsMusic,
+              s.musicEnabled,
+              s.copyWith(musicEnabled: !s.musicEnabled),
+            ),
+            toggle(
+              'haptics',
+              l10n.settingsHaptics,
+              s.hapticsEnabled,
+              s.copyWith(hapticsEnabled: !s.hapticsEnabled),
+            ),
+          ],
         ),
-        toggle(
-          'music',
-          l10n.settingsMusic,
-          s.musicEnabled,
-          s.copyWith(musicEnabled: !s.musicEnabled),
-        ),
-        toggle(
-          'haptics',
-          l10n.settingsHaptics,
-          s.hapticsEnabled,
-          s.copyWith(hapticsEnabled: !s.hapticsEnabled),
-        ),
-        const Divider(),
-        _Header(l10n.settingsPrivacy),
-        toggle(
-          'online',
-          l10n.settingsShowOnline,
-          s.showOnlineStatus,
-          s.copyWith(showOnlineStatus: !s.showOnlineStatus),
-        ),
-        toggle(
-          'friend-requests',
-          l10n.settingsAllowFriendRequests,
-          s.allowFriendRequests,
-          s.copyWith(allowFriendRequests: !s.allowFriendRequests),
-        ),
-        ListTile(
-          title: Text(l10n.settingsChallengesFrom),
-          trailing: DropdownButton<ChallengesFrom>(
-            key: const Key('setting-challenges'),
-            value: s.challengesFrom,
-            onChanged: (v) =>
-                v == null ? null : change(s.copyWith(challengesFrom: v)),
-            items: [
-              for (final (v, label) in [
-                (ChallengesFrom.everyone, l10n.challengesEveryone),
-                (ChallengesFrom.friends, l10n.challengesFriends),
-                (ChallengesFrom.nobody, l10n.challengesNobody),
-              ])
-                DropdownMenuItem(value: v, child: Text(label)),
-            ],
-          ),
+        GlassSection(
+          title: l10n.settingsPrivacy,
+          children: [
+            toggle(
+              'online',
+              l10n.settingsShowOnline,
+              s.showOnlineStatus,
+              s.copyWith(showOnlineStatus: !s.showOnlineStatus),
+            ),
+            toggle(
+              'friend-requests',
+              l10n.settingsAllowFriendRequests,
+              s.allowFriendRequests,
+              s.copyWith(allowFriendRequests: !s.allowFriendRequests),
+            ),
+            ListTile(
+              title: Text(l10n.settingsChallengesFrom),
+              trailing: DropdownButton<ChallengesFrom>(
+                key: const Key('setting-challenges'),
+                value: s.challengesFrom,
+                onChanged: (v) =>
+                    v == null ? null : change(s.copyWith(challengesFrom: v)),
+                items: [
+                  for (final (v, label) in [
+                    (ChallengesFrom.everyone, l10n.challengesEveryone),
+                    (ChallengesFrom.friends, l10n.challengesFriends),
+                    (ChallengesFrom.nobody, l10n.challengesNobody),
+                  ])
+                    DropdownMenuItem(value: v, child: Text(label)),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
-}
-
-class _Header extends StatelessWidget {
-  const _Header(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-    child: Text(text, style: Theme.of(context).textTheme.titleMedium),
-  );
 }

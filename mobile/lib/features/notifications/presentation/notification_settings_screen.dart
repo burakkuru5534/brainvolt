@@ -93,11 +93,9 @@ class _NotificationSettingsScreenState
     return Scaffold(
       appBar: AppBar(title: Text(l10n.notificationSettingsTitle)),
       body: p == null
-          ? Center(
-              child: _error == null
-                  ? const CircularProgressIndicator()
-                  : Text(playErrorText(l10n, _error!)),
-            )
+          ? _error == null
+                ? const LoadingView()
+                : ErrorView(message: playErrorText(l10n, _error!))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

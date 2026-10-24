@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/widgets/bv.dart';
 import '../../match/presentation/play_error_text.dart';
 import '../data/progress_providers.dart';
 import '../domain/progress_repository.dart';
@@ -38,54 +40,71 @@ class QuestsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final bv = BvColors.of(context);
+    final text = Theme.of(context).textTheme;
     final repo = ref.watch(progressRepositoryProvider);
-    Widget tile(Quest q, bool canReroll) => Card(
-      key: Key('quest-${q.id}'),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
+    Widget tile(Quest q, bool canReroll, IconData icon) => Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: BvCard(
+        key: Key('quest-${q.id}'),
+        color: q.completed && !q.claimed ? bv.success.withAlpha(30) : null,
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Expanded(
-                  child: Text(
-                    q.title,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
+                IconBadge(q.claimed ? Icons.check_rounded : icon, size: 40),
+                const SizedBox(width: 12),
+                Expanded(child: Text(q.title, style: text.titleSmall)),
+                const SizedBox(width: 8),
+                Pill(
+                  l10n.questReward(q.rewardXp),
+                  icon: Icons.bolt,
+                  color: bv.gold,
                 ),
-                Text(l10n.questReward(q.rewardXp)),
               ],
             ),
-            const SizedBox(height: 6),
-            LinearProgressIndicator(
+            const SizedBox(height: 12),
+            GradientProgressBar(
               value: q.target == 0 ? 0 : q.progress / q.target,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
             Row(
               children: [
-                Text('${q.progress} / ${q.target}'),
+                Text(
+                  '${q.progress} / ${q.target}',
+                  style: text.labelMedium?.copyWith(color: bv.muted),
+                ),
                 const Spacer(),
                 if (q.claimed)
-                  Text(l10n.questClaimed)
+                  Text(
+                    l10n.questClaimed,
+                    style: text.labelLarge?.copyWith(color: bv.success),
+                  )
                 else if (q.completed)
-                  FilledButton(
-                    key: Key('quest-claim-${q.id}'),
-                    onPressed: () => _run(
-                      context,
-                      ref,
-                      () async => l10n.questXpGained(await repo.claim(q.id)),
+                  SizedBox(
+                    width: 140,
+                    child: GradientButton(
+                      key: Key('quest-claim-${q.id}'),
+                      height: 40,
+                      label: l10n.questClaim,
+                      onPressed: () => _run(
+                        context,
+                        ref,
+                        () async => l10n.questXpGained(await repo.claim(q.id)),
+                      ),
                     ),
-                    child: Text(l10n.questClaim),
                   )
                 else if (canReroll)
-                  TextButton(
+                  TextButton.icon(
                     key: Key('quest-reroll-${q.id}'),
+                    icon: const Icon(Icons.autorenew_rounded, size: 18),
                     onPressed: () => _run(context, ref, () async {
                       await repo.reroll(q.id);
                       return null;
                     }),
-                    child: Text(l10n.questReroll),
+                    label: Text(l10n.questReroll),
                   ),
               ],
             ),
@@ -93,33 +112,46 @@ class QuestsScreen extends ConsumerWidget {
         ),
       ),
     );
+    Widget empty() => BvCard(
+      child: Row(
+        children: [
+          const IconBadge(Icons.flag_rounded, size: 40),
+          const SizedBox(width: 12),
+          Expanded(child: Text(l10n.questsEmpty, style: text.bodyMedium)),
+        ],
+      ),
+    );
     return Scaffold(
       appBar: AppBar(title: Text(l10n.questsTitle)),
       body: switch (ref.watch(questsProvider)) {
         AsyncData(:final value) => ListView(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
           children: [
-            Text(
-              l10n.questsDaily,
-              style: Theme.of(context).textTheme.titleMedium,
+            Row(
+              children: [
+                Expanded(child: SectionTitle(l10n.questsDaily)),
+                Pill(
+                  l10n.questRerollsLeft(value.rerollsLeft),
+                  key: const Key('rerolls-left'),
+                  icon: Icons.autorenew_rounded,
+                ),
+              ],
             ),
-            Text(
-              l10n.questRerollsLeft(value.rerollsLeft),
-              key: const Key('rerolls-left'),
-            ),
-            for (final q in value.daily) tile(q, value.rerollsLeft > 0),
-            const SizedBox(height: 16),
-            Text(
-              l10n.questsWeekly,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            for (final q in value.weekly) tile(q, value.rerollsLeft > 0),
+            if (value.daily.isEmpty) empty(),
+            for (final q in value.daily)
+              tile(q, value.rerollsLeft > 0, Icons.today_rounded),
+            SectionTitle(l10n.questsWeekly),
+            if (value.weekly.isEmpty) empty(),
+            for (final q in value.weekly)
+              tile(q, value.rerollsLeft > 0, Icons.date_range_rounded),
           ],
         ),
-        AsyncError(:final error) => Center(
-          child: Text(playErrorText(l10n, error)),
+        AsyncError(:final error) => ErrorView(
+          message: playErrorText(l10n, error),
+          retryLabel: l10n.retry,
+          onRetry: () => ref.invalidate(questsProvider),
         ),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const LoadingView(),
       },
     );
   }

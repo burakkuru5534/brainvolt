@@ -190,12 +190,10 @@ class _MatchScreenState extends ConsumerState<MatchScreen> {
                   child: switch (state.phase) {
                     MatchPhase.waiting => _waiting(context, state, now),
                     MatchPhase.countdown => Center(
-                      child: Text(
-                        l10n.matchStartsIn(
+                      child: _Countdown(
+                        text: l10n.matchStartsIn(
                           ((state.startsAt - now) / 1000).ceil().clamp(0, 9),
                         ),
-                        key: const Key('countdown'),
-                        style: Theme.of(context).textTheme.displayLarge,
                       ),
                     ),
                     MatchPhase.preRound => _PickView(
@@ -233,31 +231,84 @@ class _MatchScreenState extends ConsumerState<MatchScreen> {
     final ready = _readySent || (state.me?.ready ?? false);
     final left = ((state.readyDeadlineAt - now) / 1000).ceil();
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            l10n.matchFoundTitle,
-            style: Theme.of(context).textTheme.titleLarge,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          if (state.readyDeadlineAt > 0 && left >= 0)
-            Text(l10n.readyDeadline(left)),
-          const SizedBox(height: 24),
-          if (ready)
-            Text(l10n.waitingForOpponent)
-          else
-            GradientButton(
-              key: const Key('ready'),
-              label: l10n.readyButton,
-              icon: Icons.bolt,
-              onPressed: () async {
-                setState(() => _readySent = true);
-                await _run(_ctrl.ready);
-              },
+      child: BvCard(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const IconBadge(Icons.sports_esports_rounded, size: 72),
+            const SizedBox(height: 14),
+            Text(
+              l10n.matchFoundTitle,
+              style: Theme.of(context).textTheme.titleLarge,
+              textAlign: TextAlign.center,
             ),
-        ],
+            const SizedBox(height: 8),
+            if (state.readyDeadlineAt > 0 && left >= 0)
+              Text(
+                l10n.readyDeadline(left),
+                style: Theme.of(context).textTheme.bodyMedium
+                    ?.copyWith(color: BvColors.of(context).muted),
+              ),
+            const SizedBox(height: 24),
+            if (ready)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2.5),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(l10n.waitingForOpponent),
+                ],
+              )
+            else
+              GradientButton(
+                key: const Key('ready'),
+                label: l10n.readyButton,
+                icon: Icons.bolt,
+                onPressed: () async {
+                  setState(() => _readySent = true);
+                  await _run(_ctrl.ready);
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// "Starts in n": the number in a glowing gradient ring.
+class _Countdown extends StatelessWidget {
+  const _Countdown({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final bv = BvColors.of(context);
+    return Container(
+      width: 220,
+      height: 220,
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: bv.gradient,
+        boxShadow: [BoxShadow(color: bv.glow, blurRadius: 40, spreadRadius: 4)],
+      ),
+      child: Container(
+        alignment: Alignment.center,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(shape: BoxShape.circle, color: bv.surface),
+        child: Text(
+          text,
+          key: const Key('countdown'),
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
       ),
     );
   }
@@ -269,16 +320,7 @@ class _Notice extends StatelessWidget {
   final String text;
 
   @override
-  Widget build(BuildContext context) => Container(
-    width: double.infinity,
-    margin: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    decoration: BoxDecoration(
-      color: BvColors.of(context).badge,
-      borderRadius: BorderRadius.circular(14),
-    ),
-    child: Text(text, textAlign: TextAlign.center),
-  );
+  Widget build(BuildContext context) => NoticeBar(text);
 }
 
 /// "Question n/N", the leave button and the match progress.
@@ -310,7 +352,7 @@ class _Header extends StatelessWidget {
         ),
         if (progress != null) ...[
           const SizedBox(height: 10),
-          LinearProgressIndicator(value: progress!.clamp(0, 1)),
+          GradientProgressBar(value: progress!.clamp(0, 1), height: 6),
         ],
       ],
     ),
@@ -330,7 +372,7 @@ class _Scoreboard extends StatelessWidget {
     final answered = state.round?.answered ?? const {};
     final text = Theme.of(context).textTheme;
     Widget side(Player? p, String name, int score, {required bool mine}) {
-      final avatar = AvatarBubble(avatarFor(p?.avatarId ?? ''), size: 64);
+      final avatar = AvatarBubble(avatarFor(p?.avatarId ?? ''), size: 56);
       final info = Expanded(
         child: Column(
           crossAxisAlignment: mine
@@ -397,29 +439,35 @@ class _Scoreboard extends StatelessWidget {
         ),
       );
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          children: [
-            team(state.mySide, l10n.yourTeam, state.myScore),
-            const _Versus(),
-            team(3 - state.mySide, l10n.opponentsTeam, state.opponentScore),
-          ],
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+        child: BvCard(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+          child: Row(
+            children: [
+              team(state.mySide, l10n.yourTeam, state.myScore),
+              const _Versus(),
+              team(3 - state.mySide, l10n.opponentsTeam, state.opponentScore),
+            ],
+          ),
         ),
       );
     }
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          side(me, l10n.you, state.myScore, mine: true),
-          const _Versus(),
-          side(
-            opponent,
-            opponent?.displayName ?? '',
-            state.opponentScore,
-            mine: false,
-          ),
-        ],
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+      child: BvCard(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            side(me, l10n.you, state.myScore, mine: true),
+            const _Versus(),
+            side(
+              opponent,
+              opponent?.displayName ?? '',
+              state.opponentScore,
+              mine: false,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -455,7 +503,9 @@ class _QuickLine extends StatelessWidget {
                 for (final e in quick.entries)
                   Chip(
                     key: Key('quick-shown-${e.key}'),
-                    backgroundColor: e.key == me ? bv.badge : bv.card,
+                    backgroundColor: e.key == me
+                        ? bv.gradientStart.withAlpha(90)
+                        : bv.card,
                     label: Text(
                       '${e.key == me ? l10n.you : names[e.key] ?? ''}: '
                       '${quickPhraseText(l10n, e.value)}',
@@ -562,23 +612,30 @@ class _RoundView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          LinearProgressIndicator(
-            key: const Key('round-timer'),
-            value: revealed ? 0 : left / window,
-          ),
-          const SizedBox(height: 16),
-          if (r.category != null)
-            Align(
-              child: Chip(
-                avatar: Icon(
-                  Icons.public,
-                  size: 18,
-                  color: BvColors.of(context).badgeInk,
-                ),
-                label: Text(r.category!),
+          Row(
+            children: [
+              Expanded(
+                child: r.category != null
+                    ? Align(
+                        alignment: Alignment.centerLeft,
+                        child: Pill(r.category!, icon: Icons.public),
+                      )
+                    : const SizedBox(),
               ),
-            ),
-          const SizedBox(height: 8),
+              CountdownRing(
+                key: const Key('round-timer'),
+                // Whole seconds, in step with the number inside.
+                value: revealed
+                    ? 0
+                    : (left / 1000).ceil() / (window / 1000).ceil(),
+                child: Text(
+                  revealed ? '–' : '${(left / 1000).ceil()}',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
           BvCard(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
             child: Text(
@@ -589,12 +646,15 @@ class _RoundView extends StatelessWidget {
           ),
           if (turnHolder != null && !revealed) ...[
             const SizedBox(height: 8),
-            Text(
-              turnHolder.userId == state.myUserId
-                  ? l10n.yourTurn
-                  : l10n.turnOf(turnHolder.displayName),
-              key: const Key('turn'),
-              textAlign: TextAlign.center,
+            Align(
+              child: Pill(
+                turnHolder.userId == state.myUserId
+                    ? l10n.yourTurn
+                    : l10n.turnOf(turnHolder.displayName),
+                key: const Key('turn'),
+                icon: Icons.person_pin_rounded,
+                gradient: turnHolder.userId == state.myUserId,
+              ),
             ),
           ],
           const SizedBox(height: 16),
@@ -654,7 +714,20 @@ class _RoundView extends StatelessWidget {
             ),
             if (r.explanation != null) ...[
               const SizedBox(height: 8),
-              Text(r.explanation!, textAlign: TextAlign.center),
+              BvCard(
+                padding: const EdgeInsets.all(14),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.lightbulb_rounded,
+                      color: BvColors.of(context).gold,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text(r.explanation!)),
+                  ],
+                ),
+              ),
             ],
           ],
         ],
@@ -701,12 +774,14 @@ class _Feedback extends StatelessWidget {
           Text(points!, style: Theme.of(context).textTheme.titleLarge),
       ],
     );
+    final card = BvCard(
+      color: color.withAlpha(36),
+      padding: const EdgeInsets.all(12),
+      child: body,
+    );
     return good
-        ? CustomPaint(
-            painter: _Sparkles(bv),
-            child: Padding(padding: const EdgeInsets.all(12), child: body),
-          )
-        : body;
+        ? CustomPaint(foregroundPainter: _Sparkles(bv), child: card)
+        : card;
   }
 }
 
@@ -717,12 +792,7 @@ class _Sparkles extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final colors = [
-      bv.gradientStart,
-      bv.success,
-      const Color(0xFFF5B301),
-      bv.badgeInk,
-    ];
+    final colors = [bv.gradientStart, bv.success, bv.gold, bv.gradientEnd];
     // Fixed positions: a calm, deterministic burst around the text.
     const spots = [
       (0.05, 0.2),
@@ -776,35 +846,79 @@ class _End extends StatelessWidget {
       _ when state.winnerSide == state.mySide => l10n.matchWon,
       _ => l10n.matchLost,
     };
+    final bv = BvColors.of(context);
+    final won =
+        state.phase == MatchPhase.completed &&
+        !state.isDraw &&
+        state.winnerSide == state.mySide;
+    final tint = switch (state) {
+      MatchState(phase: MatchPhase.cancelled) => bv.muted,
+      MatchState(isDraw: true) => bv.badgeInk,
+      _ when won => bv.gold,
+      _ => bv.danger,
+    };
     return Center(
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Container(
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [tint, tint.withAlpha(120)],
+                ),
+                boxShadow: [
+                  BoxShadow(color: tint.withAlpha(110), blurRadius: 30),
+                ],
+              ),
+              child: Icon(
+                won
+                    ? Icons.emoji_events_rounded
+                    : state.phase == MatchPhase.cancelled
+                    ? Icons.block_rounded
+                    : state.isDraw
+                    ? Icons.handshake_rounded
+                    : Icons.sentiment_dissatisfied_rounded,
+                size: 52,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 14),
             Text(
               headline,
               key: const Key('match-result'),
-              style: Theme.of(context).textTheme.headlineMedium,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineMedium
+                  ?.copyWith(color: won ? bv.gold : null),
             ),
             if (opponentGone && state.phase == MatchPhase.completed) ...[
               const SizedBox(height: 8),
               Text(l10n.opponentLeft),
             ],
             const SizedBox(height: 8),
-            Text(
-              '${state.myScore} — ${state.opponentScore}',
-              style: Theme.of(context).textTheme.displaySmall,
+            BvCard(
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
+              child: Text(
+                '${state.myScore} — ${state.opponentScore}',
+                style: Theme.of(context).textTheme.displaySmall,
+              ),
             ),
             if (state.phase == MatchPhase.completed)
               PlayAgainPanel(matchId: state.matchId),
             RoomReturn(matchId: state.matchId),
             const SizedBox(height: 24),
             if (state.phase == MatchPhase.completed)
-              OutlinedButton(
+              OutlinedButton.icon(
                 key: const Key('show-details'),
+                icon: const Icon(Icons.bar_chart_rounded),
                 onPressed: () =>
                     context.push(Routes.matchResult(state.matchId)),
-                child: Text(l10n.showDetails),
+                label: Text(l10n.showDetails),
               ),
             const SizedBox(height: 12),
             GradientButton(
@@ -856,18 +970,28 @@ class _PickView extends StatelessWidget {
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleLarge,
         ),
-        const SizedBox(height: 8),
-        Text('$left', textAlign: TextAlign.center),
+        const SizedBox(height: 12),
+        Center(
+          child: CountdownRing(
+            value: left > 0 ? 1 : 0,
+            size: 56,
+            child: Text(
+              '$left',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+        ),
         const SizedBox(height: 16),
         for (final (id, name) in pre.categories)
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: FilledButton.tonal(
+            padding: const EdgeInsets.symmetric(vertical: 5),
+            child: OutlinedButton.icon(
               key: Key('pick-$id'),
+              icon: const Icon(Icons.local_offer_rounded),
               onPressed: mine && pre.allowed.contains(id)
                   ? () => onPick(id)
                   : null,
-              child: Text(name),
+              label: Text(name),
             ),
           ),
       ],

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/session_controller.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/widgets/bv.dart';
 import '../../../core/widgets/dialogs.dart';
 import '../data/auth_providers.dart';
 import 'error_text.dart';
@@ -49,7 +50,11 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(l10n.verifyEmailBody(email)),
+          const Center(
+            child: IconBadge(Icons.mark_email_unread_rounded, size: 88),
+          ),
+          const SizedBox(height: 20),
+          BvCard(child: Text(l10n.verifyEmailBody(email))),
           const SizedBox(height: 24),
           FilledButton(
             key: const Key('verify-check'),

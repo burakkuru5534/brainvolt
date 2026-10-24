@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
+import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/realtime/realtime_client.dart';
 import '../../../core/realtime/realtime_providers.dart';
@@ -88,60 +89,67 @@ class _ChallengesScreenState extends ConsumerState<ChallengesScreen> {
         AsyncData(:final value) => RefreshIndicator(
           onRefresh: () => ref.refresh(challengesProvider.future),
           child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             children: [
               for (final (incoming, c) in value)
-                ListTile(
-                  key: Key('challenge-${c.id}'),
-                  leading: Text(
-                    avatarFor(
-                      incoming ? c.challenger.avatarId : c.target.avatarId,
+                TileCard(
+                  highlight: incoming ? BvColors.of(context).accent : null,
+                  child: ListTile(
+                    key: Key('challenge-${c.id}'),
+                    leading: AvatarBubble(
+                      avatarFor(
+                        incoming ? c.challenger.avatarId : c.target.avatarId,
+                      ),
+                      size: 44,
                     ),
-                    style: const TextStyle(fontSize: 28),
-                  ),
-                  title: Text(
-                    incoming
-                        ? l10n.challengeFrom(c.challenger.displayName)
-                        : l10n.challengeTo(c.target.displayName),
-                  ),
-                  subtitle: Text(
-                    c.kind == 'revenge'
-                        ? '${l10n.revengeLabel} · ${matchTypeName(l10n, c.matchType)}'
-                        : matchTypeName(l10n, c.matchType),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: incoming
-                        ? [
-                            IconButton(
-                              key: Key('accept-challenge-${c.id}'),
-                              tooltip: l10n.accept,
-                              icon: const Icon(Icons.check),
-                              onPressed: () =>
-                                  _respond(c, ChallengeAction.accept),
-                            ),
-                            IconButton(
-                              tooltip: l10n.decline,
-                              icon: const Icon(Icons.close),
-                              onPressed: () =>
-                                  _respond(c, ChallengeAction.decline),
-                            ),
-                          ]
-                        : [
-                            TextButton(
-                              onPressed: () =>
-                                  _respond(c, ChallengeAction.cancel),
-                              child: Text(l10n.withdraw),
-                            ),
-                          ],
+                    title: Text(
+                      incoming
+                          ? l10n.challengeFrom(c.challenger.displayName)
+                          : l10n.challengeTo(c.target.displayName),
+                    ),
+                    subtitle: Text(
+                      c.kind == 'revenge'
+                          ? '${l10n.revengeLabel} · ${matchTypeName(l10n, c.matchType)}'
+                          : matchTypeName(l10n, c.matchType),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: incoming
+                          ? [
+                              IconButton(
+                                key: Key('accept-challenge-${c.id}'),
+                                tooltip: l10n.accept,
+                                icon: Icon(
+                                  Icons.check_circle_rounded,
+                                  color: BvColors.of(context).success,
+                                ),
+                                onPressed: () =>
+                                    _respond(c, ChallengeAction.accept),
+                              ),
+                              IconButton(
+                                tooltip: l10n.decline,
+                                icon: const Icon(Icons.close),
+                                onPressed: () =>
+                                    _respond(c, ChallengeAction.decline),
+                              ),
+                            ]
+                          : [
+                              TextButton(
+                                onPressed: () =>
+                                    _respond(c, ChallengeAction.cancel),
+                                child: Text(l10n.withdraw),
+                              ),
+                            ],
+                    ),
                   ),
                 ),
             ],
           ),
         ),
-        AsyncError(:final error) => Center(
-          child: Text(playErrorText(l10n, error)),
+        AsyncError(:final error) => ErrorView(
+          message: playErrorText(l10n, error),
         ),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const LoadingView(),
       },
     );
   }

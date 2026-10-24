@@ -125,10 +125,10 @@ class _InboxScreenState extends ConsumerState<InboxScreen> {
             itemBuilder: (context, i) => _Item(value.items[i]),
           ),
         ),
-        AsyncError(:final error) => Center(
-          child: Text(playErrorText(l10n, error)),
+        AsyncError(:final error) => ErrorView(
+          message: playErrorText(l10n, error),
         ),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const LoadingView(),
       },
     );
   }
@@ -146,6 +146,7 @@ class _Item extends ConsumerWidget {
     final loc = MaterialLocalizations.of(context);
     return BvCard(
       key: Key('inbox-${item.id}'),
+      color: item.read ? null : bv.gradientStart.withAlpha(40),
       padding: const EdgeInsets.all(14),
       onTap: () async {
         if (!item.read) {
@@ -189,7 +190,7 @@ class _Item extends ConsumerWidget {
               margin: const EdgeInsets.only(top: 6),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: bv.gradientStart,
+                color: bv.accent,
               ),
             ),
         ],

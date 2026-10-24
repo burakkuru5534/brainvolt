@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
+import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/widgets/bv.dart';
 import '../../lobby/data/lobby_providers.dart';
@@ -65,6 +66,7 @@ class QuizzesScreen extends ConsumerWidget {
         appBar: AppBar(
           title: Text(l10n.quizzesTitle),
           bottom: TabBar(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             tabs: [
               Tab(key: const Key('tab-mine'), text: l10n.quizzesMine),
               Tab(key: const Key('tab-discover'), text: l10n.quizzesDiscover),
@@ -98,13 +100,13 @@ class _Mine extends ConsumerWidget {
         text: l10n.quizzesEmptyMine,
       ),
       AsyncData(:final value) => ListView(
-        padding: const EdgeInsets.only(bottom: 88),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 88),
         children: [for (final q in value) _MyQuiz(q)],
       ),
-      AsyncError(:final error) => Center(
-        child: Text(playErrorText(l10n, error)),
+      AsyncError(:final error) => ErrorView(
+        message: playErrorText(l10n, error),
       ),
-      _ => const Center(child: CircularProgressIndicator()),
+      _ => const LoadingView(),
     };
   }
 }
@@ -131,77 +133,81 @@ class _MyQuiz extends ConsumerWidget {
       }
     }
 
-    return ListTile(
-      key: Key('my-quiz-${quiz.id}'),
-      title: Text(quiz.title),
-      subtitle: Text(
-        [
-          '${quizStatusName(l10n, quiz.status)} · '
-              '${l10n.quizLikes(quiz.likeCount, quiz.playCount)}',
-          if (quiz.rejectionReason case final r? when quiz.status == 'rejected')
-            l10n.quizRejectedReason(r),
-        ].join('\n'),
-      ),
-      onTap: () async {
-        await context.push(Routes.quiz(quiz.id));
-        ref.invalidate(myQuizzesProvider);
-      },
-      trailing: PopupMenuButton<String>(
-        key: Key('quiz-menu-${quiz.id}'),
-        onSelected: (v) async {
-          switch (v) {
-            case 'play':
-              if (!quiz.published) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.quizUnpublishedNote)),
-                );
-              }
-              await playQuizInRoom(context, ref, quiz);
-            case 'submit':
-              await act(() => repo.submit(quiz.id), l10n.quizSubmitted);
-            case 'delete':
-              final ok = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  content: Text(l10n.quizDeleteConfirm),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: Text(
-                        MaterialLocalizations.of(context).cancelButtonLabel,
-                      ),
-                    ),
-                    FilledButton(
-                      key: const Key('quiz-delete-confirm'),
-                      onPressed: () => Navigator.pop(context, true),
-                      child: Text(l10n.quizDelete),
-                    ),
-                  ],
-                ),
-              );
-              if (ok ?? false) {
-                await act(() => repo.delete(quiz.id));
-              }
-          }
+    return TileCard(
+      child: ListTile(
+        key: Key('my-quiz-${quiz.id}'),
+        leading: const IconBadge(Icons.quiz_rounded, size: 40),
+        title: Text(quiz.title),
+        subtitle: Text(
+          [
+            '${quizStatusName(l10n, quiz.status)} · '
+                '${l10n.quizLikes(quiz.likeCount, quiz.playCount)}',
+            if (quiz.rejectionReason case final r?
+                when quiz.status == 'rejected')
+              l10n.quizRejectedReason(r),
+          ].join('\n'),
+        ),
+        onTap: () async {
+          await context.push(Routes.quiz(quiz.id));
+          ref.invalidate(myQuizzesProvider);
         },
-        itemBuilder: (context) => [
-          PopupMenuItem(
-            key: const Key('quiz-play'),
-            value: 'play',
-            child: Text(l10n.quizPlayInRoom),
-          ),
-          if (quiz.status != 'submitted' && !quiz.published)
+        trailing: PopupMenuButton<String>(
+          key: Key('quiz-menu-${quiz.id}'),
+          onSelected: (v) async {
+            switch (v) {
+              case 'play':
+                if (!quiz.published) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.quizUnpublishedNote)),
+                  );
+                }
+                await playQuizInRoom(context, ref, quiz);
+              case 'submit':
+                await act(() => repo.submit(quiz.id), l10n.quizSubmitted);
+              case 'delete':
+                final ok = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    content: Text(l10n.quizDeleteConfirm),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: Text(
+                          MaterialLocalizations.of(context).cancelButtonLabel,
+                        ),
+                      ),
+                      FilledButton(
+                        key: const Key('quiz-delete-confirm'),
+                        onPressed: () => Navigator.pop(context, true),
+                        child: Text(l10n.quizDelete),
+                      ),
+                    ],
+                  ),
+                );
+                if (ok ?? false) {
+                  await act(() => repo.delete(quiz.id));
+                }
+            }
+          },
+          itemBuilder: (context) => [
             PopupMenuItem(
-              key: const Key('quiz-submit'),
-              value: 'submit',
-              child: Text(l10n.quizSubmit),
+              key: const Key('quiz-play'),
+              value: 'play',
+              child: Text(l10n.quizPlayInRoom),
             ),
-          PopupMenuItem(
-            key: const Key('quiz-delete'),
-            value: 'delete',
-            child: Text(l10n.quizDelete),
-          ),
-        ],
+            if (quiz.status != 'submitted' && !quiz.published)
+              PopupMenuItem(
+                key: const Key('quiz-submit'),
+                value: 'submit',
+                child: Text(l10n.quizSubmit),
+              ),
+            PopupMenuItem(
+              key: const Key('quiz-delete'),
+              value: 'delete',
+              child: Text(l10n.quizDelete),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -219,13 +225,13 @@ class _Discover extends ConsumerWidget {
         text: l10n.quizzesEmptyDiscover,
       ),
       AsyncData(:final value) => ListView(
-        padding: const EdgeInsets.only(bottom: 88),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 88),
         children: [for (final q in value) _PublishedQuiz(q)],
       ),
-      AsyncError(:final error) => Center(
-        child: Text(playErrorText(l10n, error)),
+      AsyncError(:final error) => ErrorView(
+        message: playErrorText(l10n, error),
       ),
-      _ => const Center(child: CircularProgressIndicator()),
+      _ => const LoadingView(),
     };
   }
 }
@@ -238,42 +244,48 @@ class _PublishedQuiz extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    return ListTile(
-      key: Key('quiz-${quiz.id}'),
-      title: Text(quiz.title),
-      subtitle: Text(
-        '${l10n.quizMeta(quiz.questionCount, quiz.authorName)}\n'
-        '${l10n.quizLikes(quiz.likeCount, quiz.playCount)}',
-      ),
-      isThreeLine: true,
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            key: Key('quiz-like-${quiz.id}'),
-            tooltip: l10n.quizLike,
-            icon: Icon(quiz.liked ? Icons.favorite : Icons.favorite_border),
-            onPressed: () async {
-              final messenger = ScaffoldMessenger.of(context);
-              try {
-                await ref
-                    .read(creatorRepositoryProvider)
-                    .like(quiz.id, like: !quiz.liked);
-                ref.invalidate(discoverQuizzesProvider);
-              } on Object catch (e) {
-                messenger.showSnackBar(
-                  SnackBar(content: Text(playErrorText(l10n, e))),
-                );
-              }
-            },
-          ),
-          IconButton(
-            key: Key('quiz-room-${quiz.id}'),
-            tooltip: l10n.quizPlayInRoom,
-            icon: const Icon(Icons.meeting_room),
-            onPressed: () => playQuizInRoom(context, ref, quiz),
-          ),
-        ],
+    return TileCard(
+      child: ListTile(
+        key: Key('quiz-${quiz.id}'),
+        leading: const IconBadge(Icons.travel_explore_rounded, size: 40),
+        title: Text(quiz.title),
+        subtitle: Text(
+          '${l10n.quizMeta(quiz.questionCount, quiz.authorName)}\n'
+          '${l10n.quizLikes(quiz.likeCount, quiz.playCount)}',
+        ),
+        isThreeLine: true,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              key: Key('quiz-like-${quiz.id}'),
+              tooltip: l10n.quizLike,
+              icon: Icon(
+                quiz.liked ? Icons.favorite : Icons.favorite_border,
+                color: quiz.liked ? BvColors.of(context).danger : null,
+              ),
+              onPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                try {
+                  await ref
+                      .read(creatorRepositoryProvider)
+                      .like(quiz.id, like: !quiz.liked);
+                  ref.invalidate(discoverQuizzesProvider);
+                } on Object catch (e) {
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(playErrorText(l10n, e))),
+                  );
+                }
+              },
+            ),
+            IconButton(
+              key: Key('quiz-room-${quiz.id}'),
+              tooltip: l10n.quizPlayInRoom,
+              icon: const Icon(Icons.meeting_room),
+              onPressed: () => playQuizInRoom(context, ref, quiz),
+            ),
+          ],
+        ),
       ),
     );
   }

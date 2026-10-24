@@ -326,17 +326,139 @@ class ChoiceTile extends StatelessWidget {
   }
 }
 
-/// A heading above a group of tiles.
+/// A heading above a group of tiles; [action] adds a link on the right.
 class SectionTitle extends StatelessWidget {
-  const SectionTitle(this.text, {super.key});
+  const SectionTitle(this.text, {this.action, this.onAction, super.key});
 
   final String text;
+  final String? action;
+  final VoidCallback? onAction;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(top: 20, bottom: 10),
-    child: Text(text, style: Theme.of(context).textTheme.titleMedium),
-  );
+  Widget build(BuildContext context) {
+    final title = Text(text, style: Theme.of(context).textTheme.titleMedium);
+    return Padding(
+      padding: const EdgeInsets.only(top: 20, bottom: 10),
+      child: action == null
+          ? title
+          : Row(
+              children: [
+                Expanded(child: title),
+                InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: onAction,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    child: Text(
+                      action!,
+                      style: Theme.of(context).textTheme.labelLarge
+                          ?.copyWith(color: BvColors.of(context).accent),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+    );
+  }
+}
+
+/// A rounded progress bar filled with the brand gradient (XP, timers).
+class GradientProgressBar extends StatelessWidget {
+  const GradientProgressBar({
+    required this.value,
+    this.height = 8,
+    this.gradient,
+    super.key,
+  });
+
+  /// 0–1.
+  final double value;
+  final double height;
+  final Gradient? gradient;
+
+  @override
+  Widget build(BuildContext context) {
+    final bv = BvColors.of(context);
+    final v = value.isNaN ? 0.0 : value.clamp(0.0, 1.0);
+    return Semantics(
+      value: '${(v * 100).round()}%',
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          color: Colors.white.withAlpha(28),
+          borderRadius: BorderRadius.circular(height),
+        ),
+        alignment: Alignment.centerLeft,
+        child: FractionallySizedBox(
+          widthFactor: v,
+          heightFactor: 1,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: gradient ?? bv.gradient,
+              borderRadius: BorderRadius.circular(height),
+              boxShadow: [
+                BoxShadow(color: bv.gradientEnd.withAlpha(90), blurRadius: 8),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A small pill: a label with an optional icon (levels, tags, states).
+class Pill extends StatelessWidget {
+  const Pill(
+    this.label, {
+    this.icon,
+    this.gradient = false,
+    this.color,
+    super.key,
+  });
+
+  final String label;
+  final IconData? icon;
+
+  /// Brand gradient fill instead of the tinted glass.
+  final bool gradient;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final bv = BvColors.of(context);
+    final ink = gradient ? Colors.white : (color ?? bv.badgeInk);
+    final style = Theme.of(context).textTheme.labelMedium?.copyWith(color: ink);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        gradient: gradient ? bv.gradient : null,
+        color: gradient ? null : (color ?? bv.badgeInk).withAlpha(40),
+        borderRadius: BorderRadius.circular(20),
+        border: gradient ? null : Border.all(color: ink.withAlpha(70)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 15, color: ink),
+            const SizedBox(width: 3),
+          ],
+          Flexible(
+            child: Text(
+              label,
+              style: style,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// The WitClash mark: a gradient tile holding a heavy italic "W" struck by
@@ -640,6 +762,419 @@ class EmptyState extends StatelessWidget {
           ),
         ],
       ),
+    ),
+  );
+}
+
+/// A titled group of rows (settings, menus): a glass card holding
+/// [children] separated by hairlines; [title] sits above it.
+class GlassSection extends StatelessWidget {
+  const GlassSection({required this.children, this.title, super.key});
+
+  final String? title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final bv = BvColors.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (title != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(6, 14, 6, 8),
+            child: Text(
+              title!.toUpperCase(),
+              style: Theme.of(context).textTheme.labelMedium
+                  ?.copyWith(color: bv.muted, letterSpacing: 1.1),
+            ),
+          ),
+        BvCard(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final (i, c) in children.indexed) ...[
+                if (i > 0)
+                  Divider(
+                    height: 1,
+                    indent: 16,
+                    endIndent: 16,
+                    color: bv.cardBorder,
+                  ),
+                c,
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// A pill-shaped segmented control: the chosen segment is filled with the
+/// brand gradient. Each segment gets the key `'$keyPrefix-${value.name}'`
+/// when [keyPrefix] is set and values are enums.
+class WcSegmented<T> extends StatelessWidget {
+  const WcSegmented({
+    required this.segments,
+    required this.selected,
+    required this.onChanged,
+    this.keyPrefix,
+    super.key,
+  });
+
+  final List<(T, String)> segments;
+  final T selected;
+  final ValueChanged<T> onChanged;
+  final String? keyPrefix;
+
+  @override
+  Widget build(BuildContext context) {
+    final bv = BvColors.of(context);
+    final style = Theme.of(context).textTheme.labelLarge;
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(18),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: bv.cardBorder),
+      ),
+      child: Row(
+        children: [
+          for (final (value, label) in segments)
+            Expanded(
+              child: GestureDetector(
+                key: keyPrefix == null
+                    ? null
+                    : Key('$keyPrefix-${value is Enum ? value.name : value}'),
+                behavior: HitTestBehavior.opaque,
+                onTap: value == selected ? null : () => onChanged(value),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    gradient: value == selected ? bv.gradient : null,
+                    borderRadius: BorderRadius.circular(26),
+                    boxShadow: [
+                      if (value == selected)
+                        BoxShadow(color: bv.glow, blurRadius: 10),
+                    ],
+                  ),
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: style?.copyWith(
+                      color: value == selected ? Colors.white : bv.muted,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A stat in a glass box: a tinted icon, a big value and a small label.
+class StatBox extends StatelessWidget {
+  const StatBox({
+    required this.icon,
+    required this.value,
+    required this.label,
+    this.color,
+    this.valueKey,
+    super.key,
+  });
+
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color? color;
+  final Key? valueKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final bv = BvColors.of(context);
+    final text = Theme.of(context).textTheme;
+    final tint = color ?? bv.accent;
+    return BvCard(
+      radius: 18,
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+      child: Column(
+        children: [
+          Icon(icon, color: tint, size: 24),
+          const SizedBox(height: 4),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(value, key: valueKey, style: text.titleLarge),
+          ),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: text.labelSmall,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Async states in one place: a spinner, or an error line with a retry.
+class LoadingView extends StatelessWidget {
+  const LoadingView({super.key});
+
+  @override
+  Widget build(BuildContext context) =>
+      const Center(child: CircularProgressIndicator());
+}
+
+class ErrorView extends StatelessWidget {
+  const ErrorView({
+    required this.message,
+    this.onRetry,
+    this.retryLabel,
+    super.key,
+  });
+
+  final String message;
+  final VoidCallback? onRetry;
+  final String? retryLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final bv = BvColors.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: bv.danger.withAlpha(40),
+                border: Border.all(color: bv.danger.withAlpha(90)),
+              ),
+              child: Icon(
+                Icons.error_outline_rounded,
+                color: bv.danger,
+                size: 34,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            if (onRetry != null && retryLabel != null) ...[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh_rounded),
+                label: Text(retryLabel!),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A countdown ring: a gradient arc for the time left ([value] 0–1) around
+/// [child] (usually the seconds).
+class CountdownRing extends StatelessWidget {
+  const CountdownRing({
+    required this.value,
+    required this.child,
+    this.size = 64,
+    this.stroke = 6,
+    super.key,
+  });
+
+  final double value;
+  final Widget child;
+  final double size;
+  final double stroke;
+
+  @override
+  Widget build(BuildContext context) {
+    final bv = BvColors.of(context);
+    final v = value.isNaN ? 0.0 : value.clamp(0.0, 1.0);
+    return Semantics(
+      value: '${(v * 100).round()}%',
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: CustomPaint(
+          painter: _RingPainter(
+            value: v,
+            stroke: stroke,
+            track: Colors.white.withAlpha(30),
+            colors: [bv.gradientStart, bv.gradientMid, bv.gradientEnd],
+            fill: bv.surface,
+            urgent: v < 0.25 ? bv.danger : null,
+          ),
+          child: Center(child: child),
+        ),
+      ),
+    );
+  }
+}
+
+class _RingPainter extends CustomPainter {
+  _RingPainter({
+    required this.value,
+    required this.stroke,
+    required this.track,
+    required this.colors,
+    required this.fill,
+    this.urgent,
+  });
+
+  final double value;
+  final double stroke;
+  final Color track;
+  final List<Color> colors;
+  final Color fill;
+  final Color? urgent;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero);
+    final r = size.shortestSide / 2 - stroke / 2;
+    final rect = Rect.fromCircle(center: c, radius: r);
+    canvas
+      ..drawCircle(c, r, Paint()..color = fill)
+      ..drawCircle(
+        c,
+        r,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = stroke
+          ..color = track,
+      );
+    if (value <= 0) {
+      return;
+    }
+    final arc = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke
+      ..strokeCap = StrokeCap.round;
+    if (urgent != null) {
+      arc.color = urgent!;
+    } else {
+      arc.shader = SweepGradient(
+        startAngle: -1.5708,
+        endAngle: 4.7124,
+        colors: colors,
+        transform: const GradientRotation(-1.5708),
+      ).createShader(rect);
+    }
+    canvas.drawArc(rect, -1.5708, 6.2832 * value, false, arc);
+  }
+
+  @override
+  bool shouldRepaint(_RingPainter old) =>
+      old.value != value || old.urgent != urgent;
+}
+
+/// A one-line notice in a tinted pill (reconnecting, opponent left …).
+class NoticeBar extends StatelessWidget {
+  const NoticeBar(
+    this.text, {
+    this.icon = Icons.info_outline_rounded,
+    super.key,
+  });
+
+  final String text;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final bv = BvColors.of(context);
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+      decoration: BoxDecoration(
+        color: bv.accent.withAlpha(36),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: bv.accent.withAlpha(90)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 18, color: bv.accent),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The big brand block for splash and welcome: the mark, the word mark
+/// and the tagline.
+class BrandHero extends StatelessWidget {
+  const BrandHero({this.tagline, super.key});
+
+  final String? tagline;
+
+  @override
+  Widget build(BuildContext context) {
+    final bv = BvColors.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const BrandMark(size: 96),
+        const SizedBox(height: 18),
+        const FittedBox(child: BrandLogo(size: 44, mark: false)),
+        if (tagline != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            tagline!,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelLarge
+                ?.copyWith(color: bv.muted, letterSpacing: 2),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// A list row ([child], usually a ListTile) on a glass card, with the gap
+/// below it; [highlight] tints it (selected, mine, unread).
+class TileCard extends StatelessWidget {
+  const TileCard({required this.child, this.highlight, super.key});
+
+  final Widget child;
+  final Color? highlight;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: BvCard(
+      radius: 18,
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      color: highlight?.withAlpha(40),
+      child: child,
     ),
   );
 }

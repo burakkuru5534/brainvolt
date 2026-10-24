@@ -85,15 +85,23 @@ class _QueueScreenState extends ConsumerState<QueueScreen> {
       child: Scaffold(
         appBar: AppBar(title: Text(matchTypeName(l10n, widget.mode.matchType))),
         body: Center(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: switch (state) {
               QueueFailed(:final error) => Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(playErrorText(l10n, error), textAlign: TextAlign.center),
-                  const SizedBox(height: 16),
-                  FilledButton(onPressed: _search, child: Text(l10n.retry)),
+                  ErrorView(message: playErrorText(l10n, error)),
+                  SizedBox(
+                    width: 260,
+                    child: GradientButton(
+                      height: 52,
+                      icon: Icons.refresh_rounded,
+                      label: l10n.retry,
+                      onPressed: _search,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   TextButton(
                     onPressed: () => context.go(Routes.home),
                     child: Text(l10n.backHome),
@@ -121,18 +129,16 @@ class _QueueScreenState extends ConsumerState<QueueScreen> {
                   ),
                   if (widget.mode.categoryId case final cat?) ...[
                     const SizedBox(height: 8),
-                    Chip(
-                      key: const Key('queue-topic'),
-                      avatar: const Icon(Icons.local_offer_outlined, size: 18),
-                      label: Text(
-                        l10n.topicLine(
-                          topicName(
-                            l10n,
-                            cat,
-                            ref.watch(categoriesProvider).value ?? const [],
-                          ),
+                    Pill(
+                      l10n.topicLine(
+                        topicName(
+                          l10n,
+                          cat,
+                          ref.watch(categoriesProvider).value ?? const [],
                         ),
                       ),
+                      key: const Key('queue-topic'),
+                      icon: Icons.local_offer_rounded,
                     ),
                   ],
                   const SizedBox(height: 28),
@@ -170,10 +176,8 @@ class _Elapsed extends StatelessWidget {
           width: 96,
           height: 96,
           child: CustomPaint(
-            painter: _RingPainter(seconds % 10, bv.gradientStart, bv.badge),
-            child: Center(
-              child: Icon(Icons.bolt, size: 40, color: bv.gradientStart),
-            ),
+            painter: _RingPainter(seconds % 10, bv.accent, bv.badge),
+            child: Center(child: Icon(Icons.bolt, size: 40, color: bv.accent)),
           ),
         ),
         const SizedBox(height: 8),
@@ -262,13 +266,13 @@ class _RadarState extends ConsumerState<Radar>
               builder: (context, _) => CustomPaint(
                 painter: _RadarPainter(
                   _spin.value,
+                  bv.gradientStart.withAlpha(110),
                   bv.gradientEnd,
-                  bv.gradientStart,
                 ),
               ),
             ),
           ),
-          const IconBadge(Icons.bolt, size: 64, onGradient: true),
+          const BrandMark(size: 60),
           Positioned(left: 0, child: AvatarBubble(avatarFor(avatar), size: 84)),
           const Positioned(right: 0, child: AvatarBubble('❔', size: 84)),
         ],

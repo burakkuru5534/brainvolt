@@ -1952,4 +1952,62 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get brandTagline => 'CLASH YOUR WITS, CLIMB TO THE TOP';
+
+  @override
+  String get homeModesTitle => 'Game modes';
+
+  @override
+  String get homeSeeAll => 'See all';
+
+  @override
+  String get homeMoreTitle => 'Explore';
+
+  @override
+  String get homeAllModes => 'All modes';
+
+  @override
+  String get homeRankedSub => 'Climb your league';
+
+  @override
+  String get homeDailyTag => 'TODAY';
+
+  @override
+  String get homeDailyPlay => 'Play';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navLeaderboards => 'Leaders';
+
+  @override
+  String get profileEdit => 'Edit profile';
+
+  @override
+  String get profileMatches => 'Matches';
+
+  @override
+  String get profileWins => 'Wins';
+
+  @override
+  String get profileWinRate => 'Win rate';
+
+  @override
+  String get profileBestStreak => 'Best streak';
+
+  @override
+  String get profileAchievements => 'Achievements';
+
+  @override
+  String get profileNoBadges =>
+      'No badges yet. Play matches and finish quests!';
+
+  @override
+  String get badgesEmpty => 'No badges yet.';
+
+  @override
+  String get questsEmpty => 'No quests right now, new ones are on the way.';
+
+  @override
+  String get resultRounds => 'Questions';
 }

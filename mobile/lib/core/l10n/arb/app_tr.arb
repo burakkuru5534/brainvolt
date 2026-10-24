@@ -2697,5 +2697,81 @@
   "brandTagline": "BİLGİNİ YARIŞTIR, ZİRVEYE ÇIK",
   "@brandTagline": {
     "description": "The WitClash tagline under the word mark (splash, welcome)."
+  },
+  "homeModesTitle": "Oyun Modları",
+  "@homeModesTitle": {
+    "description": "Home: heading above the game mode tiles."
+  },
+  "homeSeeAll": "Tümü",
+  "@homeSeeAll": {
+    "description": "Home: link to the full mode picker."
+  },
+  "homeMoreTitle": "Keşfet",
+  "@homeMoreTitle": {
+    "description": "Home: heading above the shortcuts."
+  },
+  "homeAllModes": "Tüm modlar",
+  "@homeAllModes": {
+    "description": "Home shortcut to the mode picker."
+  },
+  "homeRankedSub": "Ligini yükselt",
+  "@homeRankedSub": {
+    "description": "Home: line under the Ranked tile."
+  },
+  "homeDailyTag": "BUGÜN",
+  "@homeDailyTag": {
+    "description": "Home: tag on the daily challenge card."
+  },
+  "homeDailyPlay": "Oyna",
+  "@homeDailyPlay": {
+    "description": "Home: button on the daily challenge card."
+  },
+  "navHome": "Ana Sayfa",
+  "@navHome": {
+    "description": "Bottom bar: Home."
+  },
+  "navLeaderboards": "Liderlik",
+  "@navLeaderboards": {
+    "description": "Bottom bar: leaderboards (short)."
+  },
+  "profileEdit": "Profili düzenle",
+  "@profileEdit": {
+    "description": "Profile / badges (WitClash)."
+  },
+  "profileMatches": "Maç",
+  "@profileMatches": {
+    "description": "Profile / badges (WitClash)."
+  },
+  "profileWins": "Galibiyet",
+  "@profileWins": {
+    "description": "Profile / badges (WitClash)."
+  },
+  "profileWinRate": "Kazanma",
+  "@profileWinRate": {
+    "description": "Profile / badges (WitClash)."
+  },
+  "profileBestStreak": "En iyi seri",
+  "@profileBestStreak": {
+    "description": "Profile / badges (WitClash)."
+  },
+  "profileAchievements": "Başarımlar",
+  "@profileAchievements": {
+    "description": "Profile / badges (WitClash)."
+  },
+  "profileNoBadges": "Henüz rozet kazanmadın. Maç oyna, görevleri tamamla!",
+  "@profileNoBadges": {
+    "description": "Profile / badges (WitClash)."
+  },
+  "badgesEmpty": "Henüz rozet yok.",
+  "@badgesEmpty": {
+    "description": "Profile / badges (WitClash)."
+  },
+  "questsEmpty": "Şu an görev yok, yakında yenileri gelecek.",
+  "@questsEmpty": {
+    "description": "Quests: a section without quests."
+  },
+  "resultRounds": "Sorular",
+  "@resultRounds": {
+    "description": "Result screen: heading above the round list."
   }
 }

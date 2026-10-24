@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/l10n.dart';
+import '../../../core/widgets/bv.dart';
 import '../../match/presentation/mode_picker_screen.dart';
 import '../../match/presentation/play_error_text.dart';
 import '../data/creator_providers.dart';
@@ -203,7 +204,7 @@ class _QuizEditorScreenState extends ConsumerState<QuizEditorScreen> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const LoadingView()
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -286,11 +287,11 @@ class _QuizEditorScreenState extends ConsumerState<QuizEditorScreen> {
 
   Widget _question(int i, _Draft q) {
     final l10n = context.l10n;
-    return Card(
+    return Padding(
       key: Key('quiz-q-$i'),
-      margin: const EdgeInsets.only(top: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.only(top: 12),
+      child: BvCard(
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

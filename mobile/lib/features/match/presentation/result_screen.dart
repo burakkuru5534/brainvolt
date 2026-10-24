@@ -55,19 +55,12 @@ class ResultScreen extends ConsumerWidget {
       ),
       body: switch (result) {
         AsyncData(:final value) => _body(context, ref, value, me),
-        AsyncError(:final error) => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(playErrorText(l10n, error)),
-              TextButton(
-                onPressed: () => ref.invalidate(matchResultProvider(matchId)),
-                child: Text(l10n.retry),
-              ),
-            ],
-          ),
+        AsyncError(:final error) => ErrorView(
+          message: playErrorText(l10n, error),
+          retryLabel: l10n.retry,
+          onRetry: () => ref.invalidate(matchResultProvider(matchId)),
         ),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const LoadingView(),
       },
     );
   }
@@ -117,7 +110,7 @@ class ResultScreen extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       children: [
         BvCard(
-          gradient: BvColors.of(context).gradient,
+          gradient: BvColors.of(context).heroGradient,
           padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
           child: Column(
             children: [
@@ -126,7 +119,7 @@ class ResultScreen extends ConsumerWidget {
                     ? Icons.emoji_events
                     : Icons.bolt,
                 size: 48,
-                color: const Color(0xFFFFD45C),
+                color: BvColors.of(context).gold,
               ),
               Text(
                 headline,
@@ -162,30 +155,50 @@ class ResultScreen extends ConsumerWidget {
               ),
             ),
         const SizedBox(height: 16),
+        if (r.rounds.isNotEmpty) SectionTitle(l10n.resultRounds),
         for (final round in r.rounds)
-          Card(
-            child: ListTile(
-              leading: switch (round.answers
-                  .where((a) => a.userId == me)
-                  .firstOrNull) {
-                ResultAnswer(correct: true) => Icon(
-                  Icons.check_circle,
-                  color: BvColors.of(context).success,
-                  size: 30,
-                ),
-                _ => Icon(
-                  Icons.cancel,
-                  color: BvColors.of(context).danger,
-                  size: 30,
-                ),
-              },
-              title: Text('${round.roundNo}. ${round.prompt}'),
-              subtitle: Text(l10n.resultCorrectAnswer(round.correctText)),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: BvCard(
+              radius: 18,
+              padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
+              child: Row(
                 children: [
+                  switch (round.answers
+                      .where((a) => a.userId == me)
+                      .firstOrNull) {
+                    ResultAnswer(correct: true) => Icon(
+                      Icons.check_circle_rounded,
+                      color: BvColors.of(context).success,
+                      size: 30,
+                    ),
+                    _ => Icon(
+                      Icons.cancel_rounded,
+                      color: BvColors.of(context).danger,
+                      size: 30,
+                    ),
+                  },
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${round.roundNo}. ${round.prompt}',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          l10n.resultCorrectAnswer(round.correctText),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
                   Text(
                     '+${round.answers.where((a) => a.userId == me).firstOrNull?.points ?? 0}',
+                    style: Theme.of(context).textTheme.labelLarge
+                        ?.copyWith(color: BvColors.of(context).accent),
                   ),
                   if (round.questionId.isNotEmpty)
                     IconButton(
@@ -231,13 +244,15 @@ class _TeamLines extends StatelessWidget {
       ),
     );
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          column(mySide, l10n.yourTeam),
-          column(3 - mySide, l10n.opponentsTeam),
-        ],
+      padding: const EdgeInsets.only(top: 12),
+      child: BvCard(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            column(mySide, l10n.yourTeam),
+            column(3 - mySide, l10n.opponentsTeam),
+          ],
+        ),
       ),
     );
   }

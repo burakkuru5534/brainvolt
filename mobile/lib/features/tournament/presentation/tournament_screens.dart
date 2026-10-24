@@ -11,6 +11,7 @@ import '../../../core/l10n/l10n.dart';
 import '../../../core/realtime/realtime_client.dart';
 import '../../../core/realtime/realtime_providers.dart';
 import '../../../core/widgets/bv.dart';
+import '../../home/presentation/main_nav.dart';
 import '../../match/presentation/match_type_name.dart';
 import '../../match/presentation/play_error_text.dart';
 import '../../profile/domain/avatars.dart';
@@ -73,6 +74,7 @@ class TournamentsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     return Scaffold(
+      bottomNavigationBar: const MainNavBar(current: MainTab.tournaments),
       appBar: AppBar(title: Text(l10n.tournamentsTitle)),
       floatingActionButton: _isAdmin(ref)
           ? FloatingActionButton.extended(
@@ -106,10 +108,10 @@ class TournamentsScreen extends ConsumerWidget {
             ],
           ),
         ),
-        AsyncError(:final error) => Center(
-          child: Text(playErrorText(l10n, error)),
+        AsyncError(:final error) => ErrorView(
+          message: playErrorText(l10n, error),
         ),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const LoadingView(),
       },
     );
   }
@@ -298,25 +300,27 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
               for (final e in value.entries.where(
                 (e) => e.status != 'withdrawn',
               ))
-                ListTile(
-                  key: Key('entry-${e.id}'),
-                  leading: Text(
-                    e.entityKind == 'user'
-                        ? avatarFor(e.image)
-                        : emblemEmoji[e.image] ?? '🏆',
-                    style: const TextStyle(fontSize: 26),
+                TileCard(
+                  child: ListTile(
+                    key: Key('entry-${e.id}'),
+                    leading: AvatarBubble(
+                      e.entityKind == 'user'
+                          ? avatarFor(e.image)
+                          : emblemEmoji[e.image] ?? '🏆',
+                      size: 42,
+                    ),
+                    title: Text(e.name),
+                    subtitle: e.seed == null ? null : Text('#${e.seed}'),
+                    trailing: Text(entryStatusText(l10n, e)),
                   ),
-                  title: Text(e.name),
-                  subtitle: e.seed == null ? null : Text('#${e.seed}'),
-                  trailing: Text(entryStatusText(l10n, e)),
                 ),
             ],
           ),
         ),
-        AsyncError(:final error) => Center(
-          child: Text(playErrorText(l10n, error)),
+        AsyncError(:final error) => ErrorView(
+          message: playErrorText(l10n, error),
         ),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const LoadingView(),
       },
     );
   }
@@ -453,14 +457,14 @@ class _Header extends StatelessWidget {
     final l10n = context.l10n;
     const white = TextStyle(color: Colors.white);
     return BvCard(
-      gradient: BvColors.of(context).gradient,
+      gradient: BvColors.of(context).heroGradient,
       padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.emoji_events, color: Color(0xFFFFD45C)),
+              Icon(Icons.emoji_events, color: BvColors.of(context).gold),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(

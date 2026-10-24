@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/l10n.dart';
+import '../../../core/widgets/bv.dart';
 import '../../match/presentation/match_type_name.dart';
 import '../../match/presentation/play_error_text.dart';
 import '../../social/domain/social_repository.dart';
@@ -24,7 +25,20 @@ Future<void> showChallengeDialog(
           SimpleDialogOption(
             key: Key('challenge-${t.wire}'),
             onPressed: () => Navigator.pop(context, t),
-            child: Text(matchTypeName(l10n, t.wire)),
+            child: Row(
+              children: [
+                IconBadge(switch (t) {
+                  MatchType.quickDuel => Icons.bolt,
+                  MatchType.suddenDeath => Icons.whatshot_rounded,
+                  MatchType.marathon => Icons.directions_run_rounded,
+                }, size: 40),
+                const SizedBox(width: 12),
+                Text(
+                  matchTypeName(l10n, t.wire),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
           ),
       ],
     ),

@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/config.dart';
 import '../../../app/providers.dart';
 import '../../../app/session_controller.dart';
+import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/widgets/bv.dart';
 import 'error_text.dart';
 
 /// Shown while the session starts, and when it could not start.
@@ -23,19 +25,21 @@ class SplashScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                l10n.appTitle,
-                style: Theme.of(context).textTheme.displaySmall,
-              ),
-              const SizedBox(height: 32),
+              BrandHero(tagline: l10n.brandTagline),
+              const SizedBox(height: 40),
               if (error == null)
                 const CircularProgressIndicator()
               else ...[
-                Text(l10n.splashError, textAlign: TextAlign.center),
+                Text(
+                  l10n.splashError,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 8),
                 Text(
                   errorText(l10n, error) ?? l10n.errorUnknown,
                   textAlign: TextAlign.center,
+                  style: TextStyle(color: BvColors.of(context).muted),
                 ),
                 // Development builds show the technical cause as well.
                 if (ref.watch(appConfigProvider).flavor == Flavor.dev) ...[
@@ -48,10 +52,15 @@ class SplashScreen extends ConsumerWidget {
                   ),
                 ],
                 const SizedBox(height: 16),
-                FilledButton(
-                  key: const Key('splash-retry'),
-                  onPressed: () => ref.invalidate(sessionControllerProvider),
-                  child: Text(l10n.retry),
+                SizedBox(
+                  width: 240,
+                  child: GradientButton(
+                    key: const Key('splash-retry'),
+                    height: 52,
+                    icon: Icons.refresh_rounded,
+                    label: l10n.retry,
+                    onPressed: () => ref.invalidate(sessionControllerProvider),
+                  ),
                 ),
               ],
             ],

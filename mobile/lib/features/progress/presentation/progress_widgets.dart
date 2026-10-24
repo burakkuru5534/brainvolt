@@ -70,26 +70,14 @@ class LevelSummary extends ConsumerWidget {
       children: [
         Row(
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: bv.badge,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.bolt, size: 16, color: bv.badgeInk),
-                  Text(
-                    l10n.levelLabel(progress.level),
-                    style: small?.copyWith(color: bv.badgeInk),
-                  ),
-                ],
-              ),
+            Pill(
+              l10n.levelLabel(progress.level),
+              icon: Icons.bolt,
+              gradient: true,
             ),
             const SizedBox(width: 10),
             Expanded(
-              child: LinearProgressIndicator(
+              child: GradientProgressBar(
                 value: progress.levelSize == 0
                     ? 1
                     : progress.levelXp / progress.levelSize,
@@ -166,7 +154,7 @@ class StatsRow extends ConsumerWidget {
           children: [
             stat(
               Icons.emoji_events,
-              const Color(0xFFF5B301),
+              bv.gold,
               l10n.homeTotalWins,
               '${progress?.wins ?? 0}',
               const Key('progress-wins'),
@@ -269,24 +257,39 @@ class _MatchAwardsCardState extends ConsumerState<MatchAwardsCard> {
       for (final b in a.badges) l10n.awardsBadge(b),
       if (a.questsCompleted > 0) l10n.awardsQuests(a.questsCompleted),
     ];
-    return Card(
+    final bv = BvColors.of(context);
+    return BvCard(
       key: const Key('match-awards'),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.awardsTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 6),
-            if (a.isEmpty)
-              Text(l10n.awardsPending)
-            else
-              for (final line in lines) Text(line),
-          ],
-        ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.card_giftcard_rounded, color: bv.gold),
+              const SizedBox(width: 8),
+              Text(
+                l10n.awardsTitle,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (a.isEmpty)
+            Text(l10n.awardsPending, style: TextStyle(color: bv.muted))
+          else
+            for (final line in lines)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 2),
+                child: Row(
+                  children: [
+                    Icon(Icons.auto_awesome, size: 16, color: bv.accent),
+                    const SizedBox(width: 6),
+                    Expanded(child: Text(line)),
+                  ],
+                ),
+              ),
+        ],
       ),
     );
   }

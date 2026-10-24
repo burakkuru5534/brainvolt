@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/router.dart';
 import '../../../app/session_controller.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/widgets/bv.dart';
 import '../../../core/widgets/dialogs.dart';
 import '../data/auth_providers.dart';
 import '../domain/auth_repository.dart';
@@ -64,7 +65,7 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
             ],
           ),
         ),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const LoadingView(),
       },
     );
   }
@@ -74,7 +75,9 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     Future<void> upgrade(AuthMethod method) =>
         _run(() => runUpgrade(context, ref, method));
     return [
-      Text(l10n.accountGuestInfo),
+      const Center(child: IconBadge(Icons.shield_moon_rounded, size: 80)),
+      const SizedBox(height: 16),
+      BvCard(child: Text(l10n.accountGuestInfo)),
       const SizedBox(height: 24),
       FilledButton.icon(
         key: const Key('sign-in-google'),
@@ -113,54 +116,63 @@ class _AccountScreenState extends ConsumerState<AccountScreen> {
     final controller = ref.read(sessionControllerProvider.notifier);
     final email = ref.read(authRepositoryProvider).currentUser?.email;
     return [
-      ListTile(
-        leading: const Icon(Icons.verified_user_outlined),
-        title: Text(
-          email == null ? l10n.accountSignedIn : l10n.accountSignedInAs(email),
-        ),
+      GlassSection(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.verified_user_outlined),
+            title: Text(
+              email == null
+                  ? l10n.accountSignedIn
+                  : l10n.accountSignedInAs(email),
+            ),
+          ),
+          if (session.flags.emailVerificationRequired)
+            ListTile(
+              key: const Key('open-verify'),
+              leading: const Icon(Icons.mark_email_unread_outlined),
+              title: Text(l10n.verifyEmailTitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push(Routes.verifyEmail),
+            ),
+        ],
       ),
-      if (session.flags.emailVerificationRequired)
-        ListTile(
-          key: const Key('open-verify'),
-          leading: const Icon(Icons.mark_email_unread_outlined),
-          title: Text(l10n.verifyEmailTitle),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => context.push(Routes.verifyEmail),
-        ),
-      const Divider(),
-      ListTile(
-        key: const Key('sign-out'),
-        leading: const Icon(Icons.logout),
-        title: Text(l10n.signOut),
-        onTap: () => _run(() async {
-          if (await confirmDialog(
-            context,
-            title: l10n.signOut,
-            body: l10n.signOutConfirm,
-            confirmLabel: l10n.signOut,
-          )) {
-            await controller.signOut();
-          }
-        }),
-      ),
-      ListTile(
-        key: const Key('delete-account'),
-        leading: Icon(
-          Icons.delete_forever_outlined,
-          color: Theme.of(context).colorScheme.error,
-        ),
-        title: Text(l10n.deleteAccount),
-        onTap: () => _run(() async {
-          if (await confirmDialog(
-            context,
-            title: l10n.deleteAccount,
-            body: l10n.deleteAccountConfirm,
-            confirmLabel: l10n.deleteAccount,
-            destructive: true,
-          )) {
-            await controller.requestDeletion();
-          }
-        }),
+      GlassSection(
+        children: [
+          ListTile(
+            key: const Key('sign-out'),
+            leading: const Icon(Icons.logout),
+            title: Text(l10n.signOut),
+            onTap: () => _run(() async {
+              if (await confirmDialog(
+                context,
+                title: l10n.signOut,
+                body: l10n.signOutConfirm,
+                confirmLabel: l10n.signOut,
+              )) {
+                await controller.signOut();
+              }
+            }),
+          ),
+          ListTile(
+            key: const Key('delete-account'),
+            leading: Icon(
+              Icons.delete_forever_outlined,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            title: Text(l10n.deleteAccount),
+            onTap: () => _run(() async {
+              if (await confirmDialog(
+                context,
+                title: l10n.deleteAccount,
+                body: l10n.deleteAccountConfirm,
+                confirmLabel: l10n.deleteAccount,
+                destructive: true,
+              )) {
+                await controller.requestDeletion();
+              }
+            }),
+          ),
+        ],
       ),
     ];
   }

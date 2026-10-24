@@ -217,11 +217,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(widget.title ?? l10n.chatTitle)),
       body: _channel == null
-          ? Center(
-              child: _error == null
-                  ? const CircularProgressIndicator()
-                  : Text(playErrorText(l10n, _error!)),
-            )
+          ? _error == null
+                ? const LoadingView()
+                : ErrorView(message: playErrorText(l10n, _error!))
           : Column(
               children: [
                 Expanded(

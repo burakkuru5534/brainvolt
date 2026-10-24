@@ -1946,4 +1946,62 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get brandTagline => 'BİLGİNİ YARIŞTIR, ZİRVEYE ÇIK';
+
+  @override
+  String get homeModesTitle => 'Oyun Modları';
+
+  @override
+  String get homeSeeAll => 'Tümü';
+
+  @override
+  String get homeMoreTitle => 'Keşfet';
+
+  @override
+  String get homeAllModes => 'Tüm modlar';
+
+  @override
+  String get homeRankedSub => 'Ligini yükselt';
+
+  @override
+  String get homeDailyTag => 'BUGÜN';
+
+  @override
+  String get homeDailyPlay => 'Oyna';
+
+  @override
+  String get navHome => 'Ana Sayfa';
+
+  @override
+  String get navLeaderboards => 'Liderlik';
+
+  @override
+  String get profileEdit => 'Profili düzenle';
+
+  @override
+  String get profileMatches => 'Maç';
+
+  @override
+  String get profileWins => 'Galibiyet';
+
+  @override
+  String get profileWinRate => 'Kazanma';
+
+  @override
+  String get profileBestStreak => 'En iyi seri';
+
+  @override
+  String get profileAchievements => 'Başarımlar';
+
+  @override
+  String get profileNoBadges =>
+      'Henüz rozet kazanmadın. Maç oyna, görevleri tamamla!';
+
+  @override
+  String get badgesEmpty => 'Henüz rozet yok.';
+
+  @override
+  String get questsEmpty => 'Şu an görev yok, yakında yenileri gelecek.';
+
+  @override
+  String get resultRounds => 'Sorular';
 }

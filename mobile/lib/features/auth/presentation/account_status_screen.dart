@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/session_controller.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/widgets/bv.dart';
 import '../../../core/widgets/dialogs.dart';
 import '../domain/session.dart';
 import 'error_text.dart';
@@ -48,7 +49,7 @@ class _AccountStatusScreenState extends ConsumerState<AccountStatusScreen> {
       _ => null,
     };
     if (session == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: LoadingView());
     }
     final requestedAt = session.user.deletionRequestedAt;
     final pending = session.flags.deletionPending && requestedAt != null;
@@ -60,6 +61,13 @@ class _AccountStatusScreenState extends ConsumerState<AccountStatusScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Center(
+                child: IconBadge(
+                  pending ? Icons.delete_outline_rounded : Icons.block_rounded,
+                  size: 88,
+                ),
+              ),
+              const SizedBox(height: 20),
               Text(
                 pending
                     ? l10n.deletionPendingTitle

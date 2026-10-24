@@ -293,6 +293,8 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const IconBadge(Icons.meeting_room_outlined, size: 88),
+              const SizedBox(height: 16),
               Text(
                 switch (reason) {
                   'not_ready' => l10n.mmLobbyDropped,
@@ -301,7 +303,9 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
                 },
                 key: const Key('room-closed'),
                 textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
+              const SizedBox(height: 8),
               TextButton(
                 onPressed: () => context.go(Routes.home),
                 child: Text(l10n.backHome),
@@ -309,9 +313,7 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
             ],
           ),
         ),
-        RoomView(room: null) => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        RoomView(room: null) => const LoadingView(),
         _ when room!.isMatchmaking => _lobbyBody(context, room, me),
         _ => _body(context, room, me),
       },
@@ -327,38 +329,66 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        ListTile(
+        BvCard(
           key: const Key('room-code'),
-          leading: const Icon(Icons.vpn_key),
-          title: Text(l10n.roomCode(room.code)),
-          subtitle: Text(
-            [
-              matchTypeName(l10n, room.matchType),
-              formatName(l10n, room.format),
-              if (room.teamMode case final m?) teamModeName(l10n, m),
-              if (room.quizLength case final n? when room.creatorQuizId != null)
-                l10n.roomQuiz(n)
-              else
-                l10n.topicLine(
-                  topicName(
-                    l10n,
-                    RoomSettings.of(room).topic,
-                    ref.watch(categoriesProvider).value ?? const [],
-                  ),
+          gradient: BvColors.of(context).heroGradient,
+          padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+          child: Row(
+            children: [
+              const IconBadge(
+                Icons.vpn_key_rounded,
+                size: 48,
+                onGradient: true,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.roomCode(room.code),
+                      style: Theme.of(context).textTheme.titleLarge
+                          ?.copyWith(color: Colors.white, letterSpacing: 1.2),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      [
+                        matchTypeName(l10n, room.matchType),
+                        formatName(l10n, room.format),
+                        if (room.teamMode case final m?) teamModeName(l10n, m),
+                        if (room.quizLength case final n?
+                            when room.creatorQuizId != null)
+                          l10n.roomQuiz(n)
+                        else
+                          l10n.topicLine(
+                            topicName(
+                              l10n,
+                              RoomSettings.of(room).topic,
+                              ref.watch(categoriesProvider).value ?? const [],
+                            ),
+                          ),
+                      ].join(' · '),
+                      style: Theme.of(context).textTheme.bodySmall
+                          ?.copyWith(color: Colors.white.withAlpha(220)),
+                    ),
+                  ],
                 ),
-            ].join(' · '),
-          ),
-          trailing: IconButton(
-            icon: const Icon(Icons.copy),
-            onPressed: () async {
-              await Clipboard.setData(ClipboardData(text: room.code));
-              if (context.mounted) {
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text(l10n.copied)));
-              }
-            },
+              ),
+              IconButton(
+                tooltip: l10n.copied,
+                icon: const Icon(Icons.copy_rounded, color: Colors.white),
+                onPressed: () async {
+                  await Clipboard.setData(ClipboardData(text: room.code));
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text(l10n.copied)));
+                  }
+                },
+              ),
+            ],
           ),
         ),
+        const SizedBox(height: 12),
         if (host)
           Align(
             alignment: Alignment.centerLeft,
@@ -370,33 +400,37 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
             ),
           ),
         if (room.friendsOnly)
-          ListTile(
-            key: const Key('room-friends-only'),
-            leading: const Icon(Icons.lock_outline),
-            title: Text(l10n.roomFriendsOnly),
-            subtitle: Text(l10n.quizUnpublishedNote),
-          ),
-        for (var side = 1; side <= 2; side++) ...[
           Padding(
-            padding: const EdgeInsets.only(top: 16, bottom: 4),
-            child: Text(
-              l10n.sideLabel(side),
-              style: Theme.of(context).textTheme.titleMedium,
+            padding: const EdgeInsets.only(top: 12),
+            child: BvCard(
+              padding: EdgeInsets.zero,
+              child: ListTile(
+                key: const Key('room-friends-only'),
+                leading: const Icon(Icons.lock_outline),
+                title: Text(l10n.roomFriendsOnly),
+                subtitle: Text(l10n.quizUnpublishedNote),
+              ),
             ),
           ),
+        for (var side = 1; side <= 2; side++) ...[
+          _SideTitle(side: side, label: l10n.sideLabel(side)),
           for (var seat = 1; seat <= perSide; seat++)
             _seat(context, room, side, seat, mine),
         ],
         const SizedBox(height: 24),
         if (mine != null && !host)
-          FilledButton.tonal(
+          OutlinedButton.icon(
             key: const Key('room-ready'),
+            icon: Icon(
+              mine.ready ? Icons.close_rounded : Icons.check_circle_rounded,
+            ),
             onPressed: room.status == 'open'
                 ? () => _run(() => _ctrl.setReady(ready: !mine.ready))
                 : null,
-            child: Text(mine.ready ? l10n.notReady : l10n.readyLabel),
+            label: Text(mine.ready ? l10n.notReady : l10n.readyLabel),
           ),
-        if (host)
+        if (host) ...[
+          const SizedBox(height: 8),
           FilledButton(
             key: const Key('room-start'),
             onPressed: room.status == 'open' && room.full && othersReady
@@ -404,6 +438,7 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
                 : null,
             child: Text(room.full ? l10n.startMatch : l10n.roomWaitingPlayers),
           ),
+        ],
         if (room.matchId case final id?) ...[
           const SizedBox(height: 12),
           OutlinedButton(
@@ -491,24 +526,21 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
           ),
         ),
         for (var side = 1; side <= 2; side++) ...[
-          Padding(
-            padding: const EdgeInsets.only(top: 16, bottom: 4),
-            child: Text(
-              l10n.sideLabel(side),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
+          _SideTitle(side: side, label: l10n.sideLabel(side)),
           for (var seat = 1; seat <= perSide; seat++)
             _lobbySeat(context, room, side, seat),
         ],
         const SizedBox(height: 24),
         if (mine != null)
-          FilledButton.tonal(
+          OutlinedButton.icon(
             key: const Key('room-ready'),
+            icon: Icon(
+              mine.ready ? Icons.close_rounded : Icons.check_circle_rounded,
+            ),
             onPressed: room.status == 'open'
                 ? () => _run(() => _ctrl.setReady(ready: !mine.ready))
                 : null,
-            child: Text(mine.ready ? l10n.notReady : l10n.readyLabel),
+            label: Text(mine.ready ? l10n.notReady : l10n.readyLabel),
           ),
         if (leader == me) ...[
           const SizedBox(height: 8),
@@ -530,24 +562,32 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
         .where((m) => m.side == side && m.seat == seat)
         .firstOrNull;
     if (m == null) {
-      return ListTile(
-        key: Key('seat-$side-$seat'),
-        leading: const Icon(Icons.hourglass_empty),
-        title: Text(l10n.mmLobbySearchingSeat),
+      return _SeatCard(
+        child: ListTile(
+          key: Key('seat-$side-$seat'),
+          leading: const Icon(Icons.hourglass_empty_rounded),
+          title: Text(
+            l10n.mmLobbySearchingSeat,
+            style: TextStyle(color: BvColors.of(context).muted),
+          ),
+        ),
       );
     }
     final isLeader = m.card.userId == room.leaderUserId;
-    return ListTile(
-      key: Key('seat-$side-$seat'),
-      leading: Text(
-        avatarFor(m.card.avatarId),
-        style: const TextStyle(fontSize: 28),
+    return _SeatCard(
+      ready: m.ready,
+      child: ListTile(
+        key: Key('seat-$side-$seat'),
+        leading: AvatarBubble(avatarFor(m.card.avatarId), size: 42),
+        title: Text(isLeader ? '👑 ${m.card.displayName}' : m.card.displayName),
+        subtitle: Text(m.ready ? l10n.readyLabel : l10n.notReady),
+        trailing: m.ready
+            ? Icon(
+                Icons.check_circle_rounded,
+                color: BvColors.of(context).success,
+              )
+            : null,
       ),
-      title: Text(isLeader ? '👑 ${m.card.displayName}' : m.card.displayName),
-      subtitle: Text(m.ready ? l10n.readyLabel : l10n.notReady),
-      trailing: m.ready
-          ? const Icon(Icons.check_circle, color: Colors.green)
-          : null,
     );
   }
 
@@ -563,28 +603,89 @@ class _RoomScreenState extends ConsumerState<RoomScreen> {
         .where((m) => m.side == side && m.seat == seat)
         .firstOrNull;
     if (m == null) {
-      return ListTile(
-        key: Key('seat-$side-$seat'),
-        leading: const Icon(Icons.event_seat_outlined),
-        title: Text(l10n.emptySeat),
-        onTap: mine != null && room.status == 'open'
-            ? () => _run(() => _ctrl.moveTo(side, seat))
-            : null,
+      return _SeatCard(
+        child: ListTile(
+          key: Key('seat-$side-$seat'),
+          leading: const Icon(Icons.event_seat_outlined),
+          title: Text(
+            l10n.emptySeat,
+            style: TextStyle(color: BvColors.of(context).muted),
+          ),
+          onTap: mine != null && room.status == 'open'
+              ? () => _run(() => _ctrl.moveTo(side, seat))
+              : null,
+        ),
       );
     }
-    return ListTile(
-      key: Key('seat-$side-$seat'),
-      leading: Text(
-        avatarFor(m.card.avatarId),
-        style: const TextStyle(fontSize: 28),
+    return _SeatCard(
+      ready: m.ready || m.isHost,
+      child: ListTile(
+        key: Key('seat-$side-$seat'),
+        leading: AvatarBubble(avatarFor(m.card.avatarId), size: 42),
+        title: Text(m.card.displayName),
+        subtitle: Text(
+          m.isHost ? l10n.host : (m.ready ? l10n.readyLabel : l10n.notReady),
+        ),
+        trailing: m.ready || m.isHost
+            ? Icon(
+                Icons.check_circle_rounded,
+                color: BvColors.of(context).success,
+              )
+            : null,
       ),
-      title: Text(m.card.displayName),
-      subtitle: Text(
-        m.isHost ? l10n.host : (m.ready ? l10n.readyLabel : l10n.notReady),
+    );
+  }
+}
+
+/// A side's heading: purple for side 1, orange for side 2.
+class _SideTitle extends StatelessWidget {
+  const _SideTitle({required this.side, required this.label});
+
+  final int side;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final bv = BvColors.of(context);
+    final tint = side == 1 ? bv.gradientStart : bv.gradientEnd;
+    return Padding(
+      padding: const EdgeInsets.only(top: 18, bottom: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 6,
+            height: 20,
+            decoration: BoxDecoration(
+              color: tint,
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(label, style: Theme.of(context).textTheme.titleMedium),
+        ],
       ),
-      trailing: m.ready || m.isHost
-          ? const Icon(Icons.check_circle, color: Colors.green)
-          : null,
+    );
+  }
+}
+
+/// A seat row in a glass card; a ready seat gets a green edge.
+class _SeatCard extends StatelessWidget {
+  const _SeatCard({required this.child, this.ready = false});
+
+  final Widget child;
+  final bool ready;
+
+  @override
+  Widget build(BuildContext context) {
+    final bv = BvColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: BvCard(
+        radius: 18,
+        padding: EdgeInsets.zero,
+        color: ready ? bv.success.withAlpha(28) : null,
+        child: child,
+      ),
     );
   }
 }

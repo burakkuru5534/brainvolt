@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/realtime/realtime_client.dart';
 import '../../../core/realtime/realtime_providers.dart';
@@ -181,8 +182,10 @@ class _DailyRunScreenState extends ConsumerState<DailyRunScreen> {
         child: _completed != null
             ? _result(context, _completed!)
             : _voided
-            ? Center(
-                child: Text(l10n.dailyVoided, key: const Key('daily-voided')),
+            ? EmptyState(
+                icon: Icons.block_rounded,
+                text: l10n.dailyVoided,
+                textKey: const Key('daily-voided'),
               )
             : q == null
             ? const Center(
@@ -201,15 +204,39 @@ class _DailyRunScreenState extends ConsumerState<DailyRunScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          l10n.dailyQuestionOf(q.position, q.total),
-          key: const Key('daily-position'),
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.dailyQuestionOf(q.position, q.total),
+                    key: const Key('daily-position'),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  if (q.category.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Pill(q.category, icon: Icons.public),
+                  ],
+                ],
+              ),
+            ),
+            CountdownRing(
+              value: reveal != null ? 0 : left / 15,
+              child: Text(
+                reveal != null ? '–' : '${left.ceil()}',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
-        LinearProgressIndicator(value: reveal != null ? 0 : left / 15),
+        GradientProgressBar(
+          value: q.total == 0 ? 0 : q.position / q.total,
+          height: 6,
+        ),
         const SizedBox(height: 16),
-        if (q.category.isNotEmpty)
-          Text(q.category, style: Theme.of(context).textTheme.labelLarge),
         BvCard(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
           child: Text(
@@ -241,15 +268,23 @@ class _DailyRunScreenState extends ConsumerState<DailyRunScreen> {
             ),
           ),
         if (reveal != null)
-          Text(
-            reveal['option_id'] == null
-                ? l10n.dailyTimeout
-                : reveal['correct'] == true
-                ? l10n.dailyCorrect
-                : l10n.dailyWrong,
-            key: const Key('daily-reveal'),
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleMedium,
+          BvCard(
+            color:
+                (reveal['correct'] == true
+                        ? BvColors.of(context).success
+                        : BvColors.of(context).danger)
+                    .withAlpha(36),
+            padding: const EdgeInsets.all(12),
+            child: Text(
+              reveal['option_id'] == null
+                  ? l10n.dailyTimeout
+                  : reveal['correct'] == true
+                  ? l10n.dailyCorrect
+                  : l10n.dailyWrong,
+              key: const Key('daily-reveal'),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
           ),
       ],
     );
@@ -261,6 +296,23 @@ class _DailyRunScreenState extends ConsumerState<DailyRunScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          Container(
+            width: 96,
+            height: 96,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: BvColors.of(context).gradient,
+              boxShadow: [
+                BoxShadow(color: BvColors.of(context).glow, blurRadius: 30),
+              ],
+            ),
+            child: const Icon(
+              Icons.emoji_events_rounded,
+              size: 52,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 14),
           Text(
             l10n.dailyDone,
             style: Theme.of(context).textTheme.headlineMedium,

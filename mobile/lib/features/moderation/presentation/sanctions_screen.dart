@@ -57,45 +57,52 @@ class SanctionsScreen extends ConsumerWidget {
           textKey: const Key('sanctions-empty'),
         ),
         AsyncData(:final value) => ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
             for (final s in value)
-              ListTile(
-                key: Key('sanction-${s.id}'),
-                leading: Icon(s.active ? Icons.gavel : Icons.history),
-                title: Text(sanctionName(l10n, s.kind)),
-                subtitle: Text(
-                  [
-                    if (!s.active && s.kind != 'warning')
-                      l10n.sanctionEnded
-                    else if (s.endsAt case final end?)
-                      l10n.sanctionUntil(
-                        MaterialLocalizations.of(context).formatShortDate(end),
-                      )
-                    else if (s.kind != 'warning')
-                      l10n.sanctionPermanent,
-                    switch (s.appealStatus) {
-                      'pending' => l10n.appealPending,
-                      'accepted' => l10n.appealAccepted,
-                      'rejected' => l10n.appealRejected,
-                      _ => '',
-                    },
-                  ].where((t) => t.isNotEmpty).join(' · '),
-                  key: Key('sanction-info-${s.id}-$locale'),
+              TileCard(
+                child: ListTile(
+                  key: Key('sanction-${s.id}'),
+                  leading: IconBadge(
+                    s.active ? Icons.gavel_rounded : Icons.history_rounded,
+                    size: 40,
+                  ),
+                  title: Text(sanctionName(l10n, s.kind)),
+                  subtitle: Text(
+                    [
+                      if (!s.active && s.kind != 'warning')
+                        l10n.sanctionEnded
+                      else if (s.endsAt case final end?)
+                        l10n.sanctionUntil(
+                          MaterialLocalizations.of(context)
+                              .formatShortDate(end),
+                        )
+                      else if (s.kind != 'warning')
+                        l10n.sanctionPermanent,
+                      switch (s.appealStatus) {
+                        'pending' => l10n.appealPending,
+                        'accepted' => l10n.appealAccepted,
+                        'rejected' => l10n.appealRejected,
+                        _ => '',
+                      },
+                    ].where((t) => t.isNotEmpty).join(' · '),
+                    key: Key('sanction-info-${s.id}-$locale'),
+                  ),
+                  trailing: s.appealStatus == null && s.active
+                      ? TextButton(
+                          key: Key('appeal-${s.id}'),
+                          onPressed: () => _appeal(context, ref, s),
+                          child: Text(l10n.appealButton),
+                        )
+                      : null,
                 ),
-                trailing: s.appealStatus == null && s.active
-                    ? TextButton(
-                        key: Key('appeal-${s.id}'),
-                        onPressed: () => _appeal(context, ref, s),
-                        child: Text(l10n.appealButton),
-                      )
-                    : null,
               ),
           ],
         ),
-        AsyncError(:final error) => Center(
-          child: Text(playErrorText(l10n, error)),
+        AsyncError(:final error) => ErrorView(
+          message: playErrorText(l10n, error),
         ),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const LoadingView(),
       },
     );
   }

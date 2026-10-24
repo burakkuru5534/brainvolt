@@ -3565,6 +3565,120 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'BİLGİNİ YARIŞTIR, ZİRVEYE ÇIK'**
   String get brandTagline;
+
+  /// Home: heading above the game mode tiles.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyun Modları'**
+  String get homeModesTitle;
+
+  /// Home: link to the full mode picker.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tümü'**
+  String get homeSeeAll;
+
+  /// Home: heading above the shortcuts.
+  ///
+  /// In tr, this message translates to:
+  /// **'Keşfet'**
+  String get homeMoreTitle;
+
+  /// Home shortcut to the mode picker.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm modlar'**
+  String get homeAllModes;
+
+  /// Home: line under the Ranked tile.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ligini yükselt'**
+  String get homeRankedSub;
+
+  /// Home: tag on the daily challenge card.
+  ///
+  /// In tr, this message translates to:
+  /// **'BUGÜN'**
+  String get homeDailyTag;
+
+  /// Home: button on the daily challenge card.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyna'**
+  String get homeDailyPlay;
+
+  /// Bottom bar: Home.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ana Sayfa'**
+  String get navHome;
+
+  /// Bottom bar: leaderboards (short).
+  ///
+  /// In tr, this message translates to:
+  /// **'Liderlik'**
+  String get navLeaderboards;
+
+  /// Profile / badges (WitClash).
+  ///
+  /// In tr, this message translates to:
+  /// **'Profili düzenle'**
+  String get profileEdit;
+
+  /// Profile / badges (WitClash).
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç'**
+  String get profileMatches;
+
+  /// Profile / badges (WitClash).
+  ///
+  /// In tr, this message translates to:
+  /// **'Galibiyet'**
+  String get profileWins;
+
+  /// Profile / badges (WitClash).
+  ///
+  /// In tr, this message translates to:
+  /// **'Kazanma'**
+  String get profileWinRate;
+
+  /// Profile / badges (WitClash).
+  ///
+  /// In tr, this message translates to:
+  /// **'En iyi seri'**
+  String get profileBestStreak;
+
+  /// Profile / badges (WitClash).
+  ///
+  /// In tr, this message translates to:
+  /// **'Başarımlar'**
+  String get profileAchievements;
+
+  /// Profile / badges (WitClash).
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz rozet kazanmadın. Maç oyna, görevleri tamamla!'**
+  String get profileNoBadges;
+
+  /// Profile / badges (WitClash).
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz rozet yok.'**
+  String get badgesEmpty;
+
+  /// Quests: a section without quests.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şu an görev yok, yakında yenileri gelecek.'**
+  String get questsEmpty;
+
+  /// Result screen: heading above the round list.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sorular'**
+  String get resultRounds;
 }
 
 class _AppLocalizationsDelegate

@@ -93,7 +93,7 @@ class _TopicSheet extends ConsumerWidget {
                 ],
               ),
               AsyncError() => Text(l10n.topicLoadFailed),
-              _ => const Center(child: CircularProgressIndicator()),
+              _ => const LoadingView(),
             },
           ],
         ),

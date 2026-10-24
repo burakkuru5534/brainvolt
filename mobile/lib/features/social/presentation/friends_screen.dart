@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
+import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/widgets/bv.dart';
@@ -60,10 +61,13 @@ class FriendsScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                const IconBadge(Icons.people_alt_rounded, size: 88),
+                const SizedBox(height: 16),
                 Text(
                   l10n.friendsUpgrade,
                   key: const Key('friends-upgrade'),
                   textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 16),
                 FilledButton(
@@ -90,6 +94,7 @@ class FriendsScreen extends ConsumerWidget {
             ),
           ],
           bottom: TabBar(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             tabs: [
               Tab(text: l10n.friendsTab),
               Tab(text: l10n.requestsTab),
@@ -235,24 +240,28 @@ class _FriendsTab extends ConsumerWidget {
     return RefreshIndicator(
       onRefresh: () => ref.refresh(friendsProvider.future),
       child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [
           if (code != null)
-            ListTile(
-              key: const Key('friend-code'),
-              leading: const Icon(Icons.qr_code_2),
-              title: Text(l10n.friendCode(code.code)),
-              trailing: IconButton(
-                icon: const Icon(Icons.copy),
-                onPressed: () async {
-                  await Clipboard.setData(ClipboardData(text: code.code));
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context)
-                        .showSnackBar(SnackBar(content: Text(l10n.copied)));
-                  }
-                },
+            TileCard(
+              highlight: BvColors.of(context).gradientStart,
+              child: ListTile(
+                key: const Key('friend-code'),
+                leading: const IconBadge(Icons.qr_code_2_rounded, size: 40),
+                title: Text(l10n.friendCode(code.code)),
+                trailing: IconButton(
+                  icon: const Icon(Icons.copy_rounded),
+                  onPressed: () async {
+                    await Clipboard.setData(ClipboardData(text: code.code));
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text(l10n.copied)));
+                    }
+                  },
+                ),
               ),
             ),
-          const Divider(height: 1),
+          const SizedBox(height: 4),
           ...switch (friends) {
             AsyncData(:final value) when value.isEmpty => [
               EmptyState(icon: Icons.people_alt, text: l10n.friendsEmpty),
@@ -261,16 +270,10 @@ class _FriendsTab extends ConsumerWidget {
               for (final f in value) _FriendTile(friend: f),
             ],
             AsyncError(:final error) => [
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(playErrorText(l10n, error)),
-              ),
+              ErrorView(message: playErrorText(l10n, error)),
             ],
             _ => [
-              const Padding(
-                padding: EdgeInsets.all(24),
-                child: Center(child: CircularProgressIndicator()),
-              ),
+              const Padding(padding: EdgeInsets.all(24), child: LoadingView()),
             ],
           },
         ],
@@ -290,45 +293,46 @@ class _FriendTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final card = friend.card;
-    return ListTile(
-      key: Key('friend-${card.userId}'),
-      leading: Badge(
-        isLabelVisible: friend.online ?? false,
-        backgroundColor: Colors.green,
-        smallSize: 10,
-        child: Text(
+    return TileCard(
+      child: ListTile(
+        key: Key('friend-${card.userId}'),
+        leading: AvatarBubble(
           avatarFor(card.avatarId),
-          style: const TextStyle(fontSize: 28),
+          size: 44,
+          online: friend.online ?? false,
         ),
-      ),
-      title: Text(card.displayName),
-      subtitle: Text(
-        friend.online ?? false
-            ? '@${card.username} · ${l10n.online}'
-            : '@${card.username}',
-      ),
-      trailing: PopupMenuButton<_FriendMenu>(
-        key: Key('friend-menu-${card.userId}'),
-        onSelected: (m) => unawaited(switch (m) {
-          _FriendMenu.challenge => showChallengeDialog(context, ref, card),
-          _FriendMenu.unfriend => _run(
-            context,
-            ref,
-            () => ref.read(socialRepositoryProvider).unfriend(card.userId),
-          ),
-          _FriendMenu.block => _block(context, ref, card),
-        }),
-        itemBuilder: (_) => [
-          PopupMenuItem(
-            value: _FriendMenu.challenge,
-            child: Text(l10n.challengeAction),
-          ),
-          PopupMenuItem(
-            value: _FriendMenu.unfriend,
-            child: Text(l10n.unfriend),
-          ),
-          PopupMenuItem(value: _FriendMenu.block, child: Text(l10n.blockUser)),
-        ],
+        title: Text(card.displayName),
+        subtitle: Text(
+          friend.online ?? false
+              ? '@${card.username} · ${l10n.online}'
+              : '@${card.username}',
+        ),
+        trailing: PopupMenuButton<_FriendMenu>(
+          key: Key('friend-menu-${card.userId}'),
+          onSelected: (m) => unawaited(switch (m) {
+            _FriendMenu.challenge => showChallengeDialog(context, ref, card),
+            _FriendMenu.unfriend => _run(
+              context,
+              ref,
+              () => ref.read(socialRepositoryProvider).unfriend(card.userId),
+            ),
+            _FriendMenu.block => _block(context, ref, card),
+          }),
+          itemBuilder: (_) => [
+            PopupMenuItem(
+              value: _FriendMenu.challenge,
+              child: Text(l10n.challengeAction),
+            ),
+            PopupMenuItem(
+              value: _FriendMenu.unfriend,
+              child: Text(l10n.unfriend),
+            ),
+            PopupMenuItem(
+              value: _FriendMenu.block,
+              child: Text(l10n.blockUser),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -364,64 +368,69 @@ class _RequestsTab extends ConsumerWidget {
     final l10n = context.l10n;
     final repo = ref.read(socialRepositoryProvider);
     return switch (ref.watch(friendRequestsProvider)) {
-      AsyncData(:final value) when value.isEmpty => Center(
-        child: Text(l10n.requestsEmpty),
+      AsyncData(:final value) when value.isEmpty => EmptyState(
+        icon: Icons.mark_email_read_rounded,
+        text: l10n.requestsEmpty,
       ),
       AsyncData(:final value) => ListView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [
           for (final r in value)
-            ListTile(
-              key: Key('request-${r.id}'),
-              leading: Text(
-                avatarFor(r.other.avatarId),
-                style: const TextStyle(fontSize: 28),
-              ),
-              title: Text(r.other.displayName),
-              subtitle: Text(
-                r.incoming ? l10n.incomingLabel : l10n.outgoingLabel,
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: r.incoming
-                    ? [
-                        IconButton(
-                          key: Key('accept-${r.id}'),
-                          tooltip: l10n.accept,
-                          icon: const Icon(Icons.check),
-                          onPressed: () => _run(
-                            context,
-                            ref,
-                            () => repo.respond(r.id, RequestAction.accept),
+            TileCard(
+              highlight: r.incoming ? BvColors.of(context).accent : null,
+              child: ListTile(
+                key: Key('request-${r.id}'),
+                leading: AvatarBubble(avatarFor(r.other.avatarId), size: 44),
+                title: Text(r.other.displayName),
+                subtitle: Text(
+                  r.incoming ? l10n.incomingLabel : l10n.outgoingLabel,
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: r.incoming
+                      ? [
+                          IconButton(
+                            key: Key('accept-${r.id}'),
+                            tooltip: l10n.accept,
+                            icon: Icon(
+                              Icons.check_circle_rounded,
+                              color: BvColors.of(context).success,
+                            ),
+                            onPressed: () => _run(
+                              context,
+                              ref,
+                              () => repo.respond(r.id, RequestAction.accept),
+                            ),
                           ),
-                        ),
-                        IconButton(
-                          tooltip: l10n.decline,
-                          icon: const Icon(Icons.close),
-                          onPressed: () => _run(
-                            context,
-                            ref,
-                            () => repo.respond(r.id, RequestAction.decline),
+                          IconButton(
+                            tooltip: l10n.decline,
+                            icon: const Icon(Icons.close),
+                            onPressed: () => _run(
+                              context,
+                              ref,
+                              () => repo.respond(r.id, RequestAction.decline),
+                            ),
                           ),
-                        ),
-                      ]
-                    : [
-                        TextButton(
-                          onPressed: () => _run(
-                            context,
-                            ref,
-                            () => repo.respond(r.id, RequestAction.cancel),
+                        ]
+                      : [
+                          TextButton(
+                            onPressed: () => _run(
+                              context,
+                              ref,
+                              () => repo.respond(r.id, RequestAction.cancel),
+                            ),
+                            child: Text(l10n.withdraw),
                           ),
-                          child: Text(l10n.withdraw),
-                        ),
-                      ],
+                        ],
+                ),
               ),
             ),
         ],
       ),
-      AsyncError(:final error) => Center(
-        child: Text(playErrorText(l10n, error)),
+      AsyncError(:final error) => ErrorView(
+        message: playErrorText(l10n, error),
       ),
-      _ => const Center(child: CircularProgressIndicator()),
+      _ => const LoadingView(),
     };
   }
 }

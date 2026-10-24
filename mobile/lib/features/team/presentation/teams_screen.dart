@@ -6,7 +6,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../app/router.dart';
 import '../../../app/session_controller.dart';
+import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/widgets/bv.dart';
 import '../../../core/widgets/dialogs.dart';
 import '../../auth/domain/session.dart';
 import '../../match/presentation/play_error_text.dart';
@@ -75,7 +77,13 @@ Future<UserCard?> pickFriend(BuildContext context, WidgetRef ref) async {
           SimpleDialogOption(
             key: Key('pick-friend-${f.card.userId}'),
             onPressed: () => Navigator.pop(context, f.card),
-            child: Text('${avatarFor(f.card.avatarId)}  ${f.card.displayName}'),
+            child: Row(
+              children: [
+                AvatarBubble(avatarFor(f.card.avatarId), size: 40, ring: false),
+                const SizedBox(width: 12),
+                Text(f.card.displayName),
+              ],
+            ),
           ),
       ],
     ),
@@ -102,6 +110,8 @@ class TeamsScreen extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                const IconBadge(Icons.groups_rounded, size: 88),
+                const SizedBox(height: 16),
                 Text(
                   l10n.teamsUpgrade,
                   key: const Key('teams-upgrade'),
@@ -130,70 +140,80 @@ class TeamsScreen extends ConsumerWidget {
       body: switch (ref.watch(teamsOverviewProvider)) {
         AsyncData(value: (final teams, final invites, final couple)) =>
           ListView(
-            padding: const EdgeInsets.only(bottom: 96),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
             children: [
               _Header(l10n.coupleSection),
               _CoupleTile(couple: couple),
               if (invites.isNotEmpty) ...[
                 _Header(l10n.teamInvites),
                 for (final i in invites)
-                  ListTile(
-                    key: Key('team-invite-${i.id}'),
-                    leading: Text(
-                      emblemEmoji[i.emblemId] ?? '🏳️',
-                      style: const TextStyle(fontSize: 28),
-                    ),
-                    title: Text('[${i.teamTag}] ${i.teamName}'),
-                    subtitle: Text(i.invitedBy.displayName),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          key: Key('accept-invite-${i.id}'),
-                          tooltip: l10n.accept,
-                          icon: const Icon(Icons.check),
-                          onPressed: () => _run(
-                            context,
-                            ref,
-                            () => repo.respondInvite(i.id, accept: true),
+                  TileCard(
+                    highlight: BvColors.of(context).accent,
+                    child: ListTile(
+                      key: Key('team-invite-${i.id}'),
+                      leading: Text(
+                        emblemEmoji[i.emblemId] ?? '🏳️',
+                        style: const TextStyle(fontSize: 28),
+                      ),
+                      title: Text('[${i.teamTag}] ${i.teamName}'),
+                      subtitle: Text(i.invitedBy.displayName),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            key: Key('accept-invite-${i.id}'),
+                            tooltip: l10n.accept,
+                            icon: const Icon(Icons.check),
+                            onPressed: () => _run(
+                              context,
+                              ref,
+                              () => repo.respondInvite(i.id, accept: true),
+                            ),
                           ),
-                        ),
-                        IconButton(
-                          tooltip: l10n.decline,
-                          icon: const Icon(Icons.close),
-                          onPressed: () => _run(
-                            context,
-                            ref,
-                            () => repo.respondInvite(i.id, accept: false),
+                          IconButton(
+                            tooltip: l10n.decline,
+                            icon: const Icon(Icons.close),
+                            onPressed: () => _run(
+                              context,
+                              ref,
+                              () => repo.respondInvite(i.id, accept: false),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
               ],
               _Header(l10n.myTeams),
               if (teams.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Text(l10n.teamsEmpty),
+                BvCard(
+                  child: Row(
+                    children: [
+                      const IconBadge(Icons.groups_rounded, size: 44),
+                      const SizedBox(width: 12),
+                      Expanded(child: Text(l10n.teamsEmpty)),
+                    ],
+                  ),
                 ),
               for (final t in teams)
-                ListTile(
-                  key: Key('team-${t.id}'),
-                  leading: Text(
-                    emblemEmoji[t.emblemId] ?? '🏳️',
-                    style: const TextStyle(fontSize: 28),
+                TileCard(
+                  child: ListTile(
+                    key: Key('team-${t.id}'),
+                    leading: Text(
+                      emblemEmoji[t.emblemId] ?? '🏳️',
+                      style: const TextStyle(fontSize: 28),
+                    ),
+                    title: Text('[${t.tag}] ${t.name}'),
+                    subtitle: Text('${t.members.length}/4'),
+                    onTap: () => context.push(Routes.team(t.id)),
                   ),
-                  title: Text('[${t.tag}] ${t.name}'),
-                  subtitle: Text('${t.members.length}/4'),
-                  onTap: () => context.push(Routes.team(t.id)),
                 ),
             ],
           ),
-        AsyncError(:final error) => Center(
-          child: Text(playErrorText(l10n, error)),
+        AsyncError(:final error) => ErrorView(
+          message: playErrorText(l10n, error),
         ),
-        _ => const Center(child: CircularProgressIndicator()),
+        _ => const LoadingView(),
       },
     );
   }
@@ -222,10 +242,7 @@ class _Header extends StatelessWidget {
   final String text;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-    child: Text(text, style: Theme.of(context).textTheme.titleMedium),
-  );
+  Widget build(BuildContext context) => SectionTitle(text);
 }
 
 class _CoupleTile extends ConsumerWidget {
@@ -243,72 +260,83 @@ class _CoupleTile extends ConsumerWidget {
     };
     final c = couple;
     if (c == null) {
-      return ListTile(
-        key: const Key('no-couple'),
-        title: Text(l10n.noCouple),
-        trailing: TextButton(
-          key: const Key('request-couple'),
-          onPressed: () async {
-            final friend = await pickFriend(context, ref);
-            if (friend != null && context.mounted) {
-              await _run(context, ref, () => repo.requestCouple(friend.userId));
-            }
-          },
-          child: Text(l10n.requestCouple),
+      return TileCard(
+        child: ListTile(
+          key: const Key('no-couple'),
+          title: Text(l10n.noCouple),
+          trailing: TextButton(
+            key: const Key('request-couple'),
+            onPressed: () async {
+              final friend = await pickFriend(context, ref);
+              if (friend != null && context.mounted) {
+                await _run(
+                  context,
+                  ref,
+                  () => repo.requestCouple(friend.userId),
+                );
+              }
+            },
+            child: Text(l10n.requestCouple),
+          ),
         ),
       );
     }
     final partner =
         c.partners.where((p) => p.userId != me).firstOrNull ?? c.partners.first;
     final pending = c.status == 'pending';
-    return ListTile(
-      key: Key('couple-${c.id}'),
-      leading: Text(
-        avatarFor(partner.avatarId),
-        style: const TextStyle(fontSize: 28),
-      ),
-      title: Text(c.name ?? l10n.coupleWith(partner.displayName)),
-      subtitle: Text(pending ? l10n.couplePending : l10n.coupleActive),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (pending && c.requestedBy != me)
-            IconButton(
-              key: const Key('accept-couple'),
-              tooltip: l10n.accept,
-              icon: const Icon(Icons.check),
-              onPressed: () =>
-                  _run(context, ref, () => repo.respondCouple(c.id, 'accept')),
-            ),
-          if (!pending)
-            IconButton(
-              key: const Key('couple-chat'),
-              tooltip: l10n.chatOpen,
-              icon: const Icon(Icons.chat_bubble_outline),
-              onPressed: () => context.push(
-                Routes.coupleChat(
-                  c.id,
-                  c.name ?? l10n.coupleWith(partner.displayName),
+    return TileCard(
+      child: ListTile(
+        key: Key('couple-${c.id}'),
+        leading: AvatarBubble(avatarFor(partner.avatarId), size: 44),
+        title: Text(c.name ?? l10n.coupleWith(partner.displayName)),
+        subtitle: Text(pending ? l10n.couplePending : l10n.coupleActive),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (pending && c.requestedBy != me)
+              IconButton(
+                key: const Key('accept-couple'),
+                tooltip: l10n.accept,
+                icon: const Icon(Icons.check),
+                onPressed: () => _run(
+                  context,
+                  ref,
+                  () => repo.respondCouple(c.id, 'accept'),
                 ),
               ),
-            ),
-          if (pending)
-            IconButton(
-              tooltip: l10n.decline,
-              icon: const Icon(Icons.close),
-              onPressed: () =>
-                  _run(context, ref, () => repo.respondCouple(c.id, 'decline')),
-            )
-          else
-            TextButton(
-              onPressed: () => _run(
-                context,
-                ref,
-                () => repo.respondCouple(c.id, 'dissolve'),
+            if (!pending)
+              IconButton(
+                key: const Key('couple-chat'),
+                tooltip: l10n.chatOpen,
+                icon: const Icon(Icons.chat_bubble_outline),
+                onPressed: () => context.push(
+                  Routes.coupleChat(
+                    c.id,
+                    c.name ?? l10n.coupleWith(partner.displayName),
+                  ),
+                ),
               ),
-              child: Text(l10n.dissolveCouple),
-            ),
-        ],
+            if (pending)
+              IconButton(
+                tooltip: l10n.decline,
+                icon: const Icon(Icons.close),
+                onPressed: () => _run(
+                  context,
+                  ref,
+                  () => repo.respondCouple(c.id, 'decline'),
+                ),
+              )
+            else
+              TextButton(
+                onPressed: () => _run(
+                  context,
+                  ref,
+                  () => repo.respondCouple(c.id, 'dissolve'),
+                ),
+                child: Text(l10n.dissolveCouple),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -416,106 +444,149 @@ class TeamScreen extends ConsumerWidget {
           ],
         ),
         body: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
-            for (final m in t.members)
-              ListTile(
-                key: Key('member-${m.card.userId}'),
-                leading: Text(
-                  avatarFor(m.card.avatarId),
-                  style: const TextStyle(fontSize: 28),
-                ),
-                title: Text(m.card.displayName),
-                subtitle: m.captain ? Text(l10n.captain) : null,
-                trailing: t.captainUserId == me && m.card.userId != me
-                    ? PopupMenuButton<String>(
-                        key: Key('member-menu-${m.card.userId}'),
-                        onSelected: (v) => _run(
-                          context,
-                          ref,
-                          () => v == 'captain'
-                              ? repo.makeCaptain(teamId, m.card.userId)
-                              : repo.kick(teamId, m.card.userId),
+            BvCard(
+              gradient: BvColors.of(context).heroGradient,
+              child: Row(
+                children: [
+                  Text(
+                    emblemEmoji[t.emblemId] ?? '🏳️',
+                    style: const TextStyle(fontSize: 40),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          t.name,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(color: Colors.white),
                         ),
-                        itemBuilder: (_) => [
-                          PopupMenuItem(
-                            value: 'captain',
-                            child: Text(l10n.makeCaptain),
-                          ),
-                          PopupMenuItem(value: 'kick', child: Text(l10n.kick)),
-                        ],
-                      )
-                    : null,
+                        Text(
+                          '[${t.tag}] · ${t.members.length}/4',
+                          style: TextStyle(color: Colors.white.withAlpha(220)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            const Divider(),
+            ),
+            const SizedBox(height: 14),
+            for (final m in t.members)
+              TileCard(
+                child: ListTile(
+                  key: Key('member-${m.card.userId}'),
+                  leading: AvatarBubble(avatarFor(m.card.avatarId), size: 44),
+                  title: Text(m.card.displayName),
+                  subtitle: m.captain ? Text(l10n.captain) : null,
+                  trailing: t.captainUserId == me && m.card.userId != me
+                      ? PopupMenuButton<String>(
+                          key: Key('member-menu-${m.card.userId}'),
+                          onSelected: (v) => _run(
+                            context,
+                            ref,
+                            () => v == 'captain'
+                                ? repo.makeCaptain(teamId, m.card.userId)
+                                : repo.kick(teamId, m.card.userId),
+                          ),
+                          itemBuilder: (_) => [
+                            PopupMenuItem(
+                              value: 'captain',
+                              child: Text(l10n.makeCaptain),
+                            ),
+                            PopupMenuItem(
+                              value: 'kick',
+                              child: Text(l10n.kick),
+                            ),
+                          ],
+                        )
+                      : null,
+                ),
+              ),
+            const SizedBox(height: 10),
             if (t.members.length < 4)
-              ListTile(
-                key: const Key('invite-to-team'),
-                leading: const Icon(Icons.person_add),
-                title: Text(l10n.inviteToTeam),
+              TileCard(
+                child: ListTile(
+                  key: const Key('invite-to-team'),
+                  leading: const Icon(Icons.person_add),
+                  title: Text(l10n.inviteToTeam),
+                  onTap: () async {
+                    final friend = await pickFriend(context, ref);
+                    if (friend != null && context.mounted) {
+                      final messenger = ScaffoldMessenger.of(context);
+                      await _run(context, ref, () async {
+                        await repo.invite(teamId, friend.userId);
+                        messenger.showSnackBar(
+                          SnackBar(content: Text(l10n.teamInviteSent)),
+                        );
+                      });
+                    }
+                  },
+                ),
+              ),
+            TileCard(
+              child: ListTile(
+                key: const Key('leave-team'),
+                leading: const Icon(Icons.logout),
+                title: Text(l10n.leaveTeam),
                 onTap: () async {
-                  final friend = await pickFriend(context, ref);
-                  if (friend != null && context.mounted) {
-                    final messenger = ScaffoldMessenger.of(context);
-                    await _run(context, ref, () async {
-                      await repo.invite(teamId, friend.userId);
-                      messenger.showSnackBar(
-                        SnackBar(content: Text(l10n.teamInviteSent)),
-                      );
-                    });
+                  await _run(
+                    context,
+                    ref,
+                    () => repo.teamAction(teamId, TeamAction.leave),
+                  );
+                  if (context.mounted) {
+                    context.pop();
                   }
                 },
               ),
-            ListTile(
-              key: const Key('leave-team'),
-              leading: const Icon(Icons.logout),
-              title: Text(l10n.leaveTeam),
-              onTap: () async {
-                await _run(
-                  context,
-                  ref,
-                  () => repo.teamAction(teamId, TeamAction.leave),
-                );
-                if (context.mounted) {
-                  context.pop();
-                }
-              },
             ),
             if (t.captainUserId == me)
-              ListTile(
-                key: const Key('disband-team'),
-                leading: const Icon(Icons.delete_forever),
-                title: Text(l10n.disbandTeam),
-                onTap: () async {
-                  final ok = await confirmDialog(
-                    context,
-                    title: l10n.disbandTeam,
-                    body: l10n.disbandConfirm,
-                    confirmLabel: l10n.disbandTeam,
-                    destructive: true,
-                  );
-                  if (ok && context.mounted) {
-                    await _run(
+              TileCard(
+                highlight: BvColors.of(context).danger,
+                child: ListTile(
+                  key: const Key('disband-team'),
+                  leading: Icon(
+                    Icons.delete_forever_rounded,
+                    color: BvColors.of(context).danger,
+                  ),
+                  title: Text(l10n.disbandTeam),
+                  onTap: () async {
+                    final ok = await confirmDialog(
                       context,
-                      ref,
-                      () => repo.teamAction(teamId, TeamAction.disband),
+                      title: l10n.disbandTeam,
+                      body: l10n.disbandConfirm,
+                      confirmLabel: l10n.disbandTeam,
+                      destructive: true,
                     );
-                    if (context.mounted) {
-                      context.pop();
+                    if (ok && context.mounted) {
+                      await _run(
+                        context,
+                        ref,
+                        () => repo.teamAction(teamId, TeamAction.disband),
+                      );
+                      if (context.mounted) {
+                        context.pop();
+                      }
                     }
-                  }
-                },
+                  },
+                ),
               ),
           ],
         ),
       ),
       AsyncError(:final error) => Scaffold(
         appBar: AppBar(),
-        body: Center(child: Text(playErrorText(l10n, error))),
+        body: ErrorView(
+          message: playErrorText(l10n, error),
+          retryLabel: l10n.retry,
+          onRetry: () => ref.invalidate(teamProvider(teamId)),
+        ),
       ),
-      _ => Scaffold(
-        appBar: AppBar(),
-        body: const Center(child: CircularProgressIndicator()),
-      ),
+      _ => Scaffold(appBar: AppBar(), body: const LoadingView()),
     };
   }
 }

@@ -7,7 +7,7 @@ import '../widgets/bv.dart';
 import 'share_service.dart';
 
 /// A shareable result (D-087): the brand, a headline, a big line (score
-/// or correct answers) and a detail line, on the brand gradient.
+/// or correct answers) and a detail line, on the WitClash gradient.
 class ResultCard extends StatelessWidget {
   const ResultCard({
     required this.headline,
@@ -31,8 +31,13 @@ class ResultCard extends StatelessWidget {
       width: 320,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: bv.gradient,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [bv.backgroundTop, bv.gradientStart, bv.gradientEnd],
+        ),
         borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.white.withAlpha(60)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -40,12 +45,19 @@ class ResultCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('BrainVolt', style: s(22, FontWeight.w900)),
-              const Icon(Icons.bolt, color: Color(0xFFFFD45C)),
+              const BrandMark(size: 30),
+              const SizedBox(width: 8),
+              Text(
+                'WitClash',
+                style: s(
+                  22,
+                  FontWeight.w900,
+                ).copyWith(fontStyle: FontStyle.italic),
+              ),
             ],
           ),
           const SizedBox(height: 16),
-          Icon(icon, size: 56, color: const Color(0xFFFFD45C)),
+          Icon(icon, size: 56, color: bv.gold),
           const SizedBox(height: 8),
           Text(
             headline,
