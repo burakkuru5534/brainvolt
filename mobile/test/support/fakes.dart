@@ -1126,6 +1126,18 @@ class FakeStoreRepository implements StoreRepository {
       ),
     ],
     adVoltLeft: 3,
+    packs: const [
+      VoltPack(
+        productId: 'volt_starter',
+        volt: 250,
+        cosmetic: 'frame_starter',
+        once: true,
+      ),
+      VoltPack(productId: 'volt_100', volt: 100),
+      VoltPack(productId: 'volt_350', volt: 350, bonus: 50),
+      VoltPack(productId: 'volt_800', volt: 800),
+      VoltPack(productId: 'volt_2000', volt: 2000),
+    ],
   );
   final bought = <String>[];
 
@@ -1198,6 +1210,7 @@ class FakeStoreRepository implements StoreRepository {
       history: w.history,
       adVoltLeft: w.adVoltLeft,
       adVolt: w.adVolt,
+      packs: w.packs,
     );
     return walletValue.balance;
   }
@@ -1245,6 +1258,7 @@ class FakeStoreRepository implements StoreRepository {
       history: w.history,
       adVoltLeft: w.adVoltLeft,
       adVolt: w.adVolt,
+      packs: w.packs,
     );
     return walletValue.balance;
   }
@@ -1271,6 +1285,39 @@ class FakePurchaseGateway implements PurchaseGateway {
     bought.add(option.id);
     if (result == BuyResult.purchased) {
       store.value = Entitlements(plus: true, plusUntil: DateTime(2030, 1, 15));
+    }
+    return result;
+  }
+
+  /// Volt packs (D-107): a bought pack adds its Volt to the fake wallet.
+  final boughtVolt = <String>[];
+
+  @override
+  Future<List<StoreOffer>> voltOffers(String userId) async => const [
+    StoreOffer(id: 'volt_starter', priceString: '₺29,99'),
+    StoreOffer(id: 'volt_100', priceString: '₺29,99'),
+    StoreOffer(id: 'volt_350', priceString: '₺89,99'),
+    StoreOffer(id: 'volt_800', priceString: '₺179,99'),
+    StoreOffer(id: 'volt_2000', priceString: '₺399,99'),
+  ];
+
+  @override
+  Future<BuyResult> buyVolt(String userId, StoreOffer offer) async {
+    boughtVolt.add(offer.id);
+    if (result == BuyResult.purchased) {
+      final w = store.walletValue;
+      final pack = w.packs.firstWhere((p) => p.productId == offer.id);
+      store.walletValue = Wallet(
+        balance: w.balance + pack.volt,
+        items: w.items,
+        history: w.history,
+        adVoltLeft: w.adVoltLeft,
+        adVolt: w.adVolt,
+        packs: [
+          for (final p in w.packs)
+            if (!p.once || p != pack) p,
+        ],
+      );
     }
     return result;
   }

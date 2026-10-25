@@ -4813,6 +4813,84 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Zümrüt Orman'**
   String get cosThemeEmerald;
+
+  /// Volt packs (D-107).
+  ///
+  /// In tr, this message translates to:
+  /// **'Volt satın al'**
+  String get voltPacksTitle;
+
+  /// Volt packs (D-107).
+  ///
+  /// In tr, this message translates to:
+  /// **'{volt} Volt'**
+  String voltPackAmount(int volt);
+
+  /// Volt packs (D-107).
+  ///
+  /// In tr, this message translates to:
+  /// **'+{bonus} hediye'**
+  String voltPackBonus(int bonus);
+
+  /// Volt packs (D-107).
+  ///
+  /// In tr, this message translates to:
+  /// **'İlk alım paketi'**
+  String get voltStarterTitle;
+
+  /// Volt packs (D-107).
+  ///
+  /// In tr, this message translates to:
+  /// **'{volt} Volt + Başlangıç Çerçevesi · bir kez'**
+  String voltStarterSub(int volt);
+
+  /// Volt packs (D-107).
+  ///
+  /// In tr, this message translates to:
+  /// **'Volt satın almak için hesabını bağla.'**
+  String get voltPackLinkFirst;
+
+  /// Volt packs (D-107).
+  ///
+  /// In tr, this message translates to:
+  /// **'+{volt} Volt hesabına geçti'**
+  String voltPackDone(int volt);
+
+  /// Volt packs (D-107).
+  ///
+  /// In tr, this message translates to:
+  /// **'Satın alma işleniyor; Volt birazdan gelecek.'**
+  String get voltPackProcessing;
+
+  /// Volt packs (D-107).
+  ///
+  /// In tr, this message translates to:
+  /// **'Paketler şu an yüklenemedi.'**
+  String get voltPacksNone;
+
+  /// Volt packs (D-107).
+  ///
+  /// In tr, this message translates to:
+  /// **'Volt satın alma'**
+  String get voltReasonPurchase;
+
+  /// Volt packs (D-107).
+  ///
+  /// In tr, this message translates to:
+  /// **'Satın alma iadesi'**
+  String get voltReasonPurchaseRefund;
+
+  /// Volt packs (D-107).
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlangıç Çerçevesi'**
+  String get cosFrameStarter;
+
+  /// Volt packs (D-107).
+  ///
+  /// In tr, this message translates to:
+  /// **'İlk alım paketinde'**
+  String get cosmeticPackOnly;
 }
 
 class _AppLocalizationsDelegate

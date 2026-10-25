@@ -130,3 +130,14 @@ SELECT user_id, kind, code FROM commerce.cosmetic_equipped WHERE user_id = ANY(@
 -- Which of users hold an entitlement now (Plus-only cosmetics, D-106).
 SELECT DISTINCT user_id FROM commerce.entitlements
 WHERE user_id = ANY(@user_ids::uuid[]) AND code = @code AND starts_at <= @now AND (ends_at IS NULL OR ends_at > @now);
+
+-- ---------- Volt packs (D-107) ----------
+
+-- name: VoltKeyExists :one
+SELECT EXISTS (SELECT 1 FROM commerce.volt_ledger WHERE user_id = @user_id AND key = @key);
+
+-- name: RemoveCosmetic :exec
+DELETE FROM commerce.cosmetic_inventory WHERE user_id = @user_id AND code = @code;
+
+-- name: UnequipCode :exec
+DELETE FROM commerce.cosmetic_equipped WHERE user_id = @user_id AND code = @code;

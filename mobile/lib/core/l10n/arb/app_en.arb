@@ -785,5 +785,18 @@
   "cosVictoryLightning": "Lightning Storm",
   "cosThemeMidnight": "Midnight Blue",
   "cosThemeSunset": "Sunset",
-  "cosThemeEmerald": "Emerald Forest"
+  "cosThemeEmerald": "Emerald Forest",
+  "voltPacksTitle": "Buy Volt",
+  "voltPackAmount": "{volt} Volt",
+  "voltPackBonus": "+{bonus} gift",
+  "voltStarterTitle": "Starter pack",
+  "voltStarterSub": "{volt} Volt + Starter Frame · once",
+  "voltPackLinkFirst": "Link your account to buy Volt.",
+  "voltPackDone": "{volt} Volt added",
+  "voltPackProcessing": "Processing; your Volt arrives shortly.",
+  "voltPacksNone": "Packs couldn't be loaded right now.",
+  "voltReasonPurchase": "Volt purchase",
+  "voltReasonPurchaseRefund": "Purchase refund",
+  "cosFrameStarter": "Starter Frame",
+  "cosmeticPackOnly": "In the starter pack"
 }

@@ -28,6 +28,16 @@ class PlusOption {
   final Object? handle;
 }
 
+/// A Volt pack as the store sells it (D-107).
+class StoreOffer {
+  const StoreOffer({required this.id, required this.priceString, this.handle});
+
+  /// The store product id (volt_100 …).
+  final String id;
+  final String priceString;
+  final Object? handle;
+}
+
 /// How a purchase ended.
 enum BuyResult { purchased, cancelled, pending, failed }
 
@@ -44,6 +54,11 @@ abstract interface class PurchaseGateway {
 
   /// Restores store purchases to [userId]; true when Plus is active.
   Future<bool> restore(String userId);
+
+  /// The Volt packs with store prices (offering `volt`, D-107).
+  Future<List<StoreOffer>> voltOffers(String userId);
+
+  Future<BuyResult> buyVolt(String userId, StoreOffer offer);
 }
 
 /// No store.
@@ -62,6 +77,13 @@ class NoPurchaseGateway implements PurchaseGateway {
 
   @override
   Future<bool> restore(String userId) async => false;
+
+  @override
+  Future<List<StoreOffer>> voltOffers(String userId) async => const [];
+
+  @override
+  Future<BuyResult> buyVolt(String userId, StoreOffer offer) async =>
+      BuyResult.failed;
 }
 
 /// [PurchaseGateway] over purchases_flutter (Android; RevenueCat project
@@ -134,11 +156,47 @@ class RevenueCatGateway implements PurchaseGateway {
     if (pkg is! Package) {
       return BuyResult.failed;
     }
+    return _purchase(
+      pkg,
+      (r) => r.customerInfo.entitlements.active.containsKey('plus'),
+    );
+  }
+
+  @override
+  Future<List<StoreOffer>> voltOffers(String userId) async {
+    await _ensure(userId);
+    final offering = (await Purchases.getOfferings()).all['volt'];
+    if (offering == null) {
+      return const [];
+    }
+    return [
+      for (final pkg in offering.availablePackages)
+        StoreOffer(
+          id: pkg.storeProduct.identifier.split(':').first,
+          priceString: pkg.storeProduct.priceString,
+          handle: pkg,
+        ),
+    ];
+  }
+
+  @override
+  Future<BuyResult> buyVolt(String userId, StoreOffer offer) async {
+    await _ensure(userId);
+    final pkg = offer.handle;
+    if (pkg is! Package) {
+      return BuyResult.failed;
+    }
+    // A consumable has no entitlement: a finished purchase is the answer.
+    return _purchase(pkg, (_) => true);
+  }
+
+  Future<BuyResult> _purchase(
+    Package pkg,
+    bool Function(PurchaseResult) done,
+  ) async {
     try {
       final r = await Purchases.purchase(PurchaseParams.package(pkg));
-      return r.customerInfo.entitlements.active.containsKey('plus')
-          ? BuyResult.purchased
-          : BuyResult.pending;
+      return done(r) ? BuyResult.purchased : BuyResult.pending;
     } on PlatformException catch (e) {
       final code = PurchasesErrorHelper.getErrorCode(e);
       if (code == PurchasesErrorCode.purchaseCancelledError) {

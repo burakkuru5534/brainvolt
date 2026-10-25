@@ -2663,4 +2663,51 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cosThemeEmerald => 'Emerald Forest';
+
+  @override
+  String get voltPacksTitle => 'Buy Volt';
+
+  @override
+  String voltPackAmount(int volt) {
+    return '$volt Volt';
+  }
+
+  @override
+  String voltPackBonus(int bonus) {
+    return '+$bonus gift';
+  }
+
+  @override
+  String get voltStarterTitle => 'Starter pack';
+
+  @override
+  String voltStarterSub(int volt) {
+    return '$volt Volt + Starter Frame · once';
+  }
+
+  @override
+  String get voltPackLinkFirst => 'Link your account to buy Volt.';
+
+  @override
+  String voltPackDone(int volt) {
+    return '$volt Volt added';
+  }
+
+  @override
+  String get voltPackProcessing => 'Processing; your Volt arrives shortly.';
+
+  @override
+  String get voltPacksNone => 'Packs couldn\'t be loaded right now.';
+
+  @override
+  String get voltReasonPurchase => 'Volt purchase';
+
+  @override
+  String get voltReasonPurchaseRefund => 'Purchase refund';
+
+  @override
+  String get cosFrameStarter => 'Starter Frame';
+
+  @override
+  String get cosmeticPackOnly => 'In the starter pack';
 }

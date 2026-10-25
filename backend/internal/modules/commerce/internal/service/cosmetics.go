@@ -36,6 +36,8 @@ type Cosmetic struct {
 	Kind     string `json:"kind"`
 	Price    int    `json:"price"`
 	PlusOnly bool   `json:"plus_only"`
+	// PackOnly items come only with a Volt pack (the starter frame, D-107).
+	PackOnly bool `json:"pack_only,omitempty"`
 }
 
 // Cosmetics is the catalogue (D-106), in display order.
@@ -45,6 +47,7 @@ var Cosmetics = []Cosmetic{
 	{Code: "frame_flame", Kind: KindFrame, Price: 400},
 	{Code: "frame_crown", Kind: KindFrame, Price: 600},
 	{Code: "frame_plus", Kind: KindFrame, PlusOnly: true},
+	{Code: "frame_starter", Kind: KindFrame, PackOnly: true},
 
 	{Code: "avatar_octopus", Kind: KindAvatar, Price: 150},
 	{Code: "avatar_eagle", Kind: KindAvatar, Price: 150},
@@ -143,6 +146,9 @@ func (s *Service) BuyCosmetic(ctx context.Context, user uuid.UUID, code string) 
 	}
 	if c.PlusOnly {
 		return CosmeticPurchase{}, unavailable(code, "plus_only")
+	}
+	if c.PackOnly {
+		return CosmeticPurchase{}, unavailable(code, "pack_only")
 	}
 	now := s.d.Clock.Now()
 	if err := s.plusMonthly(ctx, user, now); err != nil {

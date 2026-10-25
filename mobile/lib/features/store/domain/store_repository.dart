@@ -48,6 +48,31 @@ class VoltEntry {
   final DateTime createdAt;
 }
 
+/// A Volt pack for sale (D-107); its price comes from the store.
+class VoltPack {
+  const VoltPack({
+    required this.productId,
+    required this.volt,
+    this.bonus = 0,
+    this.cosmetic = '',
+    this.once = false,
+  });
+
+  factory VoltPack.fromJson(Map<String, dynamic> j) => VoltPack(
+    productId: j['product_id'] as String? ?? '',
+    volt: _int(j['volt']),
+    bonus: _int(j['bonus']),
+    cosmetic: j['cosmetic'] as String? ?? '',
+    once: j['once'] == true,
+  );
+
+  final String productId;
+  final int volt;
+  final int bonus;
+  final String cosmetic;
+  final bool once;
+}
+
 /// GET /v1/me/wallet.
 class Wallet {
   const Wallet({
@@ -56,6 +81,7 @@ class Wallet {
     this.history = const [],
     this.adVoltLeft = 0,
     this.adVolt = 5,
+    this.packs = const [],
   });
 
   factory Wallet.fromJson(Map<String, dynamic> j) => Wallet(
@@ -70,6 +96,10 @@ class Wallet {
     ],
     adVoltLeft: _int(j['ad_volt_left']),
     adVolt: _int(j['ad_volt']),
+    packs: [
+      for (final p in (j['packs'] as List?) ?? const [])
+        VoltPack.fromJson((p as Map).cast<String, dynamic>()),
+    ],
   );
 
   final int balance;
@@ -79,6 +109,9 @@ class Wallet {
   /// Store ads left today and the Volt each gives.
   final int adVoltLeft;
   final int adVolt;
+
+  /// Volt packs for sale (a bought once-only pack is left out).
+  final List<VoltPack> packs;
 
   int priceOf(String code) =>
       items.where((i) => i.code == code).firstOrNull?.price ?? 0;
@@ -118,6 +151,7 @@ class CosmeticItem {
     required this.kind,
     this.price = 0,
     this.plusOnly = false,
+    this.packOnly = false,
     this.owned = false,
     this.equipped = false,
   });
@@ -127,6 +161,7 @@ class CosmeticItem {
     kind: j['kind'] as String? ?? '',
     price: _int(j['price']),
     plusOnly: j['plus_only'] == true,
+    packOnly: j['pack_only'] == true,
     owned: j['owned'] == true,
     equipped: j['equipped'] == true,
   );
@@ -135,6 +170,9 @@ class CosmeticItem {
   final String kind;
   final int price;
   final bool plusOnly;
+
+  /// Only in a Volt pack (the starter frame, D-107).
+  final bool packOnly;
   final bool owned;
   final bool equipped;
 

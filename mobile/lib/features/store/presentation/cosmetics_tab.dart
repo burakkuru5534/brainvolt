@@ -45,6 +45,7 @@ String cosmeticName(AppLocalizations l10n, String code) => switch (code) {
   'frame_flame' => l10n.cosFrameFlame,
   'frame_crown' => l10n.cosFrameCrown,
   'frame_plus' => l10n.cosFramePlus,
+  'frame_starter' => l10n.cosFrameStarter,
   'avatar_octopus' => l10n.cosAvatarOctopus,
   'avatar_eagle' => l10n.cosAvatarEagle,
   'avatar_robot' => l10n.cosAvatarRobot,
@@ -239,7 +240,14 @@ class _CosmeticsTabState extends ConsumerState<CosmeticsTab> {
         ? me?.avatarId == item.avatarId
         : item.equipped;
     final Widget action;
-    if (item.plusOnly && !c.plus) {
+    if (item.packOnly && !item.owned) {
+      action = OutlinedButton.icon(
+        key: Key('cos-pack-${item.code}'),
+        icon: const Icon(Icons.card_giftcard_rounded, size: 16),
+        onPressed: () => DefaultTabController.maybeOf(context)?.animateTo(0),
+        label: Text(l10n.cosmeticPackOnly, overflow: TextOverflow.ellipsis),
+      );
+    } else if (item.plusOnly && !c.plus) {
       action = OutlinedButton.icon(
         key: Key('cos-plus-${item.code}'),
         icon: const Icon(Icons.workspace_premium_rounded, size: 16),

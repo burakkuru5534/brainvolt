@@ -3647,5 +3647,77 @@
   "cosThemeEmerald": "Zümrüt Orman",
   "@cosThemeEmerald": {
     "description": "Cosmetics (D-106)."
+  },
+  "voltPacksTitle": "Volt satın al",
+  "@voltPacksTitle": {
+    "description": "Volt packs (D-107)."
+  },
+  "voltPackAmount": "{volt} Volt",
+  "@voltPackAmount": {
+    "description": "Volt packs (D-107).",
+    "placeholders": {
+      "volt": {
+        "type": "int"
+      }
+    }
+  },
+  "voltPackBonus": "+{bonus} hediye",
+  "@voltPackBonus": {
+    "description": "Volt packs (D-107).",
+    "placeholders": {
+      "bonus": {
+        "type": "int"
+      }
+    }
+  },
+  "voltStarterTitle": "İlk alım paketi",
+  "@voltStarterTitle": {
+    "description": "Volt packs (D-107)."
+  },
+  "voltStarterSub": "{volt} Volt + Başlangıç Çerçevesi · bir kez",
+  "@voltStarterSub": {
+    "description": "Volt packs (D-107).",
+    "placeholders": {
+      "volt": {
+        "type": "int"
+      }
+    }
+  },
+  "voltPackLinkFirst": "Volt satın almak için hesabını bağla.",
+  "@voltPackLinkFirst": {
+    "description": "Volt packs (D-107)."
+  },
+  "voltPackDone": "+{volt} Volt hesabına geçti",
+  "@voltPackDone": {
+    "description": "Volt packs (D-107).",
+    "placeholders": {
+      "volt": {
+        "type": "int"
+      }
+    }
+  },
+  "voltPackProcessing": "Satın alma işleniyor; Volt birazdan gelecek.",
+  "@voltPackProcessing": {
+    "description": "Volt packs (D-107)."
+  },
+  "voltPacksNone": "Paketler şu an yüklenemedi.",
+  "@voltPacksNone": {
+    "description": "Volt packs (D-107)."
+  },
+  "voltReasonPurchase": "Volt satın alma",
+  "@voltReasonPurchase": {
+    "description": "Volt packs (D-107)."
+  },
+  "voltReasonPurchaseRefund": "Satın alma iadesi",
+  "@voltReasonPurchaseRefund": {
+    "description": "Volt packs (D-107)."
+  },
+  "cosFrameStarter": "Başlangıç Çerçevesi",
+  "@cosFrameStarter": {
+    "description": "Volt packs (D-107)."
+  },
+  "cosmeticPackOnly": "İlk alım paketinde",
+  "@cosmeticPackOnly": {
+    "description": "Volt packs (D-107)."
   }
 }

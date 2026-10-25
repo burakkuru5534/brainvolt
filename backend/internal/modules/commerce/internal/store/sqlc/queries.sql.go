@@ -543,6 +543,20 @@ func (q *Queries) PaidEntitlement(ctx context.Context, arg PaidEntitlementParams
 	return exists, err
 }
 
+const removeCosmetic = `-- name: RemoveCosmetic :exec
+DELETE FROM commerce.cosmetic_inventory WHERE user_id = $1 AND code = $2
+`
+
+type RemoveCosmeticParams struct {
+	UserID uuid.UUID
+	Code   string
+}
+
+func (q *Queries) RemoveCosmetic(ctx context.Context, arg RemoveCosmeticParams) error {
+	_, err := q.db.Exec(ctx, removeCosmetic, arg.UserID, arg.Code)
+	return err
+}
+
 const setBalance = `-- name: SetBalance :exec
 UPDATE commerce.volt_wallets SET balance = $1, updated_at = $2 WHERE user_id = $3
 `
@@ -588,6 +602,20 @@ func (q *Queries) SubscriptionEntitlements(ctx context.Context, userID uuid.UUID
 		return nil, err
 	}
 	return items, nil
+}
+
+const unequipCode = `-- name: UnequipCode :exec
+DELETE FROM commerce.cosmetic_equipped WHERE user_id = $1 AND code = $2
+`
+
+type UnequipCodeParams struct {
+	UserID uuid.UUID
+	Code   string
+}
+
+func (q *Queries) UnequipCode(ctx context.Context, arg UnequipCodeParams) error {
+	_, err := q.db.Exec(ctx, unequipCode, arg.UserID, arg.Code)
+	return err
 }
 
 const unequipCosmetic = `-- name: UnequipCosmetic :exec
@@ -676,6 +704,24 @@ func (q *Queries) VoltHistory(ctx context.Context, arg VoltHistoryParams) ([]Vol
 		return nil, err
 	}
 	return items, nil
+}
+
+const voltKeyExists = `-- name: VoltKeyExists :one
+
+SELECT EXISTS (SELECT 1 FROM commerce.volt_ledger WHERE user_id = $1 AND key = $2)
+`
+
+type VoltKeyExistsParams struct {
+	UserID uuid.UUID
+	Key    string
+}
+
+// ---------- Volt packs (D-107) ----------
+func (q *Queries) VoltKeyExists(ctx context.Context, arg VoltKeyExistsParams) (bool, error) {
+	row := q.db.QueryRow(ctx, voltKeyExists, arg.UserID, arg.Key)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const voltSince = `-- name: VoltSince :many

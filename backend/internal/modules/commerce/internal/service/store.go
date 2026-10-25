@@ -107,8 +107,8 @@ func ms(v *int64) *time.Time {
 // Plus entitlement: purchases, renewals and un-cancellations extend it to
 // the event's expiration; an expiration ends it there; a refund
 // (cancellation by customer support) ends it now; a transfer moves it.
-// A cancellation keeps access until the period ends. Other products (Volt
-// packs, a later phase) are only recorded.
+// A cancellation keeps access until the period ends. Volt packs give
+// their Volt (and take it back on a refund, D-107).
 func (s *Service) HandleRevenueCat(ctx context.Context, body []byte) error {
 	var wrap struct {
 		Event rcEvent `json:"event"`
@@ -144,6 +144,11 @@ func (s *Service) HandleRevenueCat(ctx context.Context, body []byte) error {
 func (s *Service) applyRevenueCat(ctx context.Context, q *sqlc.Queries, e *rcEvent, user uuid.UUID, known bool, now time.Time) error {
 	if e.Type == "TRANSFER" {
 		return transferPlus(ctx, q, usersOf(e.TransferredFrom), usersOf(e.TransferredTo), now)
+	}
+	if known {
+		if handled, err := applyPack(ctx, q, e, user, now); handled || err != nil {
+			return err
+		}
 	}
 	if !known || !e.plus() {
 		if !known {

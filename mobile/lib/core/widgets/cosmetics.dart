@@ -69,6 +69,15 @@ FrameStyle? frameStyle(String code) => switch (code) {
     width: 4,
     crown: true,
   ),
+  'frame_starter' => const FrameStyle(
+    gradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [Color(0xFF7CFFCB), Color(0xFF1FB8A6), Color(0xFF7C5CFF)],
+    ),
+    glow: Color(0xFF3FE0C0),
+    width: 4,
+  ),
   'frame_plus' => const FrameStyle(
     gradient: SweepGradient(
       colors: [

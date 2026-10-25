@@ -163,4 +163,43 @@ void main() {
     expect(t.progress.rerolled, ['q1']);
     await finish(tester, t);
   });
+
+  testWidgets('Volt packs: starter first, buy a pack (D-107)', (tester) async {
+    final t = await launch(tester);
+    await openStore(tester);
+    expect(find.byKey(const Key('volt-pack-volt_starter')), findsOneWidget);
+    expect(
+      find.text('250 Volt + Başlangıç Çerçevesi · bir kez'),
+      findsOneWidget,
+    );
+    expect(find.text('+50 hediye'), findsOneWidget);
+    await tester.ensureVisible(find.byKey(const Key('volt-pack-buy-volt_350')));
+    await tester.tap(find.byKey(const Key('volt-pack-buy-volt_350')));
+    await tester.pumpAndSettle();
+    expect(t.purchases.boughtVolt, ['volt_350']);
+    expect(find.text('+350 Volt hesabına geçti'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('volt-balance'))).data,
+      '590',
+    );
+    await finish(tester, t);
+  });
+
+  testWidgets('Volt packs: guests link their account first', (tester) async {
+    tester.view.physicalSize = const Size(800, 2000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final t = await TestApp.create();
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: t.container,
+        child: const BrainVoltApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await openStore(tester);
+    expect(find.byKey(const Key('volt-link-first')), findsOneWidget);
+    expect(find.byKey(const Key('volt-pack-volt_100')), findsNothing);
+    await finish(tester, t);
+  });
 }

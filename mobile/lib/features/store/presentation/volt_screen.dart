@@ -17,6 +17,7 @@ import '../../progress/presentation/quests_screen.dart';
 import '../domain/store_repository.dart';
 import 'cosmetics_tab.dart';
 import 'plus_screen.dart';
+import 'volt_packs.dart';
 
 /// Volt's icon everywhere (D-105).
 const voltIcon = Icons.offline_bolt_rounded;
@@ -266,6 +267,8 @@ class _VoltScreenState extends ConsumerState<VoltScreen> {
       'plus_refund' => l10n.voltReasonPlusRefund,
       'item' => l10n.voltReasonItem(voltItemName(l10n, e.ref)),
       'cosmetic' => l10n.voltReasonCosmetic(cosmeticName(l10n, e.ref)),
+      'purchase' => l10n.voltReasonPurchase,
+      'purchase_refund' => l10n.voltReasonPurchaseRefund,
       _ => l10n.voltReasonOther,
     };
 
@@ -338,6 +341,7 @@ class _VoltScreenState extends ConsumerState<VoltScreen> {
             ],
           ),
         ),
+        VoltPacksSection(wallet: w),
         SectionTitle(l10n.voltShop),
         item(
           code: StoreItemCode.streakShield,

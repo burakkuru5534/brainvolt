@@ -2654,4 +2654,52 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get cosThemeEmerald => 'Zümrüt Orman';
+
+  @override
+  String get voltPacksTitle => 'Volt satın al';
+
+  @override
+  String voltPackAmount(int volt) {
+    return '$volt Volt';
+  }
+
+  @override
+  String voltPackBonus(int bonus) {
+    return '+$bonus hediye';
+  }
+
+  @override
+  String get voltStarterTitle => 'İlk alım paketi';
+
+  @override
+  String voltStarterSub(int volt) {
+    return '$volt Volt + Başlangıç Çerçevesi · bir kez';
+  }
+
+  @override
+  String get voltPackLinkFirst => 'Volt satın almak için hesabını bağla.';
+
+  @override
+  String voltPackDone(int volt) {
+    return '+$volt Volt hesabına geçti';
+  }
+
+  @override
+  String get voltPackProcessing =>
+      'Satın alma işleniyor; Volt birazdan gelecek.';
+
+  @override
+  String get voltPacksNone => 'Paketler şu an yüklenemedi.';
+
+  @override
+  String get voltReasonPurchase => 'Volt satın alma';
+
+  @override
+  String get voltReasonPurchaseRefund => 'Satın alma iadesi';
+
+  @override
+  String get cosFrameStarter => 'Başlangıç Çerçevesi';
+
+  @override
+  String get cosmeticPackOnly => 'İlk alım paketinde';
 }

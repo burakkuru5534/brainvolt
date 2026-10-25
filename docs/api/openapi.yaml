@@ -653,6 +653,8 @@ components:
                     type: string
                 kind:
                     type: string
+                pack_only:
+                    type: boolean
                 plus_only:
                     type: boolean
                 price:
@@ -3711,6 +3713,22 @@ components:
                 - reason
                 - ref
             type: object
+        VoltPack:
+            properties:
+                bonus:
+                    type: integer
+                cosmetic:
+                    type: string
+                once:
+                    type: boolean
+                product_id:
+                    type: string
+                volt:
+                    type: integer
+            required:
+                - product_id
+                - volt
+            type: object
         Wallet:
             properties:
                 ad_volt:
@@ -3727,12 +3745,17 @@ components:
                     items:
                         $ref: '#/components/schemas/StoreItem'
                     type: array
+                packs:
+                    items:
+                        $ref: '#/components/schemas/VoltPack'
+                    type: array
             required:
                 - ad_volt
                 - ad_volt_left
                 - balance
                 - history
                 - items
+                - packs
             type: object
     securitySchemes:
         firebase:

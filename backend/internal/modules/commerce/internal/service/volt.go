@@ -105,6 +105,9 @@ type Wallet struct {
 	// AdVoltLeft is how many store ads can still be watched today.
 	AdVoltLeft int `json:"ad_volt_left"`
 	AdVolt     int `json:"ad_volt"`
+	// Packs are the Volt packs for sale (D-107); prices come from the
+	// store. A once-only pack already bought is left out.
+	Packs []VoltPack `json:"packs"`
 }
 
 func month(t time.Time) string { return t.In(istanbul).Format("2006-01") }
@@ -144,8 +147,24 @@ func (s *Service) Wallet(ctx context.Context, user uuid.UUID) (Wallet, error) {
 		out.History = append(out.History, VoltEntry{Amount: int(r.Amount), Reason: r.Reason, Ref: r.Ref, CreatedAt: r.CreatedAt})
 	}
 	used, err := s.count(ctx, q, user, PlacementVolt, dayStart(now), now)
+	if err != nil {
+		return out, err
+	}
 	out.AdVoltLeft = max(AdVoltPerDay-used, 0)
-	return out, err
+	out.Packs = []VoltPack{}
+	for _, p := range VoltPacks {
+		if p.Once && p.Cosmetic != "" {
+			owned, err := q.OwnsCosmetic(ctx, sqlc.OwnsCosmeticParams{UserID: user, Code: p.Cosmetic})
+			if err != nil {
+				return out, err
+			}
+			if owned {
+				continue
+			}
+		}
+		out.Packs = append(out.Packs, p)
+	}
+	return out, nil
 }
 
 // Purchase is the answer to a store purchase.
