@@ -154,6 +154,7 @@ void main() {
       ('tournaments', Routes.tournaments),
       ('tournament_new', Routes.tournamentNew),
       ('quiz_new', Routes.quizNew),
+      ('store', Routes.store),
     ]) {
       testWidgets('$name ${mode.name}', (tester) async {
         final t = await launch(tester, route);

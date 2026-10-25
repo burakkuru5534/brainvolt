@@ -1,7 +1,7 @@
 // Package commerce is the public API of the commerce module
 // (backend-modules.md §1, schema-platform.md §4): rewarded ads verified by
-// AdMob (D-103) and entitlements; Plus subscriptions and cosmetics come in
-// later phases.
+// AdMob (D-103), entitlements and BrainVolt Plus through RevenueCat
+// (D-104), and Volt with its store (D-105); cosmetics come later.
 package commerce
 
 import (
@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/commerce/internal/service"
@@ -28,7 +29,35 @@ const (
 	PlacementBonusXP      = service.PlacementBonusXP
 	PlacementQuestReroll  = service.PlacementQuestReroll
 	PlacementStreakRepair = service.PlacementStreakRepair
+	PlacementVolt         = service.PlacementVolt
 )
+
+// Volt ledger reasons progression writes (D-105).
+const (
+	VoltQuest      = service.VoltQuest
+	VoltDaily      = service.VoltDaily
+	VoltLevelUp    = service.VoltLevelUp
+	VoltTournament = service.VoltTournament
+	VoltSeason     = service.VoltSeason
+)
+
+// Store items (D-105).
+const (
+	ItemStreakShield = service.ItemStreakShield
+	ItemQuestReroll  = service.ItemQuestReroll
+)
+
+// ItemApplier is implemented by progression and wired with SetItems.
+type ItemApplier = service.ItemApplier
+
+// VoltWriter credits Volt inside another module's transaction
+// (progression's rewards; the ledger stays commerce's).
+type VoltWriter struct{}
+
+// CreditTx adds amount Volt to user inside tx, once per key.
+func (VoltWriter) CreditTx(ctx context.Context, tx pgx.Tx, user uuid.UUID, amount int, reason, ref, key string, now time.Time) error {
+	return service.CreditTx(ctx, tx, user, amount, reason, ref, key, now)
+}
 
 // AdRewardGranted is EventAdRewardGranted's payload.
 type AdRewardGranted = service.AdRewardGranted
@@ -93,6 +122,9 @@ func New(d Deps) *Module {
 
 // SetRewards wires progression's reward checker.
 func (m *Module) SetRewards(r RewardChecker) { m.svc.SetRewards(r) }
+
+// SetItems wires progression's item applier (D-105).
+func (m *Module) SetItems(a ItemApplier) { m.svc.SetItems(a) }
 
 // Register adds commerce's routes.
 func (m *Module) Register(s *httpserver.Server) {

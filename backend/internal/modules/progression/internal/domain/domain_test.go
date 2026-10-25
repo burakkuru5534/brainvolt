@@ -55,6 +55,24 @@ func TestStreak(t *testing.T) {
 	if s.Play(d(2)) != s {
 		t.Fatal("older day changed the streak")
 	}
+
+	// Shields cover missed days (D-105).
+	s = Streak{Current: 5, Longest: 5, LastDay: d(10), Shields: 2}
+	if s.Live(d(13)) != 5 || s.Live(d(14)) != 0 {
+		t.Fatal("live with shields")
+	}
+	if p := s.Play(d(12)); p.Current != 6 || p.Shields != 1 {
+		t.Fatalf("one shield %+v", p)
+	}
+	if p := s.Play(d(13)); p.Current != 6 || p.Shields != 0 {
+		t.Fatalf("two shields %+v", p)
+	}
+	if p := s.Play(d(14)); p.Current != 1 || p.Shields != 2 {
+		t.Fatalf("too long a gap %+v", p)
+	}
+	if p := s.Play(d(11)); p.Current != 6 || p.Shields != 2 {
+		t.Fatalf("no gap used a shield %+v", p)
+	}
 }
 
 func TestPeriodsAndDay(t *testing.T) {

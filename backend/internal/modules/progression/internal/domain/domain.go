@@ -94,15 +94,21 @@ func Period(cadence string, t time.Time) (start, end time.Time) {
 	return start, start.AddDate(0, 0, 1)
 }
 
+// MaxShields is how many streak shields a player can hold (D-105).
+const MaxShields = 2
+
 // Streak is a play streak (§6).
 type Streak struct {
 	Current, Longest int
 	// LastDay is the last play day (zero when never played).
 	LastDay time.Time
+	// Shields each cover one missed day (D-105).
+	Shields int
 }
 
 // Play records play on day (an Istanbul day at 00:00): the same day
-// changes nothing, the next day extends the streak, a gap restarts it.
+// changes nothing, the next day extends the streak, a gap restarts it
+// unless shields cover every missed day (they are used up).
 func (s Streak) Play(day time.Time) Streak {
 	switch {
 	case !s.LastDay.IsZero() && sameDay(s.LastDay, day):
@@ -112,17 +118,36 @@ func (s Streak) Play(day time.Time) Streak {
 	case !s.LastDay.IsZero() && day.Before(s.LastDay):
 		return s // a late event for an older day
 	default:
-		s.Current = 1
+		if missed := s.missed(day); missed > 0 && missed <= s.Shields {
+			s.Shields -= missed
+			s.Current++
+		} else {
+			s.Current = 1
+		}
 	}
 	s.LastDay = day
 	s.Longest = max(s.Longest, s.Current)
 	return s
 }
 
-// Live is the streak shown on day: it is lost once a whole day passed
-// without play.
+// missed is the number of days between the last play day and day (0 when
+// more than the shields could cover).
+func (s Streak) missed(day time.Time) int {
+	if s.LastDay.IsZero() {
+		return 0
+	}
+	for k := 1; k <= MaxShields; k++ {
+		if sameDay(s.LastDay.AddDate(0, 0, k+1), day) {
+			return k
+		}
+	}
+	return 0
+}
+
+// Live is the streak shown on day: it is lost once more whole days passed
+// without play than the shields cover.
 func (s Streak) Live(day time.Time) int {
-	if s.LastDay.IsZero() || day.After(s.LastDay.AddDate(0, 0, 1)) {
+	if s.LastDay.IsZero() || day.After(s.LastDay.AddDate(0, 0, 1+s.Shields)) {
 		return 0
 	}
 	return s.Current

@@ -17,12 +17,14 @@ type tournamentFinished struct {
 	TournamentID uuid.UUID `json:"tournament_id"`
 	Placements   []struct {
 		UserID uuid.UUID `json:"user_id"`
+		Place  int       `json:"place"`
 		XP     int       `json:"xp"`
 	} `json:"placements"`
 }
 
 // OnTournamentFinished gives each player the XP of their final place
-// (progression-formulas §5, D-090), once per tournament.
+// (progression-formulas §5, D-090) and places 1–3 their Volt (D-105),
+// once per tournament.
 func (s *Service) OnTournamentFinished(ctx context.Context, e events.Envelope) error {
 	var p tournamentFinished
 	if err := e.Decode(&p); err != nil {
@@ -34,7 +36,12 @@ func (s *Service) OnTournamentFinished(ctx context.Context, e events.Envelope) e
 			if err := q.LockUser(ctx, pl.UserID.String()); err != nil {
 				return err
 			}
-			if _, _, _, err := grant(ctx, q, pl.UserID, pl.XP, sourceTournament, p.TournamentID.String(), e.OccurredAt); err != nil {
+			id := p.TournamentID.String()
+			if _, _, _, err := s.grant(ctx, tx, q, pl.UserID, pl.XP, sourceTournament, id, e.OccurredAt); err != nil {
+				return err
+			}
+			// Places 1–3 earn Volt (D-105).
+			if err := s.volt(ctx, tx, pl.UserID, voltTournament[pl.Place], reasonTournament, id, "tournament:"+id, e.OccurredAt); err != nil {
 				return err
 			}
 		}

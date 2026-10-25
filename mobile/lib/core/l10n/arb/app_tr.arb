@@ -2794,6 +2794,345 @@
   "@adWatch": {
     "description": "Rewarded ads (D-103)."
   },
+  "plusTitle": "BrainVolt Plus",
+  "@plusTitle": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusTagline": "Reklamsız oyna, her gün daha fazla ödül kazan.",
+  "@plusTagline": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusPerkNoAds": "Reklamsız oyun: ara reklam yok",
+  "@plusPerkNoAds": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusPerkRewards": "Ödüllü reklam ödülleri reklam izlemeden",
+  "@plusPerkRewards": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusPerkQuests": "Her gün +1 görev ve +1 ücretsiz değiştirme",
+  "@plusPerkQuests": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusPerkBadge": "Ana sayfada Plus rozeti",
+  "@plusPerkBadge": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusMonthly": "Aylık",
+  "@plusMonthly": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusAnnual": "Yıllık",
+  "@plusAnnual": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusPerMonth": "{price}/ay",
+  "@plusPerMonth": {
+    "description": "BrainVolt Plus (D-104).",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "plusPerYear": "{price}/yıl",
+  "@plusPerYear": {
+    "description": "BrainVolt Plus (D-104).",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "plusTrial": "{days} gün ücretsiz dene",
+  "@plusTrial": {
+    "description": "BrainVolt Plus (D-104).",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "plusStartTrial": "{days} gün ücretsiz başla",
+  "@plusStartTrial": {
+    "description": "BrainVolt Plus (D-104).",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "plusBuy": "Plus'a geç",
+  "@plusBuy": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusRestore": "Satın alımları geri yükle",
+  "@plusRestore": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusLegal": "Abonelik iptal edilmedikçe her dönemin sonunda Google Play üzerinden otomatik yenilenir. İstediğin zaman Google Play'den iptal edebilirsin.",
+  "@plusLegal": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusActive": "Plus aktif.",
+  "@plusActive": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusActiveUntil": "Plus aktif. Yenileme tarihi: {date}",
+  "@plusActiveUntil": {
+    "description": "BrainVolt Plus (D-104).",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "plusManage": "Aboneliği yönet",
+  "@plusManage": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusLinkFirst": "Satın almak için önce hesabını Google, Apple ya da e-postaya bağla; böylece aboneliğin kaybolmaz.",
+  "@plusLinkFirst": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusUnavailable": "Satın alma bu cihazda henüz kullanılamıyor.",
+  "@plusUnavailable": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusNoPlans": "Planlar şu an yüklenemedi. Biraz sonra tekrar dene.",
+  "@plusNoPlans": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusWelcome": "Plus'a hoş geldin!",
+  "@plusWelcome": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusActivating": "Satın alma tamam; Plus birkaç saniye içinde açılacak.",
+  "@plusActivating": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusPending": "Ödemen onay bekliyor; onaylanınca Plus açılacak.",
+  "@plusPending": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusFailed": "Satın alma tamamlanamadı. Tekrar dene.",
+  "@plusFailed": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusNothingToRestore": "Geri yüklenecek bir abonelik bulunamadı.",
+  "@plusNothingToRestore": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusCta": "Plus'a geç",
+  "@plusCta": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "voltTitle": "Volt Mağazası",
+  "@voltTitle": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltBalanceLabel": "Volt bakiyen",
+  "@voltBalanceLabel": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltTagline": "Oynayarak kazan, mağazada harca.",
+  "@voltTagline": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltAdTitle": "Reklam izle, {amount} Volt kazan",
+  "@voltAdTitle": {
+    "description": "Volt and the store (D-105).",
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "voltAdLeft": "Bugün {count} hakkın kaldı",
+  "@voltAdLeft": {
+    "description": "Volt and the store (D-105).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voltAdNone": "Bugünkü reklam hakların bitti",
+  "@voltAdNone": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltAdDone": "+{amount} Volt kazandın",
+  "@voltAdDone": {
+    "description": "Volt and the store (D-105).",
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      }
+    }
+  },
+  "voltShop": "Mağaza",
+  "@voltShop": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltItemShield": "Seri Kalkanı",
+  "@voltItemShield": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltItemShieldSub": "Kaçırdığın bir günde serini korur. Elinde: {count}/{max}",
+  "@voltItemShieldSub": {
+    "description": "Volt and the store (D-105).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "voltItemReroll": "Ek görev değiştirme",
+  "@voltItemReroll": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltItemRerollSub": "Ücretsiz hakkın bitince bir görevi daha değiştir.",
+  "@voltItemRerollSub": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltBuyTitle": "{item} alınsın mı?",
+  "@voltBuyTitle": {
+    "description": "Volt and the store (D-105).",
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "voltBuyBody": "{price} Volt harcanacak.",
+  "@voltBuyBody": {
+    "description": "Volt and the store (D-105).",
+    "placeholders": {
+      "price": {
+        "type": "int"
+      }
+    }
+  },
+  "voltBuy": "Satın al",
+  "@voltBuy": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltBought": "{item} alındı",
+  "@voltBought": {
+    "description": "Volt and the store (D-105).",
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "voltEarnTitle": "Nasıl kazanılır",
+  "@voltEarnTitle": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltEarnQuests": "Günlük görev +10 · Haftalık görev +50",
+  "@voltEarnQuests": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltEarnDaily": "Günün Meydan Okuması +10",
+  "@voltEarnDaily": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltEarnLevel": "Her yeni seviye +25",
+  "@voltEarnLevel": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltEarnTournament": "Turnuvada ilk üç: +300 / +150 / +75",
+  "@voltEarnTournament": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltEarnSeason": "Sezon sonu lig ödülü: +50 ile +500 arası",
+  "@voltEarnSeason": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltEarnPlus": "Plus aboneleri her ay +400",
+  "@voltEarnPlus": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltHistory": "Son hareketler",
+  "@voltHistory": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltHistoryEmpty": "Henüz bir hareket yok.",
+  "@voltHistoryEmpty": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltReasonQuest": "Görev ödülü",
+  "@voltReasonQuest": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltReasonDaily": "Günün Meydan Okuması",
+  "@voltReasonDaily": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltReasonLevel": "Seviye {level}",
+  "@voltReasonLevel": {
+    "description": "Volt and the store (D-105).",
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "voltReasonTournament": "Turnuva derecesi",
+  "@voltReasonTournament": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltReasonSeason": "Sezon ödülü",
+  "@voltReasonSeason": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltReasonAd": "Reklam ödülü",
+  "@voltReasonAd": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltReasonPlus": "Plus aylık Volt",
+  "@voltReasonPlus": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltReasonPlusRefund": "Plus iadesi",
+  "@voltReasonPlusRefund": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltReasonItem": "Mağaza: {item}",
+  "@voltReasonItem": {
+    "description": "Volt and the store (D-105).",
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "voltReasonOther": "Düzeltme",
+  "@voltReasonOther": {
+    "description": "Volt and the store (D-105)."
+  },
+  "voltRerollWith": "{price} Volt ile değiştir",
+  "@voltRerollWith": {
+    "description": "Volt and the store (D-105).",
+    "placeholders": {
+      "price": {
+        "type": "int"
+      }
+    }
+  },
+  "questVoltReward": "+{volt}",
+  "@questVoltReward": {
+    "description": "Volt and the store (D-105).",
+    "placeholders": {
+      "volt": {
+        "type": "int"
+      }
+    }
+  },
   "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
   "@error_ACCOUNT_DELETION_PENDING": {
     "description": "Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md)."
@@ -2925,6 +3264,10 @@
   "error_INVITE_CODE_INVALID": "Davet kodu geçersiz.",
   "@error_INVITE_CODE_INVALID": {
     "description": "Server error code INVITE_CODE_INVALID (docs/api/errors.md)."
+  },
+  "error_ITEM_UNAVAILABLE": "Bu ürünü şu an alamazsın.",
+  "@error_ITEM_UNAVAILABLE": {
+    "description": "Server error code ITEM_UNAVAILABLE (docs/api/errors.md)."
   },
   "error_MALFORMED_REQUEST": "İstek okunamadı.",
   "@error_MALFORMED_REQUEST": {
@@ -3118,137 +3461,8 @@
   "@error_VERSION_CONFLICT": {
     "description": "Server error code VERSION_CONFLICT (docs/api/errors.md)."
   },
-  "plusTitle": "BrainVolt Plus",
-  "@plusTitle": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusTagline": "Reklamsız oyna, her gün daha fazla ödül kazan.",
-  "@plusTagline": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusPerkNoAds": "Reklamsız oyun: ara reklam yok",
-  "@plusPerkNoAds": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusPerkRewards": "Ödüllü reklam ödülleri reklam izlemeden",
-  "@plusPerkRewards": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusPerkQuests": "Her gün +1 görev ve +1 ücretsiz değiştirme",
-  "@plusPerkQuests": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusPerkBadge": "Ana sayfada Plus rozeti",
-  "@plusPerkBadge": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusMonthly": "Aylık",
-  "@plusMonthly": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusAnnual": "Yıllık",
-  "@plusAnnual": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusPerMonth": "{price}/ay",
-  "@plusPerMonth": {
-    "description": "BrainVolt Plus (D-104).",
-    "placeholders": {
-      "price": {
-        "type": "String"
-      }
-    }
-  },
-  "plusPerYear": "{price}/yıl",
-  "@plusPerYear": {
-    "description": "BrainVolt Plus (D-104).",
-    "placeholders": {
-      "price": {
-        "type": "String"
-      }
-    }
-  },
-  "plusTrial": "{days} gün ücretsiz dene",
-  "@plusTrial": {
-    "description": "BrainVolt Plus (D-104).",
-    "placeholders": {
-      "days": {
-        "type": "int"
-      }
-    }
-  },
-  "plusStartTrial": "{days} gün ücretsiz başla",
-  "@plusStartTrial": {
-    "description": "BrainVolt Plus (D-104).",
-    "placeholders": {
-      "days": {
-        "type": "int"
-      }
-    }
-  },
-  "plusBuy": "Plus'a geç",
-  "@plusBuy": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusRestore": "Satın alımları geri yükle",
-  "@plusRestore": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusLegal": "Abonelik iptal edilmedikçe her dönemin sonunda Google Play üzerinden otomatik yenilenir. İstediğin zaman Google Play'den iptal edebilirsin.",
-  "@plusLegal": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusActive": "Plus aktif.",
-  "@plusActive": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusActiveUntil": "Plus aktif. Yenileme tarihi: {date}",
-  "@plusActiveUntil": {
-    "description": "BrainVolt Plus (D-104).",
-    "placeholders": {
-      "date": {
-        "type": "String"
-      }
-    }
-  },
-  "plusManage": "Aboneliği yönet",
-  "@plusManage": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusLinkFirst": "Satın almak için önce hesabını Google, Apple ya da e-postaya bağla; böylece aboneliğin kaybolmaz.",
-  "@plusLinkFirst": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusUnavailable": "Satın alma bu cihazda henüz kullanılamıyor.",
-  "@plusUnavailable": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusNoPlans": "Planlar şu an yüklenemedi. Biraz sonra tekrar dene.",
-  "@plusNoPlans": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusWelcome": "Plus'a hoş geldin!",
-  "@plusWelcome": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusActivating": "Satın alma tamam; Plus birkaç saniye içinde açılacak.",
-  "@plusActivating": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusPending": "Ödemen onay bekliyor; onaylanınca Plus açılacak.",
-  "@plusPending": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusFailed": "Satın alma tamamlanamadı. Tekrar dene.",
-  "@plusFailed": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusNothingToRestore": "Geri yüklenecek bir abonelik bulunamadı.",
-  "@plusNothingToRestore": {
-    "description": "BrainVolt Plus (D-104)."
-  },
-  "plusCta": "Plus'a geç",
-  "@plusCta": {
-    "description": "BrainVolt Plus (D-104)."
+  "error_VOLT_INSUFFICIENT": "Yeterli Volt'un yok.",
+  "@error_VOLT_INSUFFICIENT": {
+    "description": "Server error code VOLT_INSUFFICIENT (docs/api/errors.md)."
   }
 }

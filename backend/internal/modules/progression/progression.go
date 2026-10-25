@@ -7,8 +7,10 @@ package progression
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
@@ -46,13 +48,18 @@ type Deps struct {
 	Ranking *ranking.Module
 	// Plus reports BrainVolt Plus (commerce's entitlement reader, wired in
 	// internal/app; D-104). nil = nobody has Plus.
-	Plus   PlusChecker
+	Plus PlusChecker
+	// Wallet credits Volt rewards (commerce.VoltWriter, D-105); nil = none.
+	Wallet Wallet
 	Clock  clock.Clock
 	Logger *slog.Logger
 }
 
 // PlusChecker reports entitlements.
 type PlusChecker = service.PlusChecker
+
+// Wallet writes Volt inside progression's transactions.
+type Wallet = service.Wallet
 
 // Module is the progression module.
 type Module struct {
@@ -63,7 +70,7 @@ type Module struct {
 // New builds the module.
 func New(d Deps) *Module {
 	return &Module{
-		svc:     service.New(service.Deps{DB: d.DB, Pusher: d.Pusher, Plus: d.Plus, Clock: d.Clock, Logger: d.Logger}),
+		svc:     service.New(service.Deps{DB: d.DB, Pusher: d.Pusher, Plus: d.Plus, Wallet: d.Wallet, Clock: d.Clock, Logger: d.Logger}),
 		ranking: d.Ranking,
 	}
 }
@@ -128,4 +135,10 @@ func (m *Module) AdOffer(ctx context.Context, user uuid.UUID, placement, ref str
 // OnAdRewardGranted consumes commerce.AdRewardGranted.
 func (m *Module) OnAdRewardGranted(ctx context.Context, e events.Envelope) error {
 	return m.svc.OnAdRewardGranted(ctx, e)
+}
+
+// ApplyItemTx gives a store item bought with Volt its effect inside the
+// purchase's transaction (commerce's ItemApplier, D-105).
+func (m *Module) ApplyItemTx(ctx context.Context, tx pgx.Tx, user uuid.UUID, item, ref string, now time.Time) error {
+	return m.svc.ApplyItemTx(ctx, tx, user, item, ref, now)
 }

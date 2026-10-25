@@ -67,6 +67,8 @@ var messagesEN = map[Code]string{
 	DailyAnswersNotOpen:    "A day's answers open once the day is over.",
 	AdRewardUnavailable:    "This reward isn't available right now.",
 	AdLimitReached:         "You've reached today's limit for this reward.",
+	VoltInsufficient:       "You don't have enough Volt.",
+	ItemUnavailable:        "You can't get this item right now.",
 
 	QuestionSourceRequired: "The question's source and license are required.",
 	QuestionInUse:          "This question has been used in matches and can't be changed this way.",

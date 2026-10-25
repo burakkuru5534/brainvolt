@@ -572,11 +572,14 @@ components:
                     type: integer
                 level_up:
                     type: boolean
+                volt:
+                    type: integer
                 xp:
                     type: integer
             required:
                 - level
                 - level_up
+                - volt
                 - xp
             type: object
         CodeRequest:
@@ -1574,6 +1577,8 @@ components:
             properties:
                 streak_days:
                     type: integer
+                volt:
+                    type: integer
                 xp:
                     type: integer
             type: object
@@ -1832,6 +1837,19 @@ components:
                 - user_id
                 - username
             type: object
+        Purchase:
+            properties:
+                balance:
+                    type: integer
+                item:
+                    type: string
+                price:
+                    type: integer
+            required:
+                - balance
+                - item
+                - price
+            type: object
         Quest:
             properties:
                 cadence:
@@ -1860,6 +1878,8 @@ components:
                     type: string
                 progress:
                     type: integer
+                reward_volt:
+                    type: integer
                 reward_xp:
                     type: integer
                 target:
@@ -1876,6 +1896,7 @@ components:
                 - id
                 - objective
                 - progress
+                - reward_volt
                 - reward_xp
                 - target
                 - title
@@ -2997,18 +3018,34 @@ components:
                 - times_correct
                 - times_timed_out
             type: object
+        StoreItem:
+            properties:
+                code:
+                    type: string
+                price:
+                    type: integer
+            required:
+                - code
+                - price
+            type: object
         Streak:
             properties:
                 current:
                     type: integer
                 longest:
                     type: integer
+                max_shields:
+                    type: integer
                 played_today:
                     type: boolean
+                shields:
+                    type: integer
             required:
                 - current
                 - longest
+                - max_shields
                 - played_today
+                - shields
             type: object
         StreakOffer:
             properties:
@@ -3576,6 +3613,46 @@ components:
                 - reason
                 - revision
                 - to_status
+            type: object
+        VoltEntry:
+            properties:
+                amount:
+                    type: integer
+                created_at:
+                    format: date-time
+                    type: string
+                reason:
+                    type: string
+                ref:
+                    type: string
+            required:
+                - amount
+                - created_at
+                - reason
+                - ref
+            type: object
+        Wallet:
+            properties:
+                ad_volt:
+                    type: integer
+                ad_volt_left:
+                    type: integer
+                balance:
+                    type: integer
+                history:
+                    items:
+                        $ref: '#/components/schemas/VoltEntry'
+                    type: array
+                items:
+                    items:
+                        $ref: '#/components/schemas/StoreItem'
+                    type: array
+            required:
+                - ad_volt
+                - ad_volt_left
+                - balance
+                - history
+                - items
             type: object
     securitySchemes:
         firebase:
@@ -4419,7 +4496,7 @@ paths:
                     description: 'Error codes: UNAVAILABLE'
             security:
                 - firebase: []
-            summary: Reserve a rewarded ad (bonus_xp after a match, quest_reroll, streak_repair); its id goes to AdMob as custom_data
+            summary: Reserve a rewarded ad (bonus_xp after a match, quest_reroll, streak_repair, volt in the store); its id goes to AdMob as custom_data
             tags:
                 - commerce
             x-auth: any
@@ -9585,6 +9662,61 @@ paths:
             tags:
                 - team
             x-auth: any
+    /v1/me/wallet:
+        get:
+            operationId: getV1MeWallet
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Wallet'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: 'The caller''s Volt (D-105): balance, store items, the latest movements and today''s store ads left'
+            tags:
+                - commerce
+            x-auth: any
     /v1/profiles/{user_id}:
         get:
             operationId: getV1ProfilesUserId
@@ -11120,6 +11252,78 @@ paths:
             summary: League, division, SP and record of a user, team or couple (current season or season_id)
             tags:
                 - ranking
+            x-auth: any
+    /v1/store/items/{code}/buy:
+        post:
+            operationId: postV1StoreItemsCodeBuy
+            parameters:
+                - in: path
+                  name: code
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Purchase'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ITEM_UNAVAILABLE, VOLT_INSUFFICIENT'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Buy a store item with Volt (streak_shield, quest_reroll); the item's effect and the charge happen together
+            tags:
+                - commerce
             x-auth: any
     /v1/store/revenuecat/webhook:
         post:

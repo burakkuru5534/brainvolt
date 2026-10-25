@@ -6,6 +6,9 @@ abstract final class AdPlacement {
   static const bonusXp = 'bonus_xp';
   static const questReroll = 'quest_reroll';
   static const streakRepair = 'streak_repair';
+
+  /// The store's Volt ad (D-105).
+  static const volt = 'volt';
 }
 
 /// GET /v1/ads/config.

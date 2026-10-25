@@ -254,13 +254,15 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	rt.OnViolation(mod.ProtocolViolation)
 	rk := ranking.New(ranking.Deps{DB: d.db, Profiles: prof, Teams: tm, Social: soc, Clock: d.clock, Logger: d.logger})
 	rk.Register(srv, ident)
-	prog := progression.New(progression.Deps{DB: d.db, Ranking: rk, Plus: commerce.NewEntitlementReader(d.db, d.clock), Clock: d.clock, Logger: d.logger})
+	prog := progression.New(progression.Deps{DB: d.db, Ranking: rk, Plus: commerce.NewEntitlementReader(d.db, d.clock), Wallet: commerce.VoltWriter{},
+		Clock: d.clock, Logger: d.logger})
 	prog.Register(srv, ident, d.idem)
 	prof.SetReaders(soc, prog) // player profiles (D-101): relation and stats
 	// Rewarded ads (D-103): commerce verifies, progression checks and gives.
 	com := commerce.New(commerce.Deps{DB: d.db, Identity: ident, Events: d.bus, Keys: d.adKeys, Clock: d.clock, Logger: d.logger,
 		DevGrant: d.env != config.EnvProd, RevenueCatSecret: d.rcSecret})
 	com.SetRewards(adOffers{prog})
+	com.SetItems(prog) // Volt store items (D-105)
 	com.Register(srv)
 	g := game.New(game.Deps{
 		DB: d.db, Content: cont, Identity: ident, Profiles: prof, Realtime: rt, Teams: tm, Seasons: rk, Sanctions: mod,
@@ -349,7 +351,8 @@ func newBus(db *pgxpool.Pool, logger *slog.Logger, push notification.Sender, liv
 	bus.Subscribe(game.EventMatchCompleted, ranking.SubscriberMatchResults, rk.OnMatchCompleted)
 	bus.Subscribe(identity.EventAccountTierChanged, ranking.SubscriberTierChanged, rk.OnTierChanged)
 	// progression: XP, streaks, badges and quests (progression-formulas §5–9).
-	prog := progression.New(progression.Deps{DB: db, Pusher: live, Ranking: rk, Plus: commerce.NewEntitlementReader(db, clock.Real{}), Clock: clock.Real{}, Logger: logger})
+	prog := progression.New(progression.Deps{DB: db, Pusher: live, Ranking: rk, Plus: commerce.NewEntitlementReader(db, clock.Real{}),
+		Wallet: commerce.VoltWriter{}, Clock: clock.Real{}, Logger: logger})
 	bus.Subscribe(game.EventMatchCompleted, progression.SubscriberMatchAwards, prog.OnMatchCompleted)
 	bus.Subscribe(ranking.EventSeasonEnded, progression.SubscriberSeasonReward, prog.OnSeasonEnded)
 	bus.Subscribe(commerce.EventAdRewardGranted, progression.SubscriberAdRewards, prog.OnAdRewardGranted)

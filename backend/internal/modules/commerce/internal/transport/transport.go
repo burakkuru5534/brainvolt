@@ -1,5 +1,6 @@
-// Package transport is commerce's HTTP layer (rest.md §11, D-103): the
-// ad settings, rewarded-ad reservations and AdMob's SSV callback.
+// Package transport is commerce's HTTP layer (rest.md §11): ad settings,
+// rewarded-ad reservations and AdMob's SSV callback (D-103), entitlements
+// and RevenueCat's webhook (D-104), Volt and the store (D-105).
 package transport
 
 import (
@@ -39,7 +40,7 @@ type RewardRequest struct {
 	Ref string `json:"ref,omitempty"`
 }
 
-var placements = []string{service.PlacementBonusXP, service.PlacementQuestReroll, service.PlacementStreakRepair}
+var placements = []string{service.PlacementBonusXP, service.PlacementQuestReroll, service.PlacementStreakRepair, service.PlacementVolt}
 
 // Register adds commerce's routes.
 func (t *Transport) Register(s *httpserver.Server) {
@@ -50,7 +51,7 @@ func (t *Transport) Register(s *httpserver.Server) {
 		Response: service.AdsConfig{},
 	}))
 	s.Handle("POST /v1/ads/rewards", a(t.reserve), doc(httpserver.Doc{
-		Auth: "any", Summary: "Reserve a rewarded ad (bonus_xp after a match, quest_reroll, streak_repair); its id goes to AdMob as custom_data",
+		Auth: "any", Summary: "Reserve a rewarded ad (bonus_xp after a match, quest_reroll, streak_repair, volt in the store); its id goes to AdMob as custom_data",
 		Request: RewardRequest{}, Response: service.Reward{}, Status: http.StatusCreated,
 		Errors: []apierror.Code{apierror.ValidationFailed, apierror.AdRewardUnavailable, apierror.AdLimitReached},
 	}))
@@ -69,6 +70,14 @@ func (t *Transport) Register(s *httpserver.Server) {
 	s.Handle("POST /v1/store/revenuecat/webhook", t.revenueCat, doc(httpserver.Doc{
 		Auth: "public", Summary: "RevenueCat webhook (Authorization = the configured secret): subscription events → the plus entitlement, idempotent by event id",
 		Errors: []apierror.Code{apierror.Unauthenticated, apierror.Unavailable},
+	}))
+	s.Handle("GET /v1/me/wallet", a(t.wallet), doc(httpserver.Doc{
+		Auth: "any", Summary: "The caller's Volt (D-105): balance, store items, the latest movements and today's store ads left",
+		Response: service.Wallet{},
+	}))
+	s.Handle("POST /v1/store/items/{code}/buy", a(t.buy), doc(httpserver.Doc{
+		Auth: "any", Summary: "Buy a store item with Volt (streak_shield, quest_reroll); the item's effect and the charge happen together",
+		Response: service.Purchase{}, Errors: []apierror.Code{apierror.NotFound, apierror.VoltInsufficient, apierror.ItemUnavailable},
 	}))
 	if t.devGrant {
 		s.Handle("POST /v1/ads/rewards/{id}/dev-grant", a(t.devGrantReward), doc(httpserver.Doc{
@@ -151,6 +160,22 @@ func (t *Transport) devGrantReward(w http.ResponseWriter, r *http.Request) error
 
 func (t *Transport) entitlements(w http.ResponseWriter, r *http.Request) error {
 	out, err := t.svc.MyEntitlements(r.Context(), principal(r).UserID)
+	if err != nil {
+		return err
+	}
+	return httpserver.WriteJSON(w, http.StatusOK, out)
+}
+
+func (t *Transport) wallet(w http.ResponseWriter, r *http.Request) error {
+	out, err := t.svc.Wallet(r.Context(), principal(r).UserID)
+	if err != nil {
+		return err
+	}
+	return httpserver.WriteJSON(w, http.StatusOK, out)
+}
+
+func (t *Transport) buy(w http.ResponseWriter, r *http.Request) error {
+	out, err := t.svc.Buy(r.Context(), principal(r).UserID, r.PathValue("code"))
 	if err != nil {
 		return err
 	}

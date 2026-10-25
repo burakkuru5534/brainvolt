@@ -147,6 +147,26 @@ func (q *Queries) AddRerollBonus(ctx context.Context, arg AddRerollBonusParams) 
 	return err
 }
 
+const addShield = `-- name: AddShield :one
+INSERT INTO progression.play_streaks (user_id, shields, updated_at) VALUES ($1, 1, $2)
+ON CONFLICT (user_id) DO UPDATE SET shields = progression.play_streaks.shields + 1, updated_at = EXCLUDED.updated_at
+WHERE progression.play_streaks.shields < 2
+RETURNING shields
+`
+
+type AddShieldParams struct {
+	UserID uuid.UUID
+	Now    time.Time
+}
+
+// A bought streak shield (D-105); no row when the player holds the maximum.
+func (q *Queries) AddShield(ctx context.Context, arg AddShieldParams) (int32, error) {
+	row := q.db.QueryRow(ctx, addShield, arg.UserID, arg.Now)
+	var shields int32
+	err := row.Scan(&shields)
+	return shields, err
+}
+
 const addStats = `-- name: AddStats :one
 INSERT INTO progression.user_stats (user_id, matches, wins, correct, updated_at) VALUES ($1, 1, $2, $3, $4)
 ON CONFLICT (user_id) DO UPDATE SET matches = progression.user_stats.matches + 1, wins = progression.user_stats.wins + EXCLUDED.wins,
@@ -401,7 +421,7 @@ func (q *Queries) GetStats(ctx context.Context, userID uuid.UUID) (GetStatsRow, 
 
 const getStreak = `-- name: GetStreak :one
 
-SELECT user_id, current_days, longest_days, last_play_day, updated_at FROM progression.play_streaks WHERE user_id = $1
+SELECT user_id, current_days, longest_days, last_play_day, updated_at, shields, plus_shield_week FROM progression.play_streaks WHERE user_id = $1
 `
 
 // ---------- Streak & counters ----------
@@ -414,6 +434,8 @@ func (q *Queries) GetStreak(ctx context.Context, userID uuid.UUID) (ProgressionP
 		&i.LongestDays,
 		&i.LastPlayDay,
 		&i.UpdatedAt,
+		&i.Shields,
+		&i.PlusShieldWeek,
 	)
 	return i, err
 }
@@ -636,6 +658,25 @@ func (q *Queries) PeriodAssignments(ctx context.Context, arg PeriodAssignmentsPa
 	return items, nil
 }
 
+const plusShield = `-- name: PlusShield :exec
+INSERT INTO progression.play_streaks (user_id, shields, plus_shield_week, updated_at) VALUES ($1, 1, $2, $3)
+ON CONFLICT (user_id) DO UPDATE SET shields = least(progression.play_streaks.shields + 1, 2),
+  plus_shield_week = EXCLUDED.plus_shield_week, updated_at = EXCLUDED.updated_at
+WHERE progression.play_streaks.plus_shield_week IS DISTINCT FROM EXCLUDED.plus_shield_week
+`
+
+type PlusShieldParams struct {
+	UserID uuid.UUID
+	Week   *time.Time
+	Now    time.Time
+}
+
+// Plus's shield of the week (D-105): once a week, never above the maximum.
+func (q *Queries) PlusShield(ctx context.Context, arg PlusShieldParams) error {
+	_, err := q.db.Exec(ctx, plusShield, arg.UserID, arg.Week, arg.Now)
+	return err
+}
+
 const questTexts = `-- name: QuestTexts :many
 SELECT quest_id, title, description FROM progression.quest_translations WHERE locale = $1
 `
@@ -742,10 +783,10 @@ func (q *Queries) UpsertProgress(ctx context.Context, arg UpsertProgressParams) 
 }
 
 const upsertStreak = `-- name: UpsertStreak :exec
-INSERT INTO progression.play_streaks (user_id, current_days, longest_days, last_play_day, updated_at)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO progression.play_streaks (user_id, current_days, longest_days, last_play_day, shields, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT (user_id) DO UPDATE SET current_days = EXCLUDED.current_days, longest_days = EXCLUDED.longest_days,
-  last_play_day = EXCLUDED.last_play_day, updated_at = EXCLUDED.updated_at
+  last_play_day = EXCLUDED.last_play_day, shields = EXCLUDED.shields, updated_at = EXCLUDED.updated_at
 `
 
 type UpsertStreakParams struct {
@@ -753,6 +794,7 @@ type UpsertStreakParams struct {
 	CurrentDays int32
 	LongestDays int32
 	LastPlayDay *time.Time
+	Shields     int32
 	Now         time.Time
 }
 
@@ -762,6 +804,7 @@ func (q *Queries) UpsertStreak(ctx context.Context, arg UpsertStreakParams) erro
 		arg.CurrentDays,
 		arg.LongestDays,
 		arg.LastPlayDay,
+		arg.Shields,
 		arg.Now,
 	)
 	return err

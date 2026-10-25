@@ -31,10 +31,24 @@ WHERE user_id = @user_id AND ((source IN ('match','ad_bonus') AND source_ref = @
 SELECT * FROM progression.play_streaks WHERE user_id = @user_id;
 
 -- name: UpsertStreak :exec
-INSERT INTO progression.play_streaks (user_id, current_days, longest_days, last_play_day, updated_at)
-VALUES (@user_id, @current_days, @longest_days, @last_play_day, @now)
+INSERT INTO progression.play_streaks (user_id, current_days, longest_days, last_play_day, shields, updated_at)
+VALUES (@user_id, @current_days, @longest_days, @last_play_day, @shields, @now)
 ON CONFLICT (user_id) DO UPDATE SET current_days = EXCLUDED.current_days, longest_days = EXCLUDED.longest_days,
-  last_play_day = EXCLUDED.last_play_day, updated_at = EXCLUDED.updated_at;
+  last_play_day = EXCLUDED.last_play_day, shields = EXCLUDED.shields, updated_at = EXCLUDED.updated_at;
+
+-- name: AddShield :one
+-- A bought streak shield (D-105); no row when the player holds the maximum.
+INSERT INTO progression.play_streaks (user_id, shields, updated_at) VALUES (@user_id, 1, @now)
+ON CONFLICT (user_id) DO UPDATE SET shields = progression.play_streaks.shields + 1, updated_at = EXCLUDED.updated_at
+WHERE progression.play_streaks.shields < 2
+RETURNING shields;
+
+-- name: PlusShield :exec
+-- Plus's shield of the week (D-105): once a week, never above the maximum.
+INSERT INTO progression.play_streaks (user_id, shields, plus_shield_week, updated_at) VALUES (@user_id, 1, @week, @now)
+ON CONFLICT (user_id) DO UPDATE SET shields = least(progression.play_streaks.shields + 1, 2),
+  plus_shield_week = EXCLUDED.plus_shield_week, updated_at = EXCLUDED.updated_at
+WHERE progression.play_streaks.plus_shield_week IS DISTINCT FROM EXCLUDED.plus_shield_week;
 
 -- name: AddStats :one
 INSERT INTO progression.user_stats (user_id, matches, wins, correct, updated_at) VALUES (@user_id, 1, @wins, @correct, @now)

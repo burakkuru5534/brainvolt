@@ -38,6 +38,7 @@ type Quest struct {
 	Progress    int        `json:"progress"`
 	Target      int        `json:"target"`
 	RewardXP    int        `json:"reward_xp"`
+	RewardVolt  int        `json:"reward_volt"`
 	EndsAt      time.Time  `json:"ends_at"`
 	CompletedAt *time.Time `json:"completed_at"`
 	ClaimedAt   *time.Time `json:"claimed_at"`
@@ -53,6 +54,7 @@ type Quests struct {
 // Claimed is the answer to a claim.
 type Claimed struct {
 	XP      int  `json:"xp"`
+	Volt    int  `json:"volt"`
 	Level   int  `json:"level"`
 	LevelUp bool `json:"level_up"`
 }
@@ -103,7 +105,7 @@ func (s *Service) Quests(ctx context.Context, user uuid.UUID, locale string) (Qu
 
 func questOf(r *sqlc.PeriodAssignmentsRow) Quest {
 	return Quest{ID: r.ID, Code: r.Code, Cadence: r.Cadence, Objective: r.Objective, Progress: int(r.Progress), Target: int(r.Target),
-		RewardXP: int(r.RewardXp), EndsAt: r.PeriodEnd, CompletedAt: r.CompletedAt, ClaimedAt: r.ClaimedAt}
+		RewardXP: int(r.RewardXp), RewardVolt: questVolt(r.Cadence), EndsAt: r.PeriodEnd, CompletedAt: r.CompletedAt, ClaimedAt: r.ClaimedAt}
 }
 
 // ensureQuests tops a period up to three quests with different
@@ -232,7 +234,7 @@ func advanceQuests(ctx context.Context, q *sqlc.Queries, user uuid.UUID, p *matc
 	return out, nil
 }
 
-// Claim grants a completed quest's XP once.
+// Claim grants a completed quest's XP and Volt (D-105) once.
 func (s *Service) Claim(ctx context.Context, user, id uuid.UUID) (Claimed, error) {
 	var out Claimed
 	err := postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error {
@@ -256,9 +258,15 @@ func (s *Service) Claim(ctx context.Context, user, id uuid.UUID) (Claimed, error
 		if err := q.ClaimAssignment(ctx, sqlc.ClaimAssignmentParams{Now: &now, ID: id}); err != nil {
 			return err
 		}
-		added, before, after, err := grant(ctx, q, user, int(a.RewardXp), sourceQuest, id.String(), now)
+		added, before, after, err := s.grant(ctx, tx, q, user, int(a.RewardXp), sourceQuest, id.String(), now)
+		if err != nil {
+			return err
+		}
 		out = Claimed{XP: added, Level: after, LevelUp: after > before}
-		return err
+		if s.d.Wallet != nil {
+			out.Volt = questVolt(a.Cadence)
+		}
+		return s.volt(ctx, tx, user, out.Volt, reasonQuest, id.String(), "quest:"+id.String(), now)
 	})
 	return out, err
 }

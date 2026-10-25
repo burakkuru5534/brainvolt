@@ -2011,6 +2011,235 @@ class AppLocalizationsTr extends AppLocalizations {
   String get adWatch => 'İzle';
 
   @override
+  String get plusTitle => 'BrainVolt Plus';
+
+  @override
+  String get plusTagline => 'Reklamsız oyna, her gün daha fazla ödül kazan.';
+
+  @override
+  String get plusPerkNoAds => 'Reklamsız oyun: ara reklam yok';
+
+  @override
+  String get plusPerkRewards => 'Ödüllü reklam ödülleri reklam izlemeden';
+
+  @override
+  String get plusPerkQuests => 'Her gün +1 görev ve +1 ücretsiz değiştirme';
+
+  @override
+  String get plusPerkBadge => 'Ana sayfada Plus rozeti';
+
+  @override
+  String get plusMonthly => 'Aylık';
+
+  @override
+  String get plusAnnual => 'Yıllık';
+
+  @override
+  String plusPerMonth(String price) {
+    return '$price/ay';
+  }
+
+  @override
+  String plusPerYear(String price) {
+    return '$price/yıl';
+  }
+
+  @override
+  String plusTrial(int days) {
+    return '$days gün ücretsiz dene';
+  }
+
+  @override
+  String plusStartTrial(int days) {
+    return '$days gün ücretsiz başla';
+  }
+
+  @override
+  String get plusBuy => 'Plus\'a geç';
+
+  @override
+  String get plusRestore => 'Satın alımları geri yükle';
+
+  @override
+  String get plusLegal =>
+      'Abonelik iptal edilmedikçe her dönemin sonunda Google Play üzerinden otomatik yenilenir. İstediğin zaman Google Play\'den iptal edebilirsin.';
+
+  @override
+  String get plusActive => 'Plus aktif.';
+
+  @override
+  String plusActiveUntil(String date) {
+    return 'Plus aktif. Yenileme tarihi: $date';
+  }
+
+  @override
+  String get plusManage => 'Aboneliği yönet';
+
+  @override
+  String get plusLinkFirst =>
+      'Satın almak için önce hesabını Google, Apple ya da e-postaya bağla; böylece aboneliğin kaybolmaz.';
+
+  @override
+  String get plusUnavailable => 'Satın alma bu cihazda henüz kullanılamıyor.';
+
+  @override
+  String get plusNoPlans =>
+      'Planlar şu an yüklenemedi. Biraz sonra tekrar dene.';
+
+  @override
+  String get plusWelcome => 'Plus\'a hoş geldin!';
+
+  @override
+  String get plusActivating =>
+      'Satın alma tamam; Plus birkaç saniye içinde açılacak.';
+
+  @override
+  String get plusPending => 'Ödemen onay bekliyor; onaylanınca Plus açılacak.';
+
+  @override
+  String get plusFailed => 'Satın alma tamamlanamadı. Tekrar dene.';
+
+  @override
+  String get plusNothingToRestore => 'Geri yüklenecek bir abonelik bulunamadı.';
+
+  @override
+  String get plusCta => 'Plus\'a geç';
+
+  @override
+  String get voltTitle => 'Volt Mağazası';
+
+  @override
+  String get voltBalanceLabel => 'Volt bakiyen';
+
+  @override
+  String get voltTagline => 'Oynayarak kazan, mağazada harca.';
+
+  @override
+  String voltAdTitle(int amount) {
+    return 'Reklam izle, $amount Volt kazan';
+  }
+
+  @override
+  String voltAdLeft(int count) {
+    return 'Bugün $count hakkın kaldı';
+  }
+
+  @override
+  String get voltAdNone => 'Bugünkü reklam hakların bitti';
+
+  @override
+  String voltAdDone(int amount) {
+    return '+$amount Volt kazandın';
+  }
+
+  @override
+  String get voltShop => 'Mağaza';
+
+  @override
+  String get voltItemShield => 'Seri Kalkanı';
+
+  @override
+  String voltItemShieldSub(int count, int max) {
+    return 'Kaçırdığın bir günde serini korur. Elinde: $count/$max';
+  }
+
+  @override
+  String get voltItemReroll => 'Ek görev değiştirme';
+
+  @override
+  String get voltItemRerollSub =>
+      'Ücretsiz hakkın bitince bir görevi daha değiştir.';
+
+  @override
+  String voltBuyTitle(String item) {
+    return '$item alınsın mı?';
+  }
+
+  @override
+  String voltBuyBody(int price) {
+    return '$price Volt harcanacak.';
+  }
+
+  @override
+  String get voltBuy => 'Satın al';
+
+  @override
+  String voltBought(String item) {
+    return '$item alındı';
+  }
+
+  @override
+  String get voltEarnTitle => 'Nasıl kazanılır';
+
+  @override
+  String get voltEarnQuests => 'Günlük görev +10 · Haftalık görev +50';
+
+  @override
+  String get voltEarnDaily => 'Günün Meydan Okuması +10';
+
+  @override
+  String get voltEarnLevel => 'Her yeni seviye +25';
+
+  @override
+  String get voltEarnTournament => 'Turnuvada ilk üç: +300 / +150 / +75';
+
+  @override
+  String get voltEarnSeason => 'Sezon sonu lig ödülü: +50 ile +500 arası';
+
+  @override
+  String get voltEarnPlus => 'Plus aboneleri her ay +400';
+
+  @override
+  String get voltHistory => 'Son hareketler';
+
+  @override
+  String get voltHistoryEmpty => 'Henüz bir hareket yok.';
+
+  @override
+  String get voltReasonQuest => 'Görev ödülü';
+
+  @override
+  String get voltReasonDaily => 'Günün Meydan Okuması';
+
+  @override
+  String voltReasonLevel(String level) {
+    return 'Seviye $level';
+  }
+
+  @override
+  String get voltReasonTournament => 'Turnuva derecesi';
+
+  @override
+  String get voltReasonSeason => 'Sezon ödülü';
+
+  @override
+  String get voltReasonAd => 'Reklam ödülü';
+
+  @override
+  String get voltReasonPlus => 'Plus aylık Volt';
+
+  @override
+  String get voltReasonPlusRefund => 'Plus iadesi';
+
+  @override
+  String voltReasonItem(String item) {
+    return 'Mağaza: $item';
+  }
+
+  @override
+  String get voltReasonOther => 'Düzeltme';
+
+  @override
+  String voltRerollWith(int price) {
+    return '$price Volt ile değiştir';
+  }
+
+  @override
+  String questVoltReward(int volt) {
+    return '+$volt';
+  }
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.';
 
@@ -2123,6 +2352,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get error_INVITE_CODE_INVALID => 'Davet kodu geçersiz.';
+
+  @override
+  String get error_ITEM_UNAVAILABLE => 'Bu ürünü şu an alamazsın.';
 
   @override
   String get error_MALFORMED_REQUEST => 'İstek okunamadı.';
@@ -2287,97 +2519,5 @@ class AppLocalizationsTr extends AppLocalizations {
       'Bu kayıt başka biri tarafından değiştirildi. Yenileyip tekrar dene.';
 
   @override
-  String get plusTitle => 'BrainVolt Plus';
-
-  @override
-  String get plusTagline => 'Reklamsız oyna, her gün daha fazla ödül kazan.';
-
-  @override
-  String get plusPerkNoAds => 'Reklamsız oyun: ara reklam yok';
-
-  @override
-  String get plusPerkRewards => 'Ödüllü reklam ödülleri reklam izlemeden';
-
-  @override
-  String get plusPerkQuests => 'Her gün +1 görev ve +1 ücretsiz değiştirme';
-
-  @override
-  String get plusPerkBadge => 'Ana sayfada Plus rozeti';
-
-  @override
-  String get plusMonthly => 'Aylık';
-
-  @override
-  String get plusAnnual => 'Yıllık';
-
-  @override
-  String plusPerMonth(String price) {
-    return '$price/ay';
-  }
-
-  @override
-  String plusPerYear(String price) {
-    return '$price/yıl';
-  }
-
-  @override
-  String plusTrial(int days) {
-    return '$days gün ücretsiz dene';
-  }
-
-  @override
-  String plusStartTrial(int days) {
-    return '$days gün ücretsiz başla';
-  }
-
-  @override
-  String get plusBuy => 'Plus\'a geç';
-
-  @override
-  String get plusRestore => 'Satın alımları geri yükle';
-
-  @override
-  String get plusLegal =>
-      'Abonelik iptal edilmedikçe her dönemin sonunda Google Play üzerinden otomatik yenilenir. İstediğin zaman Google Play\'den iptal edebilirsin.';
-
-  @override
-  String get plusActive => 'Plus aktif.';
-
-  @override
-  String plusActiveUntil(String date) {
-    return 'Plus aktif. Yenileme tarihi: $date';
-  }
-
-  @override
-  String get plusManage => 'Aboneliği yönet';
-
-  @override
-  String get plusLinkFirst =>
-      'Satın almak için önce hesabını Google, Apple ya da e-postaya bağla; böylece aboneliğin kaybolmaz.';
-
-  @override
-  String get plusUnavailable => 'Satın alma bu cihazda henüz kullanılamıyor.';
-
-  @override
-  String get plusNoPlans =>
-      'Planlar şu an yüklenemedi. Biraz sonra tekrar dene.';
-
-  @override
-  String get plusWelcome => 'Plus\'a hoş geldin!';
-
-  @override
-  String get plusActivating =>
-      'Satın alma tamam; Plus birkaç saniye içinde açılacak.';
-
-  @override
-  String get plusPending => 'Ödemen onay bekliyor; onaylanınca Plus açılacak.';
-
-  @override
-  String get plusFailed => 'Satın alma tamamlanamadı. Tekrar dene.';
-
-  @override
-  String get plusNothingToRestore => 'Geri yüklenecek bir abonelik bulunamadı.';
-
-  @override
-  String get plusCta => 'Plus\'a geç';
+  String get error_VOLT_INSUFFICIENT => 'Yeterli Volt\'un yok.';
 }

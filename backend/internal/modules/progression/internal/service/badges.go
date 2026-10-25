@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/progression/internal/domain"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/progression/internal/store/sqlc"
@@ -74,11 +75,11 @@ func activeBadges(ctx context.Context, q *sqlc.Queries) ([]badge, error) {
 
 // award gives a badge once, with its XP under "<ref>:<code>"; it reports
 // whether the badge is new.
-func award(ctx context.Context, q *sqlc.Queries, user uuid.UUID, b *badge, ref string, now time.Time) (bool, int, error) {
+func (s *Service) award(ctx context.Context, tx pgx.Tx, q *sqlc.Queries, user uuid.UUID, b *badge, ref string, now time.Time) (bool, int, error) {
 	n, err := q.AwardBadge(ctx, sqlc.AwardBadgeParams{UserID: user, BadgeID: b.id, Now: now, SourceRef: &ref})
 	if err != nil || n == 0 {
 		return false, 0, err
 	}
-	added, _, _, err := grant(ctx, q, user, domain.BadgeXP(b.tier), sourceBadge, ref+":"+b.code, now)
+	added, _, _, err := s.grant(ctx, tx, q, user, domain.BadgeXP(b.tier), sourceBadge, ref+":"+b.code, now)
 	return true, added, err
 }

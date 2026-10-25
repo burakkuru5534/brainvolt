@@ -38,6 +38,7 @@ const serverErrorCodes = <String>{
   'INTERNAL',
   'INVITE_CODE_EXPIRED',
   'INVITE_CODE_INVALID',
+  'ITEM_UNAVAILABLE',
   'MALFORMED_REQUEST',
   'MATCH_NOT_FOUND',
   'MATCH_STATE_INVALID',
@@ -86,6 +87,7 @@ const serverErrorCodes = <String>{
   'USERNAME_TAKEN',
   'VALIDATION_FAILED',
   'VERSION_CONFLICT',
+  'VOLT_INSUFFICIENT',
 };
 
 /// The localized text of a server error code, or null if unknown.
@@ -123,6 +125,7 @@ String? serverErrorMessage(AppLocalizations l, String code) => switch (code) {
   'INTERNAL' => l.error_INTERNAL,
   'INVITE_CODE_EXPIRED' => l.error_INVITE_CODE_EXPIRED,
   'INVITE_CODE_INVALID' => l.error_INVITE_CODE_INVALID,
+  'ITEM_UNAVAILABLE' => l.error_ITEM_UNAVAILABLE,
   'MALFORMED_REQUEST' => l.error_MALFORMED_REQUEST,
   'MATCH_NOT_FOUND' => l.error_MATCH_NOT_FOUND,
   'MATCH_STATE_INVALID' => l.error_MATCH_STATE_INVALID,
@@ -171,5 +174,6 @@ String? serverErrorMessage(AppLocalizations l, String code) => switch (code) {
   'USERNAME_TAKEN' => l.error_USERNAME_TAKEN,
   'VALIDATION_FAILED' => l.error_VALIDATION_FAILED,
   'VERSION_CONFLICT' => l.error_VERSION_CONFLICT,
+  'VOLT_INSUFFICIENT' => l.error_VOLT_INSUFFICIENT,
   _ => null,
 };

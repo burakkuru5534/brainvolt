@@ -29,7 +29,8 @@ type seasonEnded struct {
 
 // OnSeasonEnded awards season badges (progression-formulas §9): the
 // badge of the peak league and "Top 100" for the global top 100. Badges
-// are earned once, so a later season adds only new ones.
+// are earned once, so a later season adds only new ones. Every ranked
+// player gets the peak league's Volt (D-105).
 func (s *Service) OnSeasonEnded(ctx context.Context, e events.Envelope, seasons SeasonResults) error {
 	var p seasonEnded
 	if err := e.Decode(&p); err != nil {
@@ -48,11 +49,15 @@ func (s *Service) OnSeasonEnded(ctx context.Context, e events.Envelope, seasons 
 			return err
 		}
 		for _, r := range results {
+			// The peak league's Volt (D-105), once per season.
+			if err := s.volt(ctx, tx, r.UserID, voltSeason[r.PeakLeague], reasonSeason, p.SeasonID.String(), ref, now); err != nil {
+				return err
+			}
 			for i := range badges {
 				b := &badges[i]
 				c := b.criteria
 				if (c.Type == "season_peak" && c.League == r.PeakLeague) || (c.Type == "season_top" && r.FinalRank > 0 && r.FinalRank <= c.Rank) {
-					if _, _, err := award(ctx, q, r.UserID, b, ref, now); err != nil {
+					if _, _, err := s.award(ctx, tx, q, r.UserID, b, ref, now); err != nil {
 						return err
 					}
 				}

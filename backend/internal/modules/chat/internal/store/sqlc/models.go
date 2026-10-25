@@ -61,6 +61,7 @@ type CommerceEntitlement struct {
 	SourceID   string
 	StartsAt   time.Time
 	EndsAt     *time.Time
+	Trial      bool
 }
 
 type CommerceStoreEvent struct {
@@ -72,6 +73,23 @@ type CommerceStoreEvent struct {
 	Payload     []byte
 	ReceivedAt  time.Time
 	ProcessedAt *time.Time
+}
+
+type CommerceVoltLedger struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	Amount       int32
+	Reason       string
+	Ref          string
+	Key          string
+	BalanceAfter int64
+	CreatedAt    time.Time
+}
+
+type CommerceVoltWallet struct {
+	UserID    uuid.UUID
+	Balance   int64
+	UpdatedAt time.Time
 }
 
 type ContentCategory struct {
@@ -728,11 +746,13 @@ type ProgressionCategoryCorrect struct {
 }
 
 type ProgressionPlayStreak struct {
-	UserID      uuid.UUID
-	CurrentDays int32
-	LongestDays int32
-	LastPlayDay pgtype.Date
-	UpdatedAt   time.Time
+	UserID         uuid.UUID
+	CurrentDays    int32
+	LongestDays    int32
+	LastPlayDay    pgtype.Date
+	UpdatedAt      time.Time
+	Shields        int32
+	PlusShieldWeek pgtype.Date
 }
 
 type ProgressionProcessedMatch struct {

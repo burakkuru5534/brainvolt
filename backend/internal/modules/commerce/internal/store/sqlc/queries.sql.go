@@ -52,7 +52,7 @@ func (q *Queries) ActiveEntitlements(ctx context.Context, arg ActiveEntitlements
 
 const countAdRewards = `-- name: CountAdRewards :one
 SELECT count(*)::int FROM commerce.ad_rewards
-WHERE user_id = $1 AND ($2::text = '' OR placement = $2) AND created_at >= $3
+WHERE user_id = $1 AND (($2::text = '' AND placement <> 'volt') OR placement = $2) AND created_at >= $3
   AND (status = 'granted' OR expires_at > $4)
 `
 
@@ -64,6 +64,7 @@ type CountAdRewardsParams struct {
 }
 
 // Rewards that count against a limit: granted ones and pending ones not expired.
+// An empty placement counts every placement but the store's Volt ad (D-105).
 func (q *Queries) CountAdRewards(ctx context.Context, arg CountAdRewardsParams) (int32, error) {
 	row := q.db.QueryRow(ctx, countAdRewards,
 		arg.UserID,
@@ -103,10 +104,11 @@ func (q *Queries) EndEntitlement(ctx context.Context, arg EndEntitlementParams) 
 }
 
 const extendEntitlement = `-- name: ExtendEntitlement :exec
-INSERT INTO commerce.entitlements (user_id, code, source_kind, source_id, starts_at, ends_at)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO commerce.entitlements (user_id, code, source_kind, source_id, starts_at, ends_at, trial)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 ON CONFLICT (user_id, code, source_kind, source_id) DO UPDATE
-SET ends_at = CASE WHEN commerce.entitlements.ends_at IS NULL OR EXCLUDED.ends_at IS NULL THEN NULL
+SET trial = EXCLUDED.trial,
+    ends_at = CASE WHEN commerce.entitlements.ends_at IS NULL OR EXCLUDED.ends_at IS NULL THEN NULL
                    ELSE greatest(commerce.entitlements.ends_at, EXCLUDED.ends_at) END
 `
 
@@ -117,9 +119,11 @@ type ExtendEntitlementParams struct {
 	SourceID   string
 	StartsAt   time.Time
 	EndsAt     *time.Time
+	Trial      bool
 }
 
 // Grants or extends an entitlement; a late, older event never shortens it.
+// trial follows the latest event (a trial converts to a paid period).
 func (q *Queries) ExtendEntitlement(ctx context.Context, arg ExtendEntitlementParams) error {
 	_, err := q.db.Exec(ctx, extendEntitlement,
 		arg.UserID,
@@ -128,6 +132,7 @@ func (q *Queries) ExtendEntitlement(ctx context.Context, arg ExtendEntitlementPa
 		arg.SourceID,
 		arg.StartsAt,
 		arg.EndsAt,
+		arg.Trial,
 	)
 	return err
 }
@@ -179,6 +184,17 @@ func (q *Queries) GetAdRewardForUpdate(ctx context.Context, id uuid.UUID) (Comme
 		&i.GrantedAt,
 	)
 	return i, err
+}
+
+const getBalance = `-- name: GetBalance :one
+SELECT balance FROM commerce.volt_wallets WHERE user_id = $1
+`
+
+func (q *Queries) GetBalance(ctx context.Context, userID uuid.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, getBalance, userID)
+	var balance int64
+	err := row.Scan(&balance)
+	return balance, err
 }
 
 const grantAdReward = `-- name: GrantAdReward :exec
@@ -279,6 +295,61 @@ func (q *Queries) InsertStoreEvent(ctx context.Context, arg InsertStoreEventPara
 	return result.RowsAffected(), nil
 }
 
+const insertVolt = `-- name: InsertVolt :execrows
+INSERT INTO commerce.volt_ledger (id, user_id, amount, reason, ref, key, balance_after, created_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+ON CONFLICT (user_id, key) DO NOTHING
+`
+
+type InsertVoltParams struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	Amount       int32
+	Reason       string
+	Ref          string
+	Key          string
+	BalanceAfter int64
+	Now          time.Time
+}
+
+func (q *Queries) InsertVolt(ctx context.Context, arg InsertVoltParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertVolt,
+		arg.ID,
+		arg.UserID,
+		arg.Amount,
+		arg.Reason,
+		arg.Ref,
+		arg.Key,
+		arg.BalanceAfter,
+		arg.Now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const lockWallet = `-- name: LockWallet :one
+
+INSERT INTO commerce.volt_wallets (user_id, balance, updated_at) VALUES ($1, 0, $2)
+ON CONFLICT (user_id) DO UPDATE SET user_id = EXCLUDED.user_id
+RETURNING balance
+`
+
+type LockWalletParams struct {
+	UserID uuid.UUID
+	Now    time.Time
+}
+
+// ---------- Volt (D-105) ----------
+// Creates the wallet when missing and locks it for the transaction.
+func (q *Queries) LockWallet(ctx context.Context, arg LockWalletParams) (int64, error) {
+	row := q.db.QueryRow(ctx, lockWallet, arg.UserID, arg.Now)
+	var balance int64
+	err := row.Scan(&balance)
+	return balance, err
+}
+
 const markStoreEventProcessed = `-- name: MarkStoreEventProcessed :exec
 UPDATE commerce.store_events SET processed_at = $1 WHERE store = $2 AND event_id = $3
 `
@@ -331,8 +402,44 @@ func (q *Queries) OpenAdReward(ctx context.Context, arg OpenAdRewardParams) (Com
 	return i, err
 }
 
+const paidEntitlement = `-- name: PaidEntitlement :one
+SELECT EXISTS (
+  SELECT 1 FROM commerce.entitlements
+  WHERE user_id = $1 AND code = $2 AND NOT trial AND starts_at <= $3 AND (ends_at IS NULL OR ends_at > $3)
+)
+`
+
+type PaidEntitlementParams struct {
+	UserID uuid.UUID
+	Code   string
+	Now    time.Time
+}
+
+// An active entitlement outside a free trial (Plus's monthly Volt, D-105).
+func (q *Queries) PaidEntitlement(ctx context.Context, arg PaidEntitlementParams) (bool, error) {
+	row := q.db.QueryRow(ctx, paidEntitlement, arg.UserID, arg.Code, arg.Now)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const setBalance = `-- name: SetBalance :exec
+UPDATE commerce.volt_wallets SET balance = $1, updated_at = $2 WHERE user_id = $3
+`
+
+type SetBalanceParams struct {
+	Balance int64
+	Now     time.Time
+	UserID  uuid.UUID
+}
+
+func (q *Queries) SetBalance(ctx context.Context, arg SetBalanceParams) error {
+	_, err := q.db.Exec(ctx, setBalance, arg.Balance, arg.Now, arg.UserID)
+	return err
+}
+
 const subscriptionEntitlements = `-- name: SubscriptionEntitlements :many
-SELECT user_id, code, source_kind, source_id, starts_at, ends_at FROM commerce.entitlements WHERE user_id = $1 AND source_kind = 'subscription'
+SELECT user_id, code, source_kind, source_id, starts_at, ends_at, trial FROM commerce.entitlements WHERE user_id = $1 AND source_kind = 'subscription'
 `
 
 func (q *Queries) SubscriptionEntitlements(ctx context.Context, userID uuid.UUID) ([]CommerceEntitlement, error) {
@@ -351,7 +458,87 @@ func (q *Queries) SubscriptionEntitlements(ctx context.Context, userID uuid.UUID
 			&i.SourceID,
 			&i.StartsAt,
 			&i.EndsAt,
+			&i.Trial,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const voltHistory = `-- name: VoltHistory :many
+SELECT amount, reason, ref, created_at FROM commerce.volt_ledger
+WHERE user_id = $1 ORDER BY created_at DESC, id DESC LIMIT $2
+`
+
+type VoltHistoryParams struct {
+	UserID uuid.UUID
+	Lim    int32
+}
+
+type VoltHistoryRow struct {
+	Amount    int32
+	Reason    string
+	Ref       string
+	CreatedAt time.Time
+}
+
+func (q *Queries) VoltHistory(ctx context.Context, arg VoltHistoryParams) ([]VoltHistoryRow, error) {
+	rows, err := q.db.Query(ctx, voltHistory, arg.UserID, arg.Lim)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []VoltHistoryRow{}
+	for rows.Next() {
+		var i VoltHistoryRow
+		if err := rows.Scan(
+			&i.Amount,
+			&i.Reason,
+			&i.Ref,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const voltSince = `-- name: VoltSince :many
+SELECT key, amount FROM commerce.volt_ledger
+WHERE user_id = $1 AND reason = $2 AND created_at >= $3
+`
+
+type VoltSinceParams struct {
+	UserID uuid.UUID
+	Reason string
+	Since  time.Time
+}
+
+type VoltSinceRow struct {
+	Key    string
+	Amount int32
+}
+
+// Movements of a reason since a time (a refunded Plus takes its Volt back).
+func (q *Queries) VoltSince(ctx context.Context, arg VoltSinceParams) ([]VoltSinceRow, error) {
+	rows, err := q.db.Query(ctx, voltSince, arg.UserID, arg.Reason, arg.Since)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []VoltSinceRow{}
+	for rows.Next() {
+		var i VoltSinceRow
+		if err := rows.Scan(&i.Key, &i.Amount); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

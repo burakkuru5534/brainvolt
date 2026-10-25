@@ -114,8 +114,8 @@
 ## 10. progression
 | Method | Path | Auth | Idem | Ph | Purpose |
 |---|---|---|---|---|---|
-| GET | `/v1/me/progress` | any | — | 7 | XP, level, next level, play streak. |
-| GET | `/v1/me/quests` | any | — | 7 | Active quests & progress. |
+| GET | `/v1/me/progress` | any | — | 7 | XP, level, next level, play streak (with `shields` / `max_shields`, D-105). |
+| GET | `/v1/me/quests` | any | — | 7 | Active quests & progress (each with `reward_xp` and `reward_volt`, D-105). |
 | POST | `/v1/me/quests/{assignment_id}/claim` | any | ✓ | 7 | Claim reward. |
 | POST | `/v1/me/quests/{assignment_id}/reroll` | any | ✓ | 7 | Daily free reroll / ad reroll. |
 | GET | `/v1/badges` · `/v1/me/badges` | any | — | 7 | Catalogue / earned. |
@@ -168,11 +168,13 @@
 | PUT | `/v1/me/equipped/{slot}` | any | — | 9 | Equip a cosmetic. |
 | POST | `/webhooks/app-store` · `/webhooks/play-store` | signature | — | 9 | Store server notifications (verified, idempotent by event id). |
 | GET | `/v1/ads/config` | any | — | 9 | Ad settings for the caller (D-103): `interstitial {enabled, every_matches}` (off for the first 72 h and for `plus` / `no_ads` entitlements), `rewarded {daily_limit, used_today, bonus_xp_left, quest_rerolls_left, streak_repair {available, days}}`. |
-| POST | `/v1/ads/rewards` | any | — | 9 | Reserve a rewarded ad `{placement: bonus_xp \| quest_reroll \| streak_repair, ref?}` (`ref` = the match of `bonus_xp`) → `201 {id, placement, status: pending, reward {xp?, streak_days?}, expires_at}`; the id goes to AdMob as SSV `custom_data`, the user id as `user_id`. An open reservation of the same placement and match is returned again. Limits: 5 rewarded ads a day, 2 of them rerolls, 1 streak repair per 7 days (`AD_LIMIT_REACHED`); `AD_REWARD_UNAVAILABLE` + `reason` when it cannot be earned now. |
+| POST | `/v1/ads/rewards` | any | — | 9 | Reserve a rewarded ad `{placement: bonus_xp \| quest_reroll \| streak_repair, ref?}` (`ref` = the match of `bonus_xp`; `volt` is the store's ad: +5 Volt, 3 a day, not counted in the 5, D-105) → `201 {id, placement, status: pending, reward {xp?, streak_days?}, expires_at}`; the id goes to AdMob as SSV `custom_data`, the user id as `user_id`. An open reservation of the same placement and match is returned again. Limits: 5 rewarded ads a day, 2 of them rerolls, 1 streak repair per 7 days (`AD_LIMIT_REACHED`); `AD_REWARD_UNAVAILABLE` + `reason` when it cannot be earned now. |
 | GET | `/v1/ads/rewards/{id}` | any | — | 9 | The reservation: `pending` until AdMob's verified callback, then `granted` (the app polls it). |
 | GET | `/v1/ads/admob/ssv` | pub (AdMob signature) | — | 9 | AdMob server-side verification callback: ECDSA signature checked against AdMob's published keys; grants the reward named by `custom_data` once (idempotent by reward and `transaction_id`) and emits `commerce.AdRewardGranted`; unknown rewards and AdMob's "verify URL" test get 200, a bad signature 403. |
 | GET | `/v1/me/entitlements` | any | — | 9 | The caller's active entitlements (D-104): `{plus, plus_until, entitlements [{code, ends_at}]}` (`ends_at` null = no end). |
 | POST | `/v1/store/revenuecat/webhook` | pub (Authorization = secret) | — | 9 | RevenueCat webhook (D-104): wrong or missing Authorization → 401, no secret configured → 503. Recorded once per event id in `commerce.store_events`; subscription events change the `plus` entitlement (purchase/renewal extend to the expiration, cancellation keeps it, refund/expiration end it, transfer moves it); events of unknown users or other products are only recorded. Always 200 once stored. |
+| GET | `/v1/me/wallet` | any | — | 9 | The caller's Volt (D-105): `{balance, items [{code, price}], history [{amount, reason, ref, created_at}] (latest 30), ad_volt_left, ad_volt}`. A paying Plus subscriber gets the month's 400 Volt on the first read of the month. |
+| POST | `/v1/store/items/{code}/buy` | any | — | 9 | Buy a store item with Volt (D-105): `streak_shield` (100) or `quest_reroll` (30) → `{item, price, balance}`. `VOLT_INSUFFICIENT` (`price`, `balance`), `ITEM_UNAVAILABLE` (`reason`: `shields_full`, `free_reroll_left`, `no_open_quest`), 404 for an unknown item. The effect and the charge commit together. |
 | POST | `/v1/ads/rewards/{id}/dev-grant` | any | — | 9 | **Development only** (not registered in prod): grant without AdMob, because test ads cannot call a local server. |
 
 ## 16. creator

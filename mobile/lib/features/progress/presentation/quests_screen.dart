@@ -8,6 +8,8 @@ import '../../../core/widgets/bv.dart';
 import '../../ads/domain/ads_repository.dart';
 import '../../ads/presentation/ads.dart';
 import '../../match/presentation/play_error_text.dart';
+import '../../store/domain/store_repository.dart';
+import '../../store/presentation/volt_screen.dart';
 import '../data/progress_providers.dart';
 import '../domain/progress_repository.dart';
 import 'progress_widgets.dart';
@@ -37,7 +39,8 @@ class QuestsScreen extends ConsumerWidget {
     }
     ref
       ..invalidate(questsProvider)
-      ..invalidate(myProgressProvider);
+      ..invalidate(myProgressProvider)
+      ..invalidate(walletProvider);
   }
 
   /// A rewarded ad buys one more reroll (D-103), then rerolls [id].
@@ -74,6 +77,9 @@ class QuestsScreen extends ConsumerWidget {
     final text = Theme.of(context).textTheme;
     final repo = ref.watch(progressRepositoryProvider);
     final adRerolls = ref.watch(adsConfigProvider).value?.questRerollsLeft ?? 0;
+    final rerollPrice =
+        ref.watch(walletProvider).value?.priceOf(StoreItemCode.questReroll) ??
+        30;
     Widget tile(Quest q, bool canReroll, IconData icon) => Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: BvCard(
@@ -94,6 +100,15 @@ class QuestsScreen extends ConsumerWidget {
                   icon: Icons.bolt,
                   color: bv.gold,
                 ),
+                if (q.rewardVolt > 0) ...[
+                  const SizedBox(width: 6),
+                  Pill(
+                    l10n.questVoltReward(q.rewardVolt),
+                    key: Key('quest-volt-${q.id}'),
+                    icon: voltIcon,
+                    color: bv.accent,
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 12),
@@ -137,14 +152,37 @@ class QuestsScreen extends ConsumerWidget {
                     }),
                     label: Text(l10n.questReroll),
                   )
-                else if (adRerolls > 0)
-                  TextButton.icon(
-                    key: Key('quest-ad-reroll-${q.id}'),
-                    icon: const Icon(Icons.ondemand_video_rounded, size: 18),
-                    onPressed: () =>
-                        _run(context, ref, () => _adReroll(ref, l10n, q.id)),
-                    label: Text(l10n.adQuestReroll),
+                else ...[
+                  if (adRerolls > 0)
+                    TextButton.icon(
+                      key: Key('quest-ad-reroll-${q.id}'),
+                      icon: const Icon(Icons.ondemand_video_rounded, size: 18),
+                      onPressed: () =>
+                          _run(context, ref, () => _adReroll(ref, l10n, q.id)),
+                      label: Text(l10n.adQuestReroll),
+                    ),
+                  // An extra reroll for Volt (D-105).
+                  IconButton(
+                    key: Key('quest-volt-reroll-${q.id}'),
+                    tooltip: l10n.voltRerollWith(rerollPrice),
+                    icon: const Icon(voltIcon),
+                    color: bv.accent,
+                    onPressed: () async {
+                      if (await buyVoltItem(
+                            context,
+                            ref,
+                            StoreItemCode.questReroll,
+                            rerollPrice,
+                          ) &&
+                          context.mounted) {
+                        await _run(context, ref, () async {
+                          await repo.reroll(q.id);
+                          return null;
+                        });
+                      }
+                    },
                   ),
+                ],
               ],
             ),
           ],

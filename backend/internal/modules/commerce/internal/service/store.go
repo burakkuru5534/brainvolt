@@ -64,6 +64,7 @@ type rcEvent struct {
 	OriginalTxID     string   `json:"original_transaction_id"`
 	TransactionID    string   `json:"transaction_id"`
 	CancelReason     string   `json:"cancel_reason"`
+	PeriodType       string   `json:"period_type"` // TRIAL, INTRO, NORMAL, PREPAID
 	Environment      string   `json:"environment"`
 	TransferredFrom  []string `json:"transferred_from"`
 	TransferredTo    []string `json:"transferred_to"`
@@ -167,12 +168,17 @@ func (s *Service) applyRevenueCat(ctx context.Context, q *sqlc.Queries, e *rcEve
 		}
 		return q.ExtendEntitlement(ctx, sqlc.ExtendEntitlementParams{
 			UserID: user, Code: EntitlementPlus, SourceKind: "subscription", SourceID: source, StartsAt: start, EndsAt: exp,
+			Trial: e.PeriodType == "TRIAL",
 		})
 	case "CANCELLATION":
 		if e.CancelReason != "CUSTOMER_SUPPORT" {
 			return nil // access lasts until the period ends
 		}
-		return q.EndEntitlement(ctx, sqlc.EndEntitlementParams{UserID: user, Code: EntitlementPlus, SourceKind: "subscription", SourceID: source, EndsAt: &now})
+		// A refund: Plus ends now and the period's monthly Volt goes back.
+		if err := q.EndEntitlement(ctx, sqlc.EndEntitlementParams{UserID: user, Code: EntitlementPlus, SourceKind: "subscription", SourceID: source, EndsAt: &now}); err != nil {
+			return err
+		}
+		return refundPlusVolt(ctx, q, user, start, now)
 	case "EXPIRATION":
 		end := now
 		if exp != nil && exp.Before(now) {
@@ -197,7 +203,7 @@ func transferPlus(ctx context.Context, q *sqlc.Queries, from, to []uuid.UUID, no
 			}
 			for _, t := range to {
 				if err := q.ExtendEntitlement(ctx, sqlc.ExtendEntitlementParams{
-					UserID: t, Code: r.Code, SourceKind: r.SourceKind, SourceID: r.SourceID, StartsAt: now, EndsAt: r.EndsAt,
+					UserID: t, Code: r.Code, SourceKind: r.SourceKind, SourceID: r.SourceID, StartsAt: now, EndsAt: r.EndsAt, Trial: r.Trial,
 				}); err != nil {
 					return err
 				}

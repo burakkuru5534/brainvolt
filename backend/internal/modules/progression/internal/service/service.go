@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,9 +31,55 @@ type Deps struct {
 	Pusher Pusher
 	// Plus tells whether a user holds BrainVolt Plus (commerce, D-104);
 	// nil = nobody does.
-	Plus   PlusChecker
+	Plus PlusChecker
+	// Wallet credits Volt in progression's transactions (commerce, D-105);
+	// nil = no Volt.
+	Wallet Wallet
 	Clock  clock.Clock
 	Logger *slog.Logger
+}
+
+// Wallet writes Volt to commerce's ledger inside tx, once per key.
+type Wallet interface {
+	CreditTx(ctx context.Context, tx pgx.Tx, user uuid.UUID, amount int, reason, ref, key string, now time.Time) error
+}
+
+// Volt rewards (D-105): quests by cadence, the Daily Challenge, each level
+// reached, tournament places 1–3 and a season's peak league.
+const (
+	voltQuestDaily  = 10
+	voltQuestWeekly = 50
+	voltDaily       = 10
+	voltLevel       = 25
+)
+
+var (
+	voltTournament = map[int]int{1: 300, 2: 150, 3: 75}
+	voltSeason     = map[string]int{"bronze": 50, "silver": 100, "gold": 200, "platinum": 300, "diamond": 500}
+)
+
+// Volt ledger reasons (commerce's).
+const (
+	reasonQuest      = "quest"
+	reasonDaily      = "daily_challenge"
+	reasonLevelUp    = "level_up"
+	reasonTournament = "tournament"
+	reasonSeason     = "season"
+)
+
+// volt credits Volt to user inside tx once per key.
+func (s *Service) volt(ctx context.Context, tx pgx.Tx, user uuid.UUID, amount int, reason, ref, key string, now time.Time) error {
+	if s.d.Wallet == nil || amount <= 0 {
+		return nil
+	}
+	return s.d.Wallet.CreditTx(ctx, tx, user, amount, reason, ref, key, now)
+}
+
+func questVolt(cadence string) int {
+	if cadence == "weekly" {
+		return voltQuestWeekly
+	}
+	return voltQuestDaily
 }
 
 // PlusChecker reports entitlements (commerce's reader).
@@ -83,7 +130,17 @@ const (
 
 // grant writes an XP ledger row once per (user, source, ref) and moves
 // the user's total and level; it returns the XP added (0 when the row
-// existed) and the level before and after.
+// existed) and the level before and after. Each level reached gives
+// voltLevel Volt (D-105).
+func (s *Service) grant(ctx context.Context, tx pgx.Tx, q *sqlc.Queries, user uuid.UUID, amount int, source, ref string, now time.Time) (added, before, after int, err error) {
+	added, before, after, err = grant(ctx, q, user, amount, source, ref, now)
+	for l := before + 1; err == nil && l <= after; l++ {
+		lv := strconv.Itoa(l)
+		err = s.volt(ctx, tx, user, voltLevel, reasonLevelUp, lv, "level:"+lv, now)
+	}
+	return added, before, after, err
+}
+
 func grant(ctx context.Context, q *sqlc.Queries, user uuid.UUID, amount int, source, ref string, now time.Time) (added, before, after int, err error) {
 	p, err := q.GetProgress(ctx, user)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -130,6 +187,9 @@ type Streak struct {
 	Longest int `json:"longest"`
 	// PlayedToday says whether today already counts.
 	PlayedToday bool `json:"played_today"`
+	// Shields cover missed days (D-105); at most MaxShields.
+	Shields    int `json:"shields"`
+	MaxShields int `json:"max_shields"`
 }
 
 // Progress returns a user's XP, level, play streak and badge count.
@@ -157,12 +217,17 @@ func (s *Service) Progress(ctx context.Context, user uuid.UUID) (Progress, error
 	default:
 		out.Matches, out.Wins = int(stats.Matches), int(stats.Wins)
 	}
+	now := s.d.Clock.Now()
+	if err := s.plusShield(ctx, q, user, now); err != nil {
+		return Progress{}, err
+	}
 	st, err := loadStreak(ctx, q, user)
 	if err != nil {
 		return Progress{}, err
 	}
-	today := domain.Day(s.d.Clock.Now())
-	out.Streak = Streak{Current: st.Live(today), Longest: st.Longest, PlayedToday: !st.LastDay.IsZero() && st.LastDay.Equal(today)}
+	today := domain.Day(now)
+	out.Streak = Streak{Current: st.Live(today), Longest: st.Longest, PlayedToday: !st.LastDay.IsZero() && st.LastDay.Equal(today),
+		Shields: st.Shields, MaxShields: domain.MaxShields}
 	badges, err := q.BadgeCatalog(ctx, sqlc.BadgeCatalogParams{Locale: "en", UserID: user})
 	if err != nil {
 		return Progress{}, err
@@ -183,10 +248,26 @@ func loadStreak(ctx context.Context, q *sqlc.Queries, user uuid.UUID) (domain.St
 	if err != nil {
 		return domain.Streak{}, err
 	}
-	st := domain.Streak{Current: int(row.CurrentDays), Longest: int(row.LongestDays)}
+	st := domain.Streak{Current: int(row.CurrentDays), Longest: int(row.LongestDays), Shields: int(row.Shields)}
 	if row.LastPlayDay != nil {
 		d := row.LastPlayDay
 		st.LastDay = time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, domain.Istanbul)
 	}
 	return st, nil
+}
+
+// plusShield gives a Plus subscriber the week's streak shield (D-105).
+func (s *Service) plusShield(ctx context.Context, q *sqlc.Queries, user uuid.UUID, now time.Time) error {
+	if !s.plus(ctx, user) {
+		return nil
+	}
+	return q.PlusShield(ctx, sqlc.PlusShieldParams{UserID: user, Week: ptr(domain.WeekStart(now)), Now: now})
+}
+
+// saveStreak stores a streak after play.
+func saveStreak(ctx context.Context, q *sqlc.Queries, user uuid.UUID, st domain.Streak, now time.Time) error {
+	day := st.LastDay
+	return q.UpsertStreak(ctx, sqlc.UpsertStreakParams{
+		UserID: user, CurrentDays: int32(st.Current), LongestDays: int32(st.Longest), LastPlayDay: &day, Shields: int32(st.Shields), Now: now, //nolint:gosec // G115: days
+	})
 }

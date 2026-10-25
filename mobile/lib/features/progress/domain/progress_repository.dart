@@ -24,6 +24,8 @@ class Progress {
     required this.badges,
     this.matches = 0,
     this.wins = 0,
+    this.shields = 0,
+    this.maxShields = 2,
   });
 
   factory Progress.fromJson(Map<String, dynamic> j) {
@@ -39,6 +41,8 @@ class Progress {
       badges: _int(j['badges']),
       matches: _int(j['matches']),
       wins: _int(j['wins']),
+      shields: _int(s['shields']),
+      maxShields: (s['max_shields'] as num?)?.toInt() ?? 2,
     );
   }
 
@@ -54,6 +58,10 @@ class Progress {
   /// Every completed match and win.
   final int matches;
   final int wins;
+
+  /// Streak shields held (D-105); each covers a missed day.
+  final int shields;
+  final int maxShields;
 }
 
 /// A season standing (GET /v1/standings/{kind}/{id}).
@@ -97,6 +105,7 @@ class Quest {
     required this.target,
     required this.rewardXp,
     required this.endsAt,
+    this.rewardVolt = 0,
     this.completedAt,
     this.claimedAt,
   });
@@ -108,6 +117,7 @@ class Quest {
     progress: _int(j['progress']),
     target: _int(j['target']),
     rewardXp: _int(j['reward_xp']),
+    rewardVolt: _int(j['reward_volt']),
     endsAt: _time(j['ends_at']) ?? DateTime.now(),
     completedAt: _time(j['completed_at']),
     claimedAt: _time(j['claimed_at']),
@@ -119,6 +129,7 @@ class Quest {
   final int progress;
   final int target;
   final int rewardXp;
+  final int rewardVolt;
   final DateTime endsAt;
   final DateTime? completedAt;
   final DateTime? claimedAt;

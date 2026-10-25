@@ -19,6 +19,7 @@ import '../../auth/domain/session.dart';
 import '../../progress/presentation/quests_screen.dart';
 import '../data/api_store_repository.dart';
 import '../domain/store_repository.dart';
+import 'volt_screen.dart';
 
 /// The store; main() installs [RevenueCatGateway], tests keep none.
 final purchaseGatewayProvider = Provider<PurchaseGateway>(
@@ -106,7 +107,8 @@ class _PlusScreenState extends ConsumerState<PlusScreen> {
     ref
       ..invalidate(entitlementsProvider)
       ..invalidate(adsConfigProvider)
-      ..invalidate(questsProvider);
+      ..invalidate(questsProvider)
+      ..invalidate(walletProvider);
   }
 
   Future<void> _run(Future<BuyResult> Function() action) async {

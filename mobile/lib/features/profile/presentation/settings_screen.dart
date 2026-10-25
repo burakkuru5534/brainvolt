@@ -45,6 +45,12 @@ class SettingsScreen extends ConsumerWidget {
                 Routes.plus,
               ),
               link(
+                const Key('open-store'),
+                Icons.offline_bolt_rounded,
+                l10n.voltTitle,
+                Routes.store,
+              ),
+              link(
                 const Key('open-guide'),
                 Icons.menu_book_rounded,
                 l10n.guideTitle,

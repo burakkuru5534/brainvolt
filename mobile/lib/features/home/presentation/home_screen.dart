@@ -25,6 +25,7 @@ import '../../notifications/presentation/inbox_screen.dart';
 import '../../profile/domain/avatars.dart';
 import '../../progress/presentation/progress_widgets.dart';
 import '../../store/presentation/plus_screen.dart';
+import '../../store/presentation/volt_screen.dart';
 import 'main_nav.dart';
 
 /// The caller's live match, if any (back from a crash or another screen).
@@ -376,7 +377,11 @@ class _PlayerCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 6),
-                const PlusBadge(),
+                const Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [PlusBadge(), VoltChip()],
+                ),
                 if (name != null) ...[
                   const SizedBox(height: 10),
                   const LevelSummary(),

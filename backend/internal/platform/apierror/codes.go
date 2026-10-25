@@ -87,6 +87,10 @@ const (
 	// Rewarded ads (D-103).
 	AdRewardUnavailable Code = "AD_REWARD_UNAVAILABLE"
 	AdLimitReached      Code = "AD_LIMIT_REACHED"
+
+	// Volt (D-105).
+	VoltInsufficient Code = "VOLT_INSUFFICIENT"
+	ItemUnavailable  Code = "ITEM_UNAVAILABLE"
 )
 
 // Content, creator & moderation.
@@ -196,6 +200,8 @@ var statuses = map[Code]int{
 	DailyAnswersNotOpen:    http.StatusConflict,
 	AdRewardUnavailable:    http.StatusConflict,
 	AdLimitReached:         http.StatusConflict,
+	VoltInsufficient:       http.StatusConflict,
+	ItemUnavailable:        http.StatusConflict,
 
 	QuestionSourceRequired: http.StatusUnprocessableEntity,
 	QuestionInUse:          http.StatusConflict,

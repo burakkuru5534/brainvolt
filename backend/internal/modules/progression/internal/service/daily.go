@@ -39,19 +39,22 @@ func (s *Service) OnDailyRunCompleted(ctx context.Context, e events.Envelope) er
 		if err := q.LockUser(ctx, p.UserID.String()); err != nil {
 			return err
 		}
-		added, _, _, err := grant(ctx, q, p.UserID, xpDailyBase+xpDailyCorrect*p.CorrectCount, sourceDaily, p.RunID.String(), p.CompletedAt)
+		run := p.RunID.String()
+		added, _, _, err := s.grant(ctx, tx, q, p.UserID, xpDailyBase+xpDailyCorrect*p.CorrectCount, sourceDaily, run, p.CompletedAt)
 		if err != nil || added == 0 {
 			return err // already consumed
+		}
+		if err := s.volt(ctx, tx, p.UserID, voltDaily, reasonDaily, run, "daily:"+run, p.CompletedAt); err != nil {
+			return err
+		}
+		if err := s.plusShield(ctx, q, p.UserID, p.CompletedAt); err != nil {
+			return err
 		}
 		st, err := loadStreak(ctx, q, p.UserID)
 		if err != nil {
 			return err
 		}
-		st = st.Play(domain.Day(p.CompletedAt))
-		day := st.LastDay
-		if err := q.UpsertStreak(ctx, sqlc.UpsertStreakParams{
-			UserID: p.UserID, CurrentDays: int32(st.Current), LongestDays: int32(st.Longest), LastPlayDay: &day, Now: p.CompletedAt, //nolint:gosec // G115: days
-		}); err != nil {
+		if err := saveStreak(ctx, q, p.UserID, st.Play(domain.Day(p.CompletedAt)), p.CompletedAt); err != nil {
 			return err
 		}
 		for _, c := range cadences {

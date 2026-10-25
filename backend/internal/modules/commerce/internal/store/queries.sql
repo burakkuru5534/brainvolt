@@ -18,8 +18,9 @@ ORDER BY created_at DESC LIMIT 1;
 
 -- name: CountAdRewards :one
 -- Rewards that count against a limit: granted ones and pending ones not expired.
+-- An empty placement counts every placement but the store's Volt ad (D-105).
 SELECT count(*)::int FROM commerce.ad_rewards
-WHERE user_id = @user_id AND (@placement::text = '' OR placement = @placement) AND created_at >= @since
+WHERE user_id = @user_id AND ((@placement::text = '' AND placement <> 'volt') OR placement = @placement) AND created_at >= @since
   AND (status = 'granted' OR expires_at > @now);
 
 -- name: GetAdReward :one
@@ -44,10 +45,12 @@ UPDATE commerce.store_events SET processed_at = @now WHERE store = @store AND ev
 
 -- name: ExtendEntitlement :exec
 -- Grants or extends an entitlement; a late, older event never shortens it.
-INSERT INTO commerce.entitlements (user_id, code, source_kind, source_id, starts_at, ends_at)
-VALUES (@user_id, @code, @source_kind, @source_id, @starts_at, @ends_at)
+-- trial follows the latest event (a trial converts to a paid period).
+INSERT INTO commerce.entitlements (user_id, code, source_kind, source_id, starts_at, ends_at, trial)
+VALUES (@user_id, @code, @source_kind, @source_id, @starts_at, @ends_at, @trial)
 ON CONFLICT (user_id, code, source_kind, source_id) DO UPDATE
-SET ends_at = CASE WHEN commerce.entitlements.ends_at IS NULL OR EXCLUDED.ends_at IS NULL THEN NULL
+SET trial = EXCLUDED.trial,
+    ends_at = CASE WHEN commerce.entitlements.ends_at IS NULL OR EXCLUDED.ends_at IS NULL THEN NULL
                    ELSE greatest(commerce.entitlements.ends_at, EXCLUDED.ends_at) END;
 
 -- name: EndEntitlement :exec
@@ -64,3 +67,38 @@ SELECT code, coalesce(max(ends_at), '9999-12-31T00:00:00Z'::timestamptz)::timest
 FROM commerce.entitlements
 WHERE user_id = @user_id AND starts_at <= @now AND (ends_at IS NULL OR ends_at > @now)
 GROUP BY code ORDER BY code;
+
+-- name: PaidEntitlement :one
+-- An active entitlement outside a free trial (Plus's monthly Volt, D-105).
+SELECT EXISTS (
+  SELECT 1 FROM commerce.entitlements
+  WHERE user_id = @user_id AND code = @code AND NOT trial AND starts_at <= @now AND (ends_at IS NULL OR ends_at > @now)
+);
+
+-- ---------- Volt (D-105) ----------
+
+-- name: LockWallet :one
+-- Creates the wallet when missing and locks it for the transaction.
+INSERT INTO commerce.volt_wallets (user_id, balance, updated_at) VALUES (@user_id, 0, @now)
+ON CONFLICT (user_id) DO UPDATE SET user_id = EXCLUDED.user_id
+RETURNING balance;
+
+-- name: InsertVolt :execrows
+INSERT INTO commerce.volt_ledger (id, user_id, amount, reason, ref, key, balance_after, created_at)
+VALUES (@id, @user_id, @amount, @reason, @ref, @key, @balance_after, @now)
+ON CONFLICT (user_id, key) DO NOTHING;
+
+-- name: SetBalance :exec
+UPDATE commerce.volt_wallets SET balance = @balance, updated_at = @now WHERE user_id = @user_id;
+
+-- name: GetBalance :one
+SELECT balance FROM commerce.volt_wallets WHERE user_id = @user_id;
+
+-- name: VoltHistory :many
+SELECT amount, reason, ref, created_at FROM commerce.volt_ledger
+WHERE user_id = @user_id ORDER BY created_at DESC, id DESC LIMIT @lim;
+
+-- name: VoltSince :many
+-- Movements of a reason since a time (a refunded Plus takes its Volt back).
+SELECT key, amount FROM commerce.volt_ledger
+WHERE user_id = @user_id AND reason = @reason AND created_at >= @since;

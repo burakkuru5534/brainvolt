@@ -107,7 +107,7 @@ func (s *Service) OnMatchCompleted(ctx context.Context, e events.Envelope) error
 			if err := q.LockUser(ctx, me.UserID.String()); err != nil {
 				return err
 			}
-			a, err := s.applyMatch(ctx, q, &p, me, results[me.SideNo], badges)
+			a, err := s.applyMatch(ctx, tx, q, &p, me, results[me.SideNo], badges)
 			if err != nil {
 				return err
 			}
@@ -130,12 +130,12 @@ func (s *Service) OnMatchCompleted(ctx context.Context, e events.Envelope) error
 }
 
 // applyMatch is one participant's share of a completed match.
-func (s *Service) applyMatch(ctx context.Context, q *sqlc.Queries, p *matchCompleted, me *participant, result string, badges []badge) (Awards, error) {
+func (s *Service) applyMatch(ctx context.Context, tx pgx.Tx, q *sqlc.Queries, p *matchCompleted, me *participant, result string, badges []badge) (Awards, error) {
 	left := me.Status == "left" || me.Status == "forfeited"
 	won := result == "win" && !left
 	a := Awards{MatchID: p.MatchID, Badges: []EarnedBadge{}, Quests: []QuestProgress{}}
 	ref := p.MatchID.String()
-	added, before, after, err := grant(ctx, q, me.UserID, domain.MatchXP(result, me.Correct, left), sourceMatch, ref, p.EndedAt)
+	added, before, after, err := s.grant(ctx, tx, q, me.UserID, domain.MatchXP(result, me.Correct, left), sourceMatch, ref, p.EndedAt)
 	if err != nil {
 		return a, err
 	}
@@ -171,16 +171,16 @@ func (s *Service) applyMatch(ctx context.Context, q *sqlc.Queries, p *matchCompl
 		facts.CategoryCorrect = max(facts.CategoryCorrect, int(c))
 	}
 
+	if err := s.plusShield(ctx, q, me.UserID, p.EndedAt); err != nil {
+		return a, err
+	}
 	st, err := loadStreak(ctx, q, me.UserID)
 	if err != nil {
 		return a, err
 	}
 	if !left {
 		st = st.Play(domain.Day(p.EndedAt))
-		day := st.LastDay
-		if err := q.UpsertStreak(ctx, sqlc.UpsertStreakParams{
-			UserID: me.UserID, CurrentDays: int32(st.Current), LongestDays: int32(st.Longest), LastPlayDay: &day, Now: p.EndedAt, //nolint:gosec // G115: days
-		}); err != nil {
+		if err := saveStreak(ctx, q, me.UserID, st, p.EndedAt); err != nil {
 			return a, err
 		}
 	}
@@ -191,7 +191,7 @@ func (s *Service) applyMatch(ctx context.Context, q *sqlc.Queries, p *matchCompl
 		if !b.criteria.EarnedBy(&facts) {
 			continue
 		}
-		earned, xp, err := award(ctx, q, me.UserID, b, ref, p.EndedAt)
+		earned, xp, err := s.award(ctx, tx, q, me.UserID, b, ref, p.EndedAt)
 		if err != nil {
 			return a, err
 		}

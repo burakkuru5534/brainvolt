@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:brainvolt/app/config.dart';
 import 'package:brainvolt/app/providers.dart';
 import 'package:brainvolt/core/ads/ad_gateway.dart';
+import 'package:brainvolt/core/network/api_exception.dart';
 import 'package:brainvolt/core/network/token_source.dart';
 import 'package:brainvolt/core/purchases/purchase_gateway.dart';
 import 'package:brainvolt/core/realtime/realtime_client.dart';
@@ -1097,8 +1098,61 @@ class FakeAdsRepository implements AdsRepository {
 class FakeStoreRepository implements StoreRepository {
   Entitlements value = const Entitlements();
 
+  /// Volt (D-105).
+  Wallet walletValue = Wallet(
+    balance: 240,
+    items: const [
+      StoreItem(code: StoreItemCode.streakShield, price: 100),
+      StoreItem(code: StoreItemCode.questReroll, price: 30),
+    ],
+    history: [
+      VoltEntry(
+        amount: 25,
+        reason: 'level_up',
+        ref: '3',
+        createdAt: DateTime(2026, 10, 24, 18, 5),
+      ),
+      VoltEntry(
+        amount: 10,
+        reason: 'quest',
+        createdAt: DateTime(2026, 10, 24, 17, 40),
+      ),
+      VoltEntry(
+        amount: -100,
+        reason: 'item',
+        ref: StoreItemCode.streakShield,
+        createdAt: DateTime(2026, 10, 23, 21, 12),
+      ),
+    ],
+    adVoltLeft: 3,
+  );
+  final bought = <String>[];
+
+  /// Set to refuse purchases with this error code.
+  String? buyError;
+
   @override
   Future<Entitlements> entitlements() async => value;
+
+  @override
+  Future<Wallet> wallet() async => walletValue;
+
+  @override
+  Future<int> buy(String item) async {
+    if (buyError case final code?) {
+      throw ApiException(code: code, status: 409);
+    }
+    bought.add(item);
+    final w = walletValue;
+    walletValue = Wallet(
+      balance: w.balance - w.priceOf(item),
+      items: w.items,
+      history: w.history,
+      adVoltLeft: w.adVoltLeft,
+      adVolt: w.adVolt,
+    );
+    return walletValue.balance;
+  }
 }
 
 class FakePurchaseGateway implements PurchaseGateway {

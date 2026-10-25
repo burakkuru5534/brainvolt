@@ -2013,6 +2013,235 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adWatch => 'Watch';
 
   @override
+  String get plusTitle => 'BrainVolt Plus';
+
+  @override
+  String get plusTagline => 'Play without ads and earn more rewards every day.';
+
+  @override
+  String get plusPerkNoAds => 'No ads: no interstitials';
+
+  @override
+  String get plusPerkRewards => 'Rewarded-ad rewards without watching ads';
+
+  @override
+  String get plusPerkQuests => '+1 quest and +1 free swap every day';
+
+  @override
+  String get plusPerkBadge => 'Plus badge on your home screen';
+
+  @override
+  String get plusMonthly => 'Monthly';
+
+  @override
+  String get plusAnnual => 'Yearly';
+
+  @override
+  String plusPerMonth(String price) {
+    return '$price/month';
+  }
+
+  @override
+  String plusPerYear(String price) {
+    return '$price/year';
+  }
+
+  @override
+  String plusTrial(int days) {
+    return 'Try free for $days days';
+  }
+
+  @override
+  String plusStartTrial(int days) {
+    return 'Start $days-day free trial';
+  }
+
+  @override
+  String get plusBuy => 'Get Plus';
+
+  @override
+  String get plusRestore => 'Restore purchases';
+
+  @override
+  String get plusLegal =>
+      'The subscription renews automatically through Google Play at the end of each period unless cancelled. Cancel any time in Google Play.';
+
+  @override
+  String get plusActive => 'Plus is active.';
+
+  @override
+  String plusActiveUntil(String date) {
+    return 'Plus is active. Renews on $date';
+  }
+
+  @override
+  String get plusManage => 'Manage subscription';
+
+  @override
+  String get plusLinkFirst =>
+      'Link your account to Google, Apple or email first so your subscription is never lost.';
+
+  @override
+  String get plusUnavailable =>
+      'Purchases are not available on this device yet.';
+
+  @override
+  String get plusNoPlans => 'Plans couldn\'t be loaded. Try again in a bit.';
+
+  @override
+  String get plusWelcome => 'Welcome to Plus!';
+
+  @override
+  String get plusActivating => 'Purchase done; Plus turns on in a few seconds.';
+
+  @override
+  String get plusPending =>
+      'Your payment is pending; Plus turns on once it is approved.';
+
+  @override
+  String get plusFailed => 'The purchase couldn\'t be completed. Try again.';
+
+  @override
+  String get plusNothingToRestore => 'No subscription found to restore.';
+
+  @override
+  String get plusCta => 'Get Plus';
+
+  @override
+  String get voltTitle => 'Volt Store';
+
+  @override
+  String get voltBalanceLabel => 'Your Volt';
+
+  @override
+  String get voltTagline => 'Earn it by playing, spend it in the store.';
+
+  @override
+  String voltAdTitle(int amount) {
+    return 'Watch an ad, earn $amount Volt';
+  }
+
+  @override
+  String voltAdLeft(int count) {
+    return '$count left today';
+  }
+
+  @override
+  String get voltAdNone => 'No more ads today';
+
+  @override
+  String voltAdDone(int amount) {
+    return 'You earned $amount Volt';
+  }
+
+  @override
+  String get voltShop => 'Store';
+
+  @override
+  String get voltItemShield => 'Streak Shield';
+
+  @override
+  String voltItemShieldSub(int count, int max) {
+    return 'Keeps your streak through a missed day. You hold $count/$max';
+  }
+
+  @override
+  String get voltItemReroll => 'Extra quest reroll';
+
+  @override
+  String get voltItemRerollSub =>
+      'Swap one more quest once your free reroll is used.';
+
+  @override
+  String voltBuyTitle(String item) {
+    return 'Buy $item?';
+  }
+
+  @override
+  String voltBuyBody(int price) {
+    return 'This spends $price Volt.';
+  }
+
+  @override
+  String get voltBuy => 'Buy';
+
+  @override
+  String voltBought(String item) {
+    return '$item bought';
+  }
+
+  @override
+  String get voltEarnTitle => 'How to earn';
+
+  @override
+  String get voltEarnQuests => 'Daily quest +10 · Weekly quest +50';
+
+  @override
+  String get voltEarnDaily => 'Daily Challenge +10';
+
+  @override
+  String get voltEarnLevel => 'Each new level +25';
+
+  @override
+  String get voltEarnTournament => 'Tournament top three: +300 / +150 / +75';
+
+  @override
+  String get voltEarnSeason => 'Season-end league reward: +50 to +500';
+
+  @override
+  String get voltEarnPlus => 'Plus members get +400 every month';
+
+  @override
+  String get voltHistory => 'Recent activity';
+
+  @override
+  String get voltHistoryEmpty => 'Nothing here yet.';
+
+  @override
+  String get voltReasonQuest => 'Quest reward';
+
+  @override
+  String get voltReasonDaily => 'Daily Challenge';
+
+  @override
+  String voltReasonLevel(String level) {
+    return 'Level $level';
+  }
+
+  @override
+  String get voltReasonTournament => 'Tournament place';
+
+  @override
+  String get voltReasonSeason => 'Season reward';
+
+  @override
+  String get voltReasonAd => 'Ad reward';
+
+  @override
+  String get voltReasonPlus => 'Plus monthly Volt';
+
+  @override
+  String get voltReasonPlusRefund => 'Plus refund';
+
+  @override
+  String voltReasonItem(String item) {
+    return 'Store: $item';
+  }
+
+  @override
+  String get voltReasonOther => 'Adjustment';
+
+  @override
+  String voltRerollWith(int price) {
+    return 'Swap for $price Volt';
+  }
+
+  @override
+  String questVoltReward(int volt) {
+    return '+$volt';
+  }
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Your account is being deleted. You can only cancel the deletion.';
 
@@ -2128,6 +2357,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get error_INVITE_CODE_INVALID => 'The invite code is invalid.';
+
+  @override
+  String get error_ITEM_UNAVAILABLE => 'You can\'t get this item right now.';
 
   @override
   String get error_MALFORMED_REQUEST => 'The request could not be read.';
@@ -2295,97 +2527,5 @@ class AppLocalizationsEn extends AppLocalizations {
       'Someone else changed this. Refresh and try again.';
 
   @override
-  String get plusTitle => 'BrainVolt Plus';
-
-  @override
-  String get plusTagline => 'Play without ads and earn more rewards every day.';
-
-  @override
-  String get plusPerkNoAds => 'No ads: no interstitials';
-
-  @override
-  String get plusPerkRewards => 'Rewarded-ad rewards without watching ads';
-
-  @override
-  String get plusPerkQuests => '+1 quest and +1 free swap every day';
-
-  @override
-  String get plusPerkBadge => 'Plus badge on your home screen';
-
-  @override
-  String get plusMonthly => 'Monthly';
-
-  @override
-  String get plusAnnual => 'Yearly';
-
-  @override
-  String plusPerMonth(String price) {
-    return '$price/month';
-  }
-
-  @override
-  String plusPerYear(String price) {
-    return '$price/year';
-  }
-
-  @override
-  String plusTrial(int days) {
-    return 'Try free for $days days';
-  }
-
-  @override
-  String plusStartTrial(int days) {
-    return 'Start $days-day free trial';
-  }
-
-  @override
-  String get plusBuy => 'Get Plus';
-
-  @override
-  String get plusRestore => 'Restore purchases';
-
-  @override
-  String get plusLegal =>
-      'The subscription renews automatically through Google Play at the end of each period unless cancelled. Cancel any time in Google Play.';
-
-  @override
-  String get plusActive => 'Plus is active.';
-
-  @override
-  String plusActiveUntil(String date) {
-    return 'Plus is active. Renews on $date';
-  }
-
-  @override
-  String get plusManage => 'Manage subscription';
-
-  @override
-  String get plusLinkFirst =>
-      'Link your account to Google, Apple or email first so your subscription is never lost.';
-
-  @override
-  String get plusUnavailable =>
-      'Purchases are not available on this device yet.';
-
-  @override
-  String get plusNoPlans => 'Plans couldn\'t be loaded. Try again in a bit.';
-
-  @override
-  String get plusWelcome => 'Welcome to Plus!';
-
-  @override
-  String get plusActivating => 'Purchase done; Plus turns on in a few seconds.';
-
-  @override
-  String get plusPending =>
-      'Your payment is pending; Plus turns on once it is approved.';
-
-  @override
-  String get plusFailed => 'The purchase couldn\'t be completed. Try again.';
-
-  @override
-  String get plusNothingToRestore => 'No subscription found to restore.';
-
-  @override
-  String get plusCta => 'Get Plus';
+  String get error_VOLT_INSUFFICIENT => 'You don\'t have enough Volt.';
 }

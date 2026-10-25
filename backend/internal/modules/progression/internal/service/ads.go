@@ -70,28 +70,12 @@ func (s *Service) adOffer(ctx context.Context, q *sqlc.Queries, user uuid.UUID, 
 		}
 		return AdOffer{XP: min((int(e.Amount)+1)/2, adBonusMax)}, nil
 	case AdQuestReroll:
-		st, err := q.RerollState(ctx, sqlc.RerollStateParams{UserID: user, Day: domain.Day(now)})
+		reason, err := s.rerollBlocked(ctx, q, user, now)
 		if err != nil {
 			return AdOffer{}, err
 		}
-		if int(st.Used) < s.freeRerolls(ctx, user)+int(st.Bonus) {
-			return AdOffer{}, unavailable(placement, "free_reroll_left")
-		}
-		open := false
-		for _, c := range cadences {
-			start, _ := domain.Period(c, now)
-			rows, err := q.PeriodAssignments(ctx, sqlc.PeriodAssignmentsParams{UserID: user, Cadence: c, PeriodStart: start})
-			if err != nil {
-				return AdOffer{}, err
-			}
-			for i := range rows {
-				if rows[i].CompletedAt == nil && rows[i].ClaimedAt == nil && rows[i].PeriodEnd.After(now) {
-					open = true
-				}
-			}
-		}
-		if !open {
-			return AdOffer{}, unavailable(placement, "no_open_quest")
+		if reason != "" {
+			return AdOffer{}, unavailable(placement, reason)
 		}
 		return AdOffer{}, nil
 	case AdStreakRepair:
@@ -108,10 +92,12 @@ func (s *Service) adOffer(ctx context.Context, q *sqlc.Queries, user uuid.UUID, 
 }
 
 // repairable: the last play day was the day before yesterday, so only
-// yesterday was missed and nothing was played today.
+// yesterday was missed and nothing was played today, and no shield is
+// held.
 func repairable(st domain.Streak, now time.Time) bool {
 	today := domain.Day(now)
-	return st.Current > 0 && !st.LastDay.IsZero() && domain.Day(st.LastDay.AddDate(0, 0, 2)).Equal(today)
+	// A shield covers the missed day by itself (D-105).
+	return st.Current > 0 && st.Shields == 0 && !st.LastDay.IsZero() && domain.Day(st.LastDay.AddDate(0, 0, 2)).Equal(today)
 }
 
 // adRewardGranted is commerce.AdRewardGranted's payload (D-103).
@@ -154,7 +140,7 @@ func (s *Service) OnAdRewardGranted(ctx context.Context, e events.Envelope) erro
 		}
 		switch p.Placement {
 		case AdBonusXP:
-			_, _, _, err = grant(ctx, q, p.UserID, offer.XP, sourceAdBonus, p.Ref, now)
+			_, _, _, err = s.grant(ctx, tx, q, p.UserID, offer.XP, sourceAdBonus, p.Ref, now)
 		case AdQuestReroll:
 			err = q.AddRerollBonus(ctx, sqlc.AddRerollBonusParams{UserID: p.UserID, Day: domain.Day(now)})
 		case AdStreakRepair:
@@ -165,3 +151,28 @@ func (s *Service) OnAdRewardGranted(ctx context.Context, e events.Envelope) erro
 }
 
 func ptr[T any](v T) *T { return &v }
+
+// rerollBlocked says why an extra reroll cannot be earned now ("" when it
+// can): a free one is left, or no quest is open.
+func (s *Service) rerollBlocked(ctx context.Context, q *sqlc.Queries, user uuid.UUID, now time.Time) (string, error) {
+	st, err := q.RerollState(ctx, sqlc.RerollStateParams{UserID: user, Day: domain.Day(now)})
+	if err != nil {
+		return "", err
+	}
+	if int(st.Used) < s.freeRerolls(ctx, user)+int(st.Bonus) {
+		return "free_reroll_left", nil
+	}
+	for _, c := range cadences {
+		start, _ := domain.Period(c, now)
+		rows, err := q.PeriodAssignments(ctx, sqlc.PeriodAssignmentsParams{UserID: user, Cadence: c, PeriodStart: start})
+		if err != nil {
+			return "", err
+		}
+		for i := range rows {
+			if rows[i].CompletedAt == nil && rows[i].ClaimedAt == nil && rows[i].PeriodEnd.After(now) {
+				return "", nil
+			}
+		}
+	}
+	return "no_open_quest", nil
+}

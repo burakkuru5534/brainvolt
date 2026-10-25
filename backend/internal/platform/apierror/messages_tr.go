@@ -71,6 +71,8 @@ var messagesTR = map[Code]string{
 	DailyAnswersNotOpen:    "Cevaplar o gün bittikten sonra açılır.",
 	AdRewardUnavailable:    "Bu ödül şu an alınamıyor.",
 	AdLimitReached:         "Bu ödül için bugünkü sınıra ulaştın.",
+	VoltInsufficient:       "Yeterli Volt'un yok.",
+	ItemUnavailable:        "Bu ürünü şu an alamazsın.",
 
 	QuestionSourceRequired: "Sorunun kaynağı ve lisansı belirtilmeli.",
 	QuestionInUse:          "Bu soru maçlarda kullanıldığı için bu şekilde değiştirilemez.",

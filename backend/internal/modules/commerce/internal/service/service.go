@@ -55,6 +55,7 @@ var NoAdsCodes = []string{"plus", "no_ads"}
 type Offer struct {
 	XP         int `json:"xp,omitempty"`
 	StreakDays int `json:"streak_days,omitempty"`
+	Volt       int `json:"volt,omitempty"`
 }
 
 // RewardChecker says whether a placement can be earned now and what it
@@ -72,11 +73,13 @@ type Users interface {
 type Deps struct {
 	DB      *pgxpool.Pool
 	Rewards RewardChecker
-	Users   Users
-	Events  *events.Bus
-	Keys    KeySource
-	Clock   clock.Clock
-	Logger  *slog.Logger
+	// Items applies store items (progression, D-105).
+	Items  ItemApplier
+	Users  Users
+	Events *events.Bus
+	Keys   KeySource
+	Clock  clock.Clock
+	Logger *slog.Logger
 }
 
 // Service is commerce's logic.
@@ -207,16 +210,22 @@ type Reward struct {
 // id the app passes to AdMob as custom_data; an open reservation of the
 // same placement and match is returned again.
 func (s *Service) Reserve(ctx context.Context, user uuid.UUID, placement, ref string) (Reward, error) {
-	if s.d.Rewards == nil {
+	var offer Offer
+	switch {
+	case placement == PlacementVolt: // the store's Volt ad (D-105)
+		offer = Offer{Volt: AdVolt}
+	case s.d.Rewards == nil:
 		return Reward{}, apierror.New(apierror.AdRewardUnavailable).With("placement", placement).With("reason", "ads_off")
-	}
-	offer, err := s.d.Rewards.AdOffer(ctx, user, placement, ref)
-	if err != nil {
-		return Reward{}, err
+	default:
+		o, err := s.d.Rewards.AdOffer(ctx, user, placement, ref)
+		if err != nil {
+			return Reward{}, err
+		}
+		offer = o
 	}
 	now := s.d.Clock.Now()
 	var out Reward
-	err = postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error {
+	err := postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error {
 		q := sqlc.New(tx)
 		if _, err := tx.Exec(ctx, `SELECT pg_advisory_xact_lock(hashtext('commerce.ads:' || $1::text))`, user.String()); err != nil {
 			return err
@@ -237,10 +246,18 @@ func (s *Service) Reserve(ctx context.Context, user uuid.UUID, placement, ref st
 		if err != nil {
 			return err
 		}
-		if used >= RewardedPerDay {
+		if used >= RewardedPerDay && placement != PlacementVolt {
 			return limited(RewardedPerDay)
 		}
 		switch placement {
+		case PlacementVolt:
+			n, err := s.count(ctx, q, user, placement, day, now)
+			if err != nil {
+				return err
+			}
+			if n >= AdVoltPerDay {
+				return limited(AdVoltPerDay)
+			}
 		case PlacementQuestReroll:
 			n, err := s.count(ctx, q, user, placement, day, now)
 			if err != nil {
@@ -325,6 +342,10 @@ func (s *Service) Grant(ctx context.Context, id, user uuid.UUID, transaction str
 			return nil
 		}
 		if err := q.GrantAdReward(ctx, sqlc.GrantAdRewardParams{ID: id, TransactionID: &transaction, Now: &now}); err != nil {
+			return err
+		}
+		if r.Placement == PlacementVolt { // commerce's own reward (D-105)
+			_, _, err := credit(ctx, q, user, AdVolt, VoltAd, id.String(), "ad:"+id.String(), now)
 			return err
 		}
 		return s.d.Events.PublishTx(ctx, tx, EventAdRewardGranted, now,
