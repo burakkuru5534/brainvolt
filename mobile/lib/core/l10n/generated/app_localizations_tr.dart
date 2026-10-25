@@ -2285,4 +2285,99 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get error_VERSION_CONFLICT =>
       'Bu kayıt başka biri tarafından değiştirildi. Yenileyip tekrar dene.';
+
+  @override
+  String get plusTitle => 'BrainVolt Plus';
+
+  @override
+  String get plusTagline => 'Reklamsız oyna, her gün daha fazla ödül kazan.';
+
+  @override
+  String get plusPerkNoAds => 'Reklamsız oyun: ara reklam yok';
+
+  @override
+  String get plusPerkRewards => 'Ödüllü reklam ödülleri reklam izlemeden';
+
+  @override
+  String get plusPerkQuests => 'Her gün +1 görev ve +1 ücretsiz değiştirme';
+
+  @override
+  String get plusPerkBadge => 'Ana sayfada Plus rozeti';
+
+  @override
+  String get plusMonthly => 'Aylık';
+
+  @override
+  String get plusAnnual => 'Yıllık';
+
+  @override
+  String plusPerMonth(String price) {
+    return '$price/ay';
+  }
+
+  @override
+  String plusPerYear(String price) {
+    return '$price/yıl';
+  }
+
+  @override
+  String plusTrial(int days) {
+    return '$days gün ücretsiz dene';
+  }
+
+  @override
+  String plusStartTrial(int days) {
+    return '$days gün ücretsiz başla';
+  }
+
+  @override
+  String get plusBuy => 'Plus\'a geç';
+
+  @override
+  String get plusRestore => 'Satın alımları geri yükle';
+
+  @override
+  String get plusLegal =>
+      'Abonelik iptal edilmedikçe her dönemin sonunda Google Play üzerinden otomatik yenilenir. İstediğin zaman Google Play\'den iptal edebilirsin.';
+
+  @override
+  String get plusActive => 'Plus aktif.';
+
+  @override
+  String plusActiveUntil(String date) {
+    return 'Plus aktif. Yenileme tarihi: $date';
+  }
+
+  @override
+  String get plusManage => 'Aboneliği yönet';
+
+  @override
+  String get plusLinkFirst =>
+      'Satın almak için önce hesabını Google, Apple ya da e-postaya bağla; böylece aboneliğin kaybolmaz.';
+
+  @override
+  String get plusUnavailable => 'Satın alma bu cihazda henüz kullanılamıyor.';
+
+  @override
+  String get plusNoPlans =>
+      'Planlar şu an yüklenemedi. Biraz sonra tekrar dene.';
+
+  @override
+  String get plusWelcome => 'Plus\'a hoş geldin!';
+
+  @override
+  String get plusActivating =>
+      'Satın alma tamam; Plus birkaç saniye içinde açılacak.';
+
+  @override
+  String get plusPending => 'Ödemen onay bekliyor; onaylanınca Plus açılacak.';
+
+  @override
+  String get plusFailed => 'Satın alma tamamlanamadı. Tekrar dene.';
+
+  @override
+  String get plusNothingToRestore => 'Geri yüklenecek bir abonelik bulunamadı.';
+
+  @override
+  String get plusCta => 'Plus\'a geç';
 }

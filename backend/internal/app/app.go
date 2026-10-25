@@ -164,7 +164,8 @@ func NewAPI(ctx context.Context, cfg config.Config, logger *slog.Logger) (*App, 
 		health.Check{Name: "migrations", Fn: func(ctx context.Context) error { return migrations.Check(ctx, schema) }},
 	)
 	mods := registerModules(srv, moduleDeps{db: db, verifier: verifier, bus: bus, limiter: limiter,
-		idem: idempotency.New(db, logger), clock: clk, logger: logger, instance: ids.New().String(), env: cfg.Env})
+		idem: idempotency.New(db, logger), clock: clk, logger: logger, instance: ids.New().String(), env: cfg.Env,
+		rcSecret: cfg.Store.RevenueCatWebhookSecret})
 
 	// The jobs' personal messages go out through this process's hub.
 	live.Bind(mods.realtime)
@@ -200,6 +201,8 @@ type moduleDeps struct {
 	env config.Environment
 	// adKeys verifies AdMob SSV callbacks (tests; nil = AdMob's keys).
 	adKeys commerce.KeySource
+	// rcSecret is RevenueCat's webhook Authorization value (D-104).
+	rcSecret string
 	// wsPingIdle and wsIdleTimeout override realtime's heartbeat and idle
 	// close (tests; zero keeps the defaults).
 	wsPingIdle, wsIdleTimeout time.Duration
@@ -251,12 +254,12 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	rt.OnViolation(mod.ProtocolViolation)
 	rk := ranking.New(ranking.Deps{DB: d.db, Profiles: prof, Teams: tm, Social: soc, Clock: d.clock, Logger: d.logger})
 	rk.Register(srv, ident)
-	prog := progression.New(progression.Deps{DB: d.db, Ranking: rk, Clock: d.clock, Logger: d.logger})
+	prog := progression.New(progression.Deps{DB: d.db, Ranking: rk, Plus: commerce.NewEntitlementReader(d.db, d.clock), Clock: d.clock, Logger: d.logger})
 	prog.Register(srv, ident, d.idem)
 	prof.SetReaders(soc, prog) // player profiles (D-101): relation and stats
 	// Rewarded ads (D-103): commerce verifies, progression checks and gives.
 	com := commerce.New(commerce.Deps{DB: d.db, Identity: ident, Events: d.bus, Keys: d.adKeys, Clock: d.clock, Logger: d.logger,
-		DevGrant: d.env != config.EnvProd})
+		DevGrant: d.env != config.EnvProd, RevenueCatSecret: d.rcSecret})
 	com.SetRewards(adOffers{prog})
 	com.Register(srv)
 	g := game.New(game.Deps{
@@ -346,7 +349,7 @@ func newBus(db *pgxpool.Pool, logger *slog.Logger, push notification.Sender, liv
 	bus.Subscribe(game.EventMatchCompleted, ranking.SubscriberMatchResults, rk.OnMatchCompleted)
 	bus.Subscribe(identity.EventAccountTierChanged, ranking.SubscriberTierChanged, rk.OnTierChanged)
 	// progression: XP, streaks, badges and quests (progression-formulas §5–9).
-	prog := progression.New(progression.Deps{DB: db, Pusher: live, Ranking: rk, Clock: clock.Real{}, Logger: logger})
+	prog := progression.New(progression.Deps{DB: db, Pusher: live, Ranking: rk, Plus: commerce.NewEntitlementReader(db, clock.Real{}), Clock: clock.Real{}, Logger: logger})
 	bus.Subscribe(game.EventMatchCompleted, progression.SubscriberMatchAwards, prog.OnMatchCompleted)
 	bus.Subscribe(ranking.EventSeasonEnded, progression.SubscriberSeasonReward, prog.OnSeasonEnded)
 	bus.Subscribe(commerce.EventAdRewardGranted, progression.SubscriberAdRewards, prog.OnAdRewardGranted)

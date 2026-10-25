@@ -65,6 +65,13 @@ spec:
                 secretKeyRef:
                   name: ${POSTGRES_URL_SECRET}
                   key: latest
+            # RevenueCat webhook Authorization value (D-104); the same text
+            # is set in RevenueCat → Integrations → Webhooks.
+            - name: BRAINVOLT_REVENUECAT_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: brainvolt-revenuecat-webhook
+                  key: latest
           startupProbe:
             httpGet:
               path: /healthz

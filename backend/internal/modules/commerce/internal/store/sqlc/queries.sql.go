@@ -12,6 +12,44 @@ import (
 	"github.com/google/uuid"
 )
 
+const activeEntitlements = `-- name: ActiveEntitlements :many
+SELECT code, coalesce(max(ends_at), '9999-12-31T00:00:00Z'::timestamptz)::timestamptz AS ends_at, bool_or(ends_at IS NULL) AS forever
+FROM commerce.entitlements
+WHERE user_id = $1 AND starts_at <= $2 AND (ends_at IS NULL OR ends_at > $2)
+GROUP BY code ORDER BY code
+`
+
+type ActiveEntitlementsParams struct {
+	UserID uuid.UUID
+	Now    time.Time
+}
+
+type ActiveEntitlementsRow struct {
+	Code    string
+	EndsAt  time.Time
+	Forever bool
+}
+
+func (q *Queries) ActiveEntitlements(ctx context.Context, arg ActiveEntitlementsParams) ([]ActiveEntitlementsRow, error) {
+	rows, err := q.db.Query(ctx, activeEntitlements, arg.UserID, arg.Now)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ActiveEntitlementsRow{}
+	for rows.Next() {
+		var i ActiveEntitlementsRow
+		if err := rows.Scan(&i.Code, &i.EndsAt, &i.Forever); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const countAdRewards = `-- name: CountAdRewards :one
 SELECT count(*)::int FROM commerce.ad_rewards
 WHERE user_id = $1 AND ($2::text = '' OR placement = $2) AND created_at >= $3
@@ -36,6 +74,62 @@ func (q *Queries) CountAdRewards(ctx context.Context, arg CountAdRewardsParams) 
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const endEntitlement = `-- name: EndEntitlement :exec
+UPDATE commerce.entitlements SET ends_at = $1
+WHERE user_id = $2 AND code = $3 AND source_kind = $4 AND source_id = $5
+  AND (ends_at IS NULL OR ends_at > $1)
+`
+
+type EndEntitlementParams struct {
+	EndsAt     *time.Time
+	UserID     uuid.UUID
+	Code       string
+	SourceKind string
+	SourceID   string
+}
+
+// Ends an entitlement at ends_at (expiry, refund, transfer away).
+func (q *Queries) EndEntitlement(ctx context.Context, arg EndEntitlementParams) error {
+	_, err := q.db.Exec(ctx, endEntitlement,
+		arg.EndsAt,
+		arg.UserID,
+		arg.Code,
+		arg.SourceKind,
+		arg.SourceID,
+	)
+	return err
+}
+
+const extendEntitlement = `-- name: ExtendEntitlement :exec
+INSERT INTO commerce.entitlements (user_id, code, source_kind, source_id, starts_at, ends_at)
+VALUES ($1, $2, $3, $4, $5, $6)
+ON CONFLICT (user_id, code, source_kind, source_id) DO UPDATE
+SET ends_at = CASE WHEN commerce.entitlements.ends_at IS NULL OR EXCLUDED.ends_at IS NULL THEN NULL
+                   ELSE greatest(commerce.entitlements.ends_at, EXCLUDED.ends_at) END
+`
+
+type ExtendEntitlementParams struct {
+	UserID     uuid.UUID
+	Code       string
+	SourceKind string
+	SourceID   string
+	StartsAt   time.Time
+	EndsAt     *time.Time
+}
+
+// Grants or extends an entitlement; a late, older event never shortens it.
+func (q *Queries) ExtendEntitlement(ctx context.Context, arg ExtendEntitlementParams) error {
+	_, err := q.db.Exec(ctx, extendEntitlement,
+		arg.UserID,
+		arg.Code,
+		arg.SourceKind,
+		arg.SourceID,
+		arg.StartsAt,
+		arg.EndsAt,
+	)
+	return err
 }
 
 const getAdReward = `-- name: GetAdReward :one
@@ -151,6 +245,55 @@ func (q *Queries) InsertAdReward(ctx context.Context, arg InsertAdRewardParams) 
 	return err
 }
 
+const insertStoreEvent = `-- name: InsertStoreEvent :execrows
+
+INSERT INTO commerce.store_events (id, store, event_id, kind, user_id, payload, received_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+ON CONFLICT (store, event_id) DO NOTHING
+`
+
+type InsertStoreEventParams struct {
+	ID      uuid.UUID
+	Store   string
+	EventID string
+	Kind    string
+	UserID  *uuid.UUID
+	Payload []byte
+	Now     time.Time
+}
+
+// ---------- Store events and entitlements (D-104) ----------
+func (q *Queries) InsertStoreEvent(ctx context.Context, arg InsertStoreEventParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertStoreEvent,
+		arg.ID,
+		arg.Store,
+		arg.EventID,
+		arg.Kind,
+		arg.UserID,
+		arg.Payload,
+		arg.Now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const markStoreEventProcessed = `-- name: MarkStoreEventProcessed :exec
+UPDATE commerce.store_events SET processed_at = $1 WHERE store = $2 AND event_id = $3
+`
+
+type MarkStoreEventProcessedParams struct {
+	Now     *time.Time
+	Store   string
+	EventID string
+}
+
+func (q *Queries) MarkStoreEventProcessed(ctx context.Context, arg MarkStoreEventProcessedParams) error {
+	_, err := q.db.Exec(ctx, markStoreEventProcessed, arg.Now, arg.Store, arg.EventID)
+	return err
+}
+
 const openAdReward = `-- name: OpenAdReward :one
 SELECT id, user_id, network, placement, ref, status, transaction_id, created_at, expires_at, granted_at FROM commerce.ad_rewards
 WHERE user_id = $1 AND placement = $2 AND ref = $3 AND status = 'pending' AND expires_at > $4
@@ -186,4 +329,35 @@ func (q *Queries) OpenAdReward(ctx context.Context, arg OpenAdRewardParams) (Com
 		&i.GrantedAt,
 	)
 	return i, err
+}
+
+const subscriptionEntitlements = `-- name: SubscriptionEntitlements :many
+SELECT user_id, code, source_kind, source_id, starts_at, ends_at FROM commerce.entitlements WHERE user_id = $1 AND source_kind = 'subscription'
+`
+
+func (q *Queries) SubscriptionEntitlements(ctx context.Context, userID uuid.UUID) ([]CommerceEntitlement, error) {
+	rows, err := q.db.Query(ctx, subscriptionEntitlements, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CommerceEntitlement{}
+	for rows.Next() {
+		var i CommerceEntitlement
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Code,
+			&i.SourceKind,
+			&i.SourceID,
+			&i.StartsAt,
+			&i.EndsAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

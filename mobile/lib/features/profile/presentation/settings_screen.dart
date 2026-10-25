@@ -39,6 +39,12 @@ class SettingsScreen extends ConsumerWidget {
           GlassSection(
             children: [
               link(
+                const Key('open-plus'),
+                Icons.workspace_premium_rounded,
+                l10n.plusTitle,
+                Routes.plus,
+              ),
+              link(
                 const Key('open-guide'),
                 Icons.menu_book_rounded,
                 l10n.guideTitle,

@@ -73,3 +73,19 @@ reward). The service fetches AdMob's public keys from
 `https://www.gstatic.com/admob/reward/verifier-keys.json` and caches them for
 a day; no secret is involved. Without this setting rewarded ads in release
 builds play but never grant their reward.
+
+## RevenueCat webhook (D-104)
+
+BrainVolt Plus is granted by RevenueCat's webhook. `finish-deploy.ps1`
+creates the Secret Manager secret `brainvolt-revenuecat-webhook` once with a
+random value and prints it; the service reads it as
+`BRAINVOLT_REVENUECAT_WEBHOOK_SECRET`. (`deploy.sh` expects the secret to
+exist.) In RevenueCat → Integrations → Webhooks add:
+
+- URL: `https://brainvolt-api-684037840139.europe-west3.run.app/v1/store/revenuecat/webhook`
+- Authorization header value: the printed secret
+  (`gcloud secrets versions access latest --secret=brainvolt-revenuecat-webhook`)
+- Environment: both production and sandbox; events: all.
+
+Use "Send test event": the service answers 200 (the test user is not a
+BrainVolt user, so nothing is granted).

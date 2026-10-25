@@ -63,6 +63,17 @@ type CommerceEntitlement struct {
 	EndsAt     *time.Time
 }
 
+type CommerceStoreEvent struct {
+	ID          uuid.UUID
+	Store       string
+	EventID     string
+	Kind        string
+	UserID      *uuid.UUID
+	Payload     []byte
+	ReceivedAt  time.Time
+	ProcessedAt *time.Time
+}
+
 type ContentCategory struct {
 	ID        uuid.UUID
 	Slug      string

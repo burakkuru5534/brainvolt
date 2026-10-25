@@ -214,7 +214,7 @@ func (s *Service) applyMatch(ctx context.Context, q *sqlc.Queries, p *matchCompl
 		}
 	}
 	if !left {
-		qs, err := advanceQuests(ctx, q, me.UserID, p, me, won)
+		qs, err := advanceQuests(ctx, q, me.UserID, p, me, won, s.extraQuests(ctx, me.UserID))
 		if err != nil {
 			return a, err
 		}

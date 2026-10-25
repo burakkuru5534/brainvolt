@@ -28,8 +28,41 @@ type Pusher interface {
 type Deps struct {
 	DB     *pgxpool.Pool
 	Pusher Pusher
+	// Plus tells whether a user holds BrainVolt Plus (commerce, D-104);
+	// nil = nobody does.
+	Plus   PlusChecker
 	Clock  clock.Clock
 	Logger *slog.Logger
+}
+
+// PlusChecker reports entitlements (commerce's reader).
+type PlusChecker interface {
+	HasEntitlement(ctx context.Context, user uuid.UUID, codes ...string) (bool, error)
+}
+
+// plus reports whether user holds Plus; a failed lookup counts as no.
+func (s *Service) plus(ctx context.Context, user uuid.UUID) bool {
+	if s.d.Plus == nil {
+		return false
+	}
+	ok, err := s.d.Plus.HasEntitlement(ctx, user, "plus")
+	if err != nil && s.d.Logger != nil {
+		s.d.Logger.WarnContext(ctx, "progression: plus lookup failed", "user", user, "error", err)
+	}
+	return ok && err == nil
+}
+
+// extraQuests is the extra daily quest of Plus (D-104).
+func (s *Service) extraQuests(ctx context.Context, user uuid.UUID) int {
+	if s.plus(ctx, user) {
+		return 1
+	}
+	return 0
+}
+
+// freeRerolls is the day's free quest rerolls: one, two with Plus (D-104).
+func (s *Service) freeRerolls(ctx context.Context, user uuid.UUID) int {
+	return freeRerolls + s.extraQuests(ctx, user)
 }
 
 // Service implements progression.

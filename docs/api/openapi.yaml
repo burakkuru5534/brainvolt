@@ -1063,6 +1063,37 @@ components:
                 - name
                 - tier
             type: object
+        Entitlement:
+            properties:
+                code:
+                    type: string
+                ends_at:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+            required:
+                - code
+                - ends_at
+            type: object
+        Entitlements:
+            properties:
+                entitlements:
+                    items:
+                        $ref: '#/components/schemas/Entitlement'
+                    type: array
+                plus:
+                    type: boolean
+                plus_until:
+                    format: date-time
+                    type:
+                        - string
+                        - "null"
+            required:
+                - entitlements
+                - plus
+                - plus_until
+            type: object
         Entry:
             properties:
                 couple:
@@ -8485,6 +8516,61 @@ paths:
             tags:
                 - notification
             x-auth: any
+    /v1/me/entitlements:
+        get:
+            operationId: getV1MeEntitlements
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Entitlements'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: 'The caller''s active entitlements: plus (BrainVolt Plus, D-104) and its end'
+            tags:
+                - commerce
+            x-auth: any
     /v1/me/inbox:
         get:
             operationId: getV1MeInbox
@@ -11035,6 +11121,28 @@ paths:
             tags:
                 - ranking
             x-auth: any
+    /v1/store/revenuecat/webhook:
+        post:
+            operationId: postV1StoreRevenuecatWebhook
+            responses:
+                "204":
+                    description: No Content
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAUTHENTICATED'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            summary: 'RevenueCat webhook (Authorization = the configured secret): subscription events → the plus entitlement, idempotent by event id'
+            tags:
+                - commerce
+            x-auth: public
     /v1/team-invites/{id}/accept:
         post:
             operationId: postV1TeamInvitesIdAccept

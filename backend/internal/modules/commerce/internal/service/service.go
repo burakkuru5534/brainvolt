@@ -266,7 +266,19 @@ func (s *Service) Reserve(ctx context.Context, user uuid.UUID, placement, ref st
 		out = Reward{ID: id, Placement: placement, Ref: ref, Status: "pending", Offer: offer, ExpiresAt: exp}
 		return nil
 	})
-	return out, err
+	if err != nil || out.Status != "pending" {
+		return out, err
+	}
+	// Plus earns rewarded-ad rewards without the ad (D-104).
+	plus, err := s.HasEntitlement(ctx, user, EntitlementPlus)
+	if err != nil || !plus {
+		return out, err
+	}
+	if _, err := s.Grant(ctx, out.ID, user, "plus-"+out.ID.String()); err != nil {
+		return out, err
+	}
+	out.Status = "granted"
+	return out, nil
 }
 
 // Get returns one of the caller's rewards (the app polls it after the ad).

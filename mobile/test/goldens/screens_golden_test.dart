@@ -11,6 +11,7 @@ import 'package:brainvolt/core/network/api_exception.dart';
 import 'package:brainvolt/core/realtime/realtime_providers.dart';
 import 'package:brainvolt/core/share/result_card.dart';
 import 'package:brainvolt/core/widgets/bv.dart';
+import 'package:brainvolt/features/auth/domain/auth_repository.dart';
 import 'package:brainvolt/features/match/domain/match_repository.dart';
 import 'package:brainvolt/features/progress/domain/progress_repository.dart';
 import 'package:flutter/material.dart';
@@ -55,11 +56,18 @@ void main() {
 
   // BrainVolt has one (dark) theme (D-099); the files keep the `_dark` name.
   for (final mode in [ThemeMode.dark]) {
-    Future<TestApp> launch(WidgetTester tester, String route) async {
+    Future<TestApp> launch(
+      WidgetTester tester,
+      String route, {
+      AuthUser? user,
+    }) async {
       tester.view.physicalSize = const Size(1170, 2532);
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
-      final t = await TestApp.create(prefs: {'theme_mode': mode.name});
+      final t = await TestApp.create(
+        prefs: {'theme_mode': mode.name},
+        user: user,
+      );
       _seedProgress(t);
       await tester.pumpWidget(
         UncontrolledProviderScope(
@@ -156,6 +164,23 @@ void main() {
         await finish(tester, t);
       });
     }
+
+    testWidgets('plus ${mode.name}', (tester) async {
+      final t = await launch(
+        tester,
+        Routes.plus,
+        user: const AuthUser(
+          uid: 'u-full',
+          isAnonymous: false,
+          emailVerified: true,
+        ),
+      );
+      await expectLater(
+        find.byType(BrainVoltApp),
+        matchesGoldenFile('plus_${mode.name}.png'),
+      );
+      await finish(tester, t);
+    });
 
     testWidgets('guide open ${mode.name}', (tester) async {
       final t = await launch(tester, Routes.guide);

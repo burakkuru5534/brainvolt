@@ -44,9 +44,15 @@ type Deps struct {
 	DB      *pgxpool.Pool
 	Pusher  Pusher
 	Ranking *ranking.Module
-	Clock   clock.Clock
-	Logger  *slog.Logger
+	// Plus reports BrainVolt Plus (commerce's entitlement reader, wired in
+	// internal/app; D-104). nil = nobody has Plus.
+	Plus   PlusChecker
+	Clock  clock.Clock
+	Logger *slog.Logger
 }
+
+// PlusChecker reports entitlements.
+type PlusChecker = service.PlusChecker
 
 // Module is the progression module.
 type Module struct {
@@ -57,7 +63,7 @@ type Module struct {
 // New builds the module.
 func New(d Deps) *Module {
 	return &Module{
-		svc:     service.New(service.Deps{DB: d.DB, Pusher: d.Pusher, Clock: d.Clock, Logger: d.Logger}),
+		svc:     service.New(service.Deps{DB: d.DB, Pusher: d.Pusher, Plus: d.Plus, Clock: d.Clock, Logger: d.Logger}),
 		ranking: d.Ranking,
 	}
 }

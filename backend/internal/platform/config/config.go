@@ -41,6 +41,14 @@ type Config struct {
 	Log         Log
 	Postgres    Postgres
 	Firebase    Firebase
+	Store       Store
+}
+
+// Store configures in-app purchases (D-104).
+type Store struct {
+	// RevenueCatWebhookSecret is the Authorization value RevenueCat sends
+	// with its webhook; empty turns POST /v1/store/revenuecat/webhook off.
+	RevenueCatWebhookSecret string `env:"BRAINVOLT_REVENUECAT_WEBHOOK_SECRET"`
 }
 
 // HTTP configures the REST/WebSocket server (timeouts: docs/api/limits.md §3).

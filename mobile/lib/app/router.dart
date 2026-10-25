@@ -35,6 +35,7 @@ import '../features/progress/presentation/leaderboards_screen.dart';
 import '../features/progress/presentation/quests_screen.dart';
 import '../features/social/presentation/friends_screen.dart';
 import '../features/social/presentation/player_profile.dart';
+import '../features/store/presentation/plus_screen.dart';
 import '../features/team/presentation/teams_screen.dart';
 import '../features/tournament/presentation/tournament_screens.dart';
 import 'session_controller.dart';
@@ -78,6 +79,7 @@ abstract final class Routes {
   ).toString();
   static const notificationSettings = '/settings/notifications';
   static const guide = '/settings/guide';
+  static const plus = '/plus';
   static const quizNew = '/quizzes/new';
   static String quiz(String id) => '/quizzes/$id';
   static String dailyRun(String id) => '/daily/runs/$id';
@@ -170,6 +172,10 @@ GoRouter router(Ref ref) {
         path: '/players/:id',
         builder: (context, state) =>
             PlayerProfileScreen(userId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: Routes.plus,
+        builder: (context, state) => const PlusScreen(),
       ),
       GoRoute(
         path: Routes.guide,

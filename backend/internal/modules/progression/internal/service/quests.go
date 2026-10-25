@@ -67,6 +67,7 @@ type filters struct {
 func (s *Service) Quests(ctx context.Context, user uuid.UUID, locale string) (Quests, error) {
 	now := s.d.Clock.Now()
 	out := Quests{Daily: []Quest{}, Weekly: []Quest{}}
+	extra, free := s.extraQuests(ctx, user), s.freeRerolls(ctx, user)
 	err := postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error {
 		q := sqlc.New(tx)
 		if err := q.LockUser(ctx, user.String()); err != nil {
@@ -77,7 +78,7 @@ func (s *Service) Quests(ctx context.Context, user uuid.UUID, locale string) (Qu
 			return err
 		}
 		for _, c := range cadences {
-			rows, err := ensureQuests(ctx, q, user, c, now)
+			rows, err := ensureQuests(ctx, q, user, c, now, extra)
 			if err != nil {
 				return err
 			}
@@ -94,7 +95,7 @@ func (s *Service) Quests(ctx context.Context, user uuid.UUID, locale string) (Qu
 			}
 		}
 		st, err := q.RerollState(ctx, sqlc.RerollStateParams{UserID: user, Day: domain.Day(now)})
-		out.RerollsLeft = max(freeRerolls+int(st.Bonus)-int(st.Used), 0)
+		out.RerollsLeft = max(free+int(st.Bonus)-int(st.Used), 0)
 		return err
 	})
 	return out, err
@@ -107,17 +108,21 @@ func questOf(r *sqlc.PeriodAssignmentsRow) Quest {
 
 // ensureQuests tops a period up to three quests with different
 // objectives where the catalogue allows. The caller holds LockUser.
-func ensureQuests(ctx context.Context, q *sqlc.Queries, user uuid.UUID, cadence string, t time.Time) ([]sqlc.PeriodAssignmentsRow, error) {
+func ensureQuests(ctx context.Context, q *sqlc.Queries, user uuid.UUID, cadence string, t time.Time, extraDaily int) ([]sqlc.PeriodAssignmentsRow, error) {
 	start, end := domain.Period(cadence, t)
+	want := questsPerPeriod
+	if cadence == "daily" {
+		want += extraDaily // Plus (D-104)
+	}
 	rows, err := q.PeriodAssignments(ctx, sqlc.PeriodAssignmentsParams{UserID: user, Cadence: cadence, PeriodStart: start})
-	if err != nil || len(rows) >= questsPerPeriod {
+	if err != nil || len(rows) >= want {
 		return rows, err
 	}
 	pool, err := q.ActiveQuests(ctx, cadence)
 	if err != nil {
 		return nil, err
 	}
-	picked := pick(pool, rows, questsPerPeriod-len(rows), uuid.Nil)
+	picked := pick(pool, rows, want-len(rows), uuid.Nil)
 	for _, p := range picked {
 		if err := q.InsertAssignment(ctx, sqlc.InsertAssignmentParams{ID: ids.New(), UserID: user, QuestID: p.ID, PeriodStart: start, PeriodEnd: end}); err != nil {
 			return nil, err
@@ -169,10 +174,10 @@ type QuestProgress struct {
 
 // advanceQuests applies a player's match to their open quests of the
 // periods holding the match end.
-func advanceQuests(ctx context.Context, q *sqlc.Queries, user uuid.UUID, p *matchCompleted, me *participant, won bool) ([]QuestProgress, error) {
+func advanceQuests(ctx context.Context, q *sqlc.Queries, user uuid.UUID, p *matchCompleted, me *participant, won bool, extra int) ([]QuestProgress, error) {
 	var out []QuestProgress
 	for _, c := range cadences {
-		rows, err := ensureQuests(ctx, q, user, c, p.EndedAt)
+		rows, err := ensureQuests(ctx, q, user, c, p.EndedAt, extra)
 		if err != nil {
 			return nil, err
 		}
@@ -261,6 +266,7 @@ func (s *Service) Claim(ctx context.Context, user, id uuid.UUID) (Claimed, error
 // Reroll swaps an open quest for another of its period, once a day for
 // free (progression-formulas §8).
 func (s *Service) Reroll(ctx context.Context, user, id uuid.UUID, locale string) (Quests, error) {
+	free := s.freeRerolls(ctx, user)
 	err := postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error {
 		q := sqlc.New(tx)
 		if err := q.LockUser(ctx, user.String()); err != nil {
@@ -282,7 +288,7 @@ func (s *Service) Reroll(ctx context.Context, user, id uuid.UUID, locale string)
 			return err
 		}
 		// Extra rerolls come from rewarded ads (D-103).
-		if int(used.Count) > freeRerolls+int(used.Bonus) {
+		if int(used.Count) > free+int(used.Bonus) {
 			return apierror.New(apierror.QuestRerollLimit)
 		}
 		rows, err := q.PeriodAssignments(ctx, sqlc.PeriodAssignmentsParams{UserID: user, Cadence: a.Cadence, PeriodStart: a.PeriodStart})

@@ -55,7 +55,7 @@ func (s *Service) OnDailyRunCompleted(ctx context.Context, e events.Envelope) er
 			return err
 		}
 		for _, c := range cadences {
-			rows, err := ensureQuests(ctx, q, p.UserID, c, p.CompletedAt)
+			rows, err := ensureQuests(ctx, q, p.UserID, c, p.CompletedAt, s.extraQuests(ctx, p.UserID))
 			if err != nil {
 				return err
 			}

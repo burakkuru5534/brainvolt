@@ -5,6 +5,7 @@ import 'package:brainvolt/app/config.dart';
 import 'package:brainvolt/app/providers.dart';
 import 'package:brainvolt/core/ads/ad_gateway.dart';
 import 'package:brainvolt/core/network/token_source.dart';
+import 'package:brainvolt/core/purchases/purchase_gateway.dart';
 import 'package:brainvolt/core/realtime/realtime_client.dart';
 import 'package:brainvolt/core/realtime/realtime_providers.dart';
 import 'package:brainvolt/core/share/share_service.dart';
@@ -38,6 +39,8 @@ import 'package:brainvolt/features/progress/data/progress_providers.dart';
 import 'package:brainvolt/features/progress/domain/progress_repository.dart';
 import 'package:brainvolt/features/social/data/social_providers.dart';
 import 'package:brainvolt/features/social/domain/social_repository.dart';
+import 'package:brainvolt/features/store/domain/store_repository.dart';
+import 'package:brainvolt/features/store/presentation/plus_screen.dart';
 import 'package:brainvolt/features/team/data/team_providers.dart';
 import 'package:brainvolt/features/team/domain/team_repository.dart';
 import 'package:brainvolt/features/tournament/data/tournament_providers.dart';
@@ -1058,6 +1061,9 @@ class FakeAdGateway implements AdGateway {
 class FakeAdsRepository implements AdsRepository {
   AdsConfig configValue = const AdsConfig();
   final calls = <String>[];
+
+  /// Plus: rewards come back granted (D-104).
+  var grantOnReserve = false;
   var _n = 0;
 
   @override
@@ -1070,7 +1076,7 @@ class FakeAdsRepository implements AdsRepository {
     return AdReward(
       id: 'ad-$_n',
       placement: placement,
-      status: 'pending',
+      status: grantOnReserve ? 'granted' : 'pending',
       xp: placement == AdPlacement.bonusXp ? 35 : 0,
       streakDays: placement == AdPlacement.streakRepair ? 4 : 0,
     );
@@ -1084,6 +1090,46 @@ class FakeAdsRepository implements AdsRepository {
   Future<AdReward> devGrant(String id) async {
     calls.add('grant:$id');
     return AdReward(id: id, placement: '', status: 'granted');
+  }
+}
+
+/// BrainVolt Plus (D-104): a store whose purchases always go through.
+class FakeStoreRepository implements StoreRepository {
+  Entitlements value = const Entitlements();
+
+  @override
+  Future<Entitlements> entitlements() async => value;
+}
+
+class FakePurchaseGateway implements PurchaseGateway {
+  FakePurchaseGateway(this.store);
+
+  final FakeStoreRepository store;
+  @override
+  bool available = true;
+  BuyResult result = BuyResult.purchased;
+  final bought = <String>[];
+  var restored = 0;
+
+  @override
+  Future<List<PlusOption>> plusOptions(String userId) async => const [
+    PlusOption(id: 'monthly', priceString: '₺49,99', trialDays: 7),
+    PlusOption(id: 'annual', priceString: '₺399,99'),
+  ];
+
+  @override
+  Future<BuyResult> buy(String userId, PlusOption option) async {
+    bought.add(option.id);
+    if (result == BuyResult.purchased) {
+      store.value = Entitlements(plus: true, plusUntil: DateTime(2030, 1, 15));
+    }
+    return result;
+  }
+
+  @override
+  Future<bool> restore(String userId) async {
+    restored++;
+    return store.value.plus;
   }
 }
 
@@ -1136,6 +1182,8 @@ class TestApp {
     final chat = FakeChatRepository();
     final tournaments = FakeTournamentRepository();
     final ads = FakeAdsRepository();
+    final store = FakeStoreRepository();
+    final purchases = FakePurchaseGateway(store);
     final adGateway = FakeAdGateway();
     final sockets = <FakeSocket>[];
     final container = ProviderContainer(
@@ -1167,6 +1215,9 @@ class TestApp {
         chatRepositoryProvider.overrideWithValue(chat),
         tournamentRepositoryProvider.overrideWithValue(tournaments),
         adsRepositoryProvider.overrideWithValue(ads),
+        storeRepositoryProvider.overrideWithValue(store),
+        purchaseGatewayProvider.overrideWithValue(purchases),
+        plusPollEveryProvider.overrideWithValue(Duration.zero),
         adGatewayProvider.overrideWithValue(adGateway),
         rewardedAdRunnerProvider.overrideWith(
           (ref) => RewardedAdRunner(ref, pollEvery: Duration.zero),
@@ -1209,11 +1260,15 @@ class TestApp {
         tournaments,
       )
       ..ads = ads
-      ..adGateway = adGateway;
+      ..adGateway = adGateway
+      ..store = store
+      ..purchases = purchases;
   }
 
   late final FakeAdsRepository ads;
   late final FakeAdGateway adGateway;
+  late final FakeStoreRepository store;
+  late final FakePurchaseGateway purchases;
 
   final ProviderContainer container;
   final SharedPreferences prefs;

@@ -2,7 +2,9 @@
 # after the image was pushed:
 #   1. Secret Manager: brainvolt-postgres-url, taken from the database URL the
 #      running service already has (no password is typed or printed)
-#   2. read access for the service account
+#   2. read access for the service account; the RevenueCat webhook secret
+#      (brainvolt-revenuecat-webhook, created once with a random value that
+#      is printed for RevenueCat's dashboard; D-104)
 #   3. deploy deploy/cloudrun/api.service.yaml (min 0, max 1, embedded worker)
 #   4. public access, health checks, leftover worker service
 #
@@ -79,6 +81,29 @@ if (-not $sa) {
 Write-Host "service account: $sa"
 gcloud secrets add-iam-policy-binding $Secret --member="serviceAccount:$sa" --role="roles/secretmanager.secretAccessor" | Out-Null
 Check "secret IAM"
+
+Step "RevenueCat webhook secret (D-104)"
+$rcSecret = "brainvolt-revenuecat-webhook"
+$rcFound = gcloud secrets list --filter="name ~ /$rcSecret$" --format="value(name)"
+Check "list secrets"
+if (-not $rcFound) {
+    $bytes = New-Object byte[] 32
+    [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+    $value = -join ($bytes | ForEach-Object { $_.ToString("x2") })
+    $tmp = New-TemporaryFile
+    try {
+        [System.IO.File]::WriteAllText($tmp, $value)
+        gcloud secrets create $rcSecret --replication-policy=automatic --data-file="$tmp" | Out-Null; Check "rc secret create"
+    } finally {
+        Remove-Item $tmp -ErrorAction SilentlyContinue
+    }
+    Write-Host "created $rcSecret. Put this value into RevenueCat -> Integrations -> Webhooks -> Authorization header:" -ForegroundColor Yellow
+    Write-Host "  $value" -ForegroundColor Yellow
+} else {
+    Write-Host "$rcSecret exists; show it with: gcloud secrets versions access latest --secret=$rcSecret"
+}
+gcloud secrets add-iam-policy-binding $rcSecret --member="serviceAccount:$sa" --role="roles/secretmanager.secretAccessor" | Out-Null
+Check "rc secret IAM"
 
 Step "Deploy brainvolt-api (min 0, max 1, concurrency $Concurrency, embedded worker)"
 $yaml = Get-Content -Raw (Join-Path $root "deploy\cloudrun\api.service.yaml")

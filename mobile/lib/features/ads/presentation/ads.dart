@@ -75,6 +75,12 @@ class RewardedAdRunner {
       _ => '',
     };
     final reward = await repo.reserve(placement, ref: ref);
+    if (reward.granted) {
+      // Plus earns the reward without the ad (D-104).
+      await Future<void>.delayed(pollEvery);
+      this.ref.invalidate(adsConfigProvider);
+      return (AdOutcome.granted, reward);
+    }
     final shown = await this.ref
         .read(adGatewayProvider)
         .showRewarded(userId: user, customData: reward.id);

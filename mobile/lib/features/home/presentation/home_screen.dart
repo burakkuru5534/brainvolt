@@ -24,6 +24,7 @@ import '../../match/presentation/topic_picker.dart';
 import '../../notifications/presentation/inbox_screen.dart';
 import '../../profile/domain/avatars.dart';
 import '../../progress/presentation/progress_widgets.dart';
+import '../../store/presentation/plus_screen.dart';
 import 'main_nav.dart';
 
 /// The caller's live match, if any (back from a crash or another screen).
@@ -374,6 +375,8 @@ class _PlayerCard extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+                const SizedBox(height: 6),
+                const PlusBadge(),
                 if (name != null) ...[
                   const SizedBox(height: 10),
                   const LevelSummary(),

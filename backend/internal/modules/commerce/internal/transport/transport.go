@@ -3,7 +3,9 @@
 package transport
 
 import (
+	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"slices"
 
@@ -21,11 +23,13 @@ type Transport struct {
 	ident *identity.Module
 	// devGrant enables POST /v1/ads/rewards/{id}/dev-grant (never in prod).
 	devGrant bool
+	// webhookSecret is RevenueCat's Authorization header value (D-104).
+	webhookSecret string
 }
 
 // New returns the transport.
-func New(svc *service.Service, ident *identity.Module, devGrant bool) *Transport {
-	return &Transport{svc: svc, ident: ident, devGrant: devGrant}
+func New(svc *service.Service, ident *identity.Module, devGrant bool, webhookSecret string) *Transport {
+	return &Transport{svc: svc, ident: ident, devGrant: devGrant, webhookSecret: webhookSecret}
 }
 
 // RewardRequest is the body of POST /v1/ads/rewards.
@@ -57,6 +61,14 @@ func (t *Transport) Register(s *httpserver.Server) {
 	s.Handle("GET /v1/ads/admob/ssv", t.ssv, doc(httpserver.Doc{
 		Auth: "public", Summary: "AdMob server-side verification callback (signed by AdMob; grants the reward named by custom_data)",
 		Errors: []apierror.Code{apierror.Forbidden},
+	}))
+	s.Handle("GET /v1/me/entitlements", a(t.entitlements), doc(httpserver.Doc{
+		Auth: "any", Summary: "The caller's active entitlements: plus (BrainVolt Plus, D-104) and its end",
+		Response: service.Entitlements{},
+	}))
+	s.Handle("POST /v1/store/revenuecat/webhook", t.revenueCat, doc(httpserver.Doc{
+		Auth: "public", Summary: "RevenueCat webhook (Authorization = the configured secret): subscription events → the plus entitlement, idempotent by event id",
+		Errors: []apierror.Code{apierror.Unauthenticated, apierror.Unavailable},
 	}))
 	if t.devGrant {
 		s.Handle("POST /v1/ads/rewards/{id}/dev-grant", a(t.devGrantReward), doc(httpserver.Doc{
@@ -135,6 +147,36 @@ func (t *Transport) devGrantReward(w http.ResponseWriter, r *http.Request) error
 		return err
 	}
 	return httpserver.WriteJSON(w, http.StatusOK, out)
+}
+
+func (t *Transport) entitlements(w http.ResponseWriter, r *http.Request) error {
+	out, err := t.svc.MyEntitlements(r.Context(), principal(r).UserID)
+	if err != nil {
+		return err
+	}
+	return httpserver.WriteJSON(w, http.StatusOK, out)
+}
+
+func (t *Transport) revenueCat(w http.ResponseWriter, r *http.Request) error {
+	switch err := service.CheckWebhookAuth(t.webhookSecret, r.Header.Get("Authorization")); {
+	case errors.Is(err, service.ErrWebhookOff):
+		return apierror.New(apierror.Unavailable)
+	case err != nil:
+		return apierror.New(apierror.Unauthenticated)
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		return apierror.New(apierror.MalformedRequest)
+	}
+	if err := t.svc.HandleRevenueCat(r.Context(), body); err != nil {
+		var syn *json.SyntaxError
+		if errors.As(err, &syn) {
+			return apierror.New(apierror.MalformedRequest)
+		}
+		return err
+	}
+	w.WriteHeader(http.StatusOK)
+	return nil
 }
 
 func (t *Transport) ssv(w http.ResponseWriter, r *http.Request) error {

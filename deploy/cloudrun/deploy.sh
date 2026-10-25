@@ -28,6 +28,12 @@ sed -e "s|\${REGION}|${REGION}|g" \
     -e "s|\${POSTGRES_URL_SECRET}|${POSTGRES_URL_SECRET}|g" \
     "$dir/api.service.yaml" > "$rendered"
 
+# RevenueCat webhook secret (D-104): must exist; finish-deploy.ps1 creates it.
+if ! gcloud secrets describe brainvolt-revenuecat-webhook --project "$PROJECT_ID" >/dev/null 2>&1; then
+    echo "missing secret brainvolt-revenuecat-webhook (see README, RevenueCat webhook)" >&2
+    exit 1
+fi
+
 gcloud run services replace "$rendered" --project "$PROJECT_ID" --region "$REGION"
 
 echo

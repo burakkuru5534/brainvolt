@@ -3117,5 +3117,138 @@
   "error_VERSION_CONFLICT": "Bu kayıt başka biri tarafından değiştirildi. Yenileyip tekrar dene.",
   "@error_VERSION_CONFLICT": {
     "description": "Server error code VERSION_CONFLICT (docs/api/errors.md)."
+  },
+  "plusTitle": "BrainVolt Plus",
+  "@plusTitle": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusTagline": "Reklamsız oyna, her gün daha fazla ödül kazan.",
+  "@plusTagline": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusPerkNoAds": "Reklamsız oyun: ara reklam yok",
+  "@plusPerkNoAds": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusPerkRewards": "Ödüllü reklam ödülleri reklam izlemeden",
+  "@plusPerkRewards": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusPerkQuests": "Her gün +1 görev ve +1 ücretsiz değiştirme",
+  "@plusPerkQuests": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusPerkBadge": "Ana sayfada Plus rozeti",
+  "@plusPerkBadge": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusMonthly": "Aylık",
+  "@plusMonthly": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusAnnual": "Yıllık",
+  "@plusAnnual": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusPerMonth": "{price}/ay",
+  "@plusPerMonth": {
+    "description": "BrainVolt Plus (D-104).",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "plusPerYear": "{price}/yıl",
+  "@plusPerYear": {
+    "description": "BrainVolt Plus (D-104).",
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "plusTrial": "{days} gün ücretsiz dene",
+  "@plusTrial": {
+    "description": "BrainVolt Plus (D-104).",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "plusStartTrial": "{days} gün ücretsiz başla",
+  "@plusStartTrial": {
+    "description": "BrainVolt Plus (D-104).",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "plusBuy": "Plus'a geç",
+  "@plusBuy": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusRestore": "Satın alımları geri yükle",
+  "@plusRestore": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusLegal": "Abonelik iptal edilmedikçe her dönemin sonunda Google Play üzerinden otomatik yenilenir. İstediğin zaman Google Play'den iptal edebilirsin.",
+  "@plusLegal": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusActive": "Plus aktif.",
+  "@plusActive": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusActiveUntil": "Plus aktif. Yenileme tarihi: {date}",
+  "@plusActiveUntil": {
+    "description": "BrainVolt Plus (D-104).",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "plusManage": "Aboneliği yönet",
+  "@plusManage": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusLinkFirst": "Satın almak için önce hesabını Google, Apple ya da e-postaya bağla; böylece aboneliğin kaybolmaz.",
+  "@plusLinkFirst": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusUnavailable": "Satın alma bu cihazda henüz kullanılamıyor.",
+  "@plusUnavailable": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusNoPlans": "Planlar şu an yüklenemedi. Biraz sonra tekrar dene.",
+  "@plusNoPlans": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusWelcome": "Plus'a hoş geldin!",
+  "@plusWelcome": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusActivating": "Satın alma tamam; Plus birkaç saniye içinde açılacak.",
+  "@plusActivating": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusPending": "Ödemen onay bekliyor; onaylanınca Plus açılacak.",
+  "@plusPending": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusFailed": "Satın alma tamamlanamadı. Tekrar dene.",
+  "@plusFailed": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusNothingToRestore": "Geri yüklenecek bir abonelik bulunamadı.",
+  "@plusNothingToRestore": {
+    "description": "BrainVolt Plus (D-104)."
+  },
+  "plusCta": "Plus'a geç",
+  "@plusCta": {
+    "description": "BrainVolt Plus (D-104)."
   }
 }

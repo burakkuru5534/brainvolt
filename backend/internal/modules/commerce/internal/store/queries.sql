@@ -31,3 +31,36 @@ SELECT * FROM commerce.ad_rewards WHERE id = @id FOR UPDATE;
 -- name: GrantAdReward :exec
 UPDATE commerce.ad_rewards SET status = 'granted', transaction_id = @transaction_id, granted_at = @now
 WHERE id = @id;
+
+-- ---------- Store events and entitlements (D-104) ----------
+
+-- name: InsertStoreEvent :execrows
+INSERT INTO commerce.store_events (id, store, event_id, kind, user_id, payload, received_at)
+VALUES (@id, @store, @event_id, @kind, @user_id, @payload, @now)
+ON CONFLICT (store, event_id) DO NOTHING;
+
+-- name: MarkStoreEventProcessed :exec
+UPDATE commerce.store_events SET processed_at = @now WHERE store = @store AND event_id = @event_id;
+
+-- name: ExtendEntitlement :exec
+-- Grants or extends an entitlement; a late, older event never shortens it.
+INSERT INTO commerce.entitlements (user_id, code, source_kind, source_id, starts_at, ends_at)
+VALUES (@user_id, @code, @source_kind, @source_id, @starts_at, @ends_at)
+ON CONFLICT (user_id, code, source_kind, source_id) DO UPDATE
+SET ends_at = CASE WHEN commerce.entitlements.ends_at IS NULL OR EXCLUDED.ends_at IS NULL THEN NULL
+                   ELSE greatest(commerce.entitlements.ends_at, EXCLUDED.ends_at) END;
+
+-- name: EndEntitlement :exec
+-- Ends an entitlement at ends_at (expiry, refund, transfer away).
+UPDATE commerce.entitlements SET ends_at = @ends_at
+WHERE user_id = @user_id AND code = @code AND source_kind = @source_kind AND source_id = @source_id
+  AND (ends_at IS NULL OR ends_at > @ends_at);
+
+-- name: SubscriptionEntitlements :many
+SELECT * FROM commerce.entitlements WHERE user_id = @user_id AND source_kind = 'subscription';
+
+-- name: ActiveEntitlements :many
+SELECT code, coalesce(max(ends_at), '9999-12-31T00:00:00Z'::timestamptz)::timestamptz AS ends_at, bool_or(ends_at IS NULL) AS forever
+FROM commerce.entitlements
+WHERE user_id = @user_id AND starts_at <= @now AND (ends_at IS NULL OR ends_at > @now)
+GROUP BY code ORDER BY code;

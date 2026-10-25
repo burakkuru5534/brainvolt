@@ -14,9 +14,11 @@ import 'app/config.dart';
 import 'app/providers.dart';
 import 'core/ads/ad_gateway.dart';
 import 'core/network/api_client.dart';
+import 'core/purchases/purchase_gateway.dart';
 import 'core/push/push_service.dart';
 import 'features/ads/presentation/ads.dart';
 import 'features/auth/data/auth_providers.dart';
+import 'features/store/presentation/plus_screen.dart';
 import 'firebase_options.dart';
 
 /// Entry point: build the injected values, then start the widget tree.
@@ -68,6 +70,10 @@ Future<void> main() async {
         ),
         pushServiceProvider.overrideWithValue(pushService),
         adGatewayProvider.overrideWithValue(ads),
+        // BrainVolt Plus (D-104): RevenueCat's public Android SDK key.
+        purchaseGatewayProvider.overrideWithValue(
+          RevenueCatGateway(androidApiKey: 'goog_liACWsaAFzDWajaNhBiaLhKjkrX'),
+        ),
         tokenSourceProvider.overrideWith(
           (ref) => AuthTokenSource(ref.watch(authRepositoryProvider)),
         ),

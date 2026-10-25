@@ -57,6 +57,9 @@ type Deps struct {
 	Logger *slog.Logger
 	// DevGrant enables granting rewards without AdMob (development only).
 	DevGrant bool
+	// RevenueCatSecret is the webhook's Authorization value (D-104); empty
+	// turns the webhook off.
+	RevenueCatSecret string
 }
 
 // Module is the commerce module.
@@ -64,6 +67,7 @@ type Module struct {
 	svc      *service.Service
 	ident    *identity.Module
 	devGrant bool
+	rcSecret string
 }
 
 type users struct{ *identity.Module }
@@ -83,6 +87,7 @@ func New(d Deps) *Module {
 		svc:      service.New(service.Deps{DB: d.DB, Users: users{d.Identity}, Events: d.Events, Keys: keys, Clock: d.Clock, Logger: d.Logger}),
 		ident:    d.Identity,
 		devGrant: d.DevGrant,
+		rcSecret: d.RevenueCatSecret,
 	}
 }
 
@@ -91,7 +96,24 @@ func (m *Module) SetRewards(r RewardChecker) { m.svc.SetRewards(r) }
 
 // Register adds commerce's routes.
 func (m *Module) Register(s *httpserver.Server) {
-	transport.New(m.svc, m.ident, m.devGrant).Register(s)
+	transport.New(m.svc, m.ident, m.devGrant, m.rcSecret).Register(s)
+}
+
+// EntitlementPlus is BrainVolt Plus (D-104).
+const EntitlementPlus = service.EntitlementPlus
+
+// EntitlementReader answers HasEntitlement without the rest of the module
+// (the worker's progression, which has no identity module).
+type EntitlementReader struct{ svc *service.Service }
+
+// NewEntitlementReader returns a reader over db.
+func NewEntitlementReader(db *pgxpool.Pool, c clock.Clock) EntitlementReader {
+	return EntitlementReader{svc: service.New(service.Deps{DB: db, Clock: c})}
+}
+
+// HasEntitlement reports whether user holds one of codes now.
+func (r EntitlementReader) HasEntitlement(ctx context.Context, user uuid.UUID, codes ...string) (bool, error) {
+	return r.svc.HasEntitlement(ctx, user, codes...)
 }
 
 // HasEntitlement reports whether user holds one of codes now ('plus',

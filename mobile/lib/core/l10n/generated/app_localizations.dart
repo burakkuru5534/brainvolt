@@ -4165,6 +4165,168 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu kayıt başka biri tarafından değiştirildi. Yenileyip tekrar dene.'**
   String get error_VERSION_CONFLICT;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'BrainVolt Plus'**
+  String get plusTitle;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Reklamsız oyna, her gün daha fazla ödül kazan.'**
+  String get plusTagline;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Reklamsız oyun: ara reklam yok'**
+  String get plusPerkNoAds;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Ödüllü reklam ödülleri reklam izlemeden'**
+  String get plusPerkRewards;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Her gün +1 görev ve +1 ücretsiz değiştirme'**
+  String get plusPerkQuests;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Ana sayfada Plus rozeti'**
+  String get plusPerkBadge;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Aylık'**
+  String get plusMonthly;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Yıllık'**
+  String get plusAnnual;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'{price}/ay'**
+  String plusPerMonth(String price);
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'{price}/yıl'**
+  String plusPerYear(String price);
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'{days} gün ücretsiz dene'**
+  String plusTrial(int days);
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'{days} gün ücretsiz başla'**
+  String plusStartTrial(int days);
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Plus\'a geç'**
+  String get plusBuy;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Satın alımları geri yükle'**
+  String get plusRestore;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Abonelik iptal edilmedikçe her dönemin sonunda Google Play üzerinden otomatik yenilenir. İstediğin zaman Google Play\'den iptal edebilirsin.'**
+  String get plusLegal;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Plus aktif.'**
+  String get plusActive;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Plus aktif. Yenileme tarihi: {date}'**
+  String plusActiveUntil(String date);
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Aboneliği yönet'**
+  String get plusManage;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Satın almak için önce hesabını Google, Apple ya da e-postaya bağla; böylece aboneliğin kaybolmaz.'**
+  String get plusLinkFirst;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Satın alma bu cihazda henüz kullanılamıyor.'**
+  String get plusUnavailable;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Planlar şu an yüklenemedi. Biraz sonra tekrar dene.'**
+  String get plusNoPlans;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Plus\'a hoş geldin!'**
+  String get plusWelcome;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Satın alma tamam; Plus birkaç saniye içinde açılacak.'**
+  String get plusActivating;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Ödemen onay bekliyor; onaylanınca Plus açılacak.'**
+  String get plusPending;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Satın alma tamamlanamadı. Tekrar dene.'**
+  String get plusFailed;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Geri yüklenecek bir abonelik bulunamadı.'**
+  String get plusNothingToRestore;
+
+  /// BrainVolt Plus (D-104).
+  ///
+  /// In tr, this message translates to:
+  /// **'Plus\'a geç'**
+  String get plusCta;
 }
 
 class _AppLocalizationsDelegate

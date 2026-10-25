@@ -74,7 +74,7 @@ func (s *Service) adOffer(ctx context.Context, q *sqlc.Queries, user uuid.UUID, 
 		if err != nil {
 			return AdOffer{}, err
 		}
-		if int(st.Used) < freeRerolls+int(st.Bonus) {
+		if int(st.Used) < s.freeRerolls(ctx, user)+int(st.Bonus) {
 			return AdOffer{}, unavailable(placement, "free_reroll_left")
 		}
 		open := false

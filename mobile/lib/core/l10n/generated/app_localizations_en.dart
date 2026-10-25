@@ -2293,4 +2293,99 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get error_VERSION_CONFLICT =>
       'Someone else changed this. Refresh and try again.';
+
+  @override
+  String get plusTitle => 'BrainVolt Plus';
+
+  @override
+  String get plusTagline => 'Play without ads and earn more rewards every day.';
+
+  @override
+  String get plusPerkNoAds => 'No ads: no interstitials';
+
+  @override
+  String get plusPerkRewards => 'Rewarded-ad rewards without watching ads';
+
+  @override
+  String get plusPerkQuests => '+1 quest and +1 free swap every day';
+
+  @override
+  String get plusPerkBadge => 'Plus badge on your home screen';
+
+  @override
+  String get plusMonthly => 'Monthly';
+
+  @override
+  String get plusAnnual => 'Yearly';
+
+  @override
+  String plusPerMonth(String price) {
+    return '$price/month';
+  }
+
+  @override
+  String plusPerYear(String price) {
+    return '$price/year';
+  }
+
+  @override
+  String plusTrial(int days) {
+    return 'Try free for $days days';
+  }
+
+  @override
+  String plusStartTrial(int days) {
+    return 'Start $days-day free trial';
+  }
+
+  @override
+  String get plusBuy => 'Get Plus';
+
+  @override
+  String get plusRestore => 'Restore purchases';
+
+  @override
+  String get plusLegal =>
+      'The subscription renews automatically through Google Play at the end of each period unless cancelled. Cancel any time in Google Play.';
+
+  @override
+  String get plusActive => 'Plus is active.';
+
+  @override
+  String plusActiveUntil(String date) {
+    return 'Plus is active. Renews on $date';
+  }
+
+  @override
+  String get plusManage => 'Manage subscription';
+
+  @override
+  String get plusLinkFirst =>
+      'Link your account to Google, Apple or email first so your subscription is never lost.';
+
+  @override
+  String get plusUnavailable =>
+      'Purchases are not available on this device yet.';
+
+  @override
+  String get plusNoPlans => 'Plans couldn\'t be loaded. Try again in a bit.';
+
+  @override
+  String get plusWelcome => 'Welcome to Plus!';
+
+  @override
+  String get plusActivating => 'Purchase done; Plus turns on in a few seconds.';
+
+  @override
+  String get plusPending =>
+      'Your payment is pending; Plus turns on once it is approved.';
+
+  @override
+  String get plusFailed => 'The purchase couldn\'t be completed. Try again.';
+
+  @override
+  String get plusNothingToRestore => 'No subscription found to restore.';
+
+  @override
+  String get plusCta => 'Get Plus';
 }
