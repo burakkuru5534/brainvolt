@@ -81,8 +81,13 @@ type Deps struct {
 	Teams  Teams
 	Pusher Pusher
 	Events *events.Bus
-	Clock  clock.Clock
-	Logger *slog.Logger
+	// Friends, Wallet and Plus serve friend tournaments (D-109); nil in
+	// the worker except Wallet (refunds of cancelled ones).
+	Friends Friends
+	Wallet  Wallet
+	Plus    PlusChecker
+	Clock   clock.Clock
+	Logger  *slog.Logger
 }
 
 // Service implements tournament.
@@ -167,6 +172,10 @@ type Tournament struct {
 	Rewards              TournamentRewards `json:"rewards"`
 	FinishedAt           *time.Time        `json:"finished_at,omitempty"`
 	MyEntry              *TournamentEntry  `json:"my_entry,omitempty"`
+	// Kind is official or friends (D-109); IsOwner for the friend
+	// tournament's owner.
+	Kind    string `json:"kind"`
+	IsOwner bool   `json:"is_owner,omitempty"`
 }
 
 // TournamentEntry is a registered user, couple or team.
@@ -287,6 +296,7 @@ func (s *Service) Create(ctx context.Context, admin uuid.UUID, in TournamentInpu
 			ID: id, Status: status, EntityKind: in.EntityKind, MatchConfig: cfg, MinEntrants: int32(in.MinEntrants), //nolint:gosec // range checked
 			MaxEntrants: int32(in.MaxEntrants), RegistrationOpensAt: in.RegistrationOpensAt, RegistrationClosesAt: in.RegistrationClosesAt, //nolint:gosec // range checked
 			StartsAt: in.StartsAt, RoundReadyWindowS: int32(in.RoundReadyWindowS), Rewards: rewards, CreatedBy: admin, Now: s.d.Clock.Now(), //nolint:gosec // range checked
+			Kind: KindOfficial,
 		}); err != nil {
 			return err
 		}
@@ -390,7 +400,7 @@ func toTournament(t *sqlc.TournamentTournament, entrants int, text TournamentTex
 		ID: t.ID, Name: text.Name, Description: text.Description, Status: t.Status, BracketType: t.BracketType, EntityKind: t.EntityKind,
 		MinEntrants: int(t.MinEntrants), MaxEntrants: int(t.MaxEntrants), Entrants: entrants, RegistrationOpensAt: t.RegistrationOpensAt,
 		RegistrationClosesAt: t.RegistrationClosesAt, CheckInOpensAt: t.StartsAt.Add(-CheckInOpens), StartsAt: t.StartsAt,
-		RoundReadyWindowS: int(t.RoundReadyWindowS), FinishedAt: t.FinishedAt,
+		RoundReadyWindowS: int(t.RoundReadyWindowS), FinishedAt: t.FinishedAt, Kind: t.Kind,
 	}
 	if err := json.Unmarshal(t.MatchConfig, &out.MatchConfig); err != nil {
 		return out, err
@@ -407,7 +417,11 @@ func toTournament(t *sqlc.TournamentTournament, entrants int, text TournamentTex
 // List returns tournaments, newest start first; drafts only for staff.
 func (s *Service) List(ctx context.Context, user uuid.UUID, status *string, locale string, staff bool) ([]Tournament, error) {
 	q := sqlc.New(s.d.DB)
-	rows, err := q.ListTournaments(ctx, sqlc.ListTournamentsParams{Status: status, WithDrafts: staff})
+	owners, err := s.owners(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := q.ListTournaments(ctx, sqlc.ListTournamentsParams{Status: status, WithDrafts: staff, Owners: owners})
 	if err != nil {
 		return nil, err
 	}
@@ -430,11 +444,12 @@ func (s *Service) List(ctx context.Context, user uuid.UUID, status *string, loca
 		t, err := toTournament(&sqlc.TournamentTournament{
 			ID: r.ID, Status: r.Status, BracketType: r.BracketType, EntityKind: r.EntityKind, MatchConfig: r.MatchConfig, MinEntrants: r.MinEntrants,
 			MaxEntrants: r.MaxEntrants, RegistrationOpensAt: r.RegistrationOpensAt, RegistrationClosesAt: r.RegistrationClosesAt, StartsAt: r.StartsAt,
-			RoundReadyWindowS: r.RoundReadyWindowS, Rewards: r.Rewards, FinishedAt: r.FinishedAt,
+			RoundReadyWindowS: r.RoundReadyWindowS, Rewards: r.Rewards, FinishedAt: r.FinishedAt, Kind: r.Kind,
 		}, int(r.Entrants), text)
 		if err != nil {
 			return nil, err
 		}
+		t.IsOwner = r.Kind == KindFriends && r.CreatedBy == user
 		for j := range mine {
 			if mine[j].TournamentID == r.ID {
 				e := toEntry(&mine[j])
@@ -476,6 +491,14 @@ func (s *Service) Get(ctx context.Context, user, id uuid.UUID, locale string, st
 	if err != nil {
 		return TournamentDetail{}, err
 	}
+	if t.Kind == KindFriends && !staff {
+		if ok, err := s.canSee(ctx, user, t.CreatedBy); err != nil || !ok {
+			if err == nil {
+				err = notFound()
+			}
+			return TournamentDetail{}, err
+		}
+	}
 	trs, err := q.Translations(ctx, []uuid.UUID{id})
 	if err != nil {
 		return TournamentDetail{}, err
@@ -499,6 +522,7 @@ func (s *Service) Get(ctx context.Context, user, id uuid.UUID, locale string, st
 	if err != nil {
 		return TournamentDetail{}, err
 	}
+	tour.IsOwner = t.Kind == KindFriends && t.CreatedBy == user
 	d := TournamentDetail{Tournament: tour, Entries: entries, Bracket: []TournamentBracketSlot{}}
 	for i := range entries {
 		if entries[i].Status != "withdrawn" && entries[i].Status != "disqualified" && slices.Contains(entries[i].Lineup, user) {

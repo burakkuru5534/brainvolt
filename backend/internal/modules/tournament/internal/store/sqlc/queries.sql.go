@@ -265,8 +265,24 @@ func (q *Queries) FinishSlot(ctx context.Context, arg FinishSlotParams) error {
 	return err
 }
 
+const friendTrophies = `-- name: FriendTrophies :one
+
+SELECT count(*)::int FROM tournament.entries e
+JOIN tournament.tournaments t ON t.id = e.tournament_id
+WHERE t.kind = 'friends' AND t.status = 'finished' AND e.final_place = 1 AND $1::uuid = ANY(e.lineup)
+`
+
+// ---------- Friend tournaments (D-109) ----------
+// Friend tournaments a user won.
+func (q *Queries) FriendTrophies(ctx context.Context, userID uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, friendTrophies, userID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const getTournament = `-- name: GetTournament :one
-SELECT id, status, bracket_type, entity_kind, match_config, is_rated, min_entrants, max_entrants, entry_requirements, registration_opens_at, registration_closes_at, starts_at, round_ready_window_s, rewards, created_by, created_at, finished_at FROM tournament.tournaments WHERE id = $1
+SELECT id, status, bracket_type, entity_kind, match_config, is_rated, min_entrants, max_entrants, entry_requirements, registration_opens_at, registration_closes_at, starts_at, round_ready_window_s, rewards, created_by, created_at, finished_at, kind, fee FROM tournament.tournaments WHERE id = $1
 `
 
 func (q *Queries) GetTournament(ctx context.Context, id uuid.UUID) (TournamentTournament, error) {
@@ -290,6 +306,8 @@ func (q *Queries) GetTournament(ctx context.Context, id uuid.UUID) (TournamentTo
 		&i.CreatedBy,
 		&i.CreatedAt,
 		&i.FinishedAt,
+		&i.Kind,
+		&i.Fee,
 	)
 	return i, err
 }
@@ -347,9 +365,9 @@ func (q *Queries) InsertSlot(ctx context.Context, arg InsertSlotParams) error {
 const insertTournament = `-- name: InsertTournament :exec
 
 INSERT INTO tournament.tournaments (id, status, bracket_type, entity_kind, match_config, min_entrants, max_entrants,
-  registration_opens_at, registration_closes_at, starts_at, round_ready_window_s, rewards, created_by, created_at)
+  registration_opens_at, registration_closes_at, starts_at, round_ready_window_s, rewards, created_by, created_at, kind, fee)
 VALUES ($1, $2, 'single_elimination', $3, $4, $5, $6,
-  $7, $8, $9, $10, $11, $12, $13)
+  $7, $8, $9, $10, $11, $12, $13, $14, $15)
 `
 
 type InsertTournamentParams struct {
@@ -366,6 +384,8 @@ type InsertTournamentParams struct {
 	Rewards              []byte
 	CreatedBy            uuid.UUID
 	Now                  time.Time
+	Kind                 string
+	Fee                  int32
 }
 
 // tournament schema queries (schema-platform §3, D-090). Only the tournament schema.
@@ -384,6 +404,8 @@ func (q *Queries) InsertTournament(ctx context.Context, arg InsertTournamentPara
 		arg.Rewards,
 		arg.CreatedBy,
 		arg.Now,
+		arg.Kind,
+		arg.Fee,
 	)
 	return err
 }
@@ -428,11 +450,13 @@ func (q *Queries) LineupTaken(ctx context.Context, arg LineupTakenParams) (bool,
 }
 
 const listTournaments = `-- name: ListTournaments :many
-SELECT t.id, t.status, t.bracket_type, t.entity_kind, t.match_config, t.is_rated, t.min_entrants, t.max_entrants, t.entry_requirements, t.registration_opens_at, t.registration_closes_at, t.starts_at, t.round_ready_window_s, t.rewards, t.created_by, t.created_at, t.finished_at, (SELECT count(*) FROM tournament.entries e
+SELECT t.id, t.status, t.bracket_type, t.entity_kind, t.match_config, t.is_rated, t.min_entrants, t.max_entrants, t.entry_requirements, t.registration_opens_at, t.registration_closes_at, t.starts_at, t.round_ready_window_s, t.rewards, t.created_by, t.created_at, t.finished_at, t.kind, t.fee, (SELECT count(*) FROM tournament.entries e
   WHERE e.tournament_id = t.id AND e.status NOT IN ('withdrawn','disqualified'))::int AS entrants
 FROM tournament.tournaments t
 WHERE ($1::text IS NULL OR t.status = $1::text)
   AND ($2::boolean OR t.status <> 'draft')
+  -- Friend tournaments only for the owner and the owner's friends (D-109).
+  AND (t.kind = 'official' OR t.created_by = ANY($3::uuid[]))
 ORDER BY t.starts_at DESC
 LIMIT 50
 `
@@ -440,6 +464,7 @@ LIMIT 50
 type ListTournamentsParams struct {
 	Status     *string
 	WithDrafts bool
+	Owners     []uuid.UUID
 }
 
 type ListTournamentsRow struct {
@@ -460,12 +485,14 @@ type ListTournamentsRow struct {
 	CreatedBy            uuid.UUID
 	CreatedAt            time.Time
 	FinishedAt           *time.Time
+	Kind                 string
+	Fee                  int32
 	Entrants             int32
 }
 
 // Newest start first; drafts only for staff.
 func (q *Queries) ListTournaments(ctx context.Context, arg ListTournamentsParams) ([]ListTournamentsRow, error) {
-	rows, err := q.db.Query(ctx, listTournaments, arg.Status, arg.WithDrafts)
+	rows, err := q.db.Query(ctx, listTournaments, arg.Status, arg.WithDrafts, arg.Owners)
 	if err != nil {
 		return nil, err
 	}
@@ -491,6 +518,8 @@ func (q *Queries) ListTournaments(ctx context.Context, arg ListTournamentsParams
 			&i.CreatedBy,
 			&i.CreatedAt,
 			&i.FinishedAt,
+			&i.Kind,
+			&i.Fee,
 			&i.Entrants,
 		); err != nil {
 			return nil, err
@@ -535,7 +564,7 @@ func (q *Queries) LockSlot(ctx context.Context, arg LockSlotParams) (TournamentB
 }
 
 const lockTournament = `-- name: LockTournament :one
-SELECT id, status, bracket_type, entity_kind, match_config, is_rated, min_entrants, max_entrants, entry_requirements, registration_opens_at, registration_closes_at, starts_at, round_ready_window_s, rewards, created_by, created_at, finished_at FROM tournament.tournaments WHERE id = $1 FOR UPDATE
+SELECT id, status, bracket_type, entity_kind, match_config, is_rated, min_entrants, max_entrants, entry_requirements, registration_opens_at, registration_closes_at, starts_at, round_ready_window_s, rewards, created_by, created_at, finished_at, kind, fee FROM tournament.tournaments WHERE id = $1 FOR UPDATE
 `
 
 func (q *Queries) LockTournament(ctx context.Context, id uuid.UUID) (TournamentTournament, error) {
@@ -559,8 +588,23 @@ func (q *Queries) LockTournament(ctx context.Context, id uuid.UUID) (TournamentT
 		&i.CreatedBy,
 		&i.CreatedAt,
 		&i.FinishedAt,
+		&i.Kind,
+		&i.Fee,
 	)
 	return i, err
+}
+
+const openFriendTournaments = `-- name: OpenFriendTournaments :one
+SELECT count(*)::int FROM tournament.tournaments
+WHERE kind = 'friends' AND created_by = $1 AND status IN ('registration','seeding','running')
+`
+
+// An owner's friend tournaments not yet finished (a limit on setting up).
+func (q *Queries) OpenFriendTournaments(ctx context.Context, userID uuid.UUID) (int32, error) {
+	row := q.db.QueryRow(ctx, openFriendTournaments, userID)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const openSlot = `-- name: OpenSlot :exec

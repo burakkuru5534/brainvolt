@@ -5035,6 +5035,144 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Gök Gürültüsü'**
   String get cosVictoryS1Thunder;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş turnuvası kur'**
+  String get friendTournamentCreate;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş turnuvası'**
+  String get friendTournamentTitle;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Turnuva adı'**
+  String get friendTournamentName;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç türü'**
+  String get friendTournamentType;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Kişi sayısı'**
+  String get friendTournamentSize;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Başlangıç'**
+  String get friendTournamentStart;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'30 dk sonra'**
+  String get friendStart30m;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'1 saat sonra'**
+  String get friendStart1h;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'3 saat sonra'**
+  String get friendStart3h;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Yarın 20:00'**
+  String get friendStartTomorrow;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Sadece arkadaşların görür ve katılır. XP, puan ya da Volt ödülü yok; kazanan profilinde kupa taşır.'**
+  String get friendTournamentRules;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Kurma ücreti: {fee} Volt'**
+  String friendTournamentFee(int fee);
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Plus ile ücretsiz kurarsın'**
+  String get friendTournamentFree;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Turnuvayı kur'**
+  String get friendTournamentSubmit;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş'**
+  String get friendTournamentBadge;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Turnuvayı iptal et'**
+  String get friendTournamentCancel;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Turnuva iptal edilsin mi?'**
+  String get friendTournamentCancelTitle;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıtlı oyuncular bilgilendirilir; ödediğin Volt iade edilir.'**
+  String get friendTournamentCancelBody;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Turnuva iptal edildi'**
+  String get friendTournamentCancelled;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Ödül yok · kazanana kupa 🏆'**
+  String get friendTournamentNoRewards;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} kupa'**
+  String playerTrophies(int count);
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş turnuvası'**
+  String get voltReasonFriendTournament;
+
+  /// Friend tournaments (D-109).
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş turnuvası iadesi'**
+  String get voltReasonFriendTournamentRefund;
 }
 
 class _AppLocalizationsDelegate

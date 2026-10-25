@@ -2,9 +2,9 @@
 
 -- name: InsertTournament :exec
 INSERT INTO tournament.tournaments (id, status, bracket_type, entity_kind, match_config, min_entrants, max_entrants,
-  registration_opens_at, registration_closes_at, starts_at, round_ready_window_s, rewards, created_by, created_at)
+  registration_opens_at, registration_closes_at, starts_at, round_ready_window_s, rewards, created_by, created_at, kind, fee)
 VALUES (@id, @status, 'single_elimination', @entity_kind, @match_config, @min_entrants, @max_entrants,
-  @registration_opens_at, @registration_closes_at, @starts_at, @round_ready_window_s, @rewards, @created_by, @now);
+  @registration_opens_at, @registration_closes_at, @starts_at, @round_ready_window_s, @rewards, @created_by, @now, @kind, @fee);
 
 -- name: InsertTranslation :exec
 INSERT INTO tournament.tournament_translations (tournament_id, locale, name, description)
@@ -26,6 +26,8 @@ SELECT t.*, (SELECT count(*) FROM tournament.entries e
 FROM tournament.tournaments t
 WHERE (sqlc.narg(status)::text IS NULL OR t.status = sqlc.narg(status)::text)
   AND (@with_drafts::boolean OR t.status <> 'draft')
+  -- Friend tournaments only for the owner and the owner's friends (D-109).
+  AND (t.kind = 'official' OR t.created_by = ANY(@owners::uuid[]))
 ORDER BY t.starts_at DESC
 LIMIT 50;
 
@@ -128,3 +130,16 @@ WHERE tournament_id = @tournament_id AND bracket_side = 'main' AND round_no = @r
 -- Ready windows that closed without a match.
 -- name: ExpiredSlots :many
 SELECT tournament_id, round_no, slot_no FROM tournament.bracket_matches WHERE status = 'ready' AND ready_until <= @now;
+
+-- ---------- Friend tournaments (D-109) ----------
+
+-- name: FriendTrophies :one
+-- Friend tournaments a user won.
+SELECT count(*)::int FROM tournament.entries e
+JOIN tournament.tournaments t ON t.id = e.tournament_id
+WHERE t.kind = 'friends' AND t.status = 'finished' AND e.final_place = 1 AND @user_id::uuid = ANY(e.lineup);
+
+-- name: OpenFriendTournaments :one
+-- An owner's friend tournaments not yet finished (a limit on setting up).
+SELECT count(*)::int FROM tournament.tournaments
+WHERE kind = 'friends' AND created_by = @user_id AND status IN ('registration','seeding','running');

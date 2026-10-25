@@ -3,6 +3,9 @@ import 'dart:async';
 import 'package:brainvolt/app/app.dart';
 import 'package:brainvolt/app/router.dart';
 import 'package:brainvolt/core/realtime/realtime_providers.dart';
+import 'package:brainvolt/core/widgets/bv.dart';
+import 'package:brainvolt/features/auth/domain/auth_repository.dart';
+import 'package:brainvolt/features/store/domain/store_repository.dart';
 import 'package:brainvolt/features/tournament/domain/tournament_repository.dart';
 import 'package:brainvolt/features/tournament/presentation/tournament_screens.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +15,11 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../support/fakes.dart';
 
 const me = 'user-guest-1';
+const fullUser = AuthUser(
+  uid: 'u-full',
+  isAnonymous: false,
+  emailVerified: true,
+);
 
 Map<String, dynamic> tournamentJson({
   String status = 'registration',
@@ -76,11 +84,12 @@ void main() {
   Future<TestApp> launch(
     WidgetTester tester, [
     void Function(TestApp)? setup,
+    AuthUser? user,
   ]) async {
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final t = await TestApp.create();
+    final t = await TestApp.create(user: user);
     setup?.call(t);
     await tester.pumpWidget(
       UncontrolledProviderScope(
@@ -243,6 +252,64 @@ void main() {
     await tester.pumpAndSettle();
     expect(t.tournaments.calls, ['create:Hafta Sonu Kupası:user:1v1:8']);
     expect(find.text('Bilgi Kupası'), findsWidgets);
+    await finish(tester, t);
+  });
+
+  testWidgets('friend tournament: Plus sets up for free (D-109)', (
+    tester,
+  ) async {
+    final t = await launch(tester, (t) {
+      t.store.value = const Entitlements(plus: true);
+      t.tournaments.details['new-ft'] = TournamentDetail.fromJson({
+        ...tournamentJson(),
+        'id': 'new-ft',
+        'name': 'Kuzenler',
+        'kind': 'friends',
+        'is_owner': true,
+        'rewards': {'places': const <Object>[]},
+        'rounds': 0,
+        'entries': const <Object>[],
+        'bracket': const <Object>[],
+      });
+    }, fullUser);
+    unawaited(t.container.read(routerProvider).push(Routes.tournaments));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('create-friend-tournament')));
+    await tester.pumpAndSettle();
+    expect(find.text('Plus ile ücretsiz kurarsın'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('ft-name')), 'Kuzenler');
+    await tester.tap(find.byKey(const Key('ft-16')));
+    await tester.tap(find.byKey(const Key('ft-marathon')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('ft-submit')));
+    await tester.pumpAndSettle();
+    expect(t.tournaments.calls, ['create-friends:Kuzenler:marathon:16']);
+    expect(find.byKey(const Key('tournament-friends-rules')), findsOneWidget);
+
+    // The owner cancels before the start.
+    await tester.tap(find.byKey(const Key('tournament-cancel-friends')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('dialog-confirm')));
+    await tester.pumpAndSettle();
+    expect(t.tournaments.calls.last, 'cancel:new-ft');
+    expect(find.text('Turnuva iptal edildi'), findsOneWidget);
+    await finish(tester, t);
+  });
+
+  testWidgets('friend tournament: 300 Volt without Plus', (tester) async {
+    final t = await launch(tester, null, fullUser);
+    unawaited(
+      t.container.read(routerProvider).push(Routes.friendTournamentNew),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Kurma ücreti: 300 Volt'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('ft-name')), 'Kuzenler');
+    await tester.pump();
+    // The fake wallet has 240 Volt: not enough.
+    final button = tester.widget<GradientButton>(
+      find.byKey(const Key('ft-submit')),
+    );
+    expect(button.onPressed, isNull);
     await finish(tester, t);
   });
 }

@@ -3862,5 +3862,107 @@
   "cosVictoryS1Thunder": "Gök Gürültüsü",
   "@cosVictoryS1Thunder": {
     "description": "Season Pass (D-108)."
+  },
+  "friendTournamentCreate": "Arkadaş turnuvası kur",
+  "@friendTournamentCreate": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "friendTournamentTitle": "Arkadaş turnuvası",
+  "@friendTournamentTitle": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "friendTournamentName": "Turnuva adı",
+  "@friendTournamentName": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "friendTournamentType": "Maç türü",
+  "@friendTournamentType": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "friendTournamentSize": "Kişi sayısı",
+  "@friendTournamentSize": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "friendTournamentStart": "Başlangıç",
+  "@friendTournamentStart": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "friendStart30m": "30 dk sonra",
+  "@friendStart30m": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "friendStart1h": "1 saat sonra",
+  "@friendStart1h": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "friendStart3h": "3 saat sonra",
+  "@friendStart3h": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "friendStartTomorrow": "Yarın 20:00",
+  "@friendStartTomorrow": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "friendTournamentRules": "Sadece arkadaşların görür ve katılır. XP, puan ya da Volt ödülü yok; kazanan profilinde kupa taşır.",
+  "@friendTournamentRules": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "friendTournamentFee": "Kurma ücreti: {fee} Volt",
+  "@friendTournamentFee": {
+    "description": "Friend tournaments (D-109).",
+    "placeholders": {
+      "fee": {
+        "type": "int"
+      }
+    }
+  },
+  "friendTournamentFree": "Plus ile ücretsiz kurarsın",
+  "@friendTournamentFree": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "friendTournamentSubmit": "Turnuvayı kur",
+  "@friendTournamentSubmit": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "friendTournamentBadge": "Arkadaş",
+  "@friendTournamentBadge": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "friendTournamentCancel": "Turnuvayı iptal et",
+  "@friendTournamentCancel": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "friendTournamentCancelTitle": "Turnuva iptal edilsin mi?",
+  "@friendTournamentCancelTitle": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "friendTournamentCancelBody": "Kayıtlı oyuncular bilgilendirilir; ödediğin Volt iade edilir.",
+  "@friendTournamentCancelBody": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "friendTournamentCancelled": "Turnuva iptal edildi",
+  "@friendTournamentCancelled": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "friendTournamentNoRewards": "Ödül yok · kazanana kupa 🏆",
+  "@friendTournamentNoRewards": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "playerTrophies": "{count} kupa",
+  "@playerTrophies": {
+    "description": "Friend tournaments (D-109).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voltReasonFriendTournament": "Arkadaş turnuvası",
+  "@voltReasonFriendTournament": {
+    "description": "Friend tournaments (D-109)."
+  },
+  "voltReasonFriendTournamentRefund": "Arkadaş turnuvası iadesi",
+  "@voltReasonFriendTournamentRefund": {
+    "description": "Friend tournaments (D-109)."
   }
 }

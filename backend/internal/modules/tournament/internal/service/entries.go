@@ -41,6 +41,14 @@ func (s *Service) Register(ctx context.Context, user uuid.UUID, full bool, id uu
 		if err != nil {
 			return err
 		}
+		if t.Kind == KindFriends { // the owner and the owner's friends (D-109)
+			if ok, err := s.canSee(ctx, user, t.CreatedBy); err != nil || !ok {
+				if err == nil {
+					err = notFound()
+				}
+				return err
+			}
+		}
 		now := s.d.Clock.Now()
 		if t.Status != StatusRegistration || now.Before(t.RegistrationOpensAt) || !now.Before(t.RegistrationClosesAt) {
 			return apierror.New(apierror.TournamentRegistrationClosed)

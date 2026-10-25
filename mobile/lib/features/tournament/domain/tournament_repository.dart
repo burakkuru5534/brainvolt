@@ -103,6 +103,8 @@ class Tournament {
     this.rewards = const [],
     this.participationXp = 0,
     this.myEntry,
+    this.kind = 'official',
+    this.isOwner = false,
   });
 
   factory Tournament.fromJson(Map<String, dynamic> j) {
@@ -132,8 +134,18 @@ class Tournament {
       ],
       participationXp: (rw['participation_xp'] as num?)?.toInt() ?? 0,
       myEntry: mine == null ? null : TournamentEntry.fromJson(mine),
+      kind: j['kind'] as String? ?? 'official',
+      isOwner: j['is_owner'] == true,
     );
   }
+
+  /// official / friends (D-109).
+  final String kind;
+
+  /// The caller set up this friend tournament.
+  final bool isOwner;
+
+  bool get friends => kind == 'friends';
 
   final String id;
   final String name;
@@ -249,4 +261,15 @@ abstract interface class TournamentRepository {
 
   /// Admin: returns the new tournament's id.
   Future<String> create(TournamentDraft d);
+
+  /// A friend tournament (D-109); returns its id.
+  Future<String> createFriends({
+    required String name,
+    required String matchType,
+    required int maxEntrants,
+    required DateTime startsAt,
+  });
+
+  /// The owner cancels a friend tournament; the fee comes back.
+  Future<void> cancelFriends(String id);
 }

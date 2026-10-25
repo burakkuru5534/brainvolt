@@ -63,6 +63,16 @@ func (t *Transport) Register(s *httpserver.Server) {
 		Auth: "full", Summary: "Show up for the current bracket match; the match starts when both sides are present", Response: service.TournamentPlay{},
 		Errors: []apierror.Code{apierror.NotFound, apierror.MatchStateInvalid, apierror.AlreadyInMatch, apierror.ModeNotAllowed, apierror.NotEnoughQuestions},
 	}))
+	s.Handle("POST /v1/tournaments/friends", a(t.idem.Wrap(idempotency.Optional, t.createFriends)), doc(httpserver.Doc{
+		Auth: "full", Idempotency: true, Status: http.StatusCreated,
+		Summary: "Set up a friend tournament (D-109): 1v1, 4/8/16 places, only the owner's friends join; 300 Volt, free with Plus",
+		Request: service.FriendTournamentInput{}, Response: service.Tournament{},
+		Errors: []apierror.Code{apierror.ValidationFailed, apierror.AccountUpgradeRequired, apierror.VoltInsufficient, apierror.ItemUnavailable},
+	}))
+	s.Handle("DELETE /v1/tournaments/{id}", a(t.cancelFriends), doc(httpserver.Doc{
+		Auth: "full", Status: http.StatusNoContent, Summary: "The owner cancels a friend tournament before it starts; the fee comes back",
+		Errors: []apierror.Code{apierror.NotFound, apierror.MatchStateInvalid},
+	}))
 	s.Handle("POST /v1/admin/tournaments", a(t.idem.Wrap(idempotency.Optional, t.create), adm), doc(httpserver.Doc{
 		Auth: "adm", Idempotency: true, Status: http.StatusCreated, Summary: "Create a tournament (draft or open for registration; D-031, D-090)",
 		Request: service.TournamentInput{}, Response: service.Tournament{},
@@ -171,6 +181,31 @@ func (t *Transport) play(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	return httpserver.WriteJSON(w, http.StatusOK, res)
+}
+
+func (t *Transport) createFriends(w http.ResponseWriter, r *http.Request) error {
+	var in service.FriendTournamentInput
+	if err := httpserver.DecodeJSON(r, &in); err != nil {
+		return err
+	}
+	p := principal(r)
+	out, err := t.svc.CreateFriends(r.Context(), p.UserID, p.Tier == identity.TierFull, in)
+	if err != nil {
+		return err
+	}
+	return httpserver.WriteJSON(w, http.StatusCreated, out)
+}
+
+func (t *Transport) cancelFriends(w http.ResponseWriter, r *http.Request) error {
+	id, err := pathID(r)
+	if err != nil {
+		return err
+	}
+	if err := t.svc.CancelFriends(r.Context(), principal(r).UserID, id); err != nil {
+		return err
+	}
+	w.WriteHeader(http.StatusNoContent)
+	return nil
 }
 
 func (t *Transport) create(w http.ResponseWriter, r *http.Request) error {

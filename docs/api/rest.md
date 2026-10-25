@@ -23,7 +23,7 @@
 ## 2. profile
 | Method | Path | Auth | Idem | Ph | Purpose |
 |---|---|---|---|---|---|
-| GET | `/v1/profiles/{user_id}` | any | — | 1 | Player profile (no email): card, `private`, the caller's `relation` (`self` / `friend` / `request_sent` / `request_received` / `blocked` / `none`) and `stats` (level, matches, wins, badges, streak) — `null` when the profile is private and the caller is not a friend, or on a block (D-101). |
+| GET | `/v1/profiles/{user_id}` | any | — | 1 | Player profile (no email): card, `private`, the caller's `relation` (`self` / `friend` / `request_sent` / `request_received` / `blocked` / `none`) and `stats` (level, matches, wins, badges, streak, trophies (D-109)) — `null` when the profile is private and the caller is not a friend, or on a block (D-101). |
 | GET | `/v1/profiles/by-username/{username}` | any | — | 5 | Lookup for friend search. |
 | PATCH | `/v1/me/profile` | any | — | 1 | `display_name`, `avatar_id` (a preset or an owned special avatar, D-106), `country_code` (30-day limit), `locale`. Username change: `full` only, 30-day limit. |
 | GET / PATCH | `/v1/me/settings` | any | — | 1 | privacy (`challenges_from`, `show_online_status`, `allow_friend_requests`, `profile_private`), sound/music/haptics. |
@@ -154,11 +154,13 @@
 ## 14. tournament
 | Method | Path | Auth | Idem | Ph | Purpose |
 |---|---|---|---|---|---|
-| GET | `/v1/tournaments?status=` · `/v1/tournaments/{id}` | any | — | 9 | List (with the caller's `my_entry`) / detail with entries, bracket, `rounds` and the caller's current `my_match` (D-090). Drafts only for staff. |
+| GET | `/v1/tournaments?status=` · `/v1/tournaments/{id}` | any | — | 9 | Official tournaments plus the caller's and friends' friend tournaments (`kind`, `is_owner`; D-109); others' friend tournaments are 404. List (with the caller's `my_entry`) / detail with entries, bracket, `rounds` and the caller's current `my_match` (D-090). Drafts only for staff. |
 | POST | `/v1/tournaments/{id}/entries` | full | optional | 9 | Register while registration is open: user, the caller's active couple, or a team (captain, `{team_id, lineup}` of current members, size = side size). `TOURNAMENT_FULL`, `TOURNAMENT_REGISTRATION_CLOSED`, `TOURNAMENT_REQUIREMENTS_NOT_MET` (already in, no couple). |
 | DELETE | `/v1/tournaments/{id}/entries/mine` | full | — | 9 | Withdraw before the start (team: captain). |
 | POST | `/v1/tournaments/{id}/check-in` | full | — | 9 | Check in during the hour before `starts_at`; entries that did not check in are withdrawn at the start. |
 | POST | `/v1/tournaments/{id}/play` | full | — | 9 | Show up for one's current bracket match within its ready window (`present`); when every player of both entries is present the match is created through game and `match_id` returned (`tournament.match_ready` to all). |
+| POST | `/v1/tournaments/friends` | full | optional | 9 | Set up a friend tournament (D-109): `{name, match_type, max_entrants 4, 8 or 16, starts_at}` (15 min–7 days ahead); 300 Volt or free with Plus; returns the tournament (`kind friends`, `is_owner`). `VOLT_INSUFFICIENT`, `ITEM_UNAVAILABLE` (`too_many_open`), `VALIDATION_FAILED`. |
+| DELETE | `/v1/tournaments/{id}` | full | — | 9 | The owner cancels a friend tournament before it starts; the fee comes back (D-109). Others get 404. |
 | POST / PATCH | `/v1/admin/tournaments` · `/v1/admin/tournaments/{id}` | adm | optional | 9 | Create (texts tr/en, entity kind, match config with origin `tournament`, entrants 2–64, dates, ready window 60–3600 s, XP rewards per place, `publish`) / publish a draft or cancel (D-031, D-090). |
 
 ## 15. commerce

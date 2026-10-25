@@ -138,7 +138,13 @@ void main() {
       t.social.profiles['u-ali'] = const PlayerProfile(
         card: UserCard(userId: 'u-ali', displayName: 'Ali', username: 'ali'),
         countryCode: 'TR',
-        stats: PlayerStats(level: 7, matches: 40, wins: 30, badges: 5),
+        stats: PlayerStats(
+          level: 7,
+          matches: 40,
+          wins: 30,
+          badges: 5,
+          trophies: 2,
+        ),
       );
       t.social.profiles['u-gizli'] = const PlayerProfile(
         card: UserCard(userId: 'u-gizli', displayName: 'Gizli'),
@@ -165,6 +171,7 @@ void main() {
       tester.widget<Text>(find.byKey(const Key('player-level'))).data,
       '7',
     );
+    expect(find.byKey(const Key('player-trophies')), findsWidgets);
     t.container.read(routerProvider).pop();
     await tester.pumpAndSettle();
 

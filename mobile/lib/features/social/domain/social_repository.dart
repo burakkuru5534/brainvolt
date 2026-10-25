@@ -72,6 +72,7 @@ class PlayerStats {
     this.wins = 0,
     this.badges = 0,
     this.streak = 0,
+    this.trophies = 0,
   });
 
   factory PlayerStats.fromJson(Map<String, dynamic> j) => PlayerStats(
@@ -80,6 +81,7 @@ class PlayerStats {
     wins: (j['wins'] as num?)?.toInt() ?? 0,
     badges: (j['badges'] as num?)?.toInt() ?? 0,
     streak: (j['streak'] as num?)?.toInt() ?? 0,
+    trophies: (j['trophies'] as num?)?.toInt() ?? 0,
   );
 
   final int level;
@@ -87,6 +89,9 @@ class PlayerStats {
   final int wins;
   final int badges;
   final int streak;
+
+  /// Friend tournaments won (D-109).
+  final int trophies;
 
   /// Wins in percent of matches (0 without matches).
   int get winRate => matches == 0 ? 0 : (wins * 100 / matches).round();

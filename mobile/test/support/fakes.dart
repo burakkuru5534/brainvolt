@@ -455,6 +455,7 @@ class FakeSocialRepository implements SocialRepository {
             wins: 12,
             badges: 3,
             streak: 2,
+            trophies: 1,
           ),
         );
   }
@@ -959,6 +960,20 @@ class FakeTournamentRepository implements TournamentRepository {
     );
     return 'new-t';
   }
+
+  @override
+  Future<String> createFriends({
+    required String name,
+    required String matchType,
+    required int maxEntrants,
+    required DateTime startsAt,
+  }) async {
+    calls.add('create-friends:$name:$matchType:$maxEntrants');
+    return 'new-ft';
+  }
+
+  @override
+  Future<void> cancelFriends(String id) async => calls.add('cancel:$id');
 }
 
 class FakeChatRepository implements ChatRepository {

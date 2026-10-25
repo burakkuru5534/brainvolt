@@ -305,6 +305,8 @@ type PlayerStats struct {
 	Wins    int `json:"wins"`
 	Badges  int `json:"badges"`
 	Streak  int `json:"streak"`
+	// Trophies are friend tournaments won (D-109).
+	Trophies int `json:"trophies"`
 }
 
 // Public returns another user's public profile.

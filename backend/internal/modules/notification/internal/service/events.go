@@ -200,6 +200,7 @@ func (h Handlers) OnTournamentRound(ctx context.Context, e events.Envelope) erro
 func (h Handlers) OnTournamentFinished(ctx context.Context, e events.Envelope) error {
 	var p struct {
 		TournamentID uuid.UUID `json:"tournament_id"`
+		Kind         string    `json:"kind"`
 		Placements   []struct {
 			UserID uuid.UUID `json:"user_id"`
 			Place  int       `json:"place"`
@@ -210,7 +211,14 @@ func (h Handlers) OnTournamentFinished(ctx context.Context, e events.Envelope) e
 		return err
 	}
 	for _, pl := range p.Placements {
-		if err := h.Svc.Notify(ctx, Notice{User: pl.UserID, Kind: "tournament.finished",
+		kind := "tournament.finished"
+		if p.Kind == "friends" { // no XP; the winner gets a trophy (D-109)
+			kind = "tournament.friends_finished"
+			if pl.Place == 1 {
+				kind = "tournament.friends_won"
+			}
+		}
+		if err := h.Svc.Notify(ctx, Notice{User: pl.UserID, Kind: kind,
 			Params:   map[string]string{"place": strconv.Itoa(pl.Place), "xp": strconv.Itoa(pl.XP)},
 			DeepLink: "/tournaments/" + p.TournamentID.String(), Dedupe: "tournament.finished:" + p.TournamentID.String()}); err != nil {
 			return err

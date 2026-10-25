@@ -8,6 +8,8 @@ import (
 	"context"
 	"log/slog"
 
+	"github.com/google/uuid"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
@@ -45,9 +47,26 @@ type Deps struct {
 	Teams    *team.Module
 	Pusher   Pusher
 	Events   *events.Bus
-	Clock    clock.Clock
-	Logger   *slog.Logger
+	// Friend tournaments (D-109): friendships (social), the fee (commerce's
+	// VoltWriter) and Plus; Wallet is also needed in the worker (refunds).
+	Friends Friends
+	Wallet  Wallet
+	Plus    PlusChecker
+	Clock   clock.Clock
+	Logger  *slog.Logger
 }
+
+// Friends answers friendship questions (social).
+type Friends = service.Friends
+
+// Wallet spends and refunds Volt (commerce.VoltWriter).
+type Wallet = service.Wallet
+
+// PlusChecker reports entitlements (commerce).
+type PlusChecker = service.PlusChecker
+
+// KindFriends marks friend tournaments (D-109).
+const KindFriends = service.KindFriends
 
 // Module is the tournament module.
 type Module struct {
@@ -56,7 +75,8 @@ type Module struct {
 
 // New builds the module.
 func New(d Deps) *Module {
-	deps := service.Deps{DB: d.DB, Cards: d.Profiles, Teams: d.Teams, Pusher: d.Pusher, Events: d.Events, Clock: d.Clock, Logger: d.Logger}
+	deps := service.Deps{DB: d.DB, Cards: d.Profiles, Teams: d.Teams, Pusher: d.Pusher, Events: d.Events,
+		Friends: d.Friends, Wallet: d.Wallet, Plus: d.Plus, Clock: d.Clock, Logger: d.Logger}
 	if d.Game != nil {
 		deps.Games = d.Game
 	}
@@ -80,3 +100,8 @@ func (m *Module) OnMatchCancelled(ctx context.Context, e events.Envelope) error 
 
 // Tick starts due tournaments and decides closed ready windows (worker).
 func (m *Module) Tick(ctx context.Context) error { return m.svc.Tick(ctx) }
+
+// FriendTrophies counts the friend tournaments user won (player profiles).
+func (m *Module) FriendTrophies(ctx context.Context, user uuid.UUID) (int, error) {
+	return m.svc.FriendTrophies(ctx, user)
+}

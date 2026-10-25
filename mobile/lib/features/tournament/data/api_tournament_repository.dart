@@ -72,4 +72,26 @@ class ApiTournamentRepository implements TournamentRepository {
     );
     return j!['id'] as String;
   }
+
+  @override
+  Future<String> createFriends({
+    required String name,
+    required String matchType,
+    required int maxEntrants,
+    required DateTime startsAt,
+  }) async {
+    final j = await api.postJson(
+      '/v1/tournaments/friends',
+      body: {
+        'name': name,
+        'match_type': matchType,
+        'max_entrants': maxEntrants,
+        'starts_at': startsAt.toUtc().toIso8601String(),
+      },
+    );
+    return j!['id'] as String;
+  }
+
+  @override
+  Future<void> cancelFriends(String id) => api.delete('/v1/tournaments/$id');
 }

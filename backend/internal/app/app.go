@@ -257,7 +257,8 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	prog := progression.New(progression.Deps{DB: d.db, Ranking: rk, Plus: commerce.NewEntitlementReader(d.db, d.clock), Wallet: commerce.VoltWriter{},
 		Clock: d.clock, Logger: d.logger})
 	prog.Register(srv, ident, d.idem)
-	prof.SetReaders(soc, prog) // player profiles (D-101): relation and stats
+	stats := &playerStats{prog: prog}
+	prof.SetReaders(soc, stats) // player profiles (D-101): relation and stats
 	// Rewarded ads (D-103): commerce verifies, progression checks and gives.
 	com := commerce.New(commerce.Deps{DB: d.db, Identity: ident, Events: d.bus, Keys: d.adKeys, Clock: d.clock, Logger: d.logger,
 		DevGrant: d.env != config.EnvProd, RevenueCatSecret: d.rcSecret})
@@ -284,8 +285,11 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	mm.SetLobbies(lobbySeats{lob}) // team formats gather in waiting lobbies (D-094)
 	tour := tournament.New(tournament.Deps{
 		DB: d.db, Game: g, Profiles: prof, Teams: tm, Pusher: pusher{rt}, Events: d.bus, Clock: d.clock, Logger: d.logger,
+		// Friend tournaments (D-109).
+		Friends: soc, Wallet: commerce.VoltWriter{}, Plus: commerce.NewEntitlementReader(d.db, d.clock),
 	})
 	tour.Register(srv, ident, d.idem)
+	stats.tour = tour
 	return modules{
 		identity: ident, profile: prof, commerce: com, content: cont, realtime: rt, social: soc, team: tm, ranking: rk, moderation: mod, progression: prog,
 		game: g, matchmaking: mm, lobby: lob, tournament: tour,
@@ -388,6 +392,7 @@ func newTournament(db *pgxpool.Pool, bus *events.Bus, logger *slog.Logger, live 
 	return tournament.New(tournament.Deps{
 		DB: db, Profiles: newProfiles(db, clock.Real{}), Teams: team.New(team.Deps{DB: db, Clock: clock.Real{}}),
 		Pusher: live, Events: bus, Clock: clock.Real{}, Logger: logger,
+		Wallet: commerce.VoltWriter{}, // refunds of cancelled friend tournaments (D-109)
 	})
 }
 
@@ -643,4 +648,20 @@ func newProfiles(db *pgxpool.Pool, c clock.Clock) *profile.Module {
 	p := profile.New(db, c)
 	p.SetCosmetics(cosmetics{commerce.NewCosmeticsReader(db, c)})
 	return p
+}
+
+// playerStats adds friend tournament trophies (D-109) to progression's
+// stats on player profiles.
+type playerStats struct {
+	prog *progression.Module
+	tour *tournament.Module
+}
+
+func (p *playerStats) PlayerStats(ctx context.Context, user uuid.UUID) (profile.PlayerStats, error) {
+	st, err := p.prog.PlayerStats(ctx, user)
+	if err != nil || p.tour == nil {
+		return st, err
+	}
+	st.Trophies, err = p.tour.FriendTrophies(ctx, user)
+	return st, err
 }

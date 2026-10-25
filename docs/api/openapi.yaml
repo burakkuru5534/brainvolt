@@ -1273,6 +1273,23 @@ components:
             required:
                 - requests
             type: object
+        FriendTournamentInput:
+            properties:
+                match_type:
+                    type: string
+                max_entrants:
+                    type: integer
+                name:
+                    type: string
+                starts_at:
+                    format: date-time
+                    type: string
+            required:
+                - match_type
+                - max_entrants
+                - name
+                - starts_at
+            type: object
         FriendsPage:
             properties:
                 friends:
@@ -1848,6 +1865,8 @@ components:
                     type: integer
                 streak:
                     type: integer
+                trophies:
+                    type: integer
                 wins:
                     type: integer
             required:
@@ -1855,6 +1874,7 @@ components:
                 - level
                 - matches
                 - streak
+                - trophies
                 - wins
             type: object
         Preferences:
@@ -3407,6 +3427,10 @@ components:
                 id:
                     format: uuid
                     type: string
+                is_owner:
+                    type: boolean
+                kind:
+                    type: string
                 match_config:
                     $ref: '#/components/schemas/Config'
                 max_entrants:
@@ -3440,6 +3464,7 @@ components:
                 - entity_kind
                 - entrants
                 - id
+                - kind
                 - match_config
                 - max_entrants
                 - min_entrants
@@ -12764,6 +12789,73 @@ paths:
                 - tournament
             x-auth: any
     /v1/tournaments/{id}:
+        delete:
+            operationId: deleteV1TournamentsId
+            parameters:
+                - in: path
+                  name: id
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "204":
+                    description: No Content
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MATCH_STATE_INVALID'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: The owner cancels a friend tournament before it starts; the fee comes back
+            tags:
+                - tournament
+            x-auth: full
         get:
             operationId: getV1TournamentsId
             parameters:
@@ -13141,6 +13233,86 @@ paths:
             security:
                 - firebase: []
             summary: Show up for the current bracket match; the match starts when both sides are present
+            tags:
+                - tournament
+            x-auth: full
+    /v1/tournaments/friends:
+        post:
+            operationId: postV1TournamentsFriends
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+                - description: Client-generated UUID; repeats within 24 h replay the stored response (conventions.md §9)
+                  in: header
+                  name: Idempotency-Key
+                  required: true
+                  schema:
+                    format: uuid
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/FriendTournamentInput'
+                required: true
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Tournament'
+                    description: Created
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "403":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ACCOUNT_UPGRADE_REQUIRED'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ITEM_UNAVAILABLE, VOLT_INSUFFICIENT'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: 'Set up a friend tournament (D-109): 1v1, 4/8/16 places, only the owner''s friends join; 300 Volt, free with Plus'
             tags:
                 - tournament
             x-auth: full

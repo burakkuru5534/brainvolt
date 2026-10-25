@@ -11,6 +11,8 @@ import '../../../core/l10n/l10n.dart';
 import '../../../core/realtime/realtime_client.dart';
 import '../../../core/realtime/realtime_providers.dart';
 import '../../../core/widgets/bv.dart';
+import '../../../core/widgets/dialogs.dart';
+import '../../auth/domain/session.dart';
 import '../../home/presentation/main_nav.dart';
 import '../../match/presentation/match_type_name.dart';
 import '../../match/presentation/play_error_text.dart';
@@ -75,7 +77,22 @@ class TournamentsScreen extends ConsumerWidget {
     final l10n = context.l10n;
     return Scaffold(
       bottomNavigationBar: const MainNavBar(current: MainTab.tournaments),
-      appBar: AppBar(title: Text(l10n.tournamentsTitle)),
+      appBar: AppBar(
+        title: Text(l10n.tournamentsTitle),
+        actions: [
+          // Friend tournaments for full accounts (D-109).
+          if (switch (ref.watch(sessionControllerProvider).value) {
+            SignedIn(:final session) => session.tier == Tier.full,
+            _ => false,
+          })
+            IconButton(
+              key: const Key('create-friend-tournament'),
+              tooltip: l10n.friendTournamentCreate,
+              icon: const Icon(Icons.group_add_rounded),
+              onPressed: () => context.push(Routes.friendTournamentNew),
+            ),
+        ],
+      ),
       floatingActionButton: _isAdmin(ref)
           ? FloatingActionButton.extended(
               key: const Key('create-tournament'),
@@ -137,7 +154,25 @@ class _Card extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(t.name, style: Theme.of(context).textTheme.titleMedium),
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        t.name,
+                        style: Theme.of(context).textTheme.titleMedium,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (t.friends) ...[
+                      const SizedBox(width: 6),
+                      Pill(
+                        l10n.friendTournamentBadge,
+                        key: Key('friends-pill-${t.id}'),
+                        icon: Icons.group_rounded,
+                      ),
+                    ],
+                  ],
+                ),
                 Text(
                   '${_kind(l10n, t)} · ${matchTypeName(l10n, t.matchType)} · '
                   '${l10n.tournamentEntrants(t.entrants, t.maxEntrants)}',
@@ -325,6 +360,33 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
     );
   }
 
+  Future<void> _cancelFriends(String id) async {
+    final l10n = context.l10n;
+    final ok = await confirmDialog(
+      context,
+      title: l10n.friendTournamentCancelTitle,
+      body: l10n.friendTournamentCancelBody,
+      confirmLabel: l10n.friendTournamentCancel,
+      destructive: true,
+    );
+    if (!ok || !mounted) {
+      return;
+    }
+    try {
+      await ref.read(tournamentRepositoryProvider).cancelFriends(id);
+      if (mounted) {
+        showSnack(context, l10n.friendTournamentCancelled);
+      }
+    } on Object catch (e) {
+      if (mounted) {
+        showSnack(context, playErrorText(l10n, e));
+      }
+    }
+    ref
+      ..invalidate(tournamentProvider(id))
+      ..invalidate(tournamentsProvider);
+  }
+
   /// What the caller can do now.
   Widget _actions(BuildContext context, TournamentDetail d, String me) {
     final l10n = context.l10n;
@@ -434,6 +496,16 @@ class _TournamentScreenState extends ConsumerState<TournamentScreen> {
           );
         }
     }
+    if (t.isOwner && t.status == 'registration') {
+      children.add(
+        OutlinedButton.icon(
+          key: const Key('tournament-cancel-friends'),
+          icon: const Icon(Icons.cancel_outlined),
+          label: Text(l10n.friendTournamentCancel),
+          onPressed: () => _cancelFriends(t.id),
+        ),
+      );
+    }
     if (children.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -493,6 +565,12 @@ class _Header extends StatelessWidget {
             style: white,
           ),
           Text(l10n.tournamentStarts(_when(context, t.startsAt)), style: white),
+          if (t.friends)
+            Text(
+              l10n.friendTournamentNoRewards,
+              key: const Key('tournament-friends-rules'),
+              style: white,
+            ),
           if (t.rewards.isNotEmpty)
             Text(
               [

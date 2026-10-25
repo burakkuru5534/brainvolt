@@ -32,6 +32,8 @@ type RoundScheduled struct {
 type Finished struct {
 	TournamentID uuid.UUID   `json:"tournament_id"`
 	Placements   []Placement `json:"placements"`
+	// Kind is official or friends; friend tournaments earn nothing (D-109).
+	Kind string `json:"kind"`
 }
 
 // Placement is a player's final place and XP reward.
@@ -124,7 +126,10 @@ func (r *round) start(ctx context.Context) error {
 		return err
 	}
 	if len(in) < int(r.t.MinEntrants) {
-		return r.q.SetTournamentStatus(ctx, sqlc.SetTournamentStatusParams{ID: r.t.ID, Status: StatusCancelled, Now: r.now})
+		if err := r.q.SetTournamentStatus(ctx, sqlc.SetTournamentStatusParams{ID: r.t.ID, Status: StatusCancelled, Now: r.now}); err != nil {
+			return err
+		}
+		return r.s.refundFee(ctx, r.tx, &r.t, r.now)
 	}
 	rand.Shuffle(len(in), func(i, j int) { in[i], in[j] = in[j], in[i] }) //nolint:gosec // G404: seeding is not security-sensitive
 	for i, e := range in {
@@ -234,7 +239,7 @@ func (r *round) finish(ctx context.Context) error {
 	if err := json.Unmarshal(r.t.Rewards, &rewards); err != nil {
 		return err
 	}
-	f := Finished{TournamentID: r.t.ID, Placements: []Placement{}}
+	f := Finished{TournamentID: r.t.ID, Placements: []Placement{}, Kind: r.t.Kind}
 	for _, e := range r.entries {
 		if e.FinalPlace == nil {
 			continue

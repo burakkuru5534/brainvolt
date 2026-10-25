@@ -15,7 +15,9 @@ const sourceTournament = "tournament"
 
 type tournamentFinished struct {
 	TournamentID uuid.UUID `json:"tournament_id"`
-	Placements   []struct {
+	// Kind "friends" earns nothing (D-109).
+	Kind       string `json:"kind"`
+	Placements []struct {
 		UserID uuid.UUID `json:"user_id"`
 		Place  int       `json:"place"`
 		XP     int       `json:"xp"`
@@ -29,6 +31,9 @@ func (s *Service) OnTournamentFinished(ctx context.Context, e events.Envelope) e
 	var p tournamentFinished
 	if err := e.Decode(&p); err != nil {
 		return err
+	}
+	if p.Kind == "friends" {
+		return nil
 	}
 	return postgres.InTx(ctx, s.d.DB, func(tx pgx.Tx) error {
 		q := sqlc.New(tx)

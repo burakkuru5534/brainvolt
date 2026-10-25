@@ -271,6 +271,8 @@ class _VoltScreenState extends ConsumerState<VoltScreen> {
       'purchase_refund' => l10n.voltReasonPurchaseRefund,
       'season_pass' => l10n.voltReasonSeasonPass,
       'pass_reward' => l10n.voltReasonPassReward,
+      'friend_tournament' => l10n.voltReasonFriendTournament,
+      'friend_tournament_refund' => l10n.voltReasonFriendTournamentRefund,
       _ => l10n.voltReasonOther,
     };
 

@@ -1116,6 +1116,8 @@ type TournamentTournament struct {
 	CreatedBy            uuid.UUID
 	CreatedAt            time.Time
 	FinishedAt           *time.Time
+	Kind                 string
+	Fee                  int32
 }
 
 type TournamentTournamentTranslation struct {

@@ -2788,4 +2788,79 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get cosVictoryS1Thunder => 'Gök Gürültüsü';
+
+  @override
+  String get friendTournamentCreate => 'Arkadaş turnuvası kur';
+
+  @override
+  String get friendTournamentTitle => 'Arkadaş turnuvası';
+
+  @override
+  String get friendTournamentName => 'Turnuva adı';
+
+  @override
+  String get friendTournamentType => 'Maç türü';
+
+  @override
+  String get friendTournamentSize => 'Kişi sayısı';
+
+  @override
+  String get friendTournamentStart => 'Başlangıç';
+
+  @override
+  String get friendStart30m => '30 dk sonra';
+
+  @override
+  String get friendStart1h => '1 saat sonra';
+
+  @override
+  String get friendStart3h => '3 saat sonra';
+
+  @override
+  String get friendStartTomorrow => 'Yarın 20:00';
+
+  @override
+  String get friendTournamentRules =>
+      'Sadece arkadaşların görür ve katılır. XP, puan ya da Volt ödülü yok; kazanan profilinde kupa taşır.';
+
+  @override
+  String friendTournamentFee(int fee) {
+    return 'Kurma ücreti: $fee Volt';
+  }
+
+  @override
+  String get friendTournamentFree => 'Plus ile ücretsiz kurarsın';
+
+  @override
+  String get friendTournamentSubmit => 'Turnuvayı kur';
+
+  @override
+  String get friendTournamentBadge => 'Arkadaş';
+
+  @override
+  String get friendTournamentCancel => 'Turnuvayı iptal et';
+
+  @override
+  String get friendTournamentCancelTitle => 'Turnuva iptal edilsin mi?';
+
+  @override
+  String get friendTournamentCancelBody =>
+      'Kayıtlı oyuncular bilgilendirilir; ödediğin Volt iade edilir.';
+
+  @override
+  String get friendTournamentCancelled => 'Turnuva iptal edildi';
+
+  @override
+  String get friendTournamentNoRewards => 'Ödül yok · kazanana kupa 🏆';
+
+  @override
+  String playerTrophies(int count) {
+    return '$count kupa';
+  }
+
+  @override
+  String get voltReasonFriendTournament => 'Arkadaş turnuvası';
+
+  @override
+  String get voltReasonFriendTournamentRefund => 'Arkadaş turnuvası iadesi';
 }

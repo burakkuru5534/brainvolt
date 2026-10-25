@@ -2796,4 +2796,80 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cosVictoryS1Thunder => 'Thunder';
+
+  @override
+  String get friendTournamentCreate => 'Set up a friend tournament';
+
+  @override
+  String get friendTournamentTitle => 'Friend tournament';
+
+  @override
+  String get friendTournamentName => 'Tournament name';
+
+  @override
+  String get friendTournamentType => 'Match type';
+
+  @override
+  String get friendTournamentSize => 'Players';
+
+  @override
+  String get friendTournamentStart => 'Start';
+
+  @override
+  String get friendStart30m => 'In 30 min';
+
+  @override
+  String get friendStart1h => 'In 1 hour';
+
+  @override
+  String get friendStart3h => 'In 3 hours';
+
+  @override
+  String get friendStartTomorrow => 'Tomorrow 20:00';
+
+  @override
+  String get friendTournamentRules =>
+      'Only your friends see and join it. No XP, points or Volt; the winner gets a trophy on their profile.';
+
+  @override
+  String friendTournamentFee(int fee) {
+    return 'Set-up fee: $fee Volt';
+  }
+
+  @override
+  String get friendTournamentFree => 'Free with Plus';
+
+  @override
+  String get friendTournamentSubmit => 'Set it up';
+
+  @override
+  String get friendTournamentBadge => 'Friends';
+
+  @override
+  String get friendTournamentCancel => 'Cancel the tournament';
+
+  @override
+  String get friendTournamentCancelTitle => 'Cancel the tournament?';
+
+  @override
+  String get friendTournamentCancelBody =>
+      'Registered players are told; the Volt you paid comes back.';
+
+  @override
+  String get friendTournamentCancelled => 'Tournament cancelled';
+
+  @override
+  String get friendTournamentNoRewards =>
+      'No rewards · a trophy for the winner 🏆';
+
+  @override
+  String playerTrophies(int count) {
+    return '$count trophies';
+  }
+
+  @override
+  String get voltReasonFriendTournament => 'Friend tournament';
+
+  @override
+  String get voltReasonFriendTournamentRefund => 'Friend tournament refund';
 }

@@ -39,6 +39,7 @@ import '../features/social/presentation/player_profile.dart';
 import '../features/store/presentation/plus_screen.dart';
 import '../features/store/presentation/volt_screen.dart';
 import '../features/team/presentation/teams_screen.dart';
+import '../features/tournament/presentation/friend_tournament_screen.dart';
 import '../features/tournament/presentation/tournament_screens.dart';
 import 'session_controller.dart';
 
@@ -65,6 +66,7 @@ abstract final class Routes {
   static const leaderboards = '/leaderboards';
   static const tournaments = '/tournaments';
   static const tournamentNew = '/tournaments/new';
+  static const friendTournamentNew = '/tournaments/friends/new';
   static String tournament(String id) => '/tournaments/$id';
   static const quests = '/quests';
   static const badges = '/badges';
@@ -264,6 +266,10 @@ GoRouter router(Ref ref) {
       GoRoute(
         path: Routes.tournamentNew,
         builder: (context, state) => const CreateTournamentScreen(),
+      ),
+      GoRoute(
+        path: Routes.friendTournamentNew,
+        builder: (context, state) => const FriendTournamentScreen(),
       ),
       GoRoute(
         path: '/tournaments/:id',

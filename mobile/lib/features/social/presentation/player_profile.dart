@@ -272,6 +272,16 @@ class _StatsGrid extends StatelessWidget {
     ];
     return Column(
       children: [
+        if (s.trophies > 0)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Pill(
+              l10n.playerTrophies(s.trophies),
+              key: const Key('player-trophies'),
+              icon: Icons.emoji_events_rounded,
+              color: bv.gold,
+            ),
+          ),
         for (var i = 0; i < boxes.length; i += 3) ...[
           Row(
             children: [
