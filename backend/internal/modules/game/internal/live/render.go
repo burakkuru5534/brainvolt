@@ -165,8 +165,54 @@ func (m *meta) render(e stored, r recipient) wsserver.Outbound {
 		}
 		d["category"] = map[string]any{"id": d["category_id"], "name": t.Category}
 		delete(d, "category_id")
+		if !earnedAnswer(d, r) {
+			hideAnswer(d)
+		}
 	}
 	return f
+}
+
+// earnedAnswer reports whether the recipient may see the round's correct
+// option (D-100): only when they got it right — their own answer row, or,
+// when they have none this round (Individual Turns, Shared Answer), their
+// side's result. A player who answered wrong or not at all must not learn
+// the answer mid-match; the result screen shows every answer after the end.
+func earnedAnswer(d map[string]any, r recipient) bool {
+	answers, _ := d["answers"].([]any)
+	for _, v := range answers {
+		if a, ok := v.(map[string]any); ok && str(a["user_id"]) == r.UserID.String() {
+			return a["correct"] == true
+		}
+	}
+	sides, _ := d["sides"].([]any)
+	for _, v := range sides {
+		if s, ok := v.(map[string]any); ok && num(s["side_no"]) == r.Side {
+			return s["correct"] == true
+		}
+	}
+	return false
+}
+
+// hideAnswer drops what gives the correct option away: the option itself,
+// the explanation and the choice of every player who got it right.
+func hideAnswer(d map[string]any) {
+	delete(d, "correct_option_id")
+	delete(d, "explanation")
+	d["answer_hidden"] = true
+	answers, _ := d["answers"].([]any)
+	out := make([]any, 0, len(answers))
+	for _, v := range answers {
+		a, ok := v.(map[string]any)
+		if !ok {
+			continue
+		}
+		a = maps.Clone(a)
+		if a["correct"] == true {
+			delete(a, "option_id")
+		}
+		out = append(out, a)
+	}
+	d["answers"] = out
 }
 
 func (m *meta) participantList() []map[string]any {

@@ -2966,6 +2966,324 @@ abstract class AppLocalizations {
   /// **'Turnuva maçın başladı!'**
   String get tournamentMatchStarted;
 
+  /// Room match end screen: countdown before going back to the room (D-092).
+  ///
+  /// In tr, this message translates to:
+  /// **'{seconds} sn içinde odaya dönülüyor…'**
+  String roomReturning(int seconds);
+
+  /// Room settings dialog / host button (D-093).
+  ///
+  /// In tr, this message translates to:
+  /// **'Oda ayarları'**
+  String get roomSettingsTitle;
+
+  /// Match type picker label.
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç tipi'**
+  String get matchTypeLabel;
+
+  /// Snack bar after the host changed the room settings.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oda ayarları güncellendi, herkes tekrar hazır olmalı'**
+  String get roomSettingsSaved;
+
+  /// Title of the matchmade team waiting lobby (D-094).
+  ///
+  /// In tr, this message translates to:
+  /// **'Eşleşme Lobisi'**
+  String get mmLobbyTitle;
+
+  /// Waiting lobby: seats taken so far.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyuncular aranıyor… ({count}/{total})'**
+  String mmLobbyWaiting(int count, int total);
+
+  /// Waiting lobby: how the leader is chosen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Lobi dolunca rastgele bir lider seçilecek; maçı o başlatır.'**
+  String get mmLobbyLeaderSoon;
+
+  /// The player is the lobby leader.
+  ///
+  /// In tr, this message translates to:
+  /// **'Lobi lideri sensin! Herkes hazır olunca maçı başlat.'**
+  String get mmLobbyYouLead;
+
+  /// Another player leads the lobby.
+  ///
+  /// In tr, this message translates to:
+  /// **'Lobi lideri: {name}. Hazır ol, maçı lider başlatacak.'**
+  String mmLobbyLeaderIs(String name);
+
+  /// Leader start button while not everyone is ready.
+  ///
+  /// In tr, this message translates to:
+  /// **'Herkesin hazır olması bekleniyor'**
+  String get mmLobbyWaitReady;
+
+  /// Empty seat of a waiting lobby.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyuncu aranıyor…'**
+  String get mmLobbySearchingSeat;
+
+  /// Dropped from the lobby for not readying in time.
+  ///
+  /// In tr, this message translates to:
+  /// **'Zamanında hazır olmadığın için lobiden çıkarıldın.'**
+  String get mmLobbyDropped;
+
+  /// Waiting lobby expired.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeterli oyuncu bulunamadı, lobi kapandı.'**
+  String get mmLobbyExpired;
+
+  /// Topic section label (D-095).
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu'**
+  String get topicLabel;
+
+  /// Every topic mixed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm konular'**
+  String get topicAll;
+
+  /// Subtitle of "All topics".
+  ///
+  /// In tr, this message translates to:
+  /// **'Her konudan karışık sorular'**
+  String get topicAllSub;
+
+  /// Topic sheet title before searching.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hangi konuda yarışmak istersin?'**
+  String get topicPickTitle;
+
+  /// Topic sheet subtitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sadece aynı konuyu seçen oyuncularla eşleşirsin.'**
+  String get topicPickSub;
+
+  /// The topic of a queue or room.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu: {name}'**
+  String topicLine(String name);
+
+  /// Categories failed to load.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konular yüklenemedi; \"Tüm konular\" ile oynayabilirsin.'**
+  String get topicLoadFailed;
+
+  /// Ranked has no topic (R04).
+  ///
+  /// In tr, this message translates to:
+  /// **'Dereceli maçlar her zaman tüm konulardan oynanır.'**
+  String get topicRankedNote;
+
+  /// The BrainVolt tagline under the word mark (splash, welcome).
+  ///
+  /// In tr, this message translates to:
+  /// **'BİLGİNİ YARIŞTIR, ZİRVEYE ÇIK'**
+  String get brandTagline;
+
+  /// Home: heading above the game mode tiles.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyun Modları'**
+  String get homeModesTitle;
+
+  /// Home: link to the full mode picker.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tümü'**
+  String get homeSeeAll;
+
+  /// Home: heading above the shortcuts.
+  ///
+  /// In tr, this message translates to:
+  /// **'Keşfet'**
+  String get homeMoreTitle;
+
+  /// Home shortcut to the mode picker.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm modlar'**
+  String get homeAllModes;
+
+  /// Home: line under the Ranked tile.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ligini yükselt'**
+  String get homeRankedSub;
+
+  /// Home: tag on the daily challenge card.
+  ///
+  /// In tr, this message translates to:
+  /// **'BUGÜN'**
+  String get homeDailyTag;
+
+  /// Home: button on the daily challenge card.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyna'**
+  String get homeDailyPlay;
+
+  /// Bottom bar: Home.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ana Sayfa'**
+  String get navHome;
+
+  /// Bottom bar: leaderboards (short).
+  ///
+  /// In tr, this message translates to:
+  /// **'Liderlik'**
+  String get navLeaderboards;
+
+  /// Profile / badges (BrainVolt).
+  ///
+  /// In tr, this message translates to:
+  /// **'Profili düzenle'**
+  String get profileEdit;
+
+  /// Profile / badges (BrainVolt).
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç'**
+  String get profileMatches;
+
+  /// Profile / badges (BrainVolt).
+  ///
+  /// In tr, this message translates to:
+  /// **'Galibiyet'**
+  String get profileWins;
+
+  /// Profile / badges (BrainVolt).
+  ///
+  /// In tr, this message translates to:
+  /// **'Kazanma'**
+  String get profileWinRate;
+
+  /// Profile / badges (BrainVolt).
+  ///
+  /// In tr, this message translates to:
+  /// **'En iyi seri'**
+  String get profileBestStreak;
+
+  /// Profile / badges (BrainVolt).
+  ///
+  /// In tr, this message translates to:
+  /// **'Başarımlar'**
+  String get profileAchievements;
+
+  /// Profile / badges (BrainVolt).
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz rozet kazanmadın. Maç oyna, görevleri tamamla!'**
+  String get profileNoBadges;
+
+  /// Profile / badges (BrainVolt).
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz rozet yok.'**
+  String get badgesEmpty;
+
+  /// Quests: a section without quests.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şu an görev yok, yakında yenileri gelecek.'**
+  String get questsEmpty;
+
+  /// Result screen: heading above the round list.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sorular'**
+  String get resultRounds;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğru cevabı ne kadar hızlı verirsen o kadar çok puan kazanırsın.'**
+  String get queueTip1;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ani Ölüm\'de ilk yanlış cevap maçı bitirir: acele etme, emin ol.'**
+  String get queueTip2;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Maraton uzun soluklu bir maç: dikkatini sona kadar koru.'**
+  String get queueTip3;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Dereceli maçlar lig puanını değiştirir; Bronz\'dan Elmas\'a tırman.'**
+  String get queueTip4;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu seçersen yalnızca aynı konuyu seçen oyuncularla eşleşirsin.'**
+  String get queueTip5;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Günün Meydan Okuması\'nda herkes aynı 10 soruyu çözer; sıralamada yerini al.'**
+  String get queueTip6;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görevleri tamamlayıp XP kazan; beğenmediğin bir görevi günde bir kez değiştirebilirsin.'**
+  String get queueTip7;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Her gün en az bir maç oynayarak serini koru.'**
+  String get queueTip8;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş kodunu paylaş, Özel Oda kurup arkadaşlarınla oyna.'**
+  String get queueTip9;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takım kur, 2v2, 3v3 ve 4v4 maçlarda birlikte yarış.'**
+  String get queueTip10;
+
+  /// A game tip shown in turn while searching for an opponent.
+  ///
+  /// In tr, this message translates to:
+  /// **'Soru Atölyesi\'nde kendi sorularını öner; onaylananları herkes oynar.'**
+  String get queueTip11;
+
+  /// Label above the rotating tip on the queue screen.
+  ///
+  /// In tr, this message translates to:
+  /// **'İPUCU'**
+  String get queueTipLabel;
+
   /// Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md).
   ///
   /// In tr, this message translates to:
@@ -3085,6 +3403,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Zaten bir çiftin var.'**
   String get error_COUPLE_EXISTS;
+
+  /// Server error code DAILY_ANSWERS_NOT_OPEN (docs/api/errors.md).
+  ///
+  /// In tr, this message translates to:
+  /// **'Cevaplar o gün bittikten sonra açılır.'**
+  String get error_DAILY_ANSWERS_NOT_OPEN;
 
   /// Server error code DAILY_ATTEMPT_IN_PROGRESS (docs/api/errors.md).
   ///
@@ -3434,323 +3758,53 @@ abstract class AppLocalizations {
   /// **'Bu kayıt başka biri tarafından değiştirildi. Yenileyip tekrar dene.'**
   String get error_VERSION_CONFLICT;
 
-  /// Room match end screen: countdown before going back to the room (D-092).
+  /// Hidden answers (D-100).
   ///
   /// In tr, this message translates to:
-  /// **'{seconds} sn içinde odaya dönülüyor…'**
-  String roomReturning(int seconds);
+  /// **'Doğru cevabı maç bitince sonuç ekranında görebilirsin.'**
+  String get answerHiddenNote;
 
-  /// Room settings dialog / host button (D-093).
+  /// Hidden answers (D-100).
   ///
   /// In tr, this message translates to:
-  /// **'Oda ayarları'**
-  String get roomSettingsTitle;
+  /// **'Doğru cevaplar yarın \"Dünün cevapları\"nda açılır.'**
+  String get dailyAnswerNextDay;
 
-  /// Match type picker label.
+  /// Hidden answers (D-100).
   ///
   /// In tr, this message translates to:
-  /// **'Maç tipi'**
-  String get matchTypeLabel;
+  /// **'Dünün cevapları'**
+  String get dailyYesterdayAnswers;
 
-  /// Snack bar after the host changed the room settings.
+  /// Hidden answers (D-100).
   ///
   /// In tr, this message translates to:
-  /// **'Oda ayarları güncellendi, herkes tekrar hazır olmalı'**
-  String get roomSettingsSaved;
+  /// **'Dünkü 10 sorunun doğru cevapları'**
+  String get dailyYesterdaySub;
 
-  /// Title of the matchmade team waiting lobby (D-094).
+  /// Hidden answers (D-100).
   ///
   /// In tr, this message translates to:
-  /// **'Eşleşme Lobisi'**
-  String get mmLobbyTitle;
+  /// **'Dünün cevapları'**
+  String get dailyAnswersTitle;
 
-  /// Waiting lobby: seats taken so far.
+  /// Hidden answers (D-100).
   ///
   /// In tr, this message translates to:
-  /// **'Oyuncular aranıyor… ({count}/{total})'**
-  String mmLobbyWaiting(int count, int total);
+  /// **'Senin cevabın'**
+  String get dailyAnswersYours;
 
-  /// Waiting lobby: how the leader is chosen.
+  /// Hidden answers (D-100).
   ///
   /// In tr, this message translates to:
-  /// **'Lobi dolunca rastgele bir lider seçilecek; maçı o başlatır.'**
-  String get mmLobbyLeaderSoon;
+  /// **'Bu soruyu cevaplamadın.'**
+  String get dailyAnswersNotPlayed;
 
-  /// The player is the lobby leader.
+  /// Hidden answers (D-100).
   ///
   /// In tr, this message translates to:
-  /// **'Lobi lideri sensin! Herkes hazır olunca maçı başlat.'**
-  String get mmLobbyYouLead;
-
-  /// Another player leads the lobby.
-  ///
-  /// In tr, this message translates to:
-  /// **'Lobi lideri: {name}. Hazır ol, maçı lider başlatacak.'**
-  String mmLobbyLeaderIs(String name);
-
-  /// Leader start button while not everyone is ready.
-  ///
-  /// In tr, this message translates to:
-  /// **'Herkesin hazır olması bekleniyor'**
-  String get mmLobbyWaitReady;
-
-  /// Empty seat of a waiting lobby.
-  ///
-  /// In tr, this message translates to:
-  /// **'Oyuncu aranıyor…'**
-  String get mmLobbySearchingSeat;
-
-  /// Dropped from the lobby for not readying in time.
-  ///
-  /// In tr, this message translates to:
-  /// **'Zamanında hazır olmadığın için lobiden çıkarıldın.'**
-  String get mmLobbyDropped;
-
-  /// Waiting lobby expired.
-  ///
-  /// In tr, this message translates to:
-  /// **'Yeterli oyuncu bulunamadı, lobi kapandı.'**
-  String get mmLobbyExpired;
-
-  /// Topic section label (D-095).
-  ///
-  /// In tr, this message translates to:
-  /// **'Konu'**
-  String get topicLabel;
-
-  /// Every topic mixed.
-  ///
-  /// In tr, this message translates to:
-  /// **'Tüm konular'**
-  String get topicAll;
-
-  /// Subtitle of "All topics".
-  ///
-  /// In tr, this message translates to:
-  /// **'Her konudan karışık sorular'**
-  String get topicAllSub;
-
-  /// Topic sheet title before searching.
-  ///
-  /// In tr, this message translates to:
-  /// **'Hangi konuda yarışmak istersin?'**
-  String get topicPickTitle;
-
-  /// Topic sheet subtitle.
-  ///
-  /// In tr, this message translates to:
-  /// **'Sadece aynı konuyu seçen oyuncularla eşleşirsin.'**
-  String get topicPickSub;
-
-  /// The topic of a queue or room.
-  ///
-  /// In tr, this message translates to:
-  /// **'Konu: {name}'**
-  String topicLine(String name);
-
-  /// Categories failed to load.
-  ///
-  /// In tr, this message translates to:
-  /// **'Konular yüklenemedi; \"Tüm konular\" ile oynayabilirsin.'**
-  String get topicLoadFailed;
-
-  /// Ranked has no topic (R04).
-  ///
-  /// In tr, this message translates to:
-  /// **'Dereceli maçlar her zaman tüm konulardan oynanır.'**
-  String get topicRankedNote;
-
-  /// The BrainVolt tagline under the word mark (splash, welcome).
-  ///
-  /// In tr, this message translates to:
-  /// **'BİLGİNİ YARIŞTIR, ZİRVEYE ÇIK'**
-  String get brandTagline;
-
-  /// Home: heading above the game mode tiles.
-  ///
-  /// In tr, this message translates to:
-  /// **'Oyun Modları'**
-  String get homeModesTitle;
-
-  /// Home: link to the full mode picker.
-  ///
-  /// In tr, this message translates to:
-  /// **'Tümü'**
-  String get homeSeeAll;
-
-  /// Home: heading above the shortcuts.
-  ///
-  /// In tr, this message translates to:
-  /// **'Keşfet'**
-  String get homeMoreTitle;
-
-  /// Home shortcut to the mode picker.
-  ///
-  /// In tr, this message translates to:
-  /// **'Tüm modlar'**
-  String get homeAllModes;
-
-  /// Home: line under the Ranked tile.
-  ///
-  /// In tr, this message translates to:
-  /// **'Ligini yükselt'**
-  String get homeRankedSub;
-
-  /// Home: tag on the daily challenge card.
-  ///
-  /// In tr, this message translates to:
-  /// **'BUGÜN'**
-  String get homeDailyTag;
-
-  /// Home: button on the daily challenge card.
-  ///
-  /// In tr, this message translates to:
-  /// **'Oyna'**
-  String get homeDailyPlay;
-
-  /// Bottom bar: Home.
-  ///
-  /// In tr, this message translates to:
-  /// **'Ana Sayfa'**
-  String get navHome;
-
-  /// Bottom bar: leaderboards (short).
-  ///
-  /// In tr, this message translates to:
-  /// **'Liderlik'**
-  String get navLeaderboards;
-
-  /// Profile / badges (BrainVolt).
-  ///
-  /// In tr, this message translates to:
-  /// **'Profili düzenle'**
-  String get profileEdit;
-
-  /// Profile / badges (BrainVolt).
-  ///
-  /// In tr, this message translates to:
-  /// **'Maç'**
-  String get profileMatches;
-
-  /// Profile / badges (BrainVolt).
-  ///
-  /// In tr, this message translates to:
-  /// **'Galibiyet'**
-  String get profileWins;
-
-  /// Profile / badges (BrainVolt).
-  ///
-  /// In tr, this message translates to:
-  /// **'Kazanma'**
-  String get profileWinRate;
-
-  /// Profile / badges (BrainVolt).
-  ///
-  /// In tr, this message translates to:
-  /// **'En iyi seri'**
-  String get profileBestStreak;
-
-  /// Profile / badges (BrainVolt).
-  ///
-  /// In tr, this message translates to:
-  /// **'Başarımlar'**
-  String get profileAchievements;
-
-  /// Profile / badges (BrainVolt).
-  ///
-  /// In tr, this message translates to:
-  /// **'Henüz rozet kazanmadın. Maç oyna, görevleri tamamla!'**
-  String get profileNoBadges;
-
-  /// Profile / badges (BrainVolt).
-  ///
-  /// In tr, this message translates to:
-  /// **'Henüz rozet yok.'**
-  String get badgesEmpty;
-
-  /// Quests: a section without quests.
-  ///
-  /// In tr, this message translates to:
-  /// **'Şu an görev yok, yakında yenileri gelecek.'**
-  String get questsEmpty;
-
-  /// Result screen: heading above the round list.
-  ///
-  /// In tr, this message translates to:
-  /// **'Sorular'**
-  String get resultRounds;
-
-  /// A game tip shown in turn while searching for an opponent.
-  ///
-  /// In tr, this message translates to:
-  /// **'Doğru cevabı ne kadar hızlı verirsen o kadar çok puan kazanırsın.'**
-  String get queueTip1;
-
-  /// A game tip shown in turn while searching for an opponent.
-  ///
-  /// In tr, this message translates to:
-  /// **'Ani Ölüm\'de ilk yanlış cevap maçı bitirir: acele etme, emin ol.'**
-  String get queueTip2;
-
-  /// A game tip shown in turn while searching for an opponent.
-  ///
-  /// In tr, this message translates to:
-  /// **'Maraton uzun soluklu bir maç: dikkatini sona kadar koru.'**
-  String get queueTip3;
-
-  /// A game tip shown in turn while searching for an opponent.
-  ///
-  /// In tr, this message translates to:
-  /// **'Dereceli maçlar lig puanını değiştirir; Bronz\'dan Elmas\'a tırman.'**
-  String get queueTip4;
-
-  /// A game tip shown in turn while searching for an opponent.
-  ///
-  /// In tr, this message translates to:
-  /// **'Konu seçersen yalnızca aynı konuyu seçen oyuncularla eşleşirsin.'**
-  String get queueTip5;
-
-  /// A game tip shown in turn while searching for an opponent.
-  ///
-  /// In tr, this message translates to:
-  /// **'Günün Meydan Okuması\'nda herkes aynı 10 soruyu çözer; sıralamada yerini al.'**
-  String get queueTip6;
-
-  /// A game tip shown in turn while searching for an opponent.
-  ///
-  /// In tr, this message translates to:
-  /// **'Görevleri tamamlayıp XP kazan; beğenmediğin bir görevi günde bir kez değiştirebilirsin.'**
-  String get queueTip7;
-
-  /// A game tip shown in turn while searching for an opponent.
-  ///
-  /// In tr, this message translates to:
-  /// **'Her gün en az bir maç oynayarak serini koru.'**
-  String get queueTip8;
-
-  /// A game tip shown in turn while searching for an opponent.
-  ///
-  /// In tr, this message translates to:
-  /// **'Arkadaş kodunu paylaş, Özel Oda kurup arkadaşlarınla oyna.'**
-  String get queueTip9;
-
-  /// A game tip shown in turn while searching for an opponent.
-  ///
-  /// In tr, this message translates to:
-  /// **'Takım kur, 2v2, 3v3 ve 4v4 maçlarda birlikte yarış.'**
-  String get queueTip10;
-
-  /// A game tip shown in turn while searching for an opponent.
-  ///
-  /// In tr, this message translates to:
-  /// **'Soru Atölyesi\'nde kendi sorularını öner; onaylananları herkes oynar.'**
-  String get queueTip11;
-
-  /// Label above the rotating tip on the queue screen.
-  ///
-  /// In tr, this message translates to:
-  /// **'İPUCU'**
-  String get queueTipLabel;
+  /// **'Dün için cevap yok.'**
+  String get dailyAnswersEmpty;
 }
 
 class _AppLocalizationsDelegate

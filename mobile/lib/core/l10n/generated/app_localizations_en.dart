@@ -1603,6 +1603,191 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tournamentMatchStarted => 'Your tournament match is on!';
 
   @override
+  String roomReturning(int seconds) {
+    return 'Back to the room in $seconds s…';
+  }
+
+  @override
+  String get roomSettingsTitle => 'Room settings';
+
+  @override
+  String get matchTypeLabel => 'Match type';
+
+  @override
+  String get roomSettingsSaved =>
+      'Room settings updated — everyone readies up again';
+
+  @override
+  String get mmLobbyTitle => 'Match lobby';
+
+  @override
+  String mmLobbyWaiting(int count, int total) {
+    return 'Finding players… ($count/$total)';
+  }
+
+  @override
+  String get mmLobbyLeaderSoon =>
+      'Once the lobby is full a random leader is picked; they start the match.';
+
+  @override
+  String get mmLobbyYouLead =>
+      'You lead this lobby! Start the match once everyone is ready.';
+
+  @override
+  String mmLobbyLeaderIs(String name) {
+    return 'Lobby leader: $name. Get ready — the leader starts the match.';
+  }
+
+  @override
+  String get mmLobbyWaitReady => 'Waiting for everyone to be ready';
+
+  @override
+  String get mmLobbySearchingSeat => 'Finding a player…';
+
+  @override
+  String get mmLobbyDropped =>
+      'You were removed from the lobby for not getting ready in time.';
+
+  @override
+  String get mmLobbyExpired =>
+      'Not enough players were found; the lobby closed.';
+
+  @override
+  String get topicLabel => 'Topic';
+
+  @override
+  String get topicAll => 'All topics';
+
+  @override
+  String get topicAllSub => 'Mixed questions from every topic';
+
+  @override
+  String get topicPickTitle => 'Which topic do you want to play?';
+
+  @override
+  String get topicPickSub =>
+      'You are matched only with players who chose the same topic.';
+
+  @override
+  String topicLine(String name) {
+    return 'Topic: $name';
+  }
+
+  @override
+  String get topicLoadFailed =>
+      'Topics could not be loaded; you can still play All topics.';
+
+  @override
+  String get topicRankedNote => 'Ranked matches always use every topic.';
+
+  @override
+  String get brandTagline => 'TEST YOUR KNOWLEDGE, REACH THE TOP';
+
+  @override
+  String get homeModesTitle => 'Game modes';
+
+  @override
+  String get homeSeeAll => 'See all';
+
+  @override
+  String get homeMoreTitle => 'Explore';
+
+  @override
+  String get homeAllModes => 'All modes';
+
+  @override
+  String get homeRankedSub => 'Climb your league';
+
+  @override
+  String get homeDailyTag => 'TODAY';
+
+  @override
+  String get homeDailyPlay => 'Play';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navLeaderboards => 'Leaders';
+
+  @override
+  String get profileEdit => 'Edit profile';
+
+  @override
+  String get profileMatches => 'Matches';
+
+  @override
+  String get profileWins => 'Wins';
+
+  @override
+  String get profileWinRate => 'Win rate';
+
+  @override
+  String get profileBestStreak => 'Best streak';
+
+  @override
+  String get profileAchievements => 'Achievements';
+
+  @override
+  String get profileNoBadges =>
+      'No badges yet. Play matches and finish quests!';
+
+  @override
+  String get badgesEmpty => 'No badges yet.';
+
+  @override
+  String get questsEmpty => 'No quests right now, new ones are on the way.';
+
+  @override
+  String get resultRounds => 'Questions';
+
+  @override
+  String get queueTip1 =>
+      'The faster you answer correctly, the more points you score.';
+
+  @override
+  String get queueTip2 =>
+      'In Sudden Death the first wrong answer ends the match: be sure before you tap.';
+
+  @override
+  String get queueTip3 =>
+      'Marathon is a long match: keep your focus until the last question.';
+
+  @override
+  String get queueTip4 =>
+      'Ranked matches move your league points; climb from Bronze to Diamond.';
+
+  @override
+  String get queueTip5 =>
+      'Pick a topic and you are matched only with players who picked the same one.';
+
+  @override
+  String get queueTip6 =>
+      'In the Daily Challenge everyone answers the same 10 questions; claim your rank.';
+
+  @override
+  String get queueTip7 =>
+      'Finish quests for XP; you can swap a quest you do not like once a day.';
+
+  @override
+  String get queueTip8 => 'Play at least one match a day to keep your streak.';
+
+  @override
+  String get queueTip9 =>
+      'Share your friend code, open a Private Room and play with friends.';
+
+  @override
+  String get queueTip10 =>
+      'Build a team and compete together in 2v2, 3v3 and 4v4 matches.';
+
+  @override
+  String get queueTip11 =>
+      'Suggest your own questions in the Question Lab; approved ones are played by everyone.';
+
+  @override
+  String get queueTipLabel => 'TIP';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Your account is being deleted. You can only cancel the deletion.';
 
@@ -1671,6 +1856,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get error_COUPLE_EXISTS => 'You already have a couple.';
+
+  @override
+  String get error_DAILY_ANSWERS_NOT_OPEN =>
+      'A day\'s answers open once the day is over.';
 
   @override
   String get error_DAILY_ATTEMPT_IN_PROGRESS =>
@@ -1873,187 +2062,29 @@ class AppLocalizationsEn extends AppLocalizations {
       'Someone else changed this. Refresh and try again.';
 
   @override
-  String roomReturning(int seconds) {
-    return 'Back to the room in $seconds s…';
-  }
+  String get answerHiddenNote =>
+      'You can see the right answer on the result screen after the match.';
 
   @override
-  String get roomSettingsTitle => 'Room settings';
+  String get dailyAnswerNextDay =>
+      'The right answers open tomorrow in \"Yesterday\'s answers\".';
 
   @override
-  String get matchTypeLabel => 'Match type';
+  String get dailyYesterdayAnswers => 'Yesterday\'s answers';
 
   @override
-  String get roomSettingsSaved =>
-      'Room settings updated — everyone readies up again';
+  String get dailyYesterdaySub =>
+      'The right answers to yesterday\'s 10 questions';
 
   @override
-  String get mmLobbyTitle => 'Match lobby';
+  String get dailyAnswersTitle => 'Yesterday\'s answers';
 
   @override
-  String mmLobbyWaiting(int count, int total) {
-    return 'Finding players… ($count/$total)';
-  }
+  String get dailyAnswersYours => 'Your answer';
 
   @override
-  String get mmLobbyLeaderSoon =>
-      'Once the lobby is full a random leader is picked; they start the match.';
+  String get dailyAnswersNotPlayed => 'You didn\'t answer this one.';
 
   @override
-  String get mmLobbyYouLead =>
-      'You lead this lobby! Start the match once everyone is ready.';
-
-  @override
-  String mmLobbyLeaderIs(String name) {
-    return 'Lobby leader: $name. Get ready — the leader starts the match.';
-  }
-
-  @override
-  String get mmLobbyWaitReady => 'Waiting for everyone to be ready';
-
-  @override
-  String get mmLobbySearchingSeat => 'Finding a player…';
-
-  @override
-  String get mmLobbyDropped =>
-      'You were removed from the lobby for not getting ready in time.';
-
-  @override
-  String get mmLobbyExpired =>
-      'Not enough players were found; the lobby closed.';
-
-  @override
-  String get topicLabel => 'Topic';
-
-  @override
-  String get topicAll => 'All topics';
-
-  @override
-  String get topicAllSub => 'Mixed questions from every topic';
-
-  @override
-  String get topicPickTitle => 'Which topic do you want to play?';
-
-  @override
-  String get topicPickSub =>
-      'You are matched only with players who chose the same topic.';
-
-  @override
-  String topicLine(String name) {
-    return 'Topic: $name';
-  }
-
-  @override
-  String get topicLoadFailed =>
-      'Topics could not be loaded; you can still play All topics.';
-
-  @override
-  String get topicRankedNote => 'Ranked matches always use every topic.';
-
-  @override
-  String get brandTagline => 'TEST YOUR KNOWLEDGE, REACH THE TOP';
-
-  @override
-  String get homeModesTitle => 'Game modes';
-
-  @override
-  String get homeSeeAll => 'See all';
-
-  @override
-  String get homeMoreTitle => 'Explore';
-
-  @override
-  String get homeAllModes => 'All modes';
-
-  @override
-  String get homeRankedSub => 'Climb your league';
-
-  @override
-  String get homeDailyTag => 'TODAY';
-
-  @override
-  String get homeDailyPlay => 'Play';
-
-  @override
-  String get navHome => 'Home';
-
-  @override
-  String get navLeaderboards => 'Leaders';
-
-  @override
-  String get profileEdit => 'Edit profile';
-
-  @override
-  String get profileMatches => 'Matches';
-
-  @override
-  String get profileWins => 'Wins';
-
-  @override
-  String get profileWinRate => 'Win rate';
-
-  @override
-  String get profileBestStreak => 'Best streak';
-
-  @override
-  String get profileAchievements => 'Achievements';
-
-  @override
-  String get profileNoBadges =>
-      'No badges yet. Play matches and finish quests!';
-
-  @override
-  String get badgesEmpty => 'No badges yet.';
-
-  @override
-  String get questsEmpty => 'No quests right now, new ones are on the way.';
-
-  @override
-  String get resultRounds => 'Questions';
-
-  @override
-  String get queueTip1 =>
-      'The faster you answer correctly, the more points you score.';
-
-  @override
-  String get queueTip2 =>
-      'In Sudden Death the first wrong answer ends the match: be sure before you tap.';
-
-  @override
-  String get queueTip3 =>
-      'Marathon is a long match: keep your focus until the last question.';
-
-  @override
-  String get queueTip4 =>
-      'Ranked matches move your league points; climb from Bronze to Diamond.';
-
-  @override
-  String get queueTip5 =>
-      'Pick a topic and you are matched only with players who picked the same one.';
-
-  @override
-  String get queueTip6 =>
-      'In the Daily Challenge everyone answers the same 10 questions; claim your rank.';
-
-  @override
-  String get queueTip7 =>
-      'Finish quests for XP; you can swap a quest you do not like once a day.';
-
-  @override
-  String get queueTip8 => 'Play at least one match a day to keep your streak.';
-
-  @override
-  String get queueTip9 =>
-      'Share your friend code, open a Private Room and play with friends.';
-
-  @override
-  String get queueTip10 =>
-      'Build a team and compete together in 2v2, 3v3 and 4v4 matches.';
-
-  @override
-  String get queueTip11 =>
-      'Suggest your own questions in the Question Lab; approved ones are played by everyone.';
-
-  @override
-  String get queueTipLabel => 'TIP';
+  String get dailyAnswersEmpty => 'No answers for yesterday.';
 }

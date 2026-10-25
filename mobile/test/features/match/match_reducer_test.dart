@@ -64,6 +64,32 @@ void main() {
     expect(s.cancelReason, 'not_all_ready');
   });
 
+  test('a hidden reveal (D-100) still ends the round', () {
+    var s = reduce(
+      start,
+      f('round.started', {
+        'round_no': 1,
+        'question': {'id': 'q', 'prompt': 'P'},
+        'options': <Object>[],
+        'show_at': 1,
+        'deadline_at': 2,
+      }),
+    );
+    expect(s.round?.isRevealed, isFalse);
+    s = reduce(
+      s,
+      f('round.revealed', {
+        'round_no': 1,
+        'answer_hidden': true,
+        'answers': [
+          {'user_id': 'me', 'option_id': 'b', 'correct': false},
+        ],
+      }),
+    );
+    expect(s.round?.isRevealed, isTrue);
+    expect(s.round?.correctOptionId, isNull);
+  });
+
   test('the match type comes from match.created and snapshots', () {
     var s = reduce(
       start,

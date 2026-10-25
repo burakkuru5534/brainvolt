@@ -203,6 +203,7 @@ MatchState reduce(MatchState s, ServerFrame f) {
         scores: scores,
         round: r.copyWith(
           locked: true,
+          isRevealed: true,
           correctOptionId: _str(d['correct_option_id']),
           explanation: _str(d['explanation']),
           category: _str(cat?['name']),

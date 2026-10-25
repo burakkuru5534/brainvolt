@@ -65,6 +65,7 @@ type Questions interface {
 	ActiveCategoryIDs(ctx context.Context) ([]uuid.UUID, error)
 	Texts(ctx context.Context, ids []uuid.UUID, locales []string) (map[uuid.UUID]map[string]content.QuestionText, error)
 	DailySet(ctx context.Context, day time.Time) (content.DailySet, error)
+	PublishedDailySet(ctx context.Context, day time.Time) (content.DailySet, bool, error)
 	QuestionSet(ctx context.Context, id uuid.UUID) (content.DailySet, error)
 }
 

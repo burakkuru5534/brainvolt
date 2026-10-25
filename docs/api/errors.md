@@ -64,6 +64,7 @@
 | `DAILY_ATTEMPT_USED` | 409 | — | official attempt already completed today (D-040) |
 | `DAILY_ATTEMPT_IN_PROGRESS` | 409 | — | official run running; `details.run_id` |
 | `DAILY_NOT_AVAILABLE` | 503 | — | today's set not published |
+| `DAILY_ANSWERS_NOT_OPEN` | 409 | — | `GET /v1/daily/answers` for today or more than 7 days back: answers open after the day (D-100) |
 | **Content / creator / moderation** | | | |
 | `QUESTION_SOURCE_REQUIRED` | 422 | — | D-006 |
 | `QUESTION_IN_USE` | 409 | — | structural edit of a used question (schema-content §4.3) |

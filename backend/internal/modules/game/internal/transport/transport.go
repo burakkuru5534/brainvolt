@@ -3,6 +3,7 @@ package transport
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -56,6 +57,12 @@ func (t *Transport) Register(s *httpserver.Server) {
 		Errors: []apierror.Code{apierror.ValidationFailed, apierror.DailyAttemptUsed, apierror.DailyAttemptInProgress, apierror.DailyNotAvailable,
 			apierror.IdempotencyKeyReused, apierror.IdempotencyInProgress},
 	}))
+	s.Handle("GET /v1/daily/answers", t.ident.Auth(t.dailyAnswers), httpserver.WithDoc(httpserver.Doc{
+		Tag: "game", Auth: "any",
+		Summary: "A past day's Daily Challenge answers (?day=YYYY-MM-DD, default yesterday, up to 7 days back) with the caller's own; " +
+			"today's are never served (D-100)",
+		Response: service.DailyAnswers{}, Errors: []apierror.Code{apierror.ValidationFailed, apierror.DailyAnswersNotOpen, apierror.NotFound},
+	}))
 	s.Handle("GET /v1/daily/runs/{id}", t.ident.Auth(t.dailyRun), httpserver.WithDoc(httpserver.Doc{
 		Tag: "game", Auth: "owner", Summary: "A daily run with its answers once completed",
 		Response: service.DailyRunView{}, Errors: []apierror.Code{apierror.NotFound},
@@ -82,6 +89,23 @@ func (t *Transport) dailyStart(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	return httpserver.WriteJSON(w, http.StatusCreated, v)
+}
+
+func (t *Transport) dailyAnswers(w http.ResponseWriter, r *http.Request) error {
+	p, _ := identity.PrincipalFrom(r.Context())
+	var day *time.Time
+	if v := r.URL.Query().Get("day"); v != "" {
+		d, err := time.Parse(time.DateOnly, v)
+		if err != nil {
+			return apierror.New(apierror.ValidationFailed).With("field", "day")
+		}
+		day = &d
+	}
+	v, err := t.svc.DailyAnswers(r.Context(), p.UserID, day, string(i18n.FromContext(r.Context())))
+	if err != nil {
+		return err
+	}
+	return httpserver.WriteJSON(w, http.StatusOK, v)
 }
 
 func (t *Transport) dailyRun(w http.ResponseWriter, r *http.Request) error {

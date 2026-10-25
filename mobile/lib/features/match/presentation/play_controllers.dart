@@ -224,9 +224,7 @@ class MatchController extends _$MatchController {
       });
     } on RealtimeError {
       final now = state.round;
-      if (now != null &&
-          now.roundNo == round.roundNo &&
-          now.correctOptionId == null) {
+      if (now != null && now.roundNo == round.roundNo && !now.isRevealed) {
         state = state.copyWith(
           round: RoundState(
             roundNo: now.roundNo,

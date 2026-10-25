@@ -112,7 +112,7 @@ sequenceDiagram
 2. No submission is accepted outside the `question` phase or after `deadline_at + grace`.
 3. At most one accepted answer per participant per round; Shared Answer: exactly one side answer per side (or a side timeout).
 4. Individual Turns: only `answering_user_id` of each side has an answer row (others' submissions rejected).
-5. `correct_option_id` never appears in any client message before `round.revealed`.
+5. `correct_option_id` never appears in any client message before `round.revealed`, and in `round.revealed` only for players who answered right (D-100).
 6. Every revealed round is persisted before the next round starts.
 7. Sum of a side's `round_results.points` = the side's running score.
 

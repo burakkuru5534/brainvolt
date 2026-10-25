@@ -77,6 +77,10 @@ func TestDailyChallenge(t *testing.T) {
 		if rv["position"] != pos || rv["correct"] != (pos < 10) {
 			t.Fatalf("revealed %v", rv)
 		}
+		// D-100: never the correct option during the day.
+		if _, leaked := rv["correct_option_id"]; leaked {
+			t.Fatalf("daily reveal leaks the answer %v", rv)
+		}
 		if pos < 10 {
 			q = data(w.next("daily.question"))
 			if q["position"] != pos+1 {
@@ -118,6 +122,46 @@ func TestDailyChallenge(t *testing.T) {
 		t.Fatalf("daily XP %s", r.raw)
 	}
 	want(t, "bad scope", x.do(http.MethodGet, "/v1/leaderboards/daily-challenge/"+day+"?scope=team", tokA, nil), 400, "VALIDATION_FAILED")
+
+	// D-100: today's answers stay closed; once the day is over they open
+	// (the run and the set are moved to yesterday to simulate it).
+	want(t, "answers today", x.do(http.MethodGet, "/v1/daily/answers?day="+day, tokA, nil), 409, "DAILY_ANSWERS_NOT_OPEN")
+	want(t, "answers bad day", x.do(http.MethodGet, "/v1/daily/answers?day=yesterday", tokA, nil), 400, "VALIDATION_FAILED")
+	for _, stmt := range []string{
+		`UPDATE content.daily_sets SET day = day - 1 WHERE day = $1::date`,
+		`UPDATE game.daily_runs SET day = day - 1 WHERE day = $1::date`,
+	} {
+		if _, err := x.db.Exec(t.Context(), stmt, day); err != nil {
+			t.Fatal(err)
+		}
+	}
+	r = x.do(http.MethodGet, "/v1/daily/answers", tokA, nil)
+	qs, _ := r.get("questions").([]any)
+	if r.code != 200 || len(qs) != 10 {
+		t.Fatalf("yesterday's answers %s", r.raw)
+	}
+	right := 0
+	for _, v := range qs {
+		q := v.(map[string]any)
+		if q["correct_option_id"] == nil || q["prompt"] == "" || len(q["options"].([]any)) < 2 {
+			t.Fatalf("answer review %v", q)
+		}
+		if q["your_correct"] == true && q["your_option_id"] == q["correct_option_id"] {
+			right++
+		}
+	}
+	if right != 9 {
+		t.Fatalf("own answers in the review: %d right, want 9 (%s)", right, r.raw)
+	}
+	// Move them back: the rest of the test plays today.
+	for _, stmt := range []string{
+		`UPDATE content.daily_sets SET day = day + 1 WHERE day = $1::date - 1`,
+		`UPDATE game.daily_runs SET day = day + 1 WHERE day = $1::date - 1`,
+	} {
+		if _, err := x.db.Exec(t.Context(), stmt, day); err != nil {
+			t.Fatal(err)
+		}
+	}
 
 	// The clock keeps running: a missed deadline is a timeout on resume.
 	tokB, _, _ := x.fullUser()

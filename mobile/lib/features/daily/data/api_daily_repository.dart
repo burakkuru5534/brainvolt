@@ -23,6 +23,13 @@ class ApiDailyRepository implements DailyRepository {
   );
 
   @override
+  Future<DailyAnswers> answers({String? day}) async => DailyAnswers.fromJson(
+    await api.getJson(
+      day == null ? '/v1/daily/answers' : '/v1/daily/answers?day=$day',
+    ),
+  );
+
+  @override
   Future<DailyBoard> board(String day, String scope) async =>
       DailyBoard.fromJson(
         await api.getJson('/v1/leaderboards/daily-challenge/$day?scope=$scope'),

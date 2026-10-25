@@ -13,6 +13,7 @@ import '../features/chat/presentation/chat_screen.dart';
 import '../features/content/presentation/credits_screen.dart';
 import '../features/creator/presentation/quiz_editor_screen.dart';
 import '../features/creator/presentation/quizzes_screen.dart';
+import '../features/daily/presentation/daily_answers_screen.dart';
 import '../features/daily/presentation/daily_run_screen.dart';
 import '../features/daily/presentation/daily_screen.dart';
 import '../features/home/presentation/home_screen.dart';
@@ -62,6 +63,7 @@ abstract final class Routes {
   static const quests = '/quests';
   static const badges = '/badges';
   static const daily = '/daily';
+  static const dailyAnswers = '/daily/answers';
   static const sanctions = '/sanctions';
   static const quizzes = '/quizzes';
   static const inbox = '/inbox';
@@ -150,6 +152,10 @@ GoRouter router(Ref ref) {
       GoRoute(
         path: Routes.daily,
         builder: (context, state) => const DailyScreen(),
+      ),
+      GoRoute(
+        path: Routes.dailyAnswers,
+        builder: (context, state) => const DailyAnswersScreen(),
       ),
       GoRoute(
         path: '/daily/runs/:id',

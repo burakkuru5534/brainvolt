@@ -107,6 +107,64 @@ class DailyBoard {
   final DailyEntry? me;
 }
 
+/// One question of a past day with its answer (D-100).
+class DailyAnswerReview {
+  const DailyAnswerReview({
+    required this.position,
+    required this.prompt,
+    required this.options,
+    required this.correctOptionId,
+    this.category = '',
+    this.explanation,
+    this.yourOptionId,
+    this.yourCorrect = false,
+  });
+
+  factory DailyAnswerReview.fromJson(Map<String, dynamic> j) =>
+      DailyAnswerReview(
+        position: (j['position'] as num).toInt(),
+        prompt: j['prompt'] as String? ?? '',
+        category: j['category'] as String? ?? '',
+        explanation: j['explanation'] as String?,
+        options: [
+          for (final o in (j['options'] as List? ?? const []))
+            ((o as Map)['id'] as String, o['text'] as String? ?? ''),
+        ],
+        correctOptionId: j['correct_option_id'] as String? ?? '',
+        yourOptionId: j['your_option_id'] as String?,
+        yourCorrect: j['your_correct'] == true,
+      );
+
+  final int position;
+  final String prompt;
+  final String category;
+  final String? explanation;
+
+  /// (id, text) in the question's order.
+  final List<(String, String)> options;
+  final String correctOptionId;
+
+  /// The caller's official answer; null if they did not play or timed out.
+  final String? yourOptionId;
+  final bool yourCorrect;
+}
+
+/// GET /v1/daily/answers: a finished day's questions and answers.
+class DailyAnswers {
+  const DailyAnswers({required this.day, required this.questions});
+
+  factory DailyAnswers.fromJson(Map<String, dynamic> j) => DailyAnswers(
+    day: j['day'] as String? ?? '',
+    questions: [
+      for (final q in (j['questions'] as List? ?? const []))
+        DailyAnswerReview.fromJson((q as Map).cast<String, dynamic>()),
+    ],
+  );
+
+  final String day;
+  final List<DailyAnswerReview> questions;
+}
+
 abstract interface class DailyRepository {
   Future<DailyToday> today();
 
@@ -115,4 +173,7 @@ abstract interface class DailyRepository {
 
   /// global / country / friends.
   Future<DailyBoard> board(String day, String scope);
+
+  /// A finished day's answers (D-100); [day] null = yesterday.
+  Future<DailyAnswers> answers({String? day});
 }

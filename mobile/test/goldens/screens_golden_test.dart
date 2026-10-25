@@ -124,6 +124,7 @@ void main() {
 
     for (final (name, route) in [
       ('daily', Routes.daily),
+      ('daily_answers', Routes.dailyAnswers),
       ('leaderboards', Routes.leaderboards),
       ('quests', Routes.quests),
       ('badges', Routes.badges),

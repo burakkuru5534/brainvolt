@@ -709,6 +709,33 @@ class FakeDailyRepository implements DailyRepository {
 
   @override
   Future<DailyBoard> board(String day, String scope) async => boardValue;
+
+  DailyAnswers answersValue = const DailyAnswers(
+    day: '2026-10-19',
+    questions: [
+      DailyAnswerReview(
+        position: 1,
+        prompt: 'Türkiye’nin başkenti neresidir?',
+        category: 'Coğrafya',
+        options: [('o1', 'Ankara'), ('o2', 'İstanbul'), ('o3', 'İzmir')],
+        correctOptionId: 'o1',
+        explanation: 'Ankara 13 Ekim 1923’ten beri başkenttir.',
+        yourOptionId: 'o2',
+      ),
+      DailyAnswerReview(
+        position: 2,
+        prompt: 'Güneş sistemindeki en büyük gezegen hangisidir?',
+        category: 'Bilim',
+        options: [('p1', 'Jüpiter'), ('p2', 'Satürn'), ('p3', 'Mars')],
+        correctOptionId: 'p1',
+        yourOptionId: 'p1',
+        yourCorrect: true,
+      ),
+    ],
+  );
+
+  @override
+  Future<DailyAnswers> answers({String? day}) async => answersValue;
 }
 
 class FakeModerationRepository implements ModerationRepository {

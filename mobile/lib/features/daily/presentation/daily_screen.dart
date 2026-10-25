@@ -147,6 +147,14 @@ class _DailyScreenState extends ConsumerState<DailyScreen> {
               label: Text(l10n.dailyPractice),
             ),
         ],
+        const SizedBox(height: 12),
+        ActionCard(
+          key: const Key('daily-yesterday'),
+          icon: Icons.fact_check_rounded,
+          title: l10n.dailyYesterdayAnswers,
+          subtitle: l10n.dailyYesterdaySub,
+          onTap: () => context.push(Routes.dailyAnswers),
+        ),
         const SizedBox(height: 8),
         SectionTitle(l10n.dailyBoardTitle),
         WcSegmented<String>(

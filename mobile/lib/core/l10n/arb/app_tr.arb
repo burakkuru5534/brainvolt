@@ -2275,318 +2275,6 @@
   "@tournamentMatchStarted": {
     "description": "Snack bar"
   },
-  "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
-  "@error_ACCOUNT_DELETION_PENDING": {
-    "description": "Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md)."
-  },
-  "error_ACCOUNT_SUSPENDED": "Hesabın askıya alındı.",
-  "@error_ACCOUNT_SUSPENDED": {
-    "description": "Server error code ACCOUNT_SUSPENDED (docs/api/errors.md)."
-  },
-  "error_ACCOUNT_UPGRADE_REQUIRED": "Bu işlem için hesabını yükseltmelisin.",
-  "@error_ACCOUNT_UPGRADE_REQUIRED": {
-    "description": "Server error code ACCOUNT_UPGRADE_REQUIRED (docs/api/errors.md)."
-  },
-  "error_AD_REWARD_LIMIT": "Bugün için reklam ödülü sınırına ulaştın.",
-  "@error_AD_REWARD_LIMIT": {
-    "description": "Server error code AD_REWARD_LIMIT (docs/api/errors.md)."
-  },
-  "error_AGE_CONFIRMATION_REQUIRED": "Devam etmek için yaşını onaylamalısın.",
-  "@error_AGE_CONFIRMATION_REQUIRED": {
-    "description": "Server error code AGE_CONFIRMATION_REQUIRED (docs/api/errors.md)."
-  },
-  "error_ALREADY_FRIENDS": "Zaten arkadaşsınız.",
-  "@error_ALREADY_FRIENDS": {
-    "description": "Server error code ALREADY_FRIENDS (docs/api/errors.md)."
-  },
-  "error_ALREADY_IN_MATCH": "Zaten devam eden bir maçın var.",
-  "@error_ALREADY_IN_MATCH": {
-    "description": "Server error code ALREADY_IN_MATCH (docs/api/errors.md)."
-  },
-  "error_ALREADY_QUEUED": "Zaten eşleşme sırasındasın.",
-  "@error_ALREADY_QUEUED": {
-    "description": "Server error code ALREADY_QUEUED (docs/api/errors.md)."
-  },
-  "error_ALREADY_REPORTED": "Bunu zaten bildirdin.",
-  "@error_ALREADY_REPORTED": {
-    "description": "Server error code ALREADY_REPORTED (docs/api/errors.md)."
-  },
-  "error_ANSWER_DUPLICATE": "Bu soruyu zaten cevapladın.",
-  "@error_ANSWER_DUPLICATE": {
-    "description": "Server error code ANSWER_DUPLICATE (docs/api/errors.md)."
-  },
-  "error_ANSWER_INVALID_OPTION": "Geçersiz cevap seçeneği.",
-  "@error_ANSWER_INVALID_OPTION": {
-    "description": "Server error code ANSWER_INVALID_OPTION (docs/api/errors.md)."
-  },
-  "error_ANSWER_LATE": "Cevap süresi doldu.",
-  "@error_ANSWER_LATE": {
-    "description": "Server error code ANSWER_LATE (docs/api/errors.md)."
-  },
-  "error_APPEAL_EXISTS": "Bu yaptırım için zaten bir itirazın var.",
-  "@error_APPEAL_EXISTS": {
-    "description": "Server error code APPEAL_EXISTS (docs/api/errors.md)."
-  },
-  "error_APP_VERSION_UNSUPPORTED": "Devam etmek için uygulamayı güncellemelisin.",
-  "@error_APP_VERSION_UNSUPPORTED": {
-    "description": "Server error code APP_VERSION_UNSUPPORTED (docs/api/errors.md)."
-  },
-  "error_BLOCKED": "Bu kullanıcıyla etkileşim kuramazsın.",
-  "@error_BLOCKED": {
-    "description": "Server error code BLOCKED (docs/api/errors.md)."
-  },
-  "error_CHALLENGES_DISABLED": "Bu kullanıcı şu anda meydan okuma kabul etmiyor.",
-  "@error_CHALLENGES_DISABLED": {
-    "description": "Server error code CHALLENGES_DISABLED (docs/api/errors.md)."
-  },
-  "error_CHALLENGE_EXPIRED": "Meydan okumanın süresi doldu.",
-  "@error_CHALLENGE_EXPIRED": {
-    "description": "Server error code CHALLENGE_EXPIRED (docs/api/errors.md)."
-  },
-  "error_CHANGE_TOO_SOON": "Bunu henüz değiştiremezsin. Daha sonra tekrar dene.",
-  "@error_CHANGE_TOO_SOON": {
-    "description": "Server error code CHANGE_TOO_SOON (docs/api/errors.md)."
-  },
-  "error_COUPLE_COOLDOWN": "Yeni bir çift oluşturmak için biraz beklemelisin.",
-  "@error_COUPLE_COOLDOWN": {
-    "description": "Server error code COUPLE_COOLDOWN (docs/api/errors.md)."
-  },
-  "error_COUPLE_EXISTS": "Zaten bir çiftin var.",
-  "@error_COUPLE_EXISTS": {
-    "description": "Server error code COUPLE_EXISTS (docs/api/errors.md)."
-  },
-  "error_DAILY_ATTEMPT_IN_PROGRESS": "Devam eden bir günlük denemen var.",
-  "@error_DAILY_ATTEMPT_IN_PROGRESS": {
-    "description": "Server error code DAILY_ATTEMPT_IN_PROGRESS (docs/api/errors.md)."
-  },
-  "error_DAILY_ATTEMPT_USED": "Bugünkü resmi denemeni zaten kullandın.",
-  "@error_DAILY_ATTEMPT_USED": {
-    "description": "Server error code DAILY_ATTEMPT_USED (docs/api/errors.md)."
-  },
-  "error_DAILY_NOT_AVAILABLE": "Günün meydan okuması henüz hazır değil.",
-  "@error_DAILY_NOT_AVAILABLE": {
-    "description": "Server error code DAILY_NOT_AVAILABLE (docs/api/errors.md)."
-  },
-  "error_FORBIDDEN": "Bu işlem için yetkin yok.",
-  "@error_FORBIDDEN": {
-    "description": "Server error code FORBIDDEN (docs/api/errors.md)."
-  },
-  "error_FRIEND_LIMIT_REACHED": "Arkadaş sınırına ulaştın.",
-  "@error_FRIEND_LIMIT_REACHED": {
-    "description": "Server error code FRIEND_LIMIT_REACHED (docs/api/errors.md)."
-  },
-  "error_IDEMPOTENCY_KEY_REUSED": "Bu istek anahtarı farklı bir istek için zaten kullanıldı.",
-  "@error_IDEMPOTENCY_KEY_REUSED": {
-    "description": "Server error code IDEMPOTENCY_KEY_REUSED (docs/api/errors.md)."
-  },
-  "error_IDEMPOTENT_REQUEST_IN_PROGRESS": "Bu istek hâlâ işleniyor. Birazdan tekrar dene.",
-  "@error_IDEMPOTENT_REQUEST_IN_PROGRESS": {
-    "description": "Server error code IDEMPOTENT_REQUEST_IN_PROGRESS (docs/api/errors.md)."
-  },
-  "error_INTERNAL": "Beklenmeyen bir hata oluştu. Lütfen tekrar dene.",
-  "@error_INTERNAL": {
-    "description": "Server error code INTERNAL (docs/api/errors.md)."
-  },
-  "error_INVITE_CODE_EXPIRED": "Davet kodunun süresi doldu.",
-  "@error_INVITE_CODE_EXPIRED": {
-    "description": "Server error code INVITE_CODE_EXPIRED (docs/api/errors.md)."
-  },
-  "error_INVITE_CODE_INVALID": "Davet kodu geçersiz.",
-  "@error_INVITE_CODE_INVALID": {
-    "description": "Server error code INVITE_CODE_INVALID (docs/api/errors.md)."
-  },
-  "error_MALFORMED_REQUEST": "İstek okunamadı.",
-  "@error_MALFORMED_REQUEST": {
-    "description": "Server error code MALFORMED_REQUEST (docs/api/errors.md)."
-  },
-  "error_MATCH_NOT_FOUND": "Maç bulunamadı.",
-  "@error_MATCH_NOT_FOUND": {
-    "description": "Server error code MATCH_NOT_FOUND (docs/api/errors.md)."
-  },
-  "error_MATCH_STATE_INVALID": "Bu işlem maçın şu anki aşamasında yapılamaz.",
-  "@error_MATCH_STATE_INVALID": {
-    "description": "Server error code MATCH_STATE_INVALID (docs/api/errors.md)."
-  },
-  "error_METHOD_NOT_ALLOWED": "Bu işlem bu adreste desteklenmiyor.",
-  "@error_METHOD_NOT_ALLOWED": {
-    "description": "Server error code METHOD_NOT_ALLOWED (docs/api/errors.md)."
-  },
-  "error_MODE_NOT_ALLOWED": "Bu oyun modu kombinasyonu desteklenmiyor.",
-  "@error_MODE_NOT_ALLOWED": {
-    "description": "Server error code MODE_NOT_ALLOWED (docs/api/errors.md)."
-  },
-  "error_NOT_A_PARTICIPANT": "Bu maçın oyuncusu değilsin.",
-  "@error_NOT_A_PARTICIPANT": {
-    "description": "Server error code NOT_A_PARTICIPANT (docs/api/errors.md)."
-  },
-  "error_NOT_CAPTAIN": "Bunu yalnızca takım kaptanı yapabilir.",
-  "@error_NOT_CAPTAIN": {
-    "description": "Server error code NOT_CAPTAIN (docs/api/errors.md)."
-  },
-  "error_NOT_ENOUGH_QUESTIONS": "Bu ayarlar için yeterli soru yok.",
-  "@error_NOT_ENOUGH_QUESTIONS": {
-    "description": "Server error code NOT_ENOUGH_QUESTIONS (docs/api/errors.md)."
-  },
-  "error_NOT_FOUND": "Aradığın şey bulunamadı.",
-  "@error_NOT_FOUND": {
-    "description": "Server error code NOT_FOUND (docs/api/errors.md)."
-  },
-  "error_NOT_YOUR_TURN": "Sıra sende değil.",
-  "@error_NOT_YOUR_TURN": {
-    "description": "Server error code NOT_YOUR_TURN (docs/api/errors.md)."
-  },
-  "error_NO_ACTIVE_SEASON": "Şu anda aktif bir sezon yok.",
-  "@error_NO_ACTIVE_SEASON": {
-    "description": "Server error code NO_ACTIVE_SEASON (docs/api/errors.md)."
-  },
-  "error_PAYLOAD_TOO_LARGE": "İstek çok büyük.",
-  "@error_PAYLOAD_TOO_LARGE": {
-    "description": "Server error code PAYLOAD_TOO_LARGE (docs/api/errors.md)."
-  },
-  "error_PICK_NOT_ALLOWED": "Bu kategori seçilemez.",
-  "@error_PICK_NOT_ALLOWED": {
-    "description": "Server error code PICK_NOT_ALLOWED (docs/api/errors.md)."
-  },
-  "error_PURCHASE_ALREADY_PROCESSED": "Bu satın alma zaten işlendi.",
-  "@error_PURCHASE_ALREADY_PROCESSED": {
-    "description": "Server error code PURCHASE_ALREADY_PROCESSED (docs/api/errors.md)."
-  },
-  "error_PURCHASE_INVALID": "Satın alma doğrulanamadı.",
-  "@error_PURCHASE_INVALID": {
-    "description": "Server error code PURCHASE_INVALID (docs/api/errors.md)."
-  },
-  "error_QUESTION_DUPLICATE": "Bu soru zaten var.",
-  "@error_QUESTION_DUPLICATE": {
-    "description": "Server error code QUESTION_DUPLICATE (docs/api/errors.md)."
-  },
-  "error_QUESTION_IN_USE": "Bu soru maçlarda kullanıldığı için bu şekilde değiştirilemez.",
-  "@error_QUESTION_IN_USE": {
-    "description": "Server error code QUESTION_IN_USE (docs/api/errors.md)."
-  },
-  "error_QUESTION_SOURCE_REQUIRED": "Sorunun kaynağı ve lisansı belirtilmeli.",
-  "@error_QUESTION_SOURCE_REQUIRED": {
-    "description": "Server error code QUESTION_SOURCE_REQUIRED (docs/api/errors.md)."
-  },
-  "error_QUESTION_STATE_INVALID": "Sorunun şu anki durumunda bu işlem yapılamaz.",
-  "@error_QUESTION_STATE_INVALID": {
-    "description": "Server error code QUESTION_STATE_INVALID (docs/api/errors.md)."
-  },
-  "error_QUEST_ALREADY_CLAIMED": "Bu ödülü zaten aldın.",
-  "@error_QUEST_ALREADY_CLAIMED": {
-    "description": "Server error code QUEST_ALREADY_CLAIMED (docs/api/errors.md)."
-  },
-  "error_QUEST_NOT_COMPLETED": "Bu görev henüz tamamlanmadı.",
-  "@error_QUEST_NOT_COMPLETED": {
-    "description": "Server error code QUEST_NOT_COMPLETED (docs/api/errors.md)."
-  },
-  "error_QUEST_NOT_REROLLABLE": "Bu görev değiştirilemez.",
-  "@error_QUEST_NOT_REROLLABLE": {
-    "description": "Server error code QUEST_NOT_REROLLABLE (docs/api/errors.md)."
-  },
-  "error_QUEST_REROLL_LIMIT": "Bugünkü görev değiştirme hakkın bitti.",
-  "@error_QUEST_REROLL_LIMIT": {
-    "description": "Server error code QUEST_REROLL_LIMIT (docs/api/errors.md)."
-  },
-  "error_QUEUE_COOLDOWN": "Bir süre eşleşme sırasına giremezsin.",
-  "@error_QUEUE_COOLDOWN": {
-    "description": "Server error code QUEUE_COOLDOWN (docs/api/errors.md)."
-  },
-  "error_QUIZ_LIMIT_REACHED": "Quiz sınırına ulaştın.",
-  "@error_QUIZ_LIMIT_REACHED": {
-    "description": "Server error code QUIZ_LIMIT_REACHED (docs/api/errors.md)."
-  },
-  "error_QUIZ_SIZE_INVALID": "Quiz soru sayısı izin verilen aralıkta değil.",
-  "@error_QUIZ_SIZE_INVALID": {
-    "description": "Server error code QUIZ_SIZE_INVALID (docs/api/errors.md)."
-  },
-  "error_RATE_LIMITED": "Çok fazla istek gönderdin. Biraz bekleyip tekrar dene.",
-  "@error_RATE_LIMITED": {
-    "description": "Server error code RATE_LIMITED (docs/api/errors.md)."
-  },
-  "error_REPORT_LIMIT_REACHED": "Bugün için bildirim sınırına ulaştın.",
-  "@error_REPORT_LIMIT_REACHED": {
-    "description": "Server error code REPORT_LIMIT_REACHED (docs/api/errors.md)."
-  },
-  "error_REQUEST_PENDING": "Bekleyen bir arkadaşlık isteği zaten var.",
-  "@error_REQUEST_PENDING": {
-    "description": "Server error code REQUEST_PENDING (docs/api/errors.md)."
-  },
-  "error_REVENGE_NOT_ALLOWED": "Rövanş maçı şu anda mümkün değil.",
-  "@error_REVENGE_NOT_ALLOWED": {
-    "description": "Server error code REVENGE_NOT_ALLOWED (docs/api/errors.md)."
-  },
-  "error_ROOM_CLOSED": "Oda kapandı.",
-  "@error_ROOM_CLOSED": {
-    "description": "Server error code ROOM_CLOSED (docs/api/errors.md)."
-  },
-  "error_ROOM_FRIENDS_ONLY": "Bu odaya yalnızca kurucunun arkadaşları katılabilir.",
-  "@error_ROOM_FRIENDS_ONLY": {
-    "description": "Server error code ROOM_FRIENDS_ONLY (docs/api/errors.md)."
-  },
-  "error_ROOM_FULL": "Oda dolu.",
-  "@error_ROOM_FULL": {
-    "description": "Server error code ROOM_FULL (docs/api/errors.md)."
-  },
-  "error_SANCTIONED": "Bu özellik hesabın için geçici olarak kısıtlandı.",
-  "@error_SANCTIONED": {
-    "description": "Server error code SANCTIONED (docs/api/errors.md)."
-  },
-  "error_SEAT_TAKEN_ELSEWHERE": "Bu maça başka bir cihazdan bağlandın.",
-  "@error_SEAT_TAKEN_ELSEWHERE": {
-    "description": "Server error code SEAT_TAKEN_ELSEWHERE (docs/api/errors.md)."
-  },
-  "error_SELF_REVIEW_FORBIDDEN": "Kendi dosyanı inceleyemezsin.",
-  "@error_SELF_REVIEW_FORBIDDEN": {
-    "description": "Server error code SELF_REVIEW_FORBIDDEN (docs/api/errors.md)."
-  },
-  "error_TEAM_FULL": "Takım dolu.",
-  "@error_TEAM_FULL": {
-    "description": "Server error code TEAM_FULL (docs/api/errors.md)."
-  },
-  "error_TEAM_LIMIT_REACHED": "Takım sınırına ulaştın.",
-  "@error_TEAM_LIMIT_REACHED": {
-    "description": "Server error code TEAM_LIMIT_REACHED (docs/api/errors.md)."
-  },
-  "error_TEXT_REJECTED": "Bu metin kurallarımıza uymuyor.",
-  "@error_TEXT_REJECTED": {
-    "description": "Server error code TEXT_REJECTED (docs/api/errors.md)."
-  },
-  "error_TOKEN_EXPIRED": "Oturumunun süresi doldu. Lütfen tekrar dene.",
-  "@error_TOKEN_EXPIRED": {
-    "description": "Server error code TOKEN_EXPIRED (docs/api/errors.md)."
-  },
-  "error_TOURNAMENT_FULL": "Turnuva dolu.",
-  "@error_TOURNAMENT_FULL": {
-    "description": "Server error code TOURNAMENT_FULL (docs/api/errors.md)."
-  },
-  "error_TOURNAMENT_REGISTRATION_CLOSED": "Turnuva kayıtları kapandı.",
-  "@error_TOURNAMENT_REGISTRATION_CLOSED": {
-    "description": "Server error code TOURNAMENT_REGISTRATION_CLOSED (docs/api/errors.md)."
-  },
-  "error_TOURNAMENT_REQUIREMENTS_NOT_MET": "Bu turnuvanın katılım şartlarını karşılamıyorsun.",
-  "@error_TOURNAMENT_REQUIREMENTS_NOT_MET": {
-    "description": "Server error code TOURNAMENT_REQUIREMENTS_NOT_MET (docs/api/errors.md)."
-  },
-  "error_UNAUTHENTICATED": "Oturum açman gerekiyor.",
-  "@error_UNAUTHENTICATED": {
-    "description": "Server error code UNAUTHENTICATED (docs/api/errors.md)."
-  },
-  "error_UNAVAILABLE": "Hizmet şu anda kullanılamıyor. Biraz sonra tekrar dene.",
-  "@error_UNAVAILABLE": {
-    "description": "Server error code UNAVAILABLE (docs/api/errors.md)."
-  },
-  "error_USERNAME_TAKEN": "Bu kullanıcı adı zaten alınmış.",
-  "@error_USERNAME_TAKEN": {
-    "description": "Server error code USERNAME_TAKEN (docs/api/errors.md)."
-  },
-  "error_VALIDATION_FAILED": "Gönderilen bilgiler geçersiz.",
-  "@error_VALIDATION_FAILED": {
-    "description": "Server error code VALIDATION_FAILED (docs/api/errors.md)."
-  },
-  "error_VERSION_CONFLICT": "Bu kayıt başka biri tarafından değiştirildi. Yenileyip tekrar dene.",
-  "@error_VERSION_CONFLICT": {
-    "description": "Server error code VERSION_CONFLICT (docs/api/errors.md)."
-  },
   "roomReturning": "{seconds} sn içinde odaya dönülüyor…",
   "@roomReturning": {
     "description": "Room match end screen: countdown before going back to the room (D-092).",
@@ -2821,5 +2509,353 @@
   "queueTipLabel": "İPUCU",
   "@queueTipLabel": {
     "description": "Label above the rotating tip on the queue screen."
+  },
+  "error_ACCOUNT_DELETION_PENDING": "Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.",
+  "@error_ACCOUNT_DELETION_PENDING": {
+    "description": "Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md)."
+  },
+  "error_ACCOUNT_SUSPENDED": "Hesabın askıya alındı.",
+  "@error_ACCOUNT_SUSPENDED": {
+    "description": "Server error code ACCOUNT_SUSPENDED (docs/api/errors.md)."
+  },
+  "error_ACCOUNT_UPGRADE_REQUIRED": "Bu işlem için hesabını yükseltmelisin.",
+  "@error_ACCOUNT_UPGRADE_REQUIRED": {
+    "description": "Server error code ACCOUNT_UPGRADE_REQUIRED (docs/api/errors.md)."
+  },
+  "error_AD_REWARD_LIMIT": "Bugün için reklam ödülü sınırına ulaştın.",
+  "@error_AD_REWARD_LIMIT": {
+    "description": "Server error code AD_REWARD_LIMIT (docs/api/errors.md)."
+  },
+  "error_AGE_CONFIRMATION_REQUIRED": "Devam etmek için yaşını onaylamalısın.",
+  "@error_AGE_CONFIRMATION_REQUIRED": {
+    "description": "Server error code AGE_CONFIRMATION_REQUIRED (docs/api/errors.md)."
+  },
+  "error_ALREADY_FRIENDS": "Zaten arkadaşsınız.",
+  "@error_ALREADY_FRIENDS": {
+    "description": "Server error code ALREADY_FRIENDS (docs/api/errors.md)."
+  },
+  "error_ALREADY_IN_MATCH": "Zaten devam eden bir maçın var.",
+  "@error_ALREADY_IN_MATCH": {
+    "description": "Server error code ALREADY_IN_MATCH (docs/api/errors.md)."
+  },
+  "error_ALREADY_QUEUED": "Zaten eşleşme sırasındasın.",
+  "@error_ALREADY_QUEUED": {
+    "description": "Server error code ALREADY_QUEUED (docs/api/errors.md)."
+  },
+  "error_ALREADY_REPORTED": "Bunu zaten bildirdin.",
+  "@error_ALREADY_REPORTED": {
+    "description": "Server error code ALREADY_REPORTED (docs/api/errors.md)."
+  },
+  "error_ANSWER_DUPLICATE": "Bu soruyu zaten cevapladın.",
+  "@error_ANSWER_DUPLICATE": {
+    "description": "Server error code ANSWER_DUPLICATE (docs/api/errors.md)."
+  },
+  "error_ANSWER_INVALID_OPTION": "Geçersiz cevap seçeneği.",
+  "@error_ANSWER_INVALID_OPTION": {
+    "description": "Server error code ANSWER_INVALID_OPTION (docs/api/errors.md)."
+  },
+  "error_ANSWER_LATE": "Cevap süresi doldu.",
+  "@error_ANSWER_LATE": {
+    "description": "Server error code ANSWER_LATE (docs/api/errors.md)."
+  },
+  "error_APPEAL_EXISTS": "Bu yaptırım için zaten bir itirazın var.",
+  "@error_APPEAL_EXISTS": {
+    "description": "Server error code APPEAL_EXISTS (docs/api/errors.md)."
+  },
+  "error_APP_VERSION_UNSUPPORTED": "Devam etmek için uygulamayı güncellemelisin.",
+  "@error_APP_VERSION_UNSUPPORTED": {
+    "description": "Server error code APP_VERSION_UNSUPPORTED (docs/api/errors.md)."
+  },
+  "error_BLOCKED": "Bu kullanıcıyla etkileşim kuramazsın.",
+  "@error_BLOCKED": {
+    "description": "Server error code BLOCKED (docs/api/errors.md)."
+  },
+  "error_CHALLENGES_DISABLED": "Bu kullanıcı şu anda meydan okuma kabul etmiyor.",
+  "@error_CHALLENGES_DISABLED": {
+    "description": "Server error code CHALLENGES_DISABLED (docs/api/errors.md)."
+  },
+  "error_CHALLENGE_EXPIRED": "Meydan okumanın süresi doldu.",
+  "@error_CHALLENGE_EXPIRED": {
+    "description": "Server error code CHALLENGE_EXPIRED (docs/api/errors.md)."
+  },
+  "error_CHANGE_TOO_SOON": "Bunu henüz değiştiremezsin. Daha sonra tekrar dene.",
+  "@error_CHANGE_TOO_SOON": {
+    "description": "Server error code CHANGE_TOO_SOON (docs/api/errors.md)."
+  },
+  "error_COUPLE_COOLDOWN": "Yeni bir çift oluşturmak için biraz beklemelisin.",
+  "@error_COUPLE_COOLDOWN": {
+    "description": "Server error code COUPLE_COOLDOWN (docs/api/errors.md)."
+  },
+  "error_COUPLE_EXISTS": "Zaten bir çiftin var.",
+  "@error_COUPLE_EXISTS": {
+    "description": "Server error code COUPLE_EXISTS (docs/api/errors.md)."
+  },
+  "error_DAILY_ANSWERS_NOT_OPEN": "Cevaplar o gün bittikten sonra açılır.",
+  "@error_DAILY_ANSWERS_NOT_OPEN": {
+    "description": "Server error code DAILY_ANSWERS_NOT_OPEN (docs/api/errors.md)."
+  },
+  "error_DAILY_ATTEMPT_IN_PROGRESS": "Devam eden bir günlük denemen var.",
+  "@error_DAILY_ATTEMPT_IN_PROGRESS": {
+    "description": "Server error code DAILY_ATTEMPT_IN_PROGRESS (docs/api/errors.md)."
+  },
+  "error_DAILY_ATTEMPT_USED": "Bugünkü resmi denemeni zaten kullandın.",
+  "@error_DAILY_ATTEMPT_USED": {
+    "description": "Server error code DAILY_ATTEMPT_USED (docs/api/errors.md)."
+  },
+  "error_DAILY_NOT_AVAILABLE": "Günün meydan okuması henüz hazır değil.",
+  "@error_DAILY_NOT_AVAILABLE": {
+    "description": "Server error code DAILY_NOT_AVAILABLE (docs/api/errors.md)."
+  },
+  "error_FORBIDDEN": "Bu işlem için yetkin yok.",
+  "@error_FORBIDDEN": {
+    "description": "Server error code FORBIDDEN (docs/api/errors.md)."
+  },
+  "error_FRIEND_LIMIT_REACHED": "Arkadaş sınırına ulaştın.",
+  "@error_FRIEND_LIMIT_REACHED": {
+    "description": "Server error code FRIEND_LIMIT_REACHED (docs/api/errors.md)."
+  },
+  "error_IDEMPOTENCY_KEY_REUSED": "Bu istek anahtarı farklı bir istek için zaten kullanıldı.",
+  "@error_IDEMPOTENCY_KEY_REUSED": {
+    "description": "Server error code IDEMPOTENCY_KEY_REUSED (docs/api/errors.md)."
+  },
+  "error_IDEMPOTENT_REQUEST_IN_PROGRESS": "Bu istek hâlâ işleniyor. Birazdan tekrar dene.",
+  "@error_IDEMPOTENT_REQUEST_IN_PROGRESS": {
+    "description": "Server error code IDEMPOTENT_REQUEST_IN_PROGRESS (docs/api/errors.md)."
+  },
+  "error_INTERNAL": "Beklenmeyen bir hata oluştu. Lütfen tekrar dene.",
+  "@error_INTERNAL": {
+    "description": "Server error code INTERNAL (docs/api/errors.md)."
+  },
+  "error_INVITE_CODE_EXPIRED": "Davet kodunun süresi doldu.",
+  "@error_INVITE_CODE_EXPIRED": {
+    "description": "Server error code INVITE_CODE_EXPIRED (docs/api/errors.md)."
+  },
+  "error_INVITE_CODE_INVALID": "Davet kodu geçersiz.",
+  "@error_INVITE_CODE_INVALID": {
+    "description": "Server error code INVITE_CODE_INVALID (docs/api/errors.md)."
+  },
+  "error_MALFORMED_REQUEST": "İstek okunamadı.",
+  "@error_MALFORMED_REQUEST": {
+    "description": "Server error code MALFORMED_REQUEST (docs/api/errors.md)."
+  },
+  "error_MATCH_NOT_FOUND": "Maç bulunamadı.",
+  "@error_MATCH_NOT_FOUND": {
+    "description": "Server error code MATCH_NOT_FOUND (docs/api/errors.md)."
+  },
+  "error_MATCH_STATE_INVALID": "Bu işlem maçın şu anki aşamasında yapılamaz.",
+  "@error_MATCH_STATE_INVALID": {
+    "description": "Server error code MATCH_STATE_INVALID (docs/api/errors.md)."
+  },
+  "error_METHOD_NOT_ALLOWED": "Bu işlem bu adreste desteklenmiyor.",
+  "@error_METHOD_NOT_ALLOWED": {
+    "description": "Server error code METHOD_NOT_ALLOWED (docs/api/errors.md)."
+  },
+  "error_MODE_NOT_ALLOWED": "Bu oyun modu kombinasyonu desteklenmiyor.",
+  "@error_MODE_NOT_ALLOWED": {
+    "description": "Server error code MODE_NOT_ALLOWED (docs/api/errors.md)."
+  },
+  "error_NOT_A_PARTICIPANT": "Bu maçın oyuncusu değilsin.",
+  "@error_NOT_A_PARTICIPANT": {
+    "description": "Server error code NOT_A_PARTICIPANT (docs/api/errors.md)."
+  },
+  "error_NOT_CAPTAIN": "Bunu yalnızca takım kaptanı yapabilir.",
+  "@error_NOT_CAPTAIN": {
+    "description": "Server error code NOT_CAPTAIN (docs/api/errors.md)."
+  },
+  "error_NOT_ENOUGH_QUESTIONS": "Bu ayarlar için yeterli soru yok.",
+  "@error_NOT_ENOUGH_QUESTIONS": {
+    "description": "Server error code NOT_ENOUGH_QUESTIONS (docs/api/errors.md)."
+  },
+  "error_NOT_FOUND": "Aradığın şey bulunamadı.",
+  "@error_NOT_FOUND": {
+    "description": "Server error code NOT_FOUND (docs/api/errors.md)."
+  },
+  "error_NOT_YOUR_TURN": "Sıra sende değil.",
+  "@error_NOT_YOUR_TURN": {
+    "description": "Server error code NOT_YOUR_TURN (docs/api/errors.md)."
+  },
+  "error_NO_ACTIVE_SEASON": "Şu anda aktif bir sezon yok.",
+  "@error_NO_ACTIVE_SEASON": {
+    "description": "Server error code NO_ACTIVE_SEASON (docs/api/errors.md)."
+  },
+  "error_PAYLOAD_TOO_LARGE": "İstek çok büyük.",
+  "@error_PAYLOAD_TOO_LARGE": {
+    "description": "Server error code PAYLOAD_TOO_LARGE (docs/api/errors.md)."
+  },
+  "error_PICK_NOT_ALLOWED": "Bu kategori seçilemez.",
+  "@error_PICK_NOT_ALLOWED": {
+    "description": "Server error code PICK_NOT_ALLOWED (docs/api/errors.md)."
+  },
+  "error_PURCHASE_ALREADY_PROCESSED": "Bu satın alma zaten işlendi.",
+  "@error_PURCHASE_ALREADY_PROCESSED": {
+    "description": "Server error code PURCHASE_ALREADY_PROCESSED (docs/api/errors.md)."
+  },
+  "error_PURCHASE_INVALID": "Satın alma doğrulanamadı.",
+  "@error_PURCHASE_INVALID": {
+    "description": "Server error code PURCHASE_INVALID (docs/api/errors.md)."
+  },
+  "error_QUESTION_DUPLICATE": "Bu soru zaten var.",
+  "@error_QUESTION_DUPLICATE": {
+    "description": "Server error code QUESTION_DUPLICATE (docs/api/errors.md)."
+  },
+  "error_QUESTION_IN_USE": "Bu soru maçlarda kullanıldığı için bu şekilde değiştirilemez.",
+  "@error_QUESTION_IN_USE": {
+    "description": "Server error code QUESTION_IN_USE (docs/api/errors.md)."
+  },
+  "error_QUESTION_SOURCE_REQUIRED": "Sorunun kaynağı ve lisansı belirtilmeli.",
+  "@error_QUESTION_SOURCE_REQUIRED": {
+    "description": "Server error code QUESTION_SOURCE_REQUIRED (docs/api/errors.md)."
+  },
+  "error_QUESTION_STATE_INVALID": "Sorunun şu anki durumunda bu işlem yapılamaz.",
+  "@error_QUESTION_STATE_INVALID": {
+    "description": "Server error code QUESTION_STATE_INVALID (docs/api/errors.md)."
+  },
+  "error_QUEST_ALREADY_CLAIMED": "Bu ödülü zaten aldın.",
+  "@error_QUEST_ALREADY_CLAIMED": {
+    "description": "Server error code QUEST_ALREADY_CLAIMED (docs/api/errors.md)."
+  },
+  "error_QUEST_NOT_COMPLETED": "Bu görev henüz tamamlanmadı.",
+  "@error_QUEST_NOT_COMPLETED": {
+    "description": "Server error code QUEST_NOT_COMPLETED (docs/api/errors.md)."
+  },
+  "error_QUEST_NOT_REROLLABLE": "Bu görev değiştirilemez.",
+  "@error_QUEST_NOT_REROLLABLE": {
+    "description": "Server error code QUEST_NOT_REROLLABLE (docs/api/errors.md)."
+  },
+  "error_QUEST_REROLL_LIMIT": "Bugünkü görev değiştirme hakkın bitti.",
+  "@error_QUEST_REROLL_LIMIT": {
+    "description": "Server error code QUEST_REROLL_LIMIT (docs/api/errors.md)."
+  },
+  "error_QUEUE_COOLDOWN": "Bir süre eşleşme sırasına giremezsin.",
+  "@error_QUEUE_COOLDOWN": {
+    "description": "Server error code QUEUE_COOLDOWN (docs/api/errors.md)."
+  },
+  "error_QUIZ_LIMIT_REACHED": "Quiz sınırına ulaştın.",
+  "@error_QUIZ_LIMIT_REACHED": {
+    "description": "Server error code QUIZ_LIMIT_REACHED (docs/api/errors.md)."
+  },
+  "error_QUIZ_SIZE_INVALID": "Quiz soru sayısı izin verilen aralıkta değil.",
+  "@error_QUIZ_SIZE_INVALID": {
+    "description": "Server error code QUIZ_SIZE_INVALID (docs/api/errors.md)."
+  },
+  "error_RATE_LIMITED": "Çok fazla istek gönderdin. Biraz bekleyip tekrar dene.",
+  "@error_RATE_LIMITED": {
+    "description": "Server error code RATE_LIMITED (docs/api/errors.md)."
+  },
+  "error_REPORT_LIMIT_REACHED": "Bugün için bildirim sınırına ulaştın.",
+  "@error_REPORT_LIMIT_REACHED": {
+    "description": "Server error code REPORT_LIMIT_REACHED (docs/api/errors.md)."
+  },
+  "error_REQUEST_PENDING": "Bekleyen bir arkadaşlık isteği zaten var.",
+  "@error_REQUEST_PENDING": {
+    "description": "Server error code REQUEST_PENDING (docs/api/errors.md)."
+  },
+  "error_REVENGE_NOT_ALLOWED": "Rövanş maçı şu anda mümkün değil.",
+  "@error_REVENGE_NOT_ALLOWED": {
+    "description": "Server error code REVENGE_NOT_ALLOWED (docs/api/errors.md)."
+  },
+  "error_ROOM_CLOSED": "Oda kapandı.",
+  "@error_ROOM_CLOSED": {
+    "description": "Server error code ROOM_CLOSED (docs/api/errors.md)."
+  },
+  "error_ROOM_FRIENDS_ONLY": "Bu odaya yalnızca kurucunun arkadaşları katılabilir.",
+  "@error_ROOM_FRIENDS_ONLY": {
+    "description": "Server error code ROOM_FRIENDS_ONLY (docs/api/errors.md)."
+  },
+  "error_ROOM_FULL": "Oda dolu.",
+  "@error_ROOM_FULL": {
+    "description": "Server error code ROOM_FULL (docs/api/errors.md)."
+  },
+  "error_SANCTIONED": "Bu özellik hesabın için geçici olarak kısıtlandı.",
+  "@error_SANCTIONED": {
+    "description": "Server error code SANCTIONED (docs/api/errors.md)."
+  },
+  "error_SEAT_TAKEN_ELSEWHERE": "Bu maça başka bir cihazdan bağlandın.",
+  "@error_SEAT_TAKEN_ELSEWHERE": {
+    "description": "Server error code SEAT_TAKEN_ELSEWHERE (docs/api/errors.md)."
+  },
+  "error_SELF_REVIEW_FORBIDDEN": "Kendi dosyanı inceleyemezsin.",
+  "@error_SELF_REVIEW_FORBIDDEN": {
+    "description": "Server error code SELF_REVIEW_FORBIDDEN (docs/api/errors.md)."
+  },
+  "error_TEAM_FULL": "Takım dolu.",
+  "@error_TEAM_FULL": {
+    "description": "Server error code TEAM_FULL (docs/api/errors.md)."
+  },
+  "error_TEAM_LIMIT_REACHED": "Takım sınırına ulaştın.",
+  "@error_TEAM_LIMIT_REACHED": {
+    "description": "Server error code TEAM_LIMIT_REACHED (docs/api/errors.md)."
+  },
+  "error_TEXT_REJECTED": "Bu metin kurallarımıza uymuyor.",
+  "@error_TEXT_REJECTED": {
+    "description": "Server error code TEXT_REJECTED (docs/api/errors.md)."
+  },
+  "error_TOKEN_EXPIRED": "Oturumunun süresi doldu. Lütfen tekrar dene.",
+  "@error_TOKEN_EXPIRED": {
+    "description": "Server error code TOKEN_EXPIRED (docs/api/errors.md)."
+  },
+  "error_TOURNAMENT_FULL": "Turnuva dolu.",
+  "@error_TOURNAMENT_FULL": {
+    "description": "Server error code TOURNAMENT_FULL (docs/api/errors.md)."
+  },
+  "error_TOURNAMENT_REGISTRATION_CLOSED": "Turnuva kayıtları kapandı.",
+  "@error_TOURNAMENT_REGISTRATION_CLOSED": {
+    "description": "Server error code TOURNAMENT_REGISTRATION_CLOSED (docs/api/errors.md)."
+  },
+  "error_TOURNAMENT_REQUIREMENTS_NOT_MET": "Bu turnuvanın katılım şartlarını karşılamıyorsun.",
+  "@error_TOURNAMENT_REQUIREMENTS_NOT_MET": {
+    "description": "Server error code TOURNAMENT_REQUIREMENTS_NOT_MET (docs/api/errors.md)."
+  },
+  "error_UNAUTHENTICATED": "Oturum açman gerekiyor.",
+  "@error_UNAUTHENTICATED": {
+    "description": "Server error code UNAUTHENTICATED (docs/api/errors.md)."
+  },
+  "error_UNAVAILABLE": "Hizmet şu anda kullanılamıyor. Biraz sonra tekrar dene.",
+  "@error_UNAVAILABLE": {
+    "description": "Server error code UNAVAILABLE (docs/api/errors.md)."
+  },
+  "error_USERNAME_TAKEN": "Bu kullanıcı adı zaten alınmış.",
+  "@error_USERNAME_TAKEN": {
+    "description": "Server error code USERNAME_TAKEN (docs/api/errors.md)."
+  },
+  "error_VALIDATION_FAILED": "Gönderilen bilgiler geçersiz.",
+  "@error_VALIDATION_FAILED": {
+    "description": "Server error code VALIDATION_FAILED (docs/api/errors.md)."
+  },
+  "error_VERSION_CONFLICT": "Bu kayıt başka biri tarafından değiştirildi. Yenileyip tekrar dene.",
+  "@error_VERSION_CONFLICT": {
+    "description": "Server error code VERSION_CONFLICT (docs/api/errors.md)."
+  },
+  "answerHiddenNote": "Doğru cevabı maç bitince sonuç ekranında görebilirsin.",
+  "@answerHiddenNote": {
+    "description": "Hidden answers (D-100)."
+  },
+  "dailyAnswerNextDay": "Doğru cevaplar yarın \"Dünün cevapları\"nda açılır.",
+  "@dailyAnswerNextDay": {
+    "description": "Hidden answers (D-100)."
+  },
+  "dailyYesterdayAnswers": "Dünün cevapları",
+  "@dailyYesterdayAnswers": {
+    "description": "Hidden answers (D-100)."
+  },
+  "dailyYesterdaySub": "Dünkü 10 sorunun doğru cevapları",
+  "@dailyYesterdaySub": {
+    "description": "Hidden answers (D-100)."
+  },
+  "dailyAnswersTitle": "Dünün cevapları",
+  "@dailyAnswersTitle": {
+    "description": "Hidden answers (D-100)."
+  },
+  "dailyAnswersYours": "Senin cevabın",
+  "@dailyAnswersYours": {
+    "description": "Hidden answers (D-100)."
+  },
+  "dailyAnswersNotPlayed": "Bu soruyu cevaplamadın.",
+  "@dailyAnswersNotPlayed": {
+    "description": "Hidden answers (D-100)."
+  },
+  "dailyAnswersEmpty": "Dün için cevap yok.",
+  "@dailyAnswersEmpty": {
+    "description": "Hidden answers (D-100)."
   }
 }

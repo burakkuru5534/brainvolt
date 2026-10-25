@@ -148,7 +148,7 @@ No pong for **3 consecutive pings** (in match: 6 s; outside: 60 s) → server tr
 | `round.answer_received` | `{round_no, user_id}` (others) / `{round_no, user_id, option_id}` (own) | a Shared Answer lock carries `{side_no, option_id, locked: true}` and shows the option to the whole side; the snapshot's `round` adds `answering_user_ids`, `answered_user_ids` and, in Shared Answer, the own side's `proposals` and `locked_option_id` |
 | `round.proposals` | `{round_no, proposals: [{user_id, option_id}]}` | own side only, Shared Answer |
 | `round.locked` | `{round_no}` | |
-| `round.revealed` | `{round_no, correct_option_id, explanation?, category, answers: [{user_id, option_id, response_ms, correct, points: {base, speed, streak, sync?}}], sides: [{side_no, correct, points, score}]}` | |
+| `round.revealed` | `{round_no, correct_option_id?, explanation?, answer_hidden?, category, answers: [{user_id, option_id?, response_ms, correct, points: {base, speed, streak, sync?}}], sides: [{side_no, correct, points, score}]}` | Per recipient (D-100): `correct_option_id`, `explanation` and the `option_id` of every right answer only for a player who got it right (own answer row; without one, the side's result); others get `answer_hidden: true`. The result screen (`GET /v1/matches/{id}`) shows every answer after the end. |
 | `match.halftime` | `{ends_at, scores}` | Marathon |
 | `match.participant_status` | `{user_id, status, reconnect_deadline_at?}` | disconnected / back / left / forfeited |
 | `match.seat_moved` | `{}` | another device took the seat |
@@ -161,7 +161,7 @@ No pong for **3 consecutive pings** (in match: 6 s; outside: 60 s) → server tr
 
 **Tournaments (personal deliveries, D-090):** `tournament.updated {tournament_id}` — the bracket, entries or status changed, reload; `tournament.match_ready {tournament_id, match_id}` — both sides are present, join the match.
 
-**Daily run stream (`daily:<run_id>`)** — same round events as a match with `run_id` and `position` instead of `match_id` / `round_no`: `daily.question`, `daily.answer_received`, `daily.revealed`, `daily.completed {correct_count, total_time_ms, score, rank?}`, `daily.voided {reason}`.
+**Daily run stream (`daily:<run_id>`)** — same round events as a match with `run_id` and `position` instead of `match_id` / `round_no`: `daily.question`, `daily.answer_received`, `daily.revealed {position, option_id, correct, points, response_ms}` (never the correct option, D-100), `daily.completed {correct_count, total_time_ms, score, rank?}`, `daily.voided {reason}`.
 
 **Chat stream (`chat:<channel_id>`)**: `chat.message {id, sender_id, body|quick_id, created_at}`, `chat.message_removed {id}`, `chat.typing {user_id}`.
 

@@ -580,7 +580,7 @@ class _RoundView extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final r = state.round!;
-    final revealed = r.correctOptionId != null;
+    final revealed = r.isRevealed;
     if (!revealed && now < r.showAt) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -712,6 +712,14 @@ class _RoundView extends StatelessWidget {
                   ? l10n.pointsGained(mine!.points)
                   : null,
             ),
+            if (r.correctOptionId == null) ...[
+              const SizedBox(height: 8),
+              NoticeBar(
+                l10n.answerHiddenNote,
+                key: const Key('answer-hidden'),
+                icon: Icons.visibility_off_rounded,
+              ),
+            ],
             if (r.explanation != null) ...[
               const SizedBox(height: 8),
               BvCard(

@@ -82,6 +82,7 @@ const (
 	DailyAttemptUsed       Code = "DAILY_ATTEMPT_USED"
 	DailyAttemptInProgress Code = "DAILY_ATTEMPT_IN_PROGRESS"
 	DailyNotAvailable      Code = "DAILY_NOT_AVAILABLE"
+	DailyAnswersNotOpen    Code = "DAILY_ANSWERS_NOT_OPEN"
 )
 
 // Content, creator & moderation.
@@ -188,6 +189,7 @@ var statuses = map[Code]int{
 	DailyAttemptUsed:       http.StatusConflict,
 	DailyAttemptInProgress: http.StatusConflict,
 	DailyNotAvailable:      http.StatusServiceUnavailable,
+	DailyAnswersNotOpen:    http.StatusConflict,
 
 	QuestionSourceRequired: http.StatusUnprocessableEntity,
 	QuestionInUse:          http.StatusConflict,

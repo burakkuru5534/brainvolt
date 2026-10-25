@@ -200,7 +200,10 @@ class _DailyRunScreenState extends ConsumerState<DailyRunScreen> {
     final l10n = context.l10n;
     final reveal = _revealed[q.position];
     final left = ((q.deadline - now) / 1000).clamp(0, 15);
-    final correct = reveal?['correct_option_id'] as String?;
+    // D-100: the right option is never sent during the day; only whether
+    // the player's own pick was right. Answers open in "Yesterday's answers".
+    final picked = reveal?['option_id'] as String?;
+    final wasRight = reveal?['correct'] == true;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -253,15 +256,13 @@ class _DailyRunScreenState extends ConsumerState<DailyRunScreen> {
               key: Key('daily-option-$id'),
               letter: String.fromCharCode(65 + i),
               text: text,
-              look: correct == null
+              look: reveal == null
                   ? (_chosen[q.position] == id
                         ? OptionLook.chosen
                         : OptionLook.idle)
-                  : id == correct
-                  ? OptionLook.correct
-                  : (_chosen[q.position] == id
-                        ? OptionLook.wrong
-                        : OptionLook.idle),
+                  : id == picked
+                  ? (wasRight ? OptionLook.correct : OptionLook.wrong)
+                  : OptionLook.idle,
               onPressed: reveal == null && !_chosen.containsKey(q.position)
                   ? () => _answer(q, id)
                   : null,
@@ -286,6 +287,14 @@ class _DailyRunScreenState extends ConsumerState<DailyRunScreen> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
+        if (reveal != null && !wasRight) ...[
+          const SizedBox(height: 8),
+          NoticeBar(
+            l10n.dailyAnswerNextDay,
+            key: const Key('daily-answer-later'),
+            icon: Icons.schedule_rounded,
+          ),
+        ],
       ],
     );
   }

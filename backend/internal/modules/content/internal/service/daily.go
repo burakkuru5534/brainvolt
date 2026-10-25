@@ -51,6 +51,21 @@ func (s *Service) DailySet(ctx context.Context, day time.Time) (DailySet, error)
 	return s.questionSet(ctx, q, id)
 }
 
+// PublishedDailySet returns day's set only if it was published; unlike
+// DailySet it never publishes one (looking back at past days, D-100).
+func (s *Service) PublishedDailySet(ctx context.Context, day time.Time) (DailySet, bool, error) {
+	q := sqlc.New(s.db)
+	id, err := q.DailySetOf(ctx, date(day))
+	if errors.Is(err, pgx.ErrNoRows) {
+		return DailySet{}, false, nil
+	}
+	if err != nil {
+		return DailySet{}, false, err
+	}
+	set, err := s.questionSet(ctx, q, id)
+	return set, err == nil, err
+}
+
 // QuestionSet returns a question set's questions in order whatever their
 // verification state (creator quizzes are played among friends before
 // review).

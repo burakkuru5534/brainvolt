@@ -68,6 +68,7 @@ var messagesTR = map[Code]string{
 	DailyAttemptUsed:       "Bugünkü resmi denemeni zaten kullandın.",
 	DailyAttemptInProgress: "Devam eden bir günlük denemen var.",
 	DailyNotAvailable:      "Günün meydan okuması henüz hazır değil.",
+	DailyAnswersNotOpen:    "Cevaplar o gün bittikten sonra açılır.",
 
 	QuestionSourceRequired: "Sorunun kaynağı ve lisansı belirtilmeli.",
 	QuestionInUse:          "Bu soru maçlarda kullanıldığı için bu şekilde değiştirilemez.",

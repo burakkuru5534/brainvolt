@@ -98,6 +98,7 @@ class RoundState {
     this.locked = false,
     this.correctOptionId,
     this.explanation,
+    this.isRevealed = false,
     this.revealed = const {},
     this.answering = const {},
     this.proposals = const {},
@@ -120,6 +121,10 @@ class RoundState {
   /// Players who answered (✓ only for opponents).
   final Set<String> answered;
   final bool locked;
+
+  /// After round.revealed. [correctOptionId] stays null for a player who
+  /// answered wrong (D-100): the answer is on the result screen.
+  final bool isRevealed;
   final String? correctOptionId;
   final String? explanation;
   final Map<String, RevealedAnswer> revealed;
@@ -139,6 +144,7 @@ class RoundState {
     bool? locked,
     String? correctOptionId,
     String? explanation,
+    bool? isRevealed,
     Map<String, RevealedAnswer>? revealed,
     String? category,
     Map<String, String>? proposals,
@@ -155,6 +161,7 @@ class RoundState {
     locked: locked ?? this.locked,
     correctOptionId: correctOptionId ?? this.correctOptionId,
     explanation: explanation ?? this.explanation,
+    isRevealed: isRevealed ?? this.isRevealed,
     revealed: revealed ?? this.revealed,
     answering: answering,
     proposals: proposals ?? this.proposals,

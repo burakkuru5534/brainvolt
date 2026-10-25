@@ -52,6 +52,7 @@
 | GET | `/v1/daily/today` | any | — | 8 | Today's daily info: date, status of caller's official attempt, practice allowed, board preview. |
 | POST | `/v1/daily/runs` | any | ✓ | 8 | Start a run `{kind: official|practice}` → `{run_id, ws_stream}`. `DAILY_ATTEMPT_USED` / `DAILY_ATTEMPT_IN_PROGRESS`. |
 | GET | `/v1/daily/runs/{id}` | any (owner) | — | 8 | Run result. |
+| GET | `/v1/daily/answers?day=` | any | — | 8 | A past day's questions with correct options and the caller's own answers; default yesterday, up to 7 days back; today → `DAILY_ANSWERS_NOT_OPEN` (D-100). `daily.revealed` never carries the correct option. |
 | POST | `/v1/daily/{date}/beat-my-score` | any | ✓ | 8 | Send "beat my score" to friends `{friend_ids[]}`. |
 | GET | `/v1/meta/modes` | any | — | 3 | Mode matrix for UI (allowed combinations, defaults, windows) — generated from the validator (0.5). |
 

@@ -95,7 +95,6 @@ void main() {
         'd': {
           'run_id': 'run-official',
           'position': 1,
-          'correct_option_id': 'o1',
           'option_id': 'o1',
           'correct': true,
         },
@@ -160,6 +159,43 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(t.daily.started, ['practice']);
+    await finish(tester, t);
+  });
+
+  testWidgets('daily: yesterday\'s answers show the right option', (
+    tester,
+  ) async {
+    final t = await launch(tester, (t) {
+      t.daily.answersValue = const DailyAnswers(
+        day: '2026-10-19',
+        questions: [
+          DailyAnswerReview(
+            position: 1,
+            prompt: 'Türkiye’nin başkenti?',
+            category: 'Coğrafya',
+            options: [('o1', 'Ankara'), ('o2', 'İstanbul')],
+            correctOptionId: 'o1',
+            explanation: 'Ankara 1923’ten beri başkent.',
+            yourOptionId: 'o2',
+          ),
+          DailyAnswerReview(
+            position: 2,
+            prompt: 'En büyük gezegen?',
+            options: [('p1', 'Jüpiter'), ('p2', 'Mars')],
+            correctOptionId: 'p1',
+          ),
+        ],
+      );
+    });
+    await tester.tap(find.byKey(const Key('open-daily')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('daily-yesterday')));
+    await tester.pumpAndSettle();
+    expect(find.text('Dünün cevapları'), findsOneWidget);
+    expect(find.text('Türkiye’nin başkenti?'), findsOneWidget);
+    expect(find.text('Senin cevabın'), findsOneWidget);
+    expect(find.text('Ankara 1923’ten beri başkent.'), findsOneWidget);
+    expect(find.text('Bu soruyu cevaplamadın.'), findsOneWidget);
     await finish(tester, t);
   });
 }

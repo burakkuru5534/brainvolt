@@ -1602,6 +1602,190 @@ class AppLocalizationsTr extends AppLocalizations {
   String get tournamentMatchStarted => 'Turnuva maçın başladı!';
 
   @override
+  String roomReturning(int seconds) {
+    return '$seconds sn içinde odaya dönülüyor…';
+  }
+
+  @override
+  String get roomSettingsTitle => 'Oda ayarları';
+
+  @override
+  String get matchTypeLabel => 'Maç tipi';
+
+  @override
+  String get roomSettingsSaved =>
+      'Oda ayarları güncellendi, herkes tekrar hazır olmalı';
+
+  @override
+  String get mmLobbyTitle => 'Eşleşme Lobisi';
+
+  @override
+  String mmLobbyWaiting(int count, int total) {
+    return 'Oyuncular aranıyor… ($count/$total)';
+  }
+
+  @override
+  String get mmLobbyLeaderSoon =>
+      'Lobi dolunca rastgele bir lider seçilecek; maçı o başlatır.';
+
+  @override
+  String get mmLobbyYouLead =>
+      'Lobi lideri sensin! Herkes hazır olunca maçı başlat.';
+
+  @override
+  String mmLobbyLeaderIs(String name) {
+    return 'Lobi lideri: $name. Hazır ol, maçı lider başlatacak.';
+  }
+
+  @override
+  String get mmLobbyWaitReady => 'Herkesin hazır olması bekleniyor';
+
+  @override
+  String get mmLobbySearchingSeat => 'Oyuncu aranıyor…';
+
+  @override
+  String get mmLobbyDropped =>
+      'Zamanında hazır olmadığın için lobiden çıkarıldın.';
+
+  @override
+  String get mmLobbyExpired => 'Yeterli oyuncu bulunamadı, lobi kapandı.';
+
+  @override
+  String get topicLabel => 'Konu';
+
+  @override
+  String get topicAll => 'Tüm konular';
+
+  @override
+  String get topicAllSub => 'Her konudan karışık sorular';
+
+  @override
+  String get topicPickTitle => 'Hangi konuda yarışmak istersin?';
+
+  @override
+  String get topicPickSub => 'Sadece aynı konuyu seçen oyuncularla eşleşirsin.';
+
+  @override
+  String topicLine(String name) {
+    return 'Konu: $name';
+  }
+
+  @override
+  String get topicLoadFailed =>
+      'Konular yüklenemedi; \"Tüm konular\" ile oynayabilirsin.';
+
+  @override
+  String get topicRankedNote =>
+      'Dereceli maçlar her zaman tüm konulardan oynanır.';
+
+  @override
+  String get brandTagline => 'BİLGİNİ YARIŞTIR, ZİRVEYE ÇIK';
+
+  @override
+  String get homeModesTitle => 'Oyun Modları';
+
+  @override
+  String get homeSeeAll => 'Tümü';
+
+  @override
+  String get homeMoreTitle => 'Keşfet';
+
+  @override
+  String get homeAllModes => 'Tüm modlar';
+
+  @override
+  String get homeRankedSub => 'Ligini yükselt';
+
+  @override
+  String get homeDailyTag => 'BUGÜN';
+
+  @override
+  String get homeDailyPlay => 'Oyna';
+
+  @override
+  String get navHome => 'Ana Sayfa';
+
+  @override
+  String get navLeaderboards => 'Liderlik';
+
+  @override
+  String get profileEdit => 'Profili düzenle';
+
+  @override
+  String get profileMatches => 'Maç';
+
+  @override
+  String get profileWins => 'Galibiyet';
+
+  @override
+  String get profileWinRate => 'Kazanma';
+
+  @override
+  String get profileBestStreak => 'En iyi seri';
+
+  @override
+  String get profileAchievements => 'Başarımlar';
+
+  @override
+  String get profileNoBadges =>
+      'Henüz rozet kazanmadın. Maç oyna, görevleri tamamla!';
+
+  @override
+  String get badgesEmpty => 'Henüz rozet yok.';
+
+  @override
+  String get questsEmpty => 'Şu an görev yok, yakında yenileri gelecek.';
+
+  @override
+  String get resultRounds => 'Sorular';
+
+  @override
+  String get queueTip1 =>
+      'Doğru cevabı ne kadar hızlı verirsen o kadar çok puan kazanırsın.';
+
+  @override
+  String get queueTip2 =>
+      'Ani Ölüm\'de ilk yanlış cevap maçı bitirir: acele etme, emin ol.';
+
+  @override
+  String get queueTip3 =>
+      'Maraton uzun soluklu bir maç: dikkatini sona kadar koru.';
+
+  @override
+  String get queueTip4 =>
+      'Dereceli maçlar lig puanını değiştirir; Bronz\'dan Elmas\'a tırman.';
+
+  @override
+  String get queueTip5 =>
+      'Konu seçersen yalnızca aynı konuyu seçen oyuncularla eşleşirsin.';
+
+  @override
+  String get queueTip6 =>
+      'Günün Meydan Okuması\'nda herkes aynı 10 soruyu çözer; sıralamada yerini al.';
+
+  @override
+  String get queueTip7 =>
+      'Görevleri tamamlayıp XP kazan; beğenmediğin bir görevi günde bir kez değiştirebilirsin.';
+
+  @override
+  String get queueTip8 => 'Her gün en az bir maç oynayarak serini koru.';
+
+  @override
+  String get queueTip9 =>
+      'Arkadaş kodunu paylaş, Özel Oda kurup arkadaşlarınla oyna.';
+
+  @override
+  String get queueTip10 =>
+      'Takım kur, 2v2, 3v3 ve 4v4 maçlarda birlikte yarış.';
+
+  @override
+  String get queueTip11 =>
+      'Soru Atölyesi\'nde kendi sorularını öner; onaylananları herkes oynar.';
+
+  @override
+  String get queueTipLabel => 'İPUCU';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.';
 
@@ -1668,6 +1852,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get error_COUPLE_EXISTS => 'Zaten bir çiftin var.';
+
+  @override
+  String get error_DAILY_ANSWERS_NOT_OPEN =>
+      'Cevaplar o gün bittikten sonra açılır.';
 
   @override
   String get error_DAILY_ATTEMPT_IN_PROGRESS =>
@@ -1868,186 +2056,28 @@ class AppLocalizationsTr extends AppLocalizations {
       'Bu kayıt başka biri tarafından değiştirildi. Yenileyip tekrar dene.';
 
   @override
-  String roomReturning(int seconds) {
-    return '$seconds sn içinde odaya dönülüyor…';
-  }
+  String get answerHiddenNote =>
+      'Doğru cevabı maç bitince sonuç ekranında görebilirsin.';
 
   @override
-  String get roomSettingsTitle => 'Oda ayarları';
+  String get dailyAnswerNextDay =>
+      'Doğru cevaplar yarın \"Dünün cevapları\"nda açılır.';
 
   @override
-  String get matchTypeLabel => 'Maç tipi';
+  String get dailyYesterdayAnswers => 'Dünün cevapları';
 
   @override
-  String get roomSettingsSaved =>
-      'Oda ayarları güncellendi, herkes tekrar hazır olmalı';
+  String get dailyYesterdaySub => 'Dünkü 10 sorunun doğru cevapları';
 
   @override
-  String get mmLobbyTitle => 'Eşleşme Lobisi';
+  String get dailyAnswersTitle => 'Dünün cevapları';
 
   @override
-  String mmLobbyWaiting(int count, int total) {
-    return 'Oyuncular aranıyor… ($count/$total)';
-  }
+  String get dailyAnswersYours => 'Senin cevabın';
 
   @override
-  String get mmLobbyLeaderSoon =>
-      'Lobi dolunca rastgele bir lider seçilecek; maçı o başlatır.';
+  String get dailyAnswersNotPlayed => 'Bu soruyu cevaplamadın.';
 
   @override
-  String get mmLobbyYouLead =>
-      'Lobi lideri sensin! Herkes hazır olunca maçı başlat.';
-
-  @override
-  String mmLobbyLeaderIs(String name) {
-    return 'Lobi lideri: $name. Hazır ol, maçı lider başlatacak.';
-  }
-
-  @override
-  String get mmLobbyWaitReady => 'Herkesin hazır olması bekleniyor';
-
-  @override
-  String get mmLobbySearchingSeat => 'Oyuncu aranıyor…';
-
-  @override
-  String get mmLobbyDropped =>
-      'Zamanında hazır olmadığın için lobiden çıkarıldın.';
-
-  @override
-  String get mmLobbyExpired => 'Yeterli oyuncu bulunamadı, lobi kapandı.';
-
-  @override
-  String get topicLabel => 'Konu';
-
-  @override
-  String get topicAll => 'Tüm konular';
-
-  @override
-  String get topicAllSub => 'Her konudan karışık sorular';
-
-  @override
-  String get topicPickTitle => 'Hangi konuda yarışmak istersin?';
-
-  @override
-  String get topicPickSub => 'Sadece aynı konuyu seçen oyuncularla eşleşirsin.';
-
-  @override
-  String topicLine(String name) {
-    return 'Konu: $name';
-  }
-
-  @override
-  String get topicLoadFailed =>
-      'Konular yüklenemedi; \"Tüm konular\" ile oynayabilirsin.';
-
-  @override
-  String get topicRankedNote =>
-      'Dereceli maçlar her zaman tüm konulardan oynanır.';
-
-  @override
-  String get brandTagline => 'BİLGİNİ YARIŞTIR, ZİRVEYE ÇIK';
-
-  @override
-  String get homeModesTitle => 'Oyun Modları';
-
-  @override
-  String get homeSeeAll => 'Tümü';
-
-  @override
-  String get homeMoreTitle => 'Keşfet';
-
-  @override
-  String get homeAllModes => 'Tüm modlar';
-
-  @override
-  String get homeRankedSub => 'Ligini yükselt';
-
-  @override
-  String get homeDailyTag => 'BUGÜN';
-
-  @override
-  String get homeDailyPlay => 'Oyna';
-
-  @override
-  String get navHome => 'Ana Sayfa';
-
-  @override
-  String get navLeaderboards => 'Liderlik';
-
-  @override
-  String get profileEdit => 'Profili düzenle';
-
-  @override
-  String get profileMatches => 'Maç';
-
-  @override
-  String get profileWins => 'Galibiyet';
-
-  @override
-  String get profileWinRate => 'Kazanma';
-
-  @override
-  String get profileBestStreak => 'En iyi seri';
-
-  @override
-  String get profileAchievements => 'Başarımlar';
-
-  @override
-  String get profileNoBadges =>
-      'Henüz rozet kazanmadın. Maç oyna, görevleri tamamla!';
-
-  @override
-  String get badgesEmpty => 'Henüz rozet yok.';
-
-  @override
-  String get questsEmpty => 'Şu an görev yok, yakında yenileri gelecek.';
-
-  @override
-  String get resultRounds => 'Sorular';
-
-  @override
-  String get queueTip1 =>
-      'Doğru cevabı ne kadar hızlı verirsen o kadar çok puan kazanırsın.';
-
-  @override
-  String get queueTip2 =>
-      'Ani Ölüm\'de ilk yanlış cevap maçı bitirir: acele etme, emin ol.';
-
-  @override
-  String get queueTip3 =>
-      'Maraton uzun soluklu bir maç: dikkatini sona kadar koru.';
-
-  @override
-  String get queueTip4 =>
-      'Dereceli maçlar lig puanını değiştirir; Bronz\'dan Elmas\'a tırman.';
-
-  @override
-  String get queueTip5 =>
-      'Konu seçersen yalnızca aynı konuyu seçen oyuncularla eşleşirsin.';
-
-  @override
-  String get queueTip6 =>
-      'Günün Meydan Okuması\'nda herkes aynı 10 soruyu çözer; sıralamada yerini al.';
-
-  @override
-  String get queueTip7 =>
-      'Görevleri tamamlayıp XP kazan; beğenmediğin bir görevi günde bir kez değiştirebilirsin.';
-
-  @override
-  String get queueTip8 => 'Her gün en az bir maç oynayarak serini koru.';
-
-  @override
-  String get queueTip9 =>
-      'Arkadaş kodunu paylaş, Özel Oda kurup arkadaşlarınla oyna.';
-
-  @override
-  String get queueTip10 =>
-      'Takım kur, 2v2, 3v3 ve 4v4 maçlarda birlikte yarış.';
-
-  @override
-  String get queueTip11 =>
-      'Soru Atölyesi\'nde kendi sorularını öner; onaylananları herkes oynar.';
-
-  @override
-  String get queueTipLabel => 'İPUCU';
+  String get dailyAnswersEmpty => 'Dün için cevap yok.';
 }

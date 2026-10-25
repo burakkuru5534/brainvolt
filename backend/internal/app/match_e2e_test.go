@@ -245,10 +245,12 @@ func TestLiveQuickDuel(t *testing.T) {
 		}
 		wb.send("match.answer", map[string]any{"match_id": id, "round_no": round, "option_id": opts[1].(map[string]any)["id"]})
 		rev := wa.next("round.revealed")
-		wb.next("round.revealed")
-		if d := data(rev); d["correct_option_id"] == nil || d["category"] == nil || len(d["sides"].([]any)) != 2 {
+		revB := wb.next("round.revealed")
+		if d := data(rev); d["category"] == nil || len(d["sides"].([]any)) != 2 {
 			t.Fatalf("revealed %v", d)
 		}
+		checkRevealFor(t, data(rev), a)
+		checkRevealFor(t, data(revB), b)
 	}
 	done := data(wa.next("match.completed"))
 	wb.next("match.completed")
@@ -581,5 +583,29 @@ func TestRankedAndMixedQueues(t *testing.T) {
 			t.Fatalf("%v: rated %v, %d categories", req, rated, cats)
 		}
 		leaveMatch(t, id, wa, wb)
+	}
+}
+
+// checkRevealFor checks D-100 on one player's round.revealed: the correct
+// option (and the choice of whoever got it right) only for a player who
+// got it right.
+func checkRevealFor(t *testing.T, d map[string]any, user uuid.UUID) {
+	t.Helper()
+	mine := false
+	for _, v := range d["answers"].([]any) {
+		a := v.(map[string]any)
+		if a["user_id"] == user.String() {
+			mine = a["correct"] == true
+		}
+	}
+	if mine != (d["correct_option_id"] != nil) || mine == (d["answer_hidden"] == true) {
+		t.Fatalf("reveal for %s (correct=%v): %v", user, mine, d)
+	}
+	if !mine {
+		for _, v := range d["answers"].([]any) {
+			if a := v.(map[string]any); a["correct"] == true && a["option_id"] != nil {
+				t.Fatalf("a right answer leaks to %s: %v", user, d)
+			}
+		}
 	}
 }

@@ -475,8 +475,11 @@ func (s *Service) dailyFrames(ctx context.Context, st *settled, join bool) ([]Da
 	}
 	for _, pos := range st.timedOut {
 		a := byPos[pos]
+		// Never the correct option (D-100): a guest could pass today's
+		// answers to a second account. They open the day after
+		// (GET /v1/daily/answers).
 		out = append(out, DailyFrame{Type: "daily.revealed", Data: map[string]any{
-			"run_id": runID, "position": pos, "correct_option_id": st.set.Questions[pos-1].Correct,
+			"run_id": runID, "position": pos,
 			"option_id": a.OptionID, "correct": a.IsCorrect, "points": a.Points, "response_ms": a.ResponseMs,
 		}})
 	}
@@ -533,4 +536,87 @@ func (s *Service) SettleStaleDaily(ctx context.Context) error {
 		}
 	}
 	return nil
+}
+
+// DailyAnswersLookback is how many past days GET /v1/daily/answers serves.
+const DailyAnswersLookback = 7
+
+// DailyAnswers is GET /v1/daily/answers: a past day's questions with their
+// correct options (D-100), and the caller's own official answers.
+type DailyAnswers struct {
+	Day       string              `json:"day"`
+	Questions []DailyAnswerReview `json:"questions"`
+}
+
+// DailyAnswerReview is one question of a past day.
+type DailyAnswerReview struct {
+	Position        int          `json:"position"`
+	Prompt          string       `json:"prompt"`
+	Category        string       `json:"category"`
+	Explanation     string       `json:"explanation,omitempty"`
+	Options         []OptionView `json:"options"`
+	CorrectOptionID uuid.UUID    `json:"correct_option_id"`
+	// The caller's official answer: null when they did not play or let it
+	// time out.
+	YourOptionID *uuid.UUID `json:"your_option_id"`
+	YourCorrect  bool       `json:"your_correct"`
+}
+
+// DailyAnswers returns day's answers once the day is over (Europe/Istanbul,
+// D-029): yesterday by default, at most DailyAnswersLookback days back.
+// Today's answers are never served, so nobody learns them before playing.
+func (s *Service) DailyAnswers(ctx context.Context, user uuid.UUID, day *time.Time, locale string) (DailyAnswers, error) {
+	today := DailyDay(s.d.Clock.Now())
+	d := today.AddDate(0, 0, -1)
+	if day != nil {
+		d = time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, time.UTC)
+	}
+	if !d.Before(today) || d.Before(today.AddDate(0, 0, -DailyAnswersLookback)) {
+		return DailyAnswers{}, apierror.New(apierror.DailyAnswersNotOpen)
+	}
+	set, ok, err := s.d.Questions.PublishedDailySet(ctx, d)
+	if err != nil {
+		return DailyAnswers{}, err
+	}
+	if !ok {
+		return DailyAnswers{}, apierror.New(apierror.NotFound)
+	}
+	ids := make([]uuid.UUID, len(set.Questions))
+	for i, q := range set.Questions {
+		ids[i] = q.ID
+	}
+	texts, err := s.d.Questions.Texts(ctx, ids, []string{locale, "tr", "en"})
+	if err != nil {
+		return DailyAnswers{}, err
+	}
+	mine := map[int16]sqlc.GameDailyRunAnswer{}
+	run, err := sqlc.New(s.d.DB).OfficialRunOf(ctx, sqlc.OfficialRunOfParams{Day: d, UserID: user})
+	switch {
+	case err == nil:
+		answers, err := sqlc.New(s.d.DB).DailyAnswers(ctx, run.ID)
+		if err != nil {
+			return DailyAnswers{}, err
+		}
+		for _, a := range answers {
+			mine[a.Position] = a
+		}
+	case !errors.Is(err, pgx.ErrNoRows):
+		return DailyAnswers{}, err
+	}
+	out := DailyAnswers{Day: d.Format(time.DateOnly), Questions: []DailyAnswerReview{}}
+	for i, q := range set.Questions {
+		t := pickText(texts[q.ID], locale)
+		r := DailyAnswerReview{
+			Position: i + 1, Prompt: t.Prompt, Category: t.Category, Explanation: t.Explanation,
+			CorrectOptionID: q.Correct, Options: []OptionView{},
+		}
+		for _, id := range q.Options {
+			r.Options = append(r.Options, OptionView{ID: id, Text: t.Options[id]})
+		}
+		if a, ok := mine[int16(i+1)]; ok { //nolint:gosec // G115: ≤ 10 questions
+			r.YourOptionID, r.YourCorrect = a.OptionID, a.IsCorrect
+		}
+		out.Questions = append(out.Questions, r)
+	}
+	return out, nil
 }
