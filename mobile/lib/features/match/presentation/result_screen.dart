@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +11,7 @@ import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/share/result_card.dart';
 import '../../../core/widgets/bv.dart';
+import '../../ads/presentation/ads.dart';
 import '../../lobby/presentation/room_controller.dart';
 import '../../moderation/presentation/report_dialog.dart';
 import '../../profile/domain/avatars.dart';
@@ -137,11 +140,14 @@ class ResultScreen extends ConsumerWidget {
           ),
         ),
         if (r.players.length > 2) _TeamLines(result: r, mySide: mySide),
-        if (r.status == 'completed')
+        if (r.status == 'completed') ...[
           Padding(
             padding: const EdgeInsets.only(top: 12),
             child: MatchAwardsCard(matchId: r.id),
           ),
+          BonusXpAdButton(key: Key('ad-bonus-${r.id}'), matchId: r.id),
+          _InterstitialAfterMatch(result: r),
+        ],
         if (r.status == 'completed') PlayAgainPanel(matchId: r.id),
         if (r.origin == 'private_room')
           if (ref.watch(currentRoomProvider) case final room?)
@@ -222,6 +228,36 @@ class ResultScreen extends ConsumerWidget {
 }
 
 /// Team matches: each side's players with their correct answers.
+/// Counts the finished match for the "every 2 matches" interstitial
+/// (D-103) once the result is on screen.
+class _InterstitialAfterMatch extends ConsumerStatefulWidget {
+  const _InterstitialAfterMatch({required this.result});
+
+  final MatchResult result;
+
+  @override
+  ConsumerState<_InterstitialAfterMatch> createState() =>
+      _InterstitialAfterMatchState();
+}
+
+class _InterstitialAfterMatchState
+    extends ConsumerState<_InterstitialAfterMatch> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        unawaited(
+          ref.read(interstitialPolicyProvider).afterMatch(widget.result),
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
+}
+
 class _TeamLines extends StatelessWidget {
   const _TeamLines({required this.result, required this.mySide});
 

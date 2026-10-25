@@ -1786,6 +1786,231 @@ class AppLocalizationsTr extends AppLocalizations {
   String get queueTipLabel => 'İPUCU';
 
   @override
+  String get answerHiddenNote =>
+      'Doğru cevabı maç bitince sonuç ekranında görebilirsin.';
+
+  @override
+  String get dailyAnswerNextDay =>
+      'Doğru cevaplar yarın \"Dünün cevapları\"nda açılır.';
+
+  @override
+  String get dailyYesterdayAnswers => 'Dünün cevapları';
+
+  @override
+  String get dailyYesterdaySub => 'Dünkü 10 sorunun doğru cevapları';
+
+  @override
+  String get dailyAnswersTitle => 'Dünün cevapları';
+
+  @override
+  String get dailyAnswersYours => 'Senin cevabın';
+
+  @override
+  String get dailyAnswersNotPlayed => 'Bu soruyu cevaplamadın.';
+
+  @override
+  String get dailyAnswersEmpty => 'Dün için cevap yok.';
+
+  @override
+  String get playerProfileTitle => 'Oyuncu profili';
+
+  @override
+  String get playerViewProfile => 'Profili gör';
+
+  @override
+  String get playerAddFriend => 'Arkadaş ekle';
+
+  @override
+  String get playerAccept => 'İsteği kabul et';
+
+  @override
+  String get playerFriend => 'Arkadaşsınız';
+
+  @override
+  String get playerRequestSent => 'İstek gönderildi';
+
+  @override
+  String get playerPrivate =>
+      'Bu profil gizli. İstatistikleri yalnızca arkadaşları görebilir.';
+
+  @override
+  String get playerPrivateTag => 'Gizli profil';
+
+  @override
+  String get playerBlocked => 'Bu oyuncunun profilini göremezsin.';
+
+  @override
+  String get playerStats => 'İstatistikler';
+
+  @override
+  String playerLevel(int level) {
+    return 'Seviye $level';
+  }
+
+  @override
+  String get playerLevelLabel => 'Seviye';
+
+  @override
+  String get playerMatches => 'Maç';
+
+  @override
+  String get playerWins => 'Galibiyet';
+
+  @override
+  String get playerWinRate => 'Kazanma';
+
+  @override
+  String get playerBadges => 'Rozet';
+
+  @override
+  String get playerStreak => 'Seri';
+
+  @override
+  String get settingsPrivateProfile => 'Profilimi gizle';
+
+  @override
+  String get settingsPrivateProfileSub =>
+      'İstatistiklerini yalnızca arkadaşların görür. Adın sıralamalarda görünmeye devam eder.';
+
+  @override
+  String get guideTitle => 'Oyun rehberi';
+
+  @override
+  String get guideSub => 'Modlar, puanlama, ligler ve daha fazlası';
+
+  @override
+  String get guideIntro =>
+      'BrainVolt gerçek zamanlı bir bilgi yarışması. Rakibinle aynı anda aynı soruyu görürsün; hem doğru hem hızlı olan kazanır. Aşağıdaki başlıklara dokunarak ayrıntıları okuyabilirsin.';
+
+  @override
+  String get guideBasicsTitle => 'Nasıl oynanır?';
+
+  @override
+  String get guideBasicsBody =>
+      'Her soruda dört seçenek (bazen Doğru / Yanlış) ve bir süre sayacı var. Süre bitmeden bir seçeneğe dokun.\n• İki taraf da aynı soruyu aynı anda görür; bağlantı gecikmesi sunucuda telafi edilir.\n• Yanlış cevap ya da süre dolması puan kaybettirmez, sadece 0 puan verir.\n• Yanlış cevap verdiysen doğru cevap maç sırasında gösterilmez; maç bitince sonuç ekranında tüm sorulara ve cevaplara bakabilirsin.\n• Son 30 gün içinde gördüğün sorular sana tekrar sorulmaz.\n• Bağlantın koparsa uygulama otomatik olarak maça geri döner. Çok uzun kopukluk ya da sık kopmalar maçı kaybetmene yol açar.';
+
+  @override
+  String get guideScoringTitle => 'Puanlama';
+
+  @override
+  String get guideScoringBody =>
+      'Doğru cevap üç parçadan puan toplar:\n• Taban puan: sorunun zorluğuna göre 80–120.\n• Hız bonusu: ne kadar erken cevaplarsan o kadar çok, en fazla +100. Son saniyede cevap verirsen bonus 0 olur.\n• Seri bonusu: üst üste 3–4 doğruda +20, 5 ve sonrasında +40.\nBir soruda en fazla 260 puan alınabilir. Doğru / Yanlış soruları yarı puan değerindedir (en fazla 150).\nMaçın sonunda toplam puanı yüksek olan kazanır; eşitlikte doğru sayısı ve hız belirleyicidir.';
+
+  @override
+  String get guideTypesTitle => 'Maç türleri';
+
+  @override
+  String get guideTypesBody =>
+      '• Hızlı Düello: 7 soru, soru başına 15 sn. Kısa ve rahat bir maç.\n• Dereceli: 10 soru, 15 sn, sadece çoktan seçmeli. Yalnızca rakip eşleştirmeyle oynanır; lig puanını (SP) değiştiren tek mod budur.\n• Ani Ölüm: soru başına 10 sn. Bir tur sende doğru, rakipte yanlışsa maç biter. Zorluk her 3 turda artar; 30 turda karar çıkmazsa puanı yüksek olan kazanır.\n• Maraton: 25 soru, soru başına 12 sn. 12. sorudan sonra 15 sn mola verilir.';
+
+  @override
+  String get guideCategoryTitle => 'Konu modları';
+
+  @override
+  String get guideCategoryBody =>
+      'Dereceli dışındaki maçlarda soruların nasıl seçileceğini belirleyebilirsin:\n• Standart: sorular farklı konulardan karışık gelir.\n• Kör Meydan Okuma: sorunun konusu cevaplanana kadar gizli kalır.\n• Kategori Ustası: tüm sorular seçtiğin tek konudan gelir. Eşleştirmede yalnızca aynı konuyu arayan oyuncularla eşleşirsin.\n• Karışık Savaş: maçta 3 konu belirlenir; her tur sırayla bir taraf bu üç konudan birini seçer (10 sn).\n• Rövanş: kaybeden taraf maç sonunda 24 saat içinde rövanş isteyebilir; soruların yarısı onun seçtiği konudan gelir. Bir seride en fazla 3 rövanş oynanır.';
+
+  @override
+  String get guideTeamsTitle => 'Takımlar ve çiftler';
+
+  @override
+  String get guideTeamsBody =>
+      'Bire bir dışında 2v2, 3v3, 4v4 ve Çift formatlarında oynayabilirsin. Kalıcı bir takım kurup arkadaşlarını davet edebilir ya da bir arkadaşınla çift olabilirsin. Takım maçlarında üç cevap modu var:\n• Ortak Cevap: takım birlikte bir seçenek önerir ve biri cevabı kilitler. Konuşmak için 5 sn ek süre verilir.\n• Sırayla: her soruyu takımdan sıradaki oyuncu cevaplar.\n• Hızlı Takım Turu: herkes kendi başına cevaplar; takımın puanı üyelerin ortalamasından hesaplanır.\nTakımın puanı tek oyuncunun puanıyla aynı ölçektedir; kalabalık takım fazladan puan toplamaz.';
+
+  @override
+  String get guideDailyTitle => 'Günün Meydan Okuması';
+
+  @override
+  String get guideDailyBody =>
+      'Her gün herkes aynı 10 soruyu aynı sırayla cevaplar. Gün İstanbul saatiyle gece yarısı yenilenir.\n• Günde bir resmi deneme hakkın var; sonraki denemeler pratiktir ve sıralamayı etkilemez.\n• Sıralamada önce doğru sayısına, eşitlikte toplam cevap süresine bakılır.\n• Gün içinde doğru cevaplar gösterilmez. Ertesi gün \"Dünün cevapları\" bölümünden bakabilirsin.\n• Bağlantın koparsa 2 dakika içinde kaldığın yerden devam edebilirsin; süre bu sırada işlemeye devam eder.\n• Resmi deneme XP kazandırır (30 + doğru başına 5) ve günlük serini sürdürür.';
+
+  @override
+  String get guideRoomsTitle => 'Özel oda ve meydan okumalar';
+
+  @override
+  String get guideRoomsBody =>
+      '• Özel oda: bir oda kurup kodu arkadaşlarınla paylaş. Ev sahibi maç türünü, formatı ve konu modunu seçer; herkes hazır olunca maç başlar. Maç bitince herkes odaya döner.\n• Meydan okuma: arkadaş listesinden bir arkadaşına doğrudan maç teklifi gönderebilirsin.\n• Bu maçlar XP kazandırır ama SP ve sıralama puanı vermez; böylece arkadaşlar arasında puan kasılamaz.';
+
+  @override
+  String get guideTournamentsTitle => 'Turnuvalar';
+
+  @override
+  String get guideTournamentsBody =>
+      'Turnuvalar eleme usulü oynanır. Kayıt ol, başlangıçtan önceki son 1 saatte check-in yap; check-in yapmayanlar turnuvaya alınmaz.\n• Her turda maçın hazır olunca bildirim alırsın; belirlenen süre içinde maça katılmazsan hükmen kaybedersin.\n• Bireysel, takım ve çift turnuvaları var.\n• Ödüller: 1. 300 XP, 2. 150 XP, 3. 75 XP, diğer katılımcılar 20 XP.';
+
+  @override
+  String get guideLabTitle => 'Soru Atölyesi';
+
+  @override
+  String get guideLabBody =>
+      'Kendi quizini hazırla: tek bir soruyla başla, \"Soru ekle\" ile en fazla 30 soruya çıkar. Cevap süresini (10, 15 ya da 20 sn) sen belirlersin.\n• Taslak quizler yalnızca arkadaşlarınla özel odada oynanır ve ödül vermez.\n• İncelemeye gönderdiğin quiz onaylanırsa yayına girer; herkes keşfedip oynayabilir ve oyuncular XP kazanır.\n• Kendi quizinden sen XP kazanmazsın.';
+
+  @override
+  String get guideLeaguesTitle => 'Ligler, sezonlar ve SP';
+
+  @override
+  String get guideLeaguesBody =>
+      'Sezon Puanı (SP) yalnızca Dereceli maçlardan gelir: galibiyet +30, beraberlik +10, mağlubiyet −15. Üst üste 3. dereceli galibiyetten itibaren +5, +10 ve en fazla +15 seri bonusu eklenir.\n• Ligler: Bronz (0), Gümüş (300), Altın (800), Platin (1600) ve Elmas (2800 SP). Elmas dışındaki her ligin üç kademesi vardır (III, II, I).\n• Sezon içinde bir lig düşmezsin; ligin içindeki kademeler inip çıkabilir.\n• Bir sezon 8 hafta sürer. Sezon sonunda ulaştığın en yüksek lige göre rozet kazanırsın, ardından herkes Bronz III\'ten başlar.';
+
+  @override
+  String get guideXpTitle => 'XP, seviye, seri ve görevler';
+
+  @override
+  String get guideXpBody =>
+      '• Her tamamlanan maç XP kazandırır: 20 + doğru cevap başına 5 + sonuç bonusu (galibiyet 15, beraberlik 8).\n• Seviye atlamak için gereken XP her seviyede biraz artar; en yüksek seviye 100. Seviye sadece ilerlemeni gösterir, eşleştirmeyi ya da puanı etkilemez.\n• Seri: her gün en az bir maç ya da resmi Günün Meydan Okuması tamamlarsan serin büyür; bir gün atlarsan sıfırlanır.\n• Görevler: her gün 3 günlük, her hafta 3 haftalık görev gelir. Tamamlayınca ödülünü al; günde bir görevi ücretsiz değiştirebilirsin.\n• Rozetler: galibiyetler, isabet, hız, seriler, konular ve sezonlar için rozet kazanırsın.';
+
+  @override
+  String get guideBoardsTitle => 'Sıralamalar';
+
+  @override
+  String get guideBoardsBody =>
+      'Günlük, haftalık, aylık ve tüm zamanlar sıralamaları var; dünya, ülke ve arkadaşlar arasında ayrı ayrı bakabilirsin. Takımların ve çiftlerin de kendi sıralamaları var.\n• Sıralama puanı yalnızca eşleştirmeyle oynanan maçlardan gelir: galibiyet 20, beraberlik 10, her doğru cevap +2.\n• Sezon sıralaması SP\'ye göre, Günün Meydan Okuması sıralaması ise ayrı tutulur.\n• Bir oyuncuya dokunarak arkadaş ekleyebilir ya da profiline bakabilirsin. Profilini gizlersen istatistiklerini yalnızca arkadaşların görür.';
+
+  @override
+  String get guideFairTitle => 'Adil oyun';
+
+  @override
+  String get guideFairBody =>
+      '• Puanları ve sonuçları yalnızca sunucu hesaplar; uygulamadaki bir değişiklik sonucu etkilemez.\n• Doğru cevaplar maç sırasında yanlış cevaplayanlara, Günün Meydan Okumasında ise gün bitene kadar kimseye gösterilmez.\n• Arkadaşlar arası maçlar SP ve sıralama puanı vermez.\n• Hatalı bir soru görürsen maç sonunda \"Soruyu bildir\" ile bize ilet. Kurallara aykırı davranışlar yaptırımla sonuçlanabilir.';
+
+  @override
+  String get adBonusXpButton => 'Reklam izle: +%50 XP';
+
+  @override
+  String adBonusXpDone(int xp) {
+    return '+$xp XP eklendi!';
+  }
+
+  @override
+  String get adNoFill =>
+      'Şu an gösterilecek reklam yok. Biraz sonra tekrar dene.';
+
+  @override
+  String get adNotEarned => 'Ödül için reklamı sonuna kadar izlemelisin.';
+
+  @override
+  String get adPending => 'Ödülün birazdan hesabına geçecek.';
+
+  @override
+  String get adQuestReroll => 'Reklam izle, değiştir';
+
+  @override
+  String adStreakTitle(int days) {
+    return '$days günlük serin bozuldu!';
+  }
+
+  @override
+  String get adStreakSub => 'Bir reklam izle, serini kurtar.';
+
+  @override
+  String adStreakDone(int days) {
+    return 'Serin kurtarıldı: $days gün!';
+  }
+
+  @override
+  String get adWatch => 'İzle';
+
+  @override
   String get error_ACCOUNT_DELETION_PENDING =>
       'Hesabın silinme sürecinde. Yalnızca silme işlemini iptal edebilirsin.';
 
@@ -1797,8 +2022,14 @@ class AppLocalizationsTr extends AppLocalizations {
       'Bu işlem için hesabını yükseltmelisin.';
 
   @override
+  String get error_AD_LIMIT_REACHED => 'Bu ödül için bugünkü sınıra ulaştın.';
+
+  @override
   String get error_AD_REWARD_LIMIT =>
       'Bugün için reklam ödülü sınırına ulaştın.';
+
+  @override
+  String get error_AD_REWARD_UNAVAILABLE => 'Bu ödül şu an alınamıyor.';
 
   @override
   String get error_AGE_CONFIRMATION_REQUIRED =>
@@ -2054,192 +2285,4 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get error_VERSION_CONFLICT =>
       'Bu kayıt başka biri tarafından değiştirildi. Yenileyip tekrar dene.';
-
-  @override
-  String get answerHiddenNote =>
-      'Doğru cevabı maç bitince sonuç ekranında görebilirsin.';
-
-  @override
-  String get dailyAnswerNextDay =>
-      'Doğru cevaplar yarın \"Dünün cevapları\"nda açılır.';
-
-  @override
-  String get dailyYesterdayAnswers => 'Dünün cevapları';
-
-  @override
-  String get dailyYesterdaySub => 'Dünkü 10 sorunun doğru cevapları';
-
-  @override
-  String get dailyAnswersTitle => 'Dünün cevapları';
-
-  @override
-  String get dailyAnswersYours => 'Senin cevabın';
-
-  @override
-  String get dailyAnswersNotPlayed => 'Bu soruyu cevaplamadın.';
-
-  @override
-  String get dailyAnswersEmpty => 'Dün için cevap yok.';
-
-  @override
-  String get playerProfileTitle => 'Oyuncu profili';
-
-  @override
-  String get playerViewProfile => 'Profili gör';
-
-  @override
-  String get playerAddFriend => 'Arkadaş ekle';
-
-  @override
-  String get playerAccept => 'İsteği kabul et';
-
-  @override
-  String get playerFriend => 'Arkadaşsınız';
-
-  @override
-  String get playerRequestSent => 'İstek gönderildi';
-
-  @override
-  String get playerPrivate =>
-      'Bu profil gizli. İstatistikleri yalnızca arkadaşları görebilir.';
-
-  @override
-  String get playerPrivateTag => 'Gizli profil';
-
-  @override
-  String get playerBlocked => 'Bu oyuncunun profilini göremezsin.';
-
-  @override
-  String get playerStats => 'İstatistikler';
-
-  @override
-  String playerLevel(int level) {
-    return 'Seviye $level';
-  }
-
-  @override
-  String get playerLevelLabel => 'Seviye';
-
-  @override
-  String get playerMatches => 'Maç';
-
-  @override
-  String get playerWins => 'Galibiyet';
-
-  @override
-  String get playerWinRate => 'Kazanma';
-
-  @override
-  String get playerBadges => 'Rozet';
-
-  @override
-  String get playerStreak => 'Seri';
-
-  @override
-  String get settingsPrivateProfile => 'Profilimi gizle';
-
-  @override
-  String get settingsPrivateProfileSub =>
-      'İstatistiklerini yalnızca arkadaşların görür. Adın sıralamalarda görünmeye devam eder.';
-
-  @override
-  String get guideTitle => 'Oyun rehberi';
-
-  @override
-  String get guideSub => 'Modlar, puanlama, ligler ve daha fazlası';
-
-  @override
-  String get guideIntro =>
-      'BrainVolt gerçek zamanlı bir bilgi yarışması. Rakibinle aynı anda aynı soruyu görürsün; hem doğru hem hızlı olan kazanır. Aşağıdaki başlıklara dokunarak ayrıntıları okuyabilirsin.';
-
-  @override
-  String get guideBasicsTitle => 'Nasıl oynanır?';
-
-  @override
-  String get guideBasicsBody =>
-      'Her soruda dört seçenek (bazen Doğru / Yanlış) ve bir süre sayacı var. Süre bitmeden bir seçeneğe dokun.\n• İki taraf da aynı soruyu aynı anda görür; bağlantı gecikmesi sunucuda telafi edilir.\n• Yanlış cevap ya da süre dolması puan kaybettirmez, sadece 0 puan verir.\n• Yanlış cevap verdiysen doğru cevap maç sırasında gösterilmez; maç bitince sonuç ekranında tüm sorulara ve cevaplara bakabilirsin.\n• Son 30 gün içinde gördüğün sorular sana tekrar sorulmaz.\n• Bağlantın koparsa uygulama otomatik olarak maça geri döner. Çok uzun kopukluk ya da sık kopmalar maçı kaybetmene yol açar.';
-
-  @override
-  String get guideScoringTitle => 'Puanlama';
-
-  @override
-  String get guideScoringBody =>
-      'Doğru cevap üç parçadan puan toplar:\n• Taban puan: sorunun zorluğuna göre 80–120.\n• Hız bonusu: ne kadar erken cevaplarsan o kadar çok, en fazla +100. Son saniyede cevap verirsen bonus 0 olur.\n• Seri bonusu: üst üste 3–4 doğruda +20, 5 ve sonrasında +40.\nBir soruda en fazla 260 puan alınabilir. Doğru / Yanlış soruları yarı puan değerindedir (en fazla 150).\nMaçın sonunda toplam puanı yüksek olan kazanır; eşitlikte doğru sayısı ve hız belirleyicidir.';
-
-  @override
-  String get guideTypesTitle => 'Maç türleri';
-
-  @override
-  String get guideTypesBody =>
-      '• Hızlı Düello: 7 soru, soru başına 15 sn. Kısa ve rahat bir maç.\n• Dereceli: 10 soru, 15 sn, sadece çoktan seçmeli. Yalnızca rakip eşleştirmeyle oynanır; lig puanını (SP) değiştiren tek mod budur.\n• Ani Ölüm: soru başına 10 sn. Bir tur sende doğru, rakipte yanlışsa maç biter. Zorluk her 3 turda artar; 30 turda karar çıkmazsa puanı yüksek olan kazanır.\n• Maraton: 25 soru, soru başına 12 sn. 12. sorudan sonra 15 sn mola verilir.';
-
-  @override
-  String get guideCategoryTitle => 'Konu modları';
-
-  @override
-  String get guideCategoryBody =>
-      'Dereceli dışındaki maçlarda soruların nasıl seçileceğini belirleyebilirsin:\n• Standart: sorular farklı konulardan karışık gelir.\n• Kör Meydan Okuma: sorunun konusu cevaplanana kadar gizli kalır.\n• Kategori Ustası: tüm sorular seçtiğin tek konudan gelir. Eşleştirmede yalnızca aynı konuyu arayan oyuncularla eşleşirsin.\n• Karışık Savaş: maçta 3 konu belirlenir; her tur sırayla bir taraf bu üç konudan birini seçer (10 sn).\n• Rövanş: kaybeden taraf maç sonunda 24 saat içinde rövanş isteyebilir; soruların yarısı onun seçtiği konudan gelir. Bir seride en fazla 3 rövanş oynanır.';
-
-  @override
-  String get guideTeamsTitle => 'Takımlar ve çiftler';
-
-  @override
-  String get guideTeamsBody =>
-      'Bire bir dışında 2v2, 3v3, 4v4 ve Çift formatlarında oynayabilirsin. Kalıcı bir takım kurup arkadaşlarını davet edebilir ya da bir arkadaşınla çift olabilirsin. Takım maçlarında üç cevap modu var:\n• Ortak Cevap: takım birlikte bir seçenek önerir ve biri cevabı kilitler. Konuşmak için 5 sn ek süre verilir.\n• Sırayla: her soruyu takımdan sıradaki oyuncu cevaplar.\n• Hızlı Takım Turu: herkes kendi başına cevaplar; takımın puanı üyelerin ortalamasından hesaplanır.\nTakımın puanı tek oyuncunun puanıyla aynı ölçektedir; kalabalık takım fazladan puan toplamaz.';
-
-  @override
-  String get guideDailyTitle => 'Günün Meydan Okuması';
-
-  @override
-  String get guideDailyBody =>
-      'Her gün herkes aynı 10 soruyu aynı sırayla cevaplar. Gün İstanbul saatiyle gece yarısı yenilenir.\n• Günde bir resmi deneme hakkın var; sonraki denemeler pratiktir ve sıralamayı etkilemez.\n• Sıralamada önce doğru sayısına, eşitlikte toplam cevap süresine bakılır.\n• Gün içinde doğru cevaplar gösterilmez. Ertesi gün \"Dünün cevapları\" bölümünden bakabilirsin.\n• Bağlantın koparsa 2 dakika içinde kaldığın yerden devam edebilirsin; süre bu sırada işlemeye devam eder.\n• Resmi deneme XP kazandırır (30 + doğru başına 5) ve günlük serini sürdürür.';
-
-  @override
-  String get guideRoomsTitle => 'Özel oda ve meydan okumalar';
-
-  @override
-  String get guideRoomsBody =>
-      '• Özel oda: bir oda kurup kodu arkadaşlarınla paylaş. Ev sahibi maç türünü, formatı ve konu modunu seçer; herkes hazır olunca maç başlar. Maç bitince herkes odaya döner.\n• Meydan okuma: arkadaş listesinden bir arkadaşına doğrudan maç teklifi gönderebilirsin.\n• Bu maçlar XP kazandırır ama SP ve sıralama puanı vermez; böylece arkadaşlar arasında puan kasılamaz.';
-
-  @override
-  String get guideTournamentsTitle => 'Turnuvalar';
-
-  @override
-  String get guideTournamentsBody =>
-      'Turnuvalar eleme usulü oynanır. Kayıt ol, başlangıçtan önceki son 1 saatte check-in yap; check-in yapmayanlar turnuvaya alınmaz.\n• Her turda maçın hazır olunca bildirim alırsın; belirlenen süre içinde maça katılmazsan hükmen kaybedersin.\n• Bireysel, takım ve çift turnuvaları var.\n• Ödüller: 1. 300 XP, 2. 150 XP, 3. 75 XP, diğer katılımcılar 20 XP.';
-
-  @override
-  String get guideLabTitle => 'Soru Atölyesi';
-
-  @override
-  String get guideLabBody =>
-      'Kendi quizini hazırla: tek bir soruyla başla, \"Soru ekle\" ile en fazla 30 soruya çıkar. Cevap süresini (10, 15 ya da 20 sn) sen belirlersin.\n• Taslak quizler yalnızca arkadaşlarınla özel odada oynanır ve ödül vermez.\n• İncelemeye gönderdiğin quiz onaylanırsa yayına girer; herkes keşfedip oynayabilir ve oyuncular XP kazanır.\n• Kendi quizinden sen XP kazanmazsın.';
-
-  @override
-  String get guideLeaguesTitle => 'Ligler, sezonlar ve SP';
-
-  @override
-  String get guideLeaguesBody =>
-      'Sezon Puanı (SP) yalnızca Dereceli maçlardan gelir: galibiyet +30, beraberlik +10, mağlubiyet −15. Üst üste 3. dereceli galibiyetten itibaren +5, +10 ve en fazla +15 seri bonusu eklenir.\n• Ligler: Bronz (0), Gümüş (300), Altın (800), Platin (1600) ve Elmas (2800 SP). Elmas dışındaki her ligin üç kademesi vardır (III, II, I).\n• Sezon içinde bir lig düşmezsin; ligin içindeki kademeler inip çıkabilir.\n• Bir sezon 8 hafta sürer. Sezon sonunda ulaştığın en yüksek lige göre rozet kazanırsın, ardından herkes Bronz III\'ten başlar.';
-
-  @override
-  String get guideXpTitle => 'XP, seviye, seri ve görevler';
-
-  @override
-  String get guideXpBody =>
-      '• Her tamamlanan maç XP kazandırır: 20 + doğru cevap başına 5 + sonuç bonusu (galibiyet 15, beraberlik 8).\n• Seviye atlamak için gereken XP her seviyede biraz artar; en yüksek seviye 100. Seviye sadece ilerlemeni gösterir, eşleştirmeyi ya da puanı etkilemez.\n• Seri: her gün en az bir maç ya da resmi Günün Meydan Okuması tamamlarsan serin büyür; bir gün atlarsan sıfırlanır.\n• Görevler: her gün 3 günlük, her hafta 3 haftalık görev gelir. Tamamlayınca ödülünü al; günde bir görevi ücretsiz değiştirebilirsin.\n• Rozetler: galibiyetler, isabet, hız, seriler, konular ve sezonlar için rozet kazanırsın.';
-
-  @override
-  String get guideBoardsTitle => 'Sıralamalar';
-
-  @override
-  String get guideBoardsBody =>
-      'Günlük, haftalık, aylık ve tüm zamanlar sıralamaları var; dünya, ülke ve arkadaşlar arasında ayrı ayrı bakabilirsin. Takımların ve çiftlerin de kendi sıralamaları var.\n• Sıralama puanı yalnızca eşleştirmeyle oynanan maçlardan gelir: galibiyet 20, beraberlik 10, her doğru cevap +2.\n• Sezon sıralaması SP\'ye göre, Günün Meydan Okuması sıralaması ise ayrı tutulur.\n• Bir oyuncuya dokunarak arkadaş ekleyebilir ya da profiline bakabilirsin. Profilini gizlersen istatistiklerini yalnızca arkadaşların görür.';
-
-  @override
-  String get guideFairTitle => 'Adil oyun';
-
-  @override
-  String get guideFairBody =>
-      '• Puanları ve sonuçları yalnızca sunucu hesaplar; uygulamadaki bir değişiklik sonucu etkilemez.\n• Doğru cevaplar maç sırasında yanlış cevaplayanlara, Günün Meydan Okumasında ise gün bitene kadar kimseye gösterilmez.\n• Arkadaşlar arası maçlar SP ve sıralama puanı vermez.\n• Hatalı bir soru görürsen maç sonunda \"Soruyu bildir\" ile bize ilet. Kurallara aykırı davranışlar yaptırımla sonuçlanabilir.';
 }

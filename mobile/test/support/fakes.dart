@@ -3,10 +3,13 @@ import 'dart:convert';
 
 import 'package:brainvolt/app/config.dart';
 import 'package:brainvolt/app/providers.dart';
+import 'package:brainvolt/core/ads/ad_gateway.dart';
 import 'package:brainvolt/core/network/token_source.dart';
 import 'package:brainvolt/core/realtime/realtime_client.dart';
 import 'package:brainvolt/core/realtime/realtime_providers.dart';
 import 'package:brainvolt/core/share/share_service.dart';
+import 'package:brainvolt/features/ads/domain/ads_repository.dart';
+import 'package:brainvolt/features/ads/presentation/ads.dart';
 import 'package:brainvolt/features/auth/data/auth_providers.dart';
 import 'package:brainvolt/features/auth/domain/auth_repository.dart';
 import 'package:brainvolt/features/auth/domain/session.dart';
@@ -1026,6 +1029,64 @@ class FakeSocket implements SocketConnection {
 }
 
 /// Everything a test app needs, with fakes behind the repositories.
+
+/// Ads (D-103): a gateway whose rewarded ads are always watched to the end.
+class FakeAdGateway implements AdGateway {
+  AdShowResult rewardedResult = AdShowResult.earned;
+  final rewarded = <String>[];
+  var interstitials = 0;
+
+  @override
+  Future<void> init() async {}
+
+  @override
+  Future<AdShowResult> showRewarded({
+    required String userId,
+    required String customData,
+  }) async {
+    rewarded.add(customData);
+    return rewardedResult;
+  }
+
+  @override
+  Future<bool> showInterstitial() async {
+    interstitials++;
+    return true;
+  }
+}
+
+class FakeAdsRepository implements AdsRepository {
+  AdsConfig configValue = const AdsConfig();
+  final calls = <String>[];
+  var _n = 0;
+
+  @override
+  Future<AdsConfig> config() async => configValue;
+
+  @override
+  Future<AdReward> reserve(String placement, {String? ref}) async {
+    calls.add('reserve:$placement:${ref ?? ''}');
+    _n++;
+    return AdReward(
+      id: 'ad-$_n',
+      placement: placement,
+      status: 'pending',
+      xp: placement == AdPlacement.bonusXp ? 35 : 0,
+      streakDays: placement == AdPlacement.streakRepair ? 4 : 0,
+    );
+  }
+
+  @override
+  Future<AdReward> get(String id) async =>
+      AdReward(id: id, placement: '', status: 'granted');
+
+  @override
+  Future<AdReward> devGrant(String id) async {
+    calls.add('grant:$id');
+    return AdReward(id: id, placement: '', status: 'granted');
+  }
+}
+
 class TestApp {
   TestApp._(
     this.container,
@@ -1074,6 +1135,8 @@ class TestApp {
     final share = FakeShareService();
     final chat = FakeChatRepository();
     final tournaments = FakeTournamentRepository();
+    final ads = FakeAdsRepository();
+    final adGateway = FakeAdGateway();
     final sockets = <FakeSocket>[];
     final container = ProviderContainer(
       retry: noRetry,
@@ -1103,6 +1166,11 @@ class TestApp {
         shareServiceProvider.overrideWithValue(share),
         chatRepositoryProvider.overrideWithValue(chat),
         tournamentRepositoryProvider.overrideWithValue(tournaments),
+        adsRepositoryProvider.overrideWithValue(ads),
+        adGatewayProvider.overrideWithValue(adGateway),
+        rewardedAdRunnerProvider.overrideWith(
+          (ref) => RewardedAdRunner(ref, pollEvery: Duration.zero),
+        ),
         realtimeClientProvider.overrideWith((ref) {
           final client = RealtimeClient(
             url: Uri.parse('ws://test/v1/ws'),
@@ -1121,26 +1189,31 @@ class TestApp {
     );
     addTearDown(container.dispose);
     return TestApp._(
-      container,
-      p,
-      auth,
-      sessions,
-      profiles,
-      matches,
-      sockets,
-      social,
-      lobby,
-      teams,
-      progress,
-      daily,
-      moderation,
-      creator,
-      notifications,
-      share,
-      chat,
-      tournaments,
-    );
+        container,
+        p,
+        auth,
+        sessions,
+        profiles,
+        matches,
+        sockets,
+        social,
+        lobby,
+        teams,
+        progress,
+        daily,
+        moderation,
+        creator,
+        notifications,
+        share,
+        chat,
+        tournaments,
+      )
+      ..ads = ads
+      ..adGateway = adGateway;
   }
+
+  late final FakeAdsRepository ads;
+  late final FakeAdGateway adGateway;
 
   final ProviderContainer container;
   final SharedPreferences prefs;

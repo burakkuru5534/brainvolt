@@ -107,11 +107,15 @@ class MatchResult {
     this.endReason,
     this.cancelReason,
     this.origin = '',
+    this.matchType = '',
     this.endedAt,
   });
 
   final String id;
   final String status;
+
+  /// quick_duel / ranked / sudden_death / marathon.
+  final String matchType;
 
   /// matchmaking / challenge / private_room / rematch / …
   final String origin;

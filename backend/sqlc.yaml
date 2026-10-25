@@ -233,3 +233,14 @@ sql:
             go_type:
               type: time.Time
               pointer: true
+  - name: commerce
+    engine: postgresql
+    schema: migrations
+    queries: internal/modules/commerce/internal/store/queries.sql
+    gen:
+      go:
+        package: sqlc
+        out: internal/modules/commerce/internal/store/sqlc
+        sql_package: pgx/v5
+        emit_pointers_for_null_types: true
+        emit_empty_slices: true

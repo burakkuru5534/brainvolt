@@ -23,7 +23,7 @@ ON CONFLICT (user_id) DO UPDATE SET xp_total = EXCLUDED.xp_total, level = EXCLUD
 
 -- name: MatchXP :one
 SELECT coalesce(sum(amount), 0)::int FROM progression.xp_ledger
-WHERE user_id = @user_id AND ((source = 'match' AND source_ref = @match_ref::text) OR (source = 'badge' AND source_ref LIKE @match_ref::text || ':%'));
+WHERE user_id = @user_id AND ((source IN ('match','ad_bonus') AND source_ref = @match_ref::text) OR (source = 'badge' AND source_ref LIKE @match_ref::text || ':%'));
 
 -- ---------- Streak & counters ----------
 
@@ -110,10 +110,33 @@ SELECT quest_id, title, description FROM progression.quest_translations WHERE lo
 -- name: UseReroll :one
 INSERT INTO progression.quest_rerolls (user_id, day, count) VALUES (@user_id, @day, 1)
 ON CONFLICT (user_id, day) DO UPDATE SET count = progression.quest_rerolls.count + 1
-RETURNING count;
+RETURNING count, bonus;
 
--- name: RerollCount :one
-SELECT coalesce((SELECT count FROM progression.quest_rerolls WHERE user_id = @user_id AND day = @day), 0)::int;
+-- name: RerollState :one
+-- Rerolls used and extra rerolls earned from rewarded ads (D-103) on a day.
+SELECT coalesce(max(count), 0)::int AS used, coalesce(max(bonus), 0)::int AS bonus
+FROM progression.quest_rerolls WHERE user_id = @user_id AND day = @day;
+
+-- name: AddRerollBonus :exec
+INSERT INTO progression.quest_rerolls (user_id, day, count, bonus) VALUES (@user_id, @day, 0, 1)
+ON CONFLICT (user_id, day) DO UPDATE SET bonus = progression.quest_rerolls.bonus + 1;
+
+-- ---------- Rewarded ads (D-103) ----------
+
+-- name: MatchXPEntry :one
+SELECT amount, created_at FROM progression.xp_ledger
+WHERE user_id = @user_id AND source = 'match' AND source_ref = @match_ref::text;
+
+-- name: AdBonusGiven :one
+SELECT EXISTS (SELECT 1 FROM progression.xp_ledger WHERE user_id = @user_id AND source = 'ad_bonus' AND source_ref = @match_ref::text);
+
+-- name: MarkAdRewardApplied :execrows
+INSERT INTO progression.ad_rewards_applied (reward_id, user_id, placement, applied_at)
+VALUES (@reward_id, @user_id, @placement, @now)
+ON CONFLICT DO NOTHING;
+
+-- name: SetStreakLastDay :exec
+UPDATE progression.play_streaks SET last_play_day = @day, updated_at = @now WHERE user_id = @user_id;
 
 -- name: GetStats :one
 SELECT matches, wins FROM progression.user_stats WHERE user_id = @user_id;

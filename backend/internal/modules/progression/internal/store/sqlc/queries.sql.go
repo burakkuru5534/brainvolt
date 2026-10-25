@@ -97,6 +97,22 @@ func (q *Queries) ActiveQuests(ctx context.Context, cadence string) ([]ActiveQue
 	return items, nil
 }
 
+const adBonusGiven = `-- name: AdBonusGiven :one
+SELECT EXISTS (SELECT 1 FROM progression.xp_ledger WHERE user_id = $1 AND source = 'ad_bonus' AND source_ref = $2::text)
+`
+
+type AdBonusGivenParams struct {
+	UserID   uuid.UUID
+	MatchRef string
+}
+
+func (q *Queries) AdBonusGiven(ctx context.Context, arg AdBonusGivenParams) (bool, error) {
+	row := q.db.QueryRow(ctx, adBonusGiven, arg.UserID, arg.MatchRef)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const addCategoryCorrect = `-- name: AddCategoryCorrect :one
 INSERT INTO progression.category_correct (user_id, category_id, correct) VALUES ($1, $2, $3)
 ON CONFLICT (user_id, category_id) DO UPDATE SET correct = progression.category_correct.correct + EXCLUDED.correct
@@ -114,6 +130,21 @@ func (q *Queries) AddCategoryCorrect(ctx context.Context, arg AddCategoryCorrect
 	var correct int32
 	err := row.Scan(&correct)
 	return correct, err
+}
+
+const addRerollBonus = `-- name: AddRerollBonus :exec
+INSERT INTO progression.quest_rerolls (user_id, day, count, bonus) VALUES ($1, $2, 0, 1)
+ON CONFLICT (user_id, day) DO UPDATE SET bonus = progression.quest_rerolls.bonus + 1
+`
+
+type AddRerollBonusParams struct {
+	UserID uuid.UUID
+	Day    time.Time
+}
+
+func (q *Queries) AddRerollBonus(ctx context.Context, arg AddRerollBonusParams) error {
+	_, err := q.db.Exec(ctx, addRerollBonus, arg.UserID, arg.Day)
+	return err
 }
 
 const addStats = `-- name: AddStats :one
@@ -454,6 +485,32 @@ func (q *Queries) LockUser(ctx context.Context, userID string) error {
 	return err
 }
 
+const markAdRewardApplied = `-- name: MarkAdRewardApplied :execrows
+INSERT INTO progression.ad_rewards_applied (reward_id, user_id, placement, applied_at)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT DO NOTHING
+`
+
+type MarkAdRewardAppliedParams struct {
+	RewardID  uuid.UUID
+	UserID    uuid.UUID
+	Placement string
+	Now       time.Time
+}
+
+func (q *Queries) MarkAdRewardApplied(ctx context.Context, arg MarkAdRewardAppliedParams) (int64, error) {
+	result, err := q.db.Exec(ctx, markAdRewardApplied,
+		arg.RewardID,
+		arg.UserID,
+		arg.Placement,
+		arg.Now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const markProcessed = `-- name: MarkProcessed :execrows
 
 INSERT INTO progression.processed_matches (match_id, processed_at) VALUES ($1, $2) ON CONFLICT DO NOTHING
@@ -475,7 +532,7 @@ func (q *Queries) MarkProcessed(ctx context.Context, arg MarkProcessedParams) (i
 
 const matchXP = `-- name: MatchXP :one
 SELECT coalesce(sum(amount), 0)::int FROM progression.xp_ledger
-WHERE user_id = $1 AND ((source = 'match' AND source_ref = $2::text) OR (source = 'badge' AND source_ref LIKE $2::text || ':%'))
+WHERE user_id = $1 AND ((source IN ('match','ad_bonus') AND source_ref = $2::text) OR (source = 'badge' AND source_ref LIKE $2::text || ':%'))
 `
 
 type MatchXPParams struct {
@@ -488,6 +545,30 @@ func (q *Queries) MatchXP(ctx context.Context, arg MatchXPParams) (int32, error)
 	var column_1 int32
 	err := row.Scan(&column_1)
 	return column_1, err
+}
+
+const matchXPEntry = `-- name: MatchXPEntry :one
+
+SELECT amount, created_at FROM progression.xp_ledger
+WHERE user_id = $1 AND source = 'match' AND source_ref = $2::text
+`
+
+type MatchXPEntryParams struct {
+	UserID   uuid.UUID
+	MatchRef string
+}
+
+type MatchXPEntryRow struct {
+	Amount    int32
+	CreatedAt time.Time
+}
+
+// ---------- Rewarded ads (D-103) ----------
+func (q *Queries) MatchXPEntry(ctx context.Context, arg MatchXPEntryParams) (MatchXPEntryRow, error) {
+	row := q.db.QueryRow(ctx, matchXPEntry, arg.UserID, arg.MatchRef)
+	var i MatchXPEntryRow
+	err := row.Scan(&i.Amount, &i.CreatedAt)
+	return i, err
 }
 
 const periodAssignments = `-- name: PeriodAssignments :many
@@ -585,20 +666,27 @@ func (q *Queries) QuestTexts(ctx context.Context, locale string) ([]QuestTextsRo
 	return items, nil
 }
 
-const rerollCount = `-- name: RerollCount :one
-SELECT coalesce((SELECT count FROM progression.quest_rerolls WHERE user_id = $1 AND day = $2), 0)::int
+const rerollState = `-- name: RerollState :one
+SELECT coalesce(max(count), 0)::int AS used, coalesce(max(bonus), 0)::int AS bonus
+FROM progression.quest_rerolls WHERE user_id = $1 AND day = $2
 `
 
-type RerollCountParams struct {
+type RerollStateParams struct {
 	UserID uuid.UUID
 	Day    time.Time
 }
 
-func (q *Queries) RerollCount(ctx context.Context, arg RerollCountParams) (int32, error) {
-	row := q.db.QueryRow(ctx, rerollCount, arg.UserID, arg.Day)
-	var column_1 int32
-	err := row.Scan(&column_1)
-	return column_1, err
+type RerollStateRow struct {
+	Used  int32
+	Bonus int32
+}
+
+// Rerolls used and extra rerolls earned from rewarded ads (D-103) on a day.
+func (q *Queries) RerollState(ctx context.Context, arg RerollStateParams) (RerollStateRow, error) {
+	row := q.db.QueryRow(ctx, rerollState, arg.UserID, arg.Day)
+	var i RerollStateRow
+	err := row.Scan(&i.Used, &i.Bonus)
+	return i, err
 }
 
 const setAssignmentProgress = `-- name: SetAssignmentProgress :exec
@@ -613,6 +701,21 @@ type SetAssignmentProgressParams struct {
 
 func (q *Queries) SetAssignmentProgress(ctx context.Context, arg SetAssignmentProgressParams) error {
 	_, err := q.db.Exec(ctx, setAssignmentProgress, arg.Progress, arg.CompletedAt, arg.ID)
+	return err
+}
+
+const setStreakLastDay = `-- name: SetStreakLastDay :exec
+UPDATE progression.play_streaks SET last_play_day = $1, updated_at = $2 WHERE user_id = $3
+`
+
+type SetStreakLastDayParams struct {
+	Day    *time.Time
+	Now    time.Time
+	UserID uuid.UUID
+}
+
+func (q *Queries) SetStreakLastDay(ctx context.Context, arg SetStreakLastDayParams) error {
+	_, err := q.db.Exec(ctx, setStreakLastDay, arg.Day, arg.Now, arg.UserID)
 	return err
 }
 
@@ -667,7 +770,7 @@ func (q *Queries) UpsertStreak(ctx context.Context, arg UpsertStreakParams) erro
 const useReroll = `-- name: UseReroll :one
 INSERT INTO progression.quest_rerolls (user_id, day, count) VALUES ($1, $2, 1)
 ON CONFLICT (user_id, day) DO UPDATE SET count = progression.quest_rerolls.count + 1
-RETURNING count
+RETURNING count, bonus
 `
 
 type UseRerollParams struct {
@@ -675,9 +778,14 @@ type UseRerollParams struct {
 	Day    time.Time
 }
 
-func (q *Queries) UseReroll(ctx context.Context, arg UseRerollParams) (int32, error) {
+type UseRerollRow struct {
+	Count int32
+	Bonus int32
+}
+
+func (q *Queries) UseReroll(ctx context.Context, arg UseRerollParams) (UseRerollRow, error) {
 	row := q.db.QueryRow(ctx, useReroll, arg.UserID, arg.Day)
-	var count int32
-	err := row.Scan(&count)
-	return count, err
+	var i UseRerollRow
+	err := row.Scan(&i.Count, &i.Bonus)
+	return i, err
 }

@@ -13,6 +13,7 @@ import '../../../core/l10n/l10n.dart';
 import '../../../core/push/push_service.dart';
 import '../../../core/realtime/realtime_lifecycle.dart';
 import '../../../core/widgets/bv.dart';
+import '../../ads/presentation/ads.dart';
 import '../../auth/data/auth_providers.dart';
 import '../../auth/domain/session.dart';
 import '../../lobby/presentation/room_screen.dart';
@@ -112,6 +113,7 @@ class HomeScreen extends ConsumerWidget {
               name: session?.profile.displayName,
               avatar: session?.profile.avatarId,
             ),
+            const StreakRepairBanner(),
             const SizedBox(height: 14),
             _DailyCard(onTap: () => context.push(Routes.daily)),
             SectionTitle(

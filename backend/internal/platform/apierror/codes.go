@@ -83,6 +83,10 @@ const (
 	DailyAttemptInProgress Code = "DAILY_ATTEMPT_IN_PROGRESS"
 	DailyNotAvailable      Code = "DAILY_NOT_AVAILABLE"
 	DailyAnswersNotOpen    Code = "DAILY_ANSWERS_NOT_OPEN"
+
+	// Rewarded ads (D-103).
+	AdRewardUnavailable Code = "AD_REWARD_UNAVAILABLE"
+	AdLimitReached      Code = "AD_LIMIT_REACHED"
 )
 
 // Content, creator & moderation.
@@ -190,6 +194,8 @@ var statuses = map[Code]int{
 	DailyAttemptInProgress: http.StatusConflict,
 	DailyNotAvailable:      http.StatusServiceUnavailable,
 	DailyAnswersNotOpen:    http.StatusConflict,
+	AdRewardUnavailable:    http.StatusConflict,
+	AdLimitReached:         http.StatusConflict,
 
 	QuestionSourceRequired: http.StatusUnprocessableEntity,
 	QuestionInUse:          http.StatusConflict,

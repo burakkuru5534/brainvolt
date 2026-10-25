@@ -29,6 +29,8 @@ const (
 	SubscriberDailyRewards = "progression.daily_rewards"
 	// SubscriberTournamentRewards gives tournament placement XP (D-090).
 	SubscriberTournamentRewards = "progression.tournament_rewards"
+	// SubscriberAdRewards gives verified rewarded ads their effect (D-103).
+	SubscriberAdRewards = "progression.ad_rewards"
 )
 
 // MsgAwards is the personal match.awards message.
@@ -106,4 +108,18 @@ func (m *Module) PlayerStats(ctx context.Context, user uuid.UUID) (profile.Playe
 		return profile.PlayerStats{}, err
 	}
 	return profile.PlayerStats{Level: p.Level, Matches: p.Matches, Wins: p.Wins, Badges: p.Badges, Streak: p.Streak.Current}, nil
+}
+
+// AdOffer is what a rewarded ad placement would give user now (D-103).
+type AdOffer = service.AdOffer
+
+// AdOffer checks a rewarded-ad placement (commerce's RewardChecker,
+// adapted in internal/app).
+func (m *Module) AdOffer(ctx context.Context, user uuid.UUID, placement, ref string) (AdOffer, error) {
+	return m.svc.AdOffer(ctx, user, placement, ref)
+}
+
+// OnAdRewardGranted consumes commerce.AdRewardGranted.
+func (m *Module) OnAdRewardGranted(ctx context.Context, e events.Envelope) error {
+	return m.svc.OnAdRewardGranted(ctx, e)
 }

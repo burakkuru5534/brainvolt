@@ -93,8 +93,8 @@ func (s *Service) Quests(ctx context.Context, user uuid.UUID, locale string) (Qu
 				}
 			}
 		}
-		used, err := q.RerollCount(ctx, sqlc.RerollCountParams{UserID: user, Day: domain.Day(now)})
-		out.RerollsLeft = max(freeRerolls-int(used), 0)
+		st, err := q.RerollState(ctx, sqlc.RerollStateParams{UserID: user, Day: domain.Day(now)})
+		out.RerollsLeft = max(freeRerolls+int(st.Bonus)-int(st.Used), 0)
 		return err
 	})
 	return out, err
@@ -281,7 +281,8 @@ func (s *Service) Reroll(ctx context.Context, user, id uuid.UUID, locale string)
 		if err != nil {
 			return err
 		}
-		if int(used) > freeRerolls {
+		// Extra rerolls come from rewarded ads (D-103).
+		if int(used.Count) > freeRerolls+int(used.Bonus) {
 			return apierror.New(apierror.QuestRerollLimit)
 		}
 		rows, err := q.PeriodAssignments(ctx, sqlc.PeriodAssignmentsParams{UserID: user, Cadence: a.Cadence, PeriodStart: a.PeriodStart})

@@ -3284,6 +3284,402 @@ abstract class AppLocalizations {
   /// **'İPUCU'**
   String get queueTipLabel;
 
+  /// Hidden answers (D-100).
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğru cevabı maç bitince sonuç ekranında görebilirsin.'**
+  String get answerHiddenNote;
+
+  /// Hidden answers (D-100).
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğru cevaplar yarın \"Dünün cevapları\"nda açılır.'**
+  String get dailyAnswerNextDay;
+
+  /// Hidden answers (D-100).
+  ///
+  /// In tr, this message translates to:
+  /// **'Dünün cevapları'**
+  String get dailyYesterdayAnswers;
+
+  /// Hidden answers (D-100).
+  ///
+  /// In tr, this message translates to:
+  /// **'Dünkü 10 sorunun doğru cevapları'**
+  String get dailyYesterdaySub;
+
+  /// Hidden answers (D-100).
+  ///
+  /// In tr, this message translates to:
+  /// **'Dünün cevapları'**
+  String get dailyAnswersTitle;
+
+  /// Hidden answers (D-100).
+  ///
+  /// In tr, this message translates to:
+  /// **'Senin cevabın'**
+  String get dailyAnswersYours;
+
+  /// Hidden answers (D-100).
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu soruyu cevaplamadın.'**
+  String get dailyAnswersNotPlayed;
+
+  /// Hidden answers (D-100).
+  ///
+  /// In tr, this message translates to:
+  /// **'Dün için cevap yok.'**
+  String get dailyAnswersEmpty;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyuncu profili'**
+  String get playerProfileTitle;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Profili gör'**
+  String get playerViewProfile;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş ekle'**
+  String get playerAddFriend;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'İsteği kabul et'**
+  String get playerAccept;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşsınız'**
+  String get playerFriend;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek gönderildi'**
+  String get playerRequestSent;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu profil gizli. İstatistikleri yalnızca arkadaşları görebilir.'**
+  String get playerPrivate;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Gizli profil'**
+  String get playerPrivateTag;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu oyuncunun profilini göremezsin.'**
+  String get playerBlocked;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'İstatistikler'**
+  String get playerStats;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Seviye {level}'**
+  String playerLevel(int level);
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Seviye'**
+  String get playerLevelLabel;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç'**
+  String get playerMatches;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Galibiyet'**
+  String get playerWins;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Kazanma'**
+  String get playerWinRate;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Rozet'**
+  String get playerBadges;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Seri'**
+  String get playerStreak;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Profilimi gizle'**
+  String get settingsPrivateProfile;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'İstatistiklerini yalnızca arkadaşların görür. Adın sıralamalarda görünmeye devam eder.'**
+  String get settingsPrivateProfileSub;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyun rehberi'**
+  String get guideTitle;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Modlar, puanlama, ligler ve daha fazlası'**
+  String get guideSub;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'BrainVolt gerçek zamanlı bir bilgi yarışması. Rakibinle aynı anda aynı soruyu görürsün; hem doğru hem hızlı olan kazanır. Aşağıdaki başlıklara dokunarak ayrıntıları okuyabilirsin.'**
+  String get guideIntro;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Nasıl oynanır?'**
+  String get guideBasicsTitle;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Her soruda dört seçenek (bazen Doğru / Yanlış) ve bir süre sayacı var. Süre bitmeden bir seçeneğe dokun.\n• İki taraf da aynı soruyu aynı anda görür; bağlantı gecikmesi sunucuda telafi edilir.\n• Yanlış cevap ya da süre dolması puan kaybettirmez, sadece 0 puan verir.\n• Yanlış cevap verdiysen doğru cevap maç sırasında gösterilmez; maç bitince sonuç ekranında tüm sorulara ve cevaplara bakabilirsin.\n• Son 30 gün içinde gördüğün sorular sana tekrar sorulmaz.\n• Bağlantın koparsa uygulama otomatik olarak maça geri döner. Çok uzun kopukluk ya da sık kopmalar maçı kaybetmene yol açar.'**
+  String get guideBasicsBody;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Puanlama'**
+  String get guideScoringTitle;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğru cevap üç parçadan puan toplar:\n• Taban puan: sorunun zorluğuna göre 80–120.\n• Hız bonusu: ne kadar erken cevaplarsan o kadar çok, en fazla +100. Son saniyede cevap verirsen bonus 0 olur.\n• Seri bonusu: üst üste 3–4 doğruda +20, 5 ve sonrasında +40.\nBir soruda en fazla 260 puan alınabilir. Doğru / Yanlış soruları yarı puan değerindedir (en fazla 150).\nMaçın sonunda toplam puanı yüksek olan kazanır; eşitlikte doğru sayısı ve hız belirleyicidir.'**
+  String get guideScoringBody;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç türleri'**
+  String get guideTypesTitle;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'• Hızlı Düello: 7 soru, soru başına 15 sn. Kısa ve rahat bir maç.\n• Dereceli: 10 soru, 15 sn, sadece çoktan seçmeli. Yalnızca rakip eşleştirmeyle oynanır; lig puanını (SP) değiştiren tek mod budur.\n• Ani Ölüm: soru başına 10 sn. Bir tur sende doğru, rakipte yanlışsa maç biter. Zorluk her 3 turda artar; 30 turda karar çıkmazsa puanı yüksek olan kazanır.\n• Maraton: 25 soru, soru başına 12 sn. 12. sorudan sonra 15 sn mola verilir.'**
+  String get guideTypesBody;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Konu modları'**
+  String get guideCategoryTitle;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Dereceli dışındaki maçlarda soruların nasıl seçileceğini belirleyebilirsin:\n• Standart: sorular farklı konulardan karışık gelir.\n• Kör Meydan Okuma: sorunun konusu cevaplanana kadar gizli kalır.\n• Kategori Ustası: tüm sorular seçtiğin tek konudan gelir. Eşleştirmede yalnızca aynı konuyu arayan oyuncularla eşleşirsin.\n• Karışık Savaş: maçta 3 konu belirlenir; her tur sırayla bir taraf bu üç konudan birini seçer (10 sn).\n• Rövanş: kaybeden taraf maç sonunda 24 saat içinde rövanş isteyebilir; soruların yarısı onun seçtiği konudan gelir. Bir seride en fazla 3 rövanş oynanır.'**
+  String get guideCategoryBody;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Takımlar ve çiftler'**
+  String get guideTeamsTitle;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Bire bir dışında 2v2, 3v3, 4v4 ve Çift formatlarında oynayabilirsin. Kalıcı bir takım kurup arkadaşlarını davet edebilir ya da bir arkadaşınla çift olabilirsin. Takım maçlarında üç cevap modu var:\n• Ortak Cevap: takım birlikte bir seçenek önerir ve biri cevabı kilitler. Konuşmak için 5 sn ek süre verilir.\n• Sırayla: her soruyu takımdan sıradaki oyuncu cevaplar.\n• Hızlı Takım Turu: herkes kendi başına cevaplar; takımın puanı üyelerin ortalamasından hesaplanır.\nTakımın puanı tek oyuncunun puanıyla aynı ölçektedir; kalabalık takım fazladan puan toplamaz.'**
+  String get guideTeamsBody;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Günün Meydan Okuması'**
+  String get guideDailyTitle;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Her gün herkes aynı 10 soruyu aynı sırayla cevaplar. Gün İstanbul saatiyle gece yarısı yenilenir.\n• Günde bir resmi deneme hakkın var; sonraki denemeler pratiktir ve sıralamayı etkilemez.\n• Sıralamada önce doğru sayısına, eşitlikte toplam cevap süresine bakılır.\n• Gün içinde doğru cevaplar gösterilmez. Ertesi gün \"Dünün cevapları\" bölümünden bakabilirsin.\n• Bağlantın koparsa 2 dakika içinde kaldığın yerden devam edebilirsin; süre bu sırada işlemeye devam eder.\n• Resmi deneme XP kazandırır (30 + doğru başına 5) ve günlük serini sürdürür.'**
+  String get guideDailyBody;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Özel oda ve meydan okumalar'**
+  String get guideRoomsTitle;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'• Özel oda: bir oda kurup kodu arkadaşlarınla paylaş. Ev sahibi maç türünü, formatı ve konu modunu seçer; herkes hazır olunca maç başlar. Maç bitince herkes odaya döner.\n• Meydan okuma: arkadaş listesinden bir arkadaşına doğrudan maç teklifi gönderebilirsin.\n• Bu maçlar XP kazandırır ama SP ve sıralama puanı vermez; böylece arkadaşlar arasında puan kasılamaz.'**
+  String get guideRoomsBody;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Turnuvalar'**
+  String get guideTournamentsTitle;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Turnuvalar eleme usulü oynanır. Kayıt ol, başlangıçtan önceki son 1 saatte check-in yap; check-in yapmayanlar turnuvaya alınmaz.\n• Her turda maçın hazır olunca bildirim alırsın; belirlenen süre içinde maça katılmazsan hükmen kaybedersin.\n• Bireysel, takım ve çift turnuvaları var.\n• Ödüller: 1. 300 XP, 2. 150 XP, 3. 75 XP, diğer katılımcılar 20 XP.'**
+  String get guideTournamentsBody;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Soru Atölyesi'**
+  String get guideLabTitle;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Kendi quizini hazırla: tek bir soruyla başla, \"Soru ekle\" ile en fazla 30 soruya çıkar. Cevap süresini (10, 15 ya da 20 sn) sen belirlersin.\n• Taslak quizler yalnızca arkadaşlarınla özel odada oynanır ve ödül vermez.\n• İncelemeye gönderdiğin quiz onaylanırsa yayına girer; herkes keşfedip oynayabilir ve oyuncular XP kazanır.\n• Kendi quizinden sen XP kazanmazsın.'**
+  String get guideLabBody;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Ligler, sezonlar ve SP'**
+  String get guideLeaguesTitle;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Sezon Puanı (SP) yalnızca Dereceli maçlardan gelir: galibiyet +30, beraberlik +10, mağlubiyet −15. Üst üste 3. dereceli galibiyetten itibaren +5, +10 ve en fazla +15 seri bonusu eklenir.\n• Ligler: Bronz (0), Gümüş (300), Altın (800), Platin (1600) ve Elmas (2800 SP). Elmas dışındaki her ligin üç kademesi vardır (III, II, I).\n• Sezon içinde bir lig düşmezsin; ligin içindeki kademeler inip çıkabilir.\n• Bir sezon 8 hafta sürer. Sezon sonunda ulaştığın en yüksek lige göre rozet kazanırsın, ardından herkes Bronz III\'ten başlar.'**
+  String get guideLeaguesBody;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'XP, seviye, seri ve görevler'**
+  String get guideXpTitle;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'• Her tamamlanan maç XP kazandırır: 20 + doğru cevap başına 5 + sonuç bonusu (galibiyet 15, beraberlik 8).\n• Seviye atlamak için gereken XP her seviyede biraz artar; en yüksek seviye 100. Seviye sadece ilerlemeni gösterir, eşleştirmeyi ya da puanı etkilemez.\n• Seri: her gün en az bir maç ya da resmi Günün Meydan Okuması tamamlarsan serin büyür; bir gün atlarsan sıfırlanır.\n• Görevler: her gün 3 günlük, her hafta 3 haftalık görev gelir. Tamamlayınca ödülünü al; günde bir görevi ücretsiz değiştirebilirsin.\n• Rozetler: galibiyetler, isabet, hız, seriler, konular ve sezonlar için rozet kazanırsın.'**
+  String get guideXpBody;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıralamalar'**
+  String get guideBoardsTitle;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Günlük, haftalık, aylık ve tüm zamanlar sıralamaları var; dünya, ülke ve arkadaşlar arasında ayrı ayrı bakabilirsin. Takımların ve çiftlerin de kendi sıralamaları var.\n• Sıralama puanı yalnızca eşleştirmeyle oynanan maçlardan gelir: galibiyet 20, beraberlik 10, her doğru cevap +2.\n• Sezon sıralaması SP\'ye göre, Günün Meydan Okuması sıralaması ise ayrı tutulur.\n• Bir oyuncuya dokunarak arkadaş ekleyebilir ya da profiline bakabilirsin. Profilini gizlersen istatistiklerini yalnızca arkadaşların görür.'**
+  String get guideBoardsBody;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'Adil oyun'**
+  String get guideFairTitle;
+
+  /// Game guide (D-102).
+  ///
+  /// In tr, this message translates to:
+  /// **'• Puanları ve sonuçları yalnızca sunucu hesaplar; uygulamadaki bir değişiklik sonucu etkilemez.\n• Doğru cevaplar maç sırasında yanlış cevaplayanlara, Günün Meydan Okumasında ise gün bitene kadar kimseye gösterilmez.\n• Arkadaşlar arası maçlar SP ve sıralama puanı vermez.\n• Hatalı bir soru görürsen maç sonunda \"Soruyu bildir\" ile bize ilet. Kurallara aykırı davranışlar yaptırımla sonuçlanabilir.'**
+  String get guideFairBody;
+
+  /// Rewarded ads (D-103).
+  ///
+  /// In tr, this message translates to:
+  /// **'Reklam izle: +%50 XP'**
+  String get adBonusXpButton;
+
+  /// Rewarded ads (D-103).
+  ///
+  /// In tr, this message translates to:
+  /// **'+{xp} XP eklendi!'**
+  String adBonusXpDone(int xp);
+
+  /// Rewarded ads (D-103).
+  ///
+  /// In tr, this message translates to:
+  /// **'Şu an gösterilecek reklam yok. Biraz sonra tekrar dene.'**
+  String get adNoFill;
+
+  /// Rewarded ads (D-103).
+  ///
+  /// In tr, this message translates to:
+  /// **'Ödül için reklamı sonuna kadar izlemelisin.'**
+  String get adNotEarned;
+
+  /// Rewarded ads (D-103).
+  ///
+  /// In tr, this message translates to:
+  /// **'Ödülün birazdan hesabına geçecek.'**
+  String get adPending;
+
+  /// Rewarded ads (D-103).
+  ///
+  /// In tr, this message translates to:
+  /// **'Reklam izle, değiştir'**
+  String get adQuestReroll;
+
+  /// Rewarded ads (D-103).
+  ///
+  /// In tr, this message translates to:
+  /// **'{days} günlük serin bozuldu!'**
+  String adStreakTitle(int days);
+
+  /// Rewarded ads (D-103).
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir reklam izle, serini kurtar.'**
+  String get adStreakSub;
+
+  /// Rewarded ads (D-103).
+  ///
+  /// In tr, this message translates to:
+  /// **'Serin kurtarıldı: {days} gün!'**
+  String adStreakDone(int days);
+
+  /// Rewarded ads (D-103).
+  ///
+  /// In tr, this message translates to:
+  /// **'İzle'**
+  String get adWatch;
+
   /// Server error code ACCOUNT_DELETION_PENDING (docs/api/errors.md).
   ///
   /// In tr, this message translates to:
@@ -3302,11 +3698,23 @@ abstract class AppLocalizations {
   /// **'Bu işlem için hesabını yükseltmelisin.'**
   String get error_ACCOUNT_UPGRADE_REQUIRED;
 
+  /// Server error code AD_LIMIT_REACHED (docs/api/errors.md).
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu ödül için bugünkü sınıra ulaştın.'**
+  String get error_AD_LIMIT_REACHED;
+
   /// Server error code AD_REWARD_LIMIT (docs/api/errors.md).
   ///
   /// In tr, this message translates to:
   /// **'Bugün için reklam ödülü sınırına ulaştın.'**
   String get error_AD_REWARD_LIMIT;
+
+  /// Server error code AD_REWARD_UNAVAILABLE (docs/api/errors.md).
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu ödül şu an alınamıyor.'**
+  String get error_AD_REWARD_UNAVAILABLE;
 
   /// Server error code AGE_CONFIRMATION_REQUIRED (docs/api/errors.md).
   ///
@@ -3757,342 +4165,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu kayıt başka biri tarafından değiştirildi. Yenileyip tekrar dene.'**
   String get error_VERSION_CONFLICT;
-
-  /// Hidden answers (D-100).
-  ///
-  /// In tr, this message translates to:
-  /// **'Doğru cevabı maç bitince sonuç ekranında görebilirsin.'**
-  String get answerHiddenNote;
-
-  /// Hidden answers (D-100).
-  ///
-  /// In tr, this message translates to:
-  /// **'Doğru cevaplar yarın \"Dünün cevapları\"nda açılır.'**
-  String get dailyAnswerNextDay;
-
-  /// Hidden answers (D-100).
-  ///
-  /// In tr, this message translates to:
-  /// **'Dünün cevapları'**
-  String get dailyYesterdayAnswers;
-
-  /// Hidden answers (D-100).
-  ///
-  /// In tr, this message translates to:
-  /// **'Dünkü 10 sorunun doğru cevapları'**
-  String get dailyYesterdaySub;
-
-  /// Hidden answers (D-100).
-  ///
-  /// In tr, this message translates to:
-  /// **'Dünün cevapları'**
-  String get dailyAnswersTitle;
-
-  /// Hidden answers (D-100).
-  ///
-  /// In tr, this message translates to:
-  /// **'Senin cevabın'**
-  String get dailyAnswersYours;
-
-  /// Hidden answers (D-100).
-  ///
-  /// In tr, this message translates to:
-  /// **'Bu soruyu cevaplamadın.'**
-  String get dailyAnswersNotPlayed;
-
-  /// Hidden answers (D-100).
-  ///
-  /// In tr, this message translates to:
-  /// **'Dün için cevap yok.'**
-  String get dailyAnswersEmpty;
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'Oyuncu profili'**
-  String get playerProfileTitle;
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'Profili gör'**
-  String get playerViewProfile;
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'Arkadaş ekle'**
-  String get playerAddFriend;
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'İsteği kabul et'**
-  String get playerAccept;
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'Arkadaşsınız'**
-  String get playerFriend;
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'İstek gönderildi'**
-  String get playerRequestSent;
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'Bu profil gizli. İstatistikleri yalnızca arkadaşları görebilir.'**
-  String get playerPrivate;
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'Gizli profil'**
-  String get playerPrivateTag;
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'Bu oyuncunun profilini göremezsin.'**
-  String get playerBlocked;
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'İstatistikler'**
-  String get playerStats;
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'Seviye {level}'**
-  String playerLevel(int level);
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'Seviye'**
-  String get playerLevelLabel;
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'Maç'**
-  String get playerMatches;
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'Galibiyet'**
-  String get playerWins;
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'Kazanma'**
-  String get playerWinRate;
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'Rozet'**
-  String get playerBadges;
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'Seri'**
-  String get playerStreak;
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'Profilimi gizle'**
-  String get settingsPrivateProfile;
-
-  /// Player profiles (D-101).
-  ///
-  /// In tr, this message translates to:
-  /// **'İstatistiklerini yalnızca arkadaşların görür. Adın sıralamalarda görünmeye devam eder.'**
-  String get settingsPrivateProfileSub;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Oyun rehberi'**
-  String get guideTitle;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Modlar, puanlama, ligler ve daha fazlası'**
-  String get guideSub;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'BrainVolt gerçek zamanlı bir bilgi yarışması. Rakibinle aynı anda aynı soruyu görürsün; hem doğru hem hızlı olan kazanır. Aşağıdaki başlıklara dokunarak ayrıntıları okuyabilirsin.'**
-  String get guideIntro;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Nasıl oynanır?'**
-  String get guideBasicsTitle;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Her soruda dört seçenek (bazen Doğru / Yanlış) ve bir süre sayacı var. Süre bitmeden bir seçeneğe dokun.\n• İki taraf da aynı soruyu aynı anda görür; bağlantı gecikmesi sunucuda telafi edilir.\n• Yanlış cevap ya da süre dolması puan kaybettirmez, sadece 0 puan verir.\n• Yanlış cevap verdiysen doğru cevap maç sırasında gösterilmez; maç bitince sonuç ekranında tüm sorulara ve cevaplara bakabilirsin.\n• Son 30 gün içinde gördüğün sorular sana tekrar sorulmaz.\n• Bağlantın koparsa uygulama otomatik olarak maça geri döner. Çok uzun kopukluk ya da sık kopmalar maçı kaybetmene yol açar.'**
-  String get guideBasicsBody;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Puanlama'**
-  String get guideScoringTitle;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Doğru cevap üç parçadan puan toplar:\n• Taban puan: sorunun zorluğuna göre 80–120.\n• Hız bonusu: ne kadar erken cevaplarsan o kadar çok, en fazla +100. Son saniyede cevap verirsen bonus 0 olur.\n• Seri bonusu: üst üste 3–4 doğruda +20, 5 ve sonrasında +40.\nBir soruda en fazla 260 puan alınabilir. Doğru / Yanlış soruları yarı puan değerindedir (en fazla 150).\nMaçın sonunda toplam puanı yüksek olan kazanır; eşitlikte doğru sayısı ve hız belirleyicidir.'**
-  String get guideScoringBody;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Maç türleri'**
-  String get guideTypesTitle;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'• Hızlı Düello: 7 soru, soru başına 15 sn. Kısa ve rahat bir maç.\n• Dereceli: 10 soru, 15 sn, sadece çoktan seçmeli. Yalnızca rakip eşleştirmeyle oynanır; lig puanını (SP) değiştiren tek mod budur.\n• Ani Ölüm: soru başına 10 sn. Bir tur sende doğru, rakipte yanlışsa maç biter. Zorluk her 3 turda artar; 30 turda karar çıkmazsa puanı yüksek olan kazanır.\n• Maraton: 25 soru, soru başına 12 sn. 12. sorudan sonra 15 sn mola verilir.'**
-  String get guideTypesBody;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Konu modları'**
-  String get guideCategoryTitle;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Dereceli dışındaki maçlarda soruların nasıl seçileceğini belirleyebilirsin:\n• Standart: sorular farklı konulardan karışık gelir.\n• Kör Meydan Okuma: sorunun konusu cevaplanana kadar gizli kalır.\n• Kategori Ustası: tüm sorular seçtiğin tek konudan gelir. Eşleştirmede yalnızca aynı konuyu arayan oyuncularla eşleşirsin.\n• Karışık Savaş: maçta 3 konu belirlenir; her tur sırayla bir taraf bu üç konudan birini seçer (10 sn).\n• Rövanş: kaybeden taraf maç sonunda 24 saat içinde rövanş isteyebilir; soruların yarısı onun seçtiği konudan gelir. Bir seride en fazla 3 rövanş oynanır.'**
-  String get guideCategoryBody;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Takımlar ve çiftler'**
-  String get guideTeamsTitle;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Bire bir dışında 2v2, 3v3, 4v4 ve Çift formatlarında oynayabilirsin. Kalıcı bir takım kurup arkadaşlarını davet edebilir ya da bir arkadaşınla çift olabilirsin. Takım maçlarında üç cevap modu var:\n• Ortak Cevap: takım birlikte bir seçenek önerir ve biri cevabı kilitler. Konuşmak için 5 sn ek süre verilir.\n• Sırayla: her soruyu takımdan sıradaki oyuncu cevaplar.\n• Hızlı Takım Turu: herkes kendi başına cevaplar; takımın puanı üyelerin ortalamasından hesaplanır.\nTakımın puanı tek oyuncunun puanıyla aynı ölçektedir; kalabalık takım fazladan puan toplamaz.'**
-  String get guideTeamsBody;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Günün Meydan Okuması'**
-  String get guideDailyTitle;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Her gün herkes aynı 10 soruyu aynı sırayla cevaplar. Gün İstanbul saatiyle gece yarısı yenilenir.\n• Günde bir resmi deneme hakkın var; sonraki denemeler pratiktir ve sıralamayı etkilemez.\n• Sıralamada önce doğru sayısına, eşitlikte toplam cevap süresine bakılır.\n• Gün içinde doğru cevaplar gösterilmez. Ertesi gün \"Dünün cevapları\" bölümünden bakabilirsin.\n• Bağlantın koparsa 2 dakika içinde kaldığın yerden devam edebilirsin; süre bu sırada işlemeye devam eder.\n• Resmi deneme XP kazandırır (30 + doğru başına 5) ve günlük serini sürdürür.'**
-  String get guideDailyBody;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Özel oda ve meydan okumalar'**
-  String get guideRoomsTitle;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'• Özel oda: bir oda kurup kodu arkadaşlarınla paylaş. Ev sahibi maç türünü, formatı ve konu modunu seçer; herkes hazır olunca maç başlar. Maç bitince herkes odaya döner.\n• Meydan okuma: arkadaş listesinden bir arkadaşına doğrudan maç teklifi gönderebilirsin.\n• Bu maçlar XP kazandırır ama SP ve sıralama puanı vermez; böylece arkadaşlar arasında puan kasılamaz.'**
-  String get guideRoomsBody;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Turnuvalar'**
-  String get guideTournamentsTitle;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Turnuvalar eleme usulü oynanır. Kayıt ol, başlangıçtan önceki son 1 saatte check-in yap; check-in yapmayanlar turnuvaya alınmaz.\n• Her turda maçın hazır olunca bildirim alırsın; belirlenen süre içinde maça katılmazsan hükmen kaybedersin.\n• Bireysel, takım ve çift turnuvaları var.\n• Ödüller: 1. 300 XP, 2. 150 XP, 3. 75 XP, diğer katılımcılar 20 XP.'**
-  String get guideTournamentsBody;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Soru Atölyesi'**
-  String get guideLabTitle;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Kendi quizini hazırla: tek bir soruyla başla, \"Soru ekle\" ile en fazla 30 soruya çıkar. Cevap süresini (10, 15 ya da 20 sn) sen belirlersin.\n• Taslak quizler yalnızca arkadaşlarınla özel odada oynanır ve ödül vermez.\n• İncelemeye gönderdiğin quiz onaylanırsa yayına girer; herkes keşfedip oynayabilir ve oyuncular XP kazanır.\n• Kendi quizinden sen XP kazanmazsın.'**
-  String get guideLabBody;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Ligler, sezonlar ve SP'**
-  String get guideLeaguesTitle;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Sezon Puanı (SP) yalnızca Dereceli maçlardan gelir: galibiyet +30, beraberlik +10, mağlubiyet −15. Üst üste 3. dereceli galibiyetten itibaren +5, +10 ve en fazla +15 seri bonusu eklenir.\n• Ligler: Bronz (0), Gümüş (300), Altın (800), Platin (1600) ve Elmas (2800 SP). Elmas dışındaki her ligin üç kademesi vardır (III, II, I).\n• Sezon içinde bir lig düşmezsin; ligin içindeki kademeler inip çıkabilir.\n• Bir sezon 8 hafta sürer. Sezon sonunda ulaştığın en yüksek lige göre rozet kazanırsın, ardından herkes Bronz III\'ten başlar.'**
-  String get guideLeaguesBody;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'XP, seviye, seri ve görevler'**
-  String get guideXpTitle;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'• Her tamamlanan maç XP kazandırır: 20 + doğru cevap başına 5 + sonuç bonusu (galibiyet 15, beraberlik 8).\n• Seviye atlamak için gereken XP her seviyede biraz artar; en yüksek seviye 100. Seviye sadece ilerlemeni gösterir, eşleştirmeyi ya da puanı etkilemez.\n• Seri: her gün en az bir maç ya da resmi Günün Meydan Okuması tamamlarsan serin büyür; bir gün atlarsan sıfırlanır.\n• Görevler: her gün 3 günlük, her hafta 3 haftalık görev gelir. Tamamlayınca ödülünü al; günde bir görevi ücretsiz değiştirebilirsin.\n• Rozetler: galibiyetler, isabet, hız, seriler, konular ve sezonlar için rozet kazanırsın.'**
-  String get guideXpBody;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Sıralamalar'**
-  String get guideBoardsTitle;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Günlük, haftalık, aylık ve tüm zamanlar sıralamaları var; dünya, ülke ve arkadaşlar arasında ayrı ayrı bakabilirsin. Takımların ve çiftlerin de kendi sıralamaları var.\n• Sıralama puanı yalnızca eşleştirmeyle oynanan maçlardan gelir: galibiyet 20, beraberlik 10, her doğru cevap +2.\n• Sezon sıralaması SP\'ye göre, Günün Meydan Okuması sıralaması ise ayrı tutulur.\n• Bir oyuncuya dokunarak arkadaş ekleyebilir ya da profiline bakabilirsin. Profilini gizlersen istatistiklerini yalnızca arkadaşların görür.'**
-  String get guideBoardsBody;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'Adil oyun'**
-  String get guideFairTitle;
-
-  /// Game guide (D-102).
-  ///
-  /// In tr, this message translates to:
-  /// **'• Puanları ve sonuçları yalnızca sunucu hesaplar; uygulamadaki bir değişiklik sonucu etkilemez.\n• Doğru cevaplar maç sırasında yanlış cevaplayanlara, Günün Meydan Okumasında ise gün bitene kadar kimseye gösterilmez.\n• Arkadaşlar arası maçlar SP ve sıralama puanı vermez.\n• Hatalı bir soru görürsen maç sonunda \"Soruyu bildir\" ile bize ilet. Kurallara aykırı davranışlar yaptırımla sonuçlanabilir.'**
-  String get guideFairBody;
 }
 
 class _AppLocalizationsDelegate

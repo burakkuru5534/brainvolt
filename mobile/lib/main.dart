@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -10,8 +12,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app/app.dart';
 import 'app/config.dart';
 import 'app/providers.dart';
+import 'core/ads/ad_gateway.dart';
 import 'core/network/api_client.dart';
 import 'core/push/push_service.dart';
+import 'features/ads/presentation/ads.dart';
 import 'features/auth/data/auth_providers.dart';
 import 'firebase_options.dart';
 
@@ -48,6 +52,8 @@ Future<void> main() async {
   }
 
   final prefs = await SharedPreferences.getInstance();
+  // Ads (D-103): consent and the SDK start after the first frame.
+  final ads = GoogleAdGateway(AdUnits.forBuild(config.flavor));
   final info = await PackageInfo.fromPlatform();
   runApp(
     ProviderScope(
@@ -61,6 +67,7 @@ Future<void> main() async {
           '${info.version}+${info.buildNumber}',
         ),
         pushServiceProvider.overrideWithValue(pushService),
+        adGatewayProvider.overrideWithValue(ads),
         tokenSourceProvider.overrideWith(
           (ref) => AuthTokenSource(ref.watch(authRepositoryProvider)),
         ),
@@ -68,6 +75,7 @@ Future<void> main() async {
       child: const BrainVoltApp(),
     ),
   );
+  WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(ads.init()));
 }
 
 /// Logs go to the debug console; release builds stay silent (ADR-0003).

@@ -167,7 +167,11 @@
 | GET | `/v1/me/entitlements` · `/v1/me/inventory` | any | — | 9 | What the user owns. |
 | PUT | `/v1/me/equipped/{slot}` | any | — | 9 | Equip a cosmetic. |
 | POST | `/webhooks/app-store` · `/webhooks/play-store` | signature | — | 9 | Store server notifications (verified, idempotent by event id). |
-| GET | `/webhooks/admob/ssv` | signature | — | 9 | Rewarded-ad server-side verification callback (D-031 limits). |
+| GET | `/v1/ads/config` | any | — | 9 | Ad settings for the caller (D-103): `interstitial {enabled, every_matches}` (off for the first 72 h and for `plus` / `no_ads` entitlements), `rewarded {daily_limit, used_today, bonus_xp_left, quest_rerolls_left, streak_repair {available, days}}`. |
+| POST | `/v1/ads/rewards` | any | — | 9 | Reserve a rewarded ad `{placement: bonus_xp \| quest_reroll \| streak_repair, ref?}` (`ref` = the match of `bonus_xp`) → `201 {id, placement, status: pending, reward {xp?, streak_days?}, expires_at}`; the id goes to AdMob as SSV `custom_data`, the user id as `user_id`. An open reservation of the same placement and match is returned again. Limits: 5 rewarded ads a day, 2 of them rerolls, 1 streak repair per 7 days (`AD_LIMIT_REACHED`); `AD_REWARD_UNAVAILABLE` + `reason` when it cannot be earned now. |
+| GET | `/v1/ads/rewards/{id}` | any | — | 9 | The reservation: `pending` until AdMob's verified callback, then `granted` (the app polls it). |
+| GET | `/v1/ads/admob/ssv` | pub (AdMob signature) | — | 9 | AdMob server-side verification callback: ECDSA signature checked against AdMob's published keys; grants the reward named by `custom_data` once (idempotent by reward and `transaction_id`) and emits `commerce.AdRewardGranted`; unknown rewards and AdMob's "verify URL" test get 200, a bad signature 403. |
+| POST | `/v1/ads/rewards/{id}/dev-grant` | any | — | 9 | **Development only** (not registered in prod): grant without AdMob, because test ads cannot call a local server. |
 
 ## 16. creator
 | Method | Path | Auth | Idem | Ph | Purpose |

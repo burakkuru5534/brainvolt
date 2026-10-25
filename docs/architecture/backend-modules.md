@@ -51,7 +51,7 @@ Layer 5  ranking   progression   moderation   notification   (event consumers)
 |--------|-----------|
 | identity | — |
 | profile | identity, social*, progression* |
-| commerce | identity |
+| commerce | identity, progression* |
 | content | identity |
 | social | identity, profile |
 | team | identity, profile, social |
@@ -67,7 +67,7 @@ Layer 5  ranking   progression   moderation   notification   (event consumers)
 | moderation | identity, profile, content, game, creator, chat |
 | notification | identity, profile, social, team |
 
-\* **matchmaking → ranking** (and **identity → game** for the guest-cleanup `ActivityReader`, see `schema-identity.md` §6) are the upward reads: matchmaking needs a player's current rating to place them in a queue. It goes through a narrow read-only interface (`ranking.RatingReader`) declared in matchmaking and **implemented** by ranking, wired in `internal/app`. matchmaking never imports ranking's package directly, so there is no import cycle. **matchmaking → social*** is the same pattern for the block list (`matchmaking.BlockReader`, implemented by social): social sits in the same layer and is not imported. **profile → social*, progression*** serve player profiles (D-101): `profile.RelationReader` (implemented by social) and `profile.StatsReader` (implemented by progression), wired with `profile.SetReaders` in `internal/app`.
+\* **matchmaking → ranking** (and **identity → game** for the guest-cleanup `ActivityReader`, see `schema-identity.md` §6) are the upward reads: matchmaking needs a player's current rating to place them in a queue. It goes through a narrow read-only interface (`ranking.RatingReader`) declared in matchmaking and **implemented** by ranking, wired in `internal/app`. matchmaking never imports ranking's package directly, so there is no import cycle. **matchmaking → social*** is the same pattern for the block list (`matchmaking.BlockReader`, implemented by social): social sits in the same layer and is not imported. **profile → social*, progression*** serve player profiles (D-101): `profile.RelationReader` (implemented by social) and `profile.StatsReader` (implemented by progression), wired with `profile.SetReaders` in `internal/app`. **commerce → progression*** checks a rewarded-ad placement before the ad is shown (`commerce.RewardChecker`, implemented by progression, wired with `commerce.SetRewards`; D-103); the reward itself reaches progression as the `commerce.AdRewardGranted` event.
 
 **Rules**
 1. **No cycles.** If two modules need each other, one side defines an interface and `internal/app` wires the implementation (same pattern as `RatingReader`).
@@ -114,6 +114,7 @@ Initial event catalogue (expanded in 0.2 / 0.3):
 | `ranking.SeasonEnded` / `LeagueChanged` | ranking | progression, notification, commerce (season rewards) |
 | `progression.BadgeEarned` / `QuestCompleted` / `LevelUp` | progression | notification |
 | `commerce.SubscriptionChanged` | commerce | notification |
+| `commerce.AdRewardGranted` | commerce | progression (bonus XP, quest reroll, streak repair; D-103) |
 | `tournament.RoundScheduled` / `TournamentFinished` | tournament | notification, progression |
 
 ### 3.3 Real-time push

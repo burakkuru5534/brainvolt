@@ -27,6 +27,7 @@ import (
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/chat"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/commerce"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/content"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/creator"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/game"
@@ -197,6 +198,8 @@ type moduleDeps struct {
 	instance string
 	// env enables development-only features (practice bot, D-066).
 	env config.Environment
+	// adKeys verifies AdMob SSV callbacks (tests; nil = AdMob's keys).
+	adKeys commerce.KeySource
 	// wsPingIdle and wsIdleTimeout override realtime's heartbeat and idle
 	// close (tests; zero keeps the defaults).
 	wsPingIdle, wsIdleTimeout time.Duration
@@ -206,6 +209,7 @@ type moduleDeps struct {
 type modules struct {
 	identity    *identity.Module
 	profile     *profile.Module
+	commerce    *commerce.Module
 	content     *content.Module
 	realtime    *realtime.Module
 	social      *social.Module
@@ -250,6 +254,11 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	prog := progression.New(progression.Deps{DB: d.db, Ranking: rk, Clock: d.clock, Logger: d.logger})
 	prog.Register(srv, ident, d.idem)
 	prof.SetReaders(soc, prog) // player profiles (D-101): relation and stats
+	// Rewarded ads (D-103): commerce verifies, progression checks and gives.
+	com := commerce.New(commerce.Deps{DB: d.db, Identity: ident, Events: d.bus, Keys: d.adKeys, Clock: d.clock, Logger: d.logger,
+		DevGrant: d.env != config.EnvProd})
+	com.SetRewards(adOffers{prog})
+	com.Register(srv)
 	g := game.New(game.Deps{
 		DB: d.db, Content: cont, Identity: ident, Profiles: prof, Realtime: rt, Teams: tm, Seasons: rk, Sanctions: mod,
 		Events: d.bus, Clock: d.clock, Logger: d.logger, Instance: d.instance,
@@ -273,7 +282,7 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	})
 	tour.Register(srv, ident, d.idem)
 	return modules{
-		identity: ident, profile: prof, content: cont, realtime: rt, social: soc, team: tm, ranking: rk, moderation: mod, progression: prog,
+		identity: ident, profile: prof, commerce: com, content: cont, realtime: rt, social: soc, team: tm, ranking: rk, moderation: mod, progression: prog,
 		game: g, matchmaking: mm, lobby: lob, tournament: tour,
 	}
 }
@@ -300,6 +309,14 @@ type quizzes struct{ *creator.Module }
 func (q quizzes) Playable(ctx context.Context, user, id uuid.UUID) (lobby.Quiz, error) {
 	p, err := q.Module.Playable(ctx, user, id)
 	return lobby.Quiz{SetID: p.SetID, Length: p.Length, WindowMS: p.WindowMS, Locale: p.Locale, Author: p.Author, Published: p.Published}, err
+}
+
+// adOffers adapts progression to commerce's RewardChecker (D-103).
+type adOffers struct{ *progression.Module }
+
+func (a adOffers) AdOffer(ctx context.Context, user uuid.UUID, placement, ref string) (commerce.Offer, error) {
+	o, err := a.Module.AdOffer(ctx, user, placement, ref)
+	return commerce.Offer{XP: o.XP, StreakDays: o.StreakDays}, err
 }
 
 // ratings adapts ranking to matchmaking's RatingReader.
@@ -332,6 +349,7 @@ func newBus(db *pgxpool.Pool, logger *slog.Logger, push notification.Sender, liv
 	prog := progression.New(progression.Deps{DB: db, Pusher: live, Ranking: rk, Clock: clock.Real{}, Logger: logger})
 	bus.Subscribe(game.EventMatchCompleted, progression.SubscriberMatchAwards, prog.OnMatchCompleted)
 	bus.Subscribe(ranking.EventSeasonEnded, progression.SubscriberSeasonReward, prog.OnSeasonEnded)
+	bus.Subscribe(commerce.EventAdRewardGranted, progression.SubscriberAdRewards, prog.OnAdRewardGranted)
 	// Daily Challenge: the daily board and the run's XP / streak / quest (D-040).
 	bus.Subscribe(game.EventDailyRunCompleted, ranking.SubscriberDailyBoard, rk.OnDailyRunCompleted)
 	bus.Subscribe(game.EventDailyRunCompleted, progression.SubscriberDailyRewards, prog.OnDailyRunCompleted)

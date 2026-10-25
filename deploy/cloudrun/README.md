@@ -57,3 +57,19 @@ with `BRAINVOLT_POSTGRES_MAX_CONNS`, `BRAINVOLT_POSTGRES_JOBS_MAX_CONNS`,
 `BRAINVOLT_POSTGRES_MAX_CONN_IDLE_TIME` and
 `BRAINVOLT_POSTGRES_MAX_CONN_LIFETIME` (env entries in
 `api.service.yaml`).
+
+## AdMob server-side verification (D-103)
+
+Rewarded ads are granted only by AdMob's signed callback. In AdMob, open the
+`rewarded_main` ad unit → **Server-side verification** and set the callback
+URL to
+
+```
+https://brainvolt-api-684037840139.europe-west3.run.app/v1/ads/admob/ssv
+```
+
+then press **Verify URL** (the service answers 200; the test call carries no
+reward). The service fetches AdMob's public keys from
+`https://www.gstatic.com/admob/reward/verifier-keys.json` and caches them for
+a day; no secret is involved. Without this setting rewarded ads in release
+builds play but never grant their reward.

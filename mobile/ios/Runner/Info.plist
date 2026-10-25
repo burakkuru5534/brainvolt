@@ -20,6 +20,9 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<!-- AdMob (D-103): Google's sample app id until BrainVolt has an iOS app in AdMob (D-057); test ad units only. -->
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-3940256099942544~1458002511</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleLocalizations</key>

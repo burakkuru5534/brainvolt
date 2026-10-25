@@ -287,7 +287,8 @@ CREATE INDEX ad_rewards_user_day_idx ON commerce.ad_rewards (user_id, verified_a
 ```
 Rules (P):
 - **Premium perks:** no interstitial ads, exclusive cosmetics, 1 extra daily quest, extended stats/match history. **No** gameplay advantage.
-- **Ads:** interstitial at most once every **3 matches**, never during a match, never for premium users; rewarded ads limited to **5 per day** per user.
+- **Ads:** interstitial at most once every **2 matches** (D-103; was 3), never during a match, never after Ranked or tournament matches, never in a player's first 72 hours, never for premium users; rewarded ads limited to **5 per day** per user (2 of them quest rerolls, 1 streak repair per 7 days).
+- **Implemented (D-103, migration 000026):** `commerce.entitlements` as above and `commerce.ad_rewards` in its implemented shape — a reward is reserved before the ad (`status pending`, `placement` bonus_xp / quest_reroll / streak_repair, `ref` = the match of bonus_xp, `expires_at` +30 min), granted by AdMob's SSV callback (`transaction_id`, unique per network), and its effect is applied by progression from `commerce.AdRewardGranted` (migration 000027: `xp_ledger` source `ad_bonus`, `quest_rerolls.bonus`, `progression.ad_rewards_applied`).
 - **No soft currency** at launch: cosmetics come from direct purchase, premium, rewards.
 - Restricted accounts may buy; on link conflict (D-015) purchases are restored by the store "restore purchases" flow to whichever account signs in, so nothing paid is lost.
 - `commerce` exposes `HasEntitlement(user, code)` to other modules (layer 1, so anyone may call it).

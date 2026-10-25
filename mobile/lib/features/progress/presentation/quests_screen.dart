@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/widgets/bv.dart';
+import '../../ads/domain/ads_repository.dart';
+import '../../ads/presentation/ads.dart';
 import '../../match/presentation/play_error_text.dart';
 import '../data/progress_providers.dart';
 import '../domain/progress_repository.dart';
@@ -37,12 +40,40 @@ class QuestsScreen extends ConsumerWidget {
       ..invalidate(myProgressProvider);
   }
 
+  /// A rewarded ad buys one more reroll (D-103), then rerolls [id].
+  Future<String?> _adReroll(
+    WidgetRef ref,
+    AppLocalizations l10n,
+    String id,
+  ) async {
+    final (outcome, _) = await ref
+        .read(rewardedAdRunnerProvider)
+        .watch(AdPlacement.questReroll);
+    if (adOutcomeText(l10n, outcome) case final text?) {
+      return text;
+    }
+    final repo = ref.read(progressRepositoryProvider);
+    // The extra reroll is applied a moment after the ad is verified.
+    for (var i = 0; ; i++) {
+      try {
+        await repo.reroll(id);
+        return null;
+      } on ApiException catch (e) {
+        if (e.code != 'QUEST_REROLL_LIMIT' || i >= 4) {
+          rethrow;
+        }
+        await Future<void>.delayed(const Duration(seconds: 1));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final bv = BvColors.of(context);
     final text = Theme.of(context).textTheme;
     final repo = ref.watch(progressRepositoryProvider);
+    final adRerolls = ref.watch(adsConfigProvider).value?.questRerollsLeft ?? 0;
     Widget tile(Quest q, bool canReroll, IconData icon) => Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: BvCard(
@@ -105,6 +136,14 @@ class QuestsScreen extends ConsumerWidget {
                       return null;
                     }),
                     label: Text(l10n.questReroll),
+                  )
+                else if (adRerolls > 0)
+                  TextButton.icon(
+                    key: Key('quest-ad-reroll-${q.id}'),
+                    icon: const Icon(Icons.ondemand_video_rounded, size: 18),
+                    onPressed: () =>
+                        _run(context, ref, () => _adReroll(ref, l10n, q.id)),
+                    label: Text(l10n.adQuestReroll),
                   ),
               ],
             ),

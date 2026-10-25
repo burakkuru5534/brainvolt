@@ -20,6 +20,10 @@
         <meta-data
             android:name="google_analytics_adid_collection_enabled"
             android:value="false" />
+        <!-- AdMob app id (D-103); ad units are chosen in core/ads/ad_gateway.dart. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-9463680089100140~4762488960"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

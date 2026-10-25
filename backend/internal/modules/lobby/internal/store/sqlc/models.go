@@ -41,6 +41,28 @@ type ChatReadCursor struct {
 	LastReadID uuid.UUID
 }
 
+type CommerceAdReward struct {
+	ID            uuid.UUID
+	UserID        uuid.UUID
+	Network       string
+	Placement     string
+	Ref           string
+	Status        string
+	TransactionID *string
+	CreatedAt     time.Time
+	ExpiresAt     time.Time
+	GrantedAt     *time.Time
+}
+
+type CommerceEntitlement struct {
+	UserID     uuid.UUID
+	Code       string
+	SourceKind string
+	SourceID   string
+	StartsAt   time.Time
+	EndsAt     *time.Time
+}
+
 type ContentCategory struct {
 	ID        uuid.UUID
 	Slug      string
@@ -441,6 +463,41 @@ type LobbyRoom struct {
 	CloseReason       *string
 }
 
+type MatchmakingCooldown struct {
+	UserID    uuid.UUID
+	ExpiresAt time.Time
+}
+
+type MatchmakingEventCount struct {
+	ID         uuid.UUID
+	UserID     uuid.UUID
+	EventKind  string
+	OccurredAt time.Time
+}
+
+type MatchmakingMatchMemory struct {
+	MatchID   uuid.UUID
+	UserID    uuid.UUID
+	EntryJson []byte
+	CreatedAt time.Time
+	ExpiresAt time.Time
+}
+
+type MatchmakingTicket struct {
+	ID         uuid.UUID
+	Queue      string
+	UserIds    []uuid.UUID
+	Request    []byte
+	EntryJson  []byte
+	Rating     float64
+	Rd         float64
+	Status     string
+	MatchID    *uuid.UUID
+	EnqueuedAt time.Time
+	ExpiresAt  time.Time
+	UpdatedAt  time.Time
+}
+
 type ModerationAction struct {
 	ID         uuid.UUID
 	CaseID     *uuid.UUID
@@ -590,6 +647,18 @@ type NotificationQuietHour struct {
 	UtcOffsetMinutes int16
 }
 
+type PlatformIdempotencyKey struct {
+	Key        string
+	UserID     string
+	State      string
+	Hash       string
+	StatusCode *int32
+	Headers    []byte
+	Body       []byte
+	CreatedAt  time.Time
+	ExpiresAt  time.Time
+}
+
 type ProfileProfile struct {
 	UserID            uuid.UUID
 	Username          string
@@ -613,6 +682,13 @@ type ProfileSetting struct {
 	HapticsEnabled      bool
 	UpdatedAt           time.Time
 	ProfilePrivate      bool
+}
+
+type ProgressionAdRewardsApplied struct {
+	RewardID  uuid.UUID
+	UserID    uuid.UUID
+	Placement string
+	AppliedAt time.Time
 }
 
 type ProgressionBadge struct {
@@ -683,6 +759,7 @@ type ProgressionQuestReroll struct {
 	UserID uuid.UUID
 	Day    pgtype.Date
 	Count  int32
+	Bonus  int32
 }
 
 type ProgressionQuestTranslation struct {
@@ -731,6 +808,13 @@ type RankingDailyChallengeEntry struct {
 	CompletedAt  time.Time
 	CountryCode  *string
 	Public       bool
+}
+
+type RankingLeaderboardEntry struct {
+	BoardKey  string
+	Member    string
+	Score     float64
+	UpdatedAt time.Time
 }
 
 type RankingLeaderboardSnapshot struct {

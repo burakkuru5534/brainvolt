@@ -65,6 +65,8 @@ var messagesEN = map[Code]string{
 	DailyAttemptInProgress: "You have a daily attempt in progress.",
 	DailyNotAvailable:      "Today's challenge isn't ready yet.",
 	DailyAnswersNotOpen:    "A day's answers open once the day is over.",
+	AdRewardUnavailable:    "This reward isn't available right now.",
+	AdLimitReached:         "You've reached today's limit for this reward.",
 
 	QuestionSourceRequired: "The question's source and license are required.",
 	QuestionInUse:          "This question has been used in matches and can't be changed this way.",
