@@ -132,7 +132,7 @@ class StatsRow extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label.toUpperCase(), style: text.labelSmall),
+                Text(context.upper(label), style: text.labelSmall),
                 Text(
                   value,
                   key: key,

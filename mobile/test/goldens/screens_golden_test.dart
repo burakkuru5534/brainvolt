@@ -126,6 +126,7 @@ void main() {
       ('daily', Routes.daily),
       ('daily_answers', Routes.dailyAnswers),
       ('player', Routes.player('u-deniz')),
+      ('guide', Routes.guide),
       ('leaderboards', Routes.leaderboards),
       ('quests', Routes.quests),
       ('badges', Routes.badges),
@@ -155,6 +156,17 @@ void main() {
         await finish(tester, t);
       });
     }
+
+    testWidgets('guide open ${mode.name}', (tester) async {
+      final t = await launch(tester, Routes.guide);
+      await tester.tap(find.byKey(const Key('guide-scoring')));
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(BrainVoltApp),
+        matchesGoldenFile('guide_open_${mode.name}.png'),
+      );
+      await finish(tester, t);
+    });
 
     testWidgets('modes ${mode.name}', (tester) async {
       final t = await launch(tester, Routes.modes);

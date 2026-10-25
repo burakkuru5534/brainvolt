@@ -27,6 +27,7 @@ import '../features/match/presentation/result_screen.dart';
 import '../features/moderation/presentation/sanctions_screen.dart';
 import '../features/notifications/presentation/inbox_screen.dart';
 import '../features/notifications/presentation/notification_settings_screen.dart';
+import '../features/profile/presentation/guide_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/settings_screen.dart';
 import '../features/progress/presentation/badges_screen.dart';
@@ -76,6 +77,7 @@ abstract final class Routes {
     queryParameters: {'title': title},
   ).toString();
   static const notificationSettings = '/settings/notifications';
+  static const guide = '/settings/guide';
   static const quizNew = '/quizzes/new';
   static String quiz(String id) => '/quizzes/$id';
   static String dailyRun(String id) => '/daily/runs/$id';
@@ -168,6 +170,10 @@ GoRouter router(Ref ref) {
         path: '/players/:id',
         builder: (context, state) =>
             PlayerProfileScreen(userId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: Routes.guide,
+        builder: (context, state) => const GuideScreen(),
       ),
       GoRoute(
         path: Routes.leaderboards,

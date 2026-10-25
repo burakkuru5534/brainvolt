@@ -6,6 +6,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
+import '../l10n/l10n.dart';
 
 /// A frosted glass card with a hairline border; [onTap] makes it a
 /// button. [color] or [gradient] replace the glass fill.
@@ -765,7 +766,7 @@ class GlassSection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(6, 14, 6, 8),
             child: Text(
-              title!.toUpperCase(),
+              context.upper(title!),
               style: Theme.of(context).textTheme.labelMedium
                   ?.copyWith(color: bv.muted, letterSpacing: 1.1),
             ),

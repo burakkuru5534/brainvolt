@@ -229,6 +229,17 @@ void main() {
       );
     });
 
+    testWidgets('game guide opens from settings (D-102)', (tester) async {
+      await launch(tester);
+      await tapKey(tester, 'open-settings');
+      await tapKey(tester, 'open-guide');
+      expect(find.text('Oyun rehberi'), findsOneWidget);
+      expect(find.byKey(const Key('guide-intro')), findsOneWidget);
+      expect(find.textContaining('Hızlı Düello: 7 soru'), findsNothing);
+      await tapKey(tester, 'guide-types');
+      expect(find.textContaining('Hızlı Düello: 7 soru'), findsOneWidget);
+    });
+
     testWidgets('private profile switch (D-101)', (tester) async {
       final t = await launch(tester);
       await tapKey(tester, 'open-settings');
