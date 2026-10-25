@@ -91,3 +91,12 @@ func (m *Module) SetReaders(rel RelationReader, stats StatsReader) { m.svc.SetRe
 func (m *Module) Register(s *httpserver.Server, ident *identity.Module, limiter *ratelimit.Limiter) {
 	transport.New(m.svc, ident, limiter).Register(s)
 }
+
+// Worn is the part of a player's cosmetics everyone sees (D-106).
+type Worn = service.Worn
+
+// CosmeticsReader is commerce's cosmetics, wired in internal/app.
+type CosmeticsReader = service.CosmeticsReader
+
+// SetCosmetics wires the cosmetics shown on cards (profile → commerce*).
+func (m *Module) SetCosmetics(c CosmeticsReader) { m.svc.SetCosmetics(c) }

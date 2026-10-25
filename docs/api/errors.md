@@ -68,7 +68,7 @@
 | `AD_REWARD_UNAVAILABLE` | 409 | `placement`, `reason` | `POST /v1/ads/rewards`: the reward cannot be earned now — `no_match_xp`, `too_late`, `already_given`, `free_reroll_left`, `no_open_quest`, `not_repairable`, `ads_off` (D-103) |
 | `AD_LIMIT_REACHED` | 409 | `placement`, `limit` | `POST /v1/ads/rewards`: the daily (or, for `streak_repair`, weekly) limit of rewarded ads is used up (D-103) |
 | `VOLT_INSUFFICIENT` | 409 | `price`, `balance` | `POST /v1/store/items/{code}/buy`: the Volt balance is below the item's price (D-105) |
-| `ITEM_UNAVAILABLE` | 409 | `item`, `reason` | `POST /v1/store/items/{code}/buy`: the item cannot be used now (`shields_full`, `free_reroll_left`, `no_open_quest`; D-105) |
+| `ITEM_UNAVAILABLE` | 409 | `item`, `reason` | `POST /v1/store/items/{code}/buy`: the item cannot be used now (`shields_full`, `free_reroll_left`, `no_open_quest`; D-105). Cosmetics (D-106): `already_owned`, `plus_only`, `not_owned` |
 | **Content / creator / moderation** | | | |
 | `QUESTION_SOURCE_REQUIRED` | 422 | — | D-006 |
 | `QUESTION_IN_USE` | 409 | — | structural edit of a used question (schema-content §4.3) |

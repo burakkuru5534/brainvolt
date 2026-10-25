@@ -35,12 +35,18 @@ class Player {
     this.avatarId = '',
     this.ready = false,
     this.status = 'joined',
+    this.frame = '',
+    this.nameColor = '',
   });
 
   final String userId;
   final int side;
   final String displayName;
   final String avatarId;
+
+  /// Worn cosmetics (D-106).
+  final String frame;
+  final String nameColor;
   final bool ready;
 
   /// joined / ready / playing / disconnected / left / forfeited / finished.
@@ -58,6 +64,8 @@ class Player {
     avatarId: avatarId ?? this.avatarId,
     ready: ready ?? this.ready,
     status: status ?? this.status,
+    frame: frame,
+    nameColor: nameColor,
   );
 }
 

@@ -62,6 +62,9 @@ type ParticipantView struct {
 	DisplayName  string    `json:"display_name"`
 	AvatarID     string    `json:"avatar_id"`
 	CountryCode  *string   `json:"country_code"`
+	// Frame and NameColor are worn cosmetics (D-106).
+	Frame     string `json:"frame,omitempty"`
+	NameColor string `json:"name_color,omitempty"`
 }
 
 // RoundView is one played round in the caller's language.
@@ -137,6 +140,7 @@ func (s *Service) Match(ctx context.Context, caller, id uuid.UUID, locale string
 		v.Participants = append(v.Participants, ParticipantView{
 			UserID: p.UserID, SideNo: p.SideNo, SeatNo: p.SeatNo, Status: p.Status, Contribution: p.ScoreContribution,
 			Correct: p.CorrectCount, Answered: p.AnsweredCount, DisplayName: c.DisplayName, AvatarID: c.AvatarID, CountryCode: c.CountryCode,
+			Frame: c.Frame, NameColor: c.NameColor,
 		})
 	}
 	sides, err := q.ListSides(ctx, id)

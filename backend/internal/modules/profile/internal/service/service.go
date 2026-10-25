@@ -32,6 +32,43 @@ type Service struct {
 	clock     clock.Clock
 	relations RelationReader
 	stats     StatsReader
+	cosmetics CosmeticsReader
+}
+
+// Worn is the part of a player's cosmetics everyone sees (D-106).
+type Worn struct {
+	Frame     string
+	NameColor string
+}
+
+// CosmeticsReader is commerce's view of cosmetics (profile → commerce*,
+// wired in internal/app).
+type CosmeticsReader interface {
+	WornBy(ctx context.Context, users []uuid.UUID) (map[uuid.UUID]Worn, error)
+	OwnsAvatar(ctx context.Context, user uuid.UUID, avatarID string) (bool, error)
+}
+
+// SetCosmetics wires commerce's cosmetics reader (D-106).
+func (s *Service) SetCosmetics(c CosmeticsReader) { s.cosmetics = c }
+
+// OwnsAvatar reports whether user may wear a special avatar.
+func (s *Service) OwnsAvatar(ctx context.Context, user uuid.UUID, avatarID string) (bool, error) {
+	if s.cosmetics == nil {
+		return false, nil
+	}
+	return s.cosmetics.OwnsAvatar(ctx, user, avatarID)
+}
+
+// worn returns what users wear; failures leave cards plain.
+func (s *Service) worn(ctx context.Context, users []uuid.UUID) map[uuid.UUID]Worn {
+	if s.cosmetics == nil || len(users) == 0 {
+		return nil
+	}
+	w, err := s.cosmetics.WornBy(ctx, users)
+	if err != nil {
+		return nil
+	}
+	return w
 }
 
 // New returns a service.
@@ -250,6 +287,8 @@ type PublicProfile struct {
 	DisplayName string    `json:"display_name"`
 	AvatarID    string    `json:"avatar_id"`
 	CountryCode *string   `json:"country_code"`
+	Frame       string    `json:"frame,omitempty"`
+	NameColor   string    `json:"name_color,omitempty"`
 	// Private: the owner hides the stats from non-friends.
 	Private bool `json:"private"`
 	// Relation is the caller's tie to this user: self | friend |
@@ -284,6 +323,10 @@ type Card struct {
 	DisplayName string    `json:"display_name"`
 	AvatarID    string    `json:"avatar_id"`
 	CountryCode *string   `json:"country_code"`
+	// Frame and NameColor are the cosmetics the player wears (D-106);
+	// empty when none.
+	Frame     string `json:"frame,omitempty"`
+	NameColor string `json:"name_color,omitempty"`
 }
 
 // Cards returns the public cards of users (missing users are left out).
@@ -293,8 +336,11 @@ func (s *Service) Cards(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID]Car
 		return nil, err
 	}
 	out := make(map[uuid.UUID]Card, len(rows))
+	worn := s.worn(ctx, ids)
 	for _, r := range rows {
-		out[r.UserID] = Card{UserID: r.UserID, Username: r.Username, DisplayName: r.DisplayName, AvatarID: r.AvatarID, CountryCode: r.CountryCode}
+		w := worn[r.UserID]
+		out[r.UserID] = Card{UserID: r.UserID, Username: r.Username, DisplayName: r.DisplayName, AvatarID: r.AvatarID, CountryCode: r.CountryCode,
+			Frame: w.Frame, NameColor: w.NameColor}
 	}
 	return out, nil
 }

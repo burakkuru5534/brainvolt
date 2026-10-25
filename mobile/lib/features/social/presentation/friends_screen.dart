@@ -300,6 +300,7 @@ class _FriendTile extends ConsumerWidget {
           avatarFor(card.avatarId),
           size: 44,
           online: friend.online ?? false,
+          frame: card.frame,
         ),
         title: Text(card.displayName),
         subtitle: Text(

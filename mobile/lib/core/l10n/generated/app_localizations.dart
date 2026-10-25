@@ -4561,6 +4561,258 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Yeterli Volt\'un yok.'**
   String get error_VOLT_INSUFFICIENT;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Volt'**
+  String get storeTabVolt;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Kozmetik'**
+  String get storeTabCosmetics;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Avatar çerçeveleri'**
+  String get cosmeticFrames;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Özel avatarlar'**
+  String get cosmeticAvatars;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'İsim rengi'**
+  String get cosmeticNameColors;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Zafer animasyonu'**
+  String get cosmeticVictory;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç teması'**
+  String get cosmeticThemes;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıralamada, maçta ve profilde herkes görür.'**
+  String get cosmeticFramesSub;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Hazır avatarlara ek; profilinde kullanılır.'**
+  String get cosmeticAvatarsSub;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıralamada ve maç ekranında görünür.'**
+  String get cosmeticNameColorsSub;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Kazandığın maçın sonunda oynar.'**
+  String get cosmeticVictorySub;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Cevap butonları ve arka plan; sadece senin ekranında.'**
+  String get cosmeticThemesSub;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullan'**
+  String get cosmeticUse;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Takılı'**
+  String get cosmeticWorn;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Çıkar'**
+  String get cosmeticRemove;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Önizle'**
+  String get cosmeticPreview;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Plus\'a özel'**
+  String get cosmeticPlusOnly;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'{item} senin!'**
+  String cosmeticBought(String item);
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'{item} takıldı'**
+  String cosmeticEquipped(String item);
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Kozmetik: {item}'**
+  String voltReasonCosmetic(String item);
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Bronz Halka'**
+  String get cosFrameBronze;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Neon'**
+  String get cosFrameNeon;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Alev'**
+  String get cosFrameFlame;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Altın Taç'**
+  String get cosFrameCrown;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Plus Çerçevesi'**
+  String get cosFramePlus;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Ahtapot'**
+  String get cosAvatarOctopus;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Kartal'**
+  String get cosAvatarEagle;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Robot'**
+  String get cosAvatarRobot;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Uzaylı'**
+  String get cosAvatarAlien;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Ejderha'**
+  String get cosAvatarDragon;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Unicorn'**
+  String get cosAvatarUnicorn;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Altın'**
+  String get cosNameGold;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Neon Yeşil'**
+  String get cosNameNeon;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Pembe'**
+  String get cosNamePink;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Buz Mavisi'**
+  String get cosNameIce;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Gökkuşağı'**
+  String get cosNameRainbow;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Konfeti'**
+  String get cosVictoryConfetti;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Havai Fişek'**
+  String get cosVictoryFireworks;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Şimşek Yağmuru'**
+  String get cosVictoryLightning;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Gece Mavisi'**
+  String get cosThemeMidnight;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Gün Batımı'**
+  String get cosThemeSunset;
+
+  /// Cosmetics (D-106).
+  ///
+  /// In tr, this message translates to:
+  /// **'Zümrüt Orman'**
+  String get cosThemeEmerald;
 }
 
 class _AppLocalizationsDelegate

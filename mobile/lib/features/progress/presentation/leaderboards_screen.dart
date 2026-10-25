@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/widgets/bv.dart';
+import '../../../core/widgets/cosmetics.dart';
 import '../../home/presentation/main_nav.dart';
 import '../../match/presentation/play_error_text.dart';
 import '../../profile/domain/avatars.dart';
@@ -237,10 +238,9 @@ class _Podium extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 6),
-              Text(
+              CosmeticName(
                 e.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                nameColor: e.user?.nameColor ?? '',
                 style: text.titleSmall?.copyWith(
                   color: e.entityId == me ? bv.accent : bv.ink,
                 ),
@@ -312,17 +312,22 @@ class _Row extends StatelessWidget {
               ),
             ),
           ),
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: bv.badge,
-            child: Text(_leading(entry), style: const TextStyle(fontSize: 20)),
-          ),
+          if (entry.user?.frame case final frame? when frame.isNotEmpty)
+            AvatarBubble(_leading(entry), size: 40, frame: frame)
+          else
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: bv.badge,
+              child: Text(
+                _leading(entry),
+                style: const TextStyle(fontSize: 20),
+              ),
+            ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
+            child: CosmeticName(
               label != null ? '$label · ${entry.name}' : entry.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              nameColor: entry.user?.nameColor ?? '',
               style: text.titleSmall,
             ),
           ),

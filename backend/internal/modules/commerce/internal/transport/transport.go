@@ -79,6 +79,19 @@ func (t *Transport) Register(s *httpserver.Server) {
 		Auth: "any", Summary: "Buy a store item with Volt (streak_shield, quest_reroll); the item's effect and the charge happen together",
 		Response: service.Purchase{}, Errors: []apierror.Code{apierror.NotFound, apierror.VoltInsufficient, apierror.ItemUnavailable},
 	}))
+	s.Handle("GET /v1/store/cosmetics", a(t.cosmetics), doc(httpserver.Doc{
+		Auth: "any", Summary: "The cosmetics catalogue (D-106) with what the caller owns and wears; Plus-only items are owned while Plus lasts",
+		Response: service.MyCosmetics{},
+	}))
+	s.Handle("POST /v1/store/cosmetics/{code}/buy", a(t.buyCosmetic), doc(httpserver.Doc{
+		Auth: "any", Summary: "Buy a cosmetic with Volt, once (special avatars are then set through PATCH /v1/me/profile)",
+		Response: service.CosmeticPurchase{}, Errors: []apierror.Code{apierror.NotFound, apierror.VoltInsufficient, apierror.ItemUnavailable},
+	}))
+	s.Handle("PUT /v1/me/cosmetics/{kind}", a(t.equip), doc(httpserver.Doc{
+		Auth: "any", Summary: "Wear a cosmetic of a kind (frame, name_color, victory, match_theme); code null takes it off",
+		Request: EquipRequest{}, Response: service.MyCosmetics{},
+		Errors: []apierror.Code{apierror.NotFound, apierror.ValidationFailed, apierror.ItemUnavailable},
+	}))
 	if t.devGrant {
 		s.Handle("POST /v1/ads/rewards/{id}/dev-grant", a(t.devGrantReward), doc(httpserver.Doc{
 			Auth: "any", Summary: "Development only: grant a reserved reward without AdMob (test ads cannot call a local server)",
@@ -176,6 +189,44 @@ func (t *Transport) wallet(w http.ResponseWriter, r *http.Request) error {
 
 func (t *Transport) buy(w http.ResponseWriter, r *http.Request) error {
 	out, err := t.svc.Buy(r.Context(), principal(r).UserID, r.PathValue("code"))
+	if err != nil {
+		return err
+	}
+	return httpserver.WriteJSON(w, http.StatusOK, out)
+}
+
+// EquipRequest is the body of PUT /v1/me/cosmetics/{kind}.
+type EquipRequest struct {
+	// Code is the cosmetic to wear; null or empty takes the kind off.
+	Code *string `json:"code"`
+}
+
+func (t *Transport) cosmetics(w http.ResponseWriter, r *http.Request) error {
+	out, err := t.svc.MyCosmetics(r.Context(), principal(r).UserID)
+	if err != nil {
+		return err
+	}
+	return httpserver.WriteJSON(w, http.StatusOK, out)
+}
+
+func (t *Transport) buyCosmetic(w http.ResponseWriter, r *http.Request) error {
+	out, err := t.svc.BuyCosmetic(r.Context(), principal(r).UserID, r.PathValue("code"))
+	if err != nil {
+		return err
+	}
+	return httpserver.WriteJSON(w, http.StatusOK, out)
+}
+
+func (t *Transport) equip(w http.ResponseWriter, r *http.Request) error {
+	var req EquipRequest
+	if err := httpserver.DecodeJSON(r, &req); err != nil {
+		return err
+	}
+	code := ""
+	if req.Code != nil {
+		code = *req.Code
+	}
+	out, err := t.svc.Equip(r.Context(), principal(r).UserID, r.PathValue("kind"), code)
 	if err != nil {
 		return err
 	}

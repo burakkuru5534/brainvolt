@@ -2528,4 +2528,139 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get error_VOLT_INSUFFICIENT => 'You don\'t have enough Volt.';
+
+  @override
+  String get storeTabVolt => 'Volt';
+
+  @override
+  String get storeTabCosmetics => 'Cosmetics';
+
+  @override
+  String get cosmeticFrames => 'Avatar frames';
+
+  @override
+  String get cosmeticAvatars => 'Special avatars';
+
+  @override
+  String get cosmeticNameColors => 'Name colour';
+
+  @override
+  String get cosmeticVictory => 'Victory animation';
+
+  @override
+  String get cosmeticThemes => 'Match theme';
+
+  @override
+  String get cosmeticFramesSub =>
+      'Everyone sees it on boards, in matches and on your profile.';
+
+  @override
+  String get cosmeticAvatarsSub =>
+      'Extra to the preset avatars; worn on your profile.';
+
+  @override
+  String get cosmeticNameColorsSub => 'Shown on boards and in matches.';
+
+  @override
+  String get cosmeticVictorySub => 'Plays at the end of a match you win.';
+
+  @override
+  String get cosmeticThemesSub =>
+      'Answer buttons and background; only on your screen.';
+
+  @override
+  String get cosmeticUse => 'Use';
+
+  @override
+  String get cosmeticWorn => 'Worn';
+
+  @override
+  String get cosmeticRemove => 'Remove';
+
+  @override
+  String get cosmeticPreview => 'Preview';
+
+  @override
+  String get cosmeticPlusOnly => 'Plus only';
+
+  @override
+  String cosmeticBought(String item) {
+    return '$item is yours!';
+  }
+
+  @override
+  String cosmeticEquipped(String item) {
+    return '$item is on';
+  }
+
+  @override
+  String voltReasonCosmetic(String item) {
+    return 'Cosmetic: $item';
+  }
+
+  @override
+  String get cosFrameBronze => 'Bronze Ring';
+
+  @override
+  String get cosFrameNeon => 'Neon';
+
+  @override
+  String get cosFrameFlame => 'Flame';
+
+  @override
+  String get cosFrameCrown => 'Golden Crown';
+
+  @override
+  String get cosFramePlus => 'Plus Frame';
+
+  @override
+  String get cosAvatarOctopus => 'Octopus';
+
+  @override
+  String get cosAvatarEagle => 'Eagle';
+
+  @override
+  String get cosAvatarRobot => 'Robot';
+
+  @override
+  String get cosAvatarAlien => 'Alien';
+
+  @override
+  String get cosAvatarDragon => 'Dragon';
+
+  @override
+  String get cosAvatarUnicorn => 'Unicorn';
+
+  @override
+  String get cosNameGold => 'Gold';
+
+  @override
+  String get cosNameNeon => 'Neon Green';
+
+  @override
+  String get cosNamePink => 'Pink';
+
+  @override
+  String get cosNameIce => 'Ice Blue';
+
+  @override
+  String get cosNameRainbow => 'Rainbow';
+
+  @override
+  String get cosVictoryConfetti => 'Confetti';
+
+  @override
+  String get cosVictoryFireworks => 'Fireworks';
+
+  @override
+  String get cosVictoryLightning => 'Lightning Storm';
+
+  @override
+  String get cosThemeMidnight => 'Midnight Blue';
+
+  @override
+  String get cosThemeSunset => 'Sunset';
+
+  @override
+  String get cosThemeEmerald => 'Emerald Forest';
 }

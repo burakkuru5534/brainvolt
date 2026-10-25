@@ -181,7 +181,9 @@ GoRouter router(Ref ref) {
       ),
       GoRoute(
         path: Routes.store,
-        builder: (context, state) => const VoltScreen(),
+        builder: (context, state) => VoltScreen(
+          cosmetics: state.uri.queryParameters['tab'] == 'cosmetics',
+        ),
       ),
       GoRoute(
         path: Routes.guide,

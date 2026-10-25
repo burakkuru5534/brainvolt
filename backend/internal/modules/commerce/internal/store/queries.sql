@@ -102,3 +102,31 @@ WHERE user_id = @user_id ORDER BY created_at DESC, id DESC LIMIT @lim;
 -- Movements of a reason since a time (a refunded Plus takes its Volt back).
 SELECT key, amount FROM commerce.volt_ledger
 WHERE user_id = @user_id AND reason = @reason AND created_at >= @since;
+
+-- ---------- Cosmetics (D-106) ----------
+
+-- name: OwnedCosmetics :many
+SELECT code FROM commerce.cosmetic_inventory WHERE user_id = @user_id ORDER BY acquired_at;
+
+-- name: OwnsCosmetic :one
+SELECT EXISTS (SELECT 1 FROM commerce.cosmetic_inventory WHERE user_id = @user_id AND code = @code);
+
+-- name: InsertCosmetic :execrows
+INSERT INTO commerce.cosmetic_inventory (user_id, code, source, acquired_at)
+VALUES (@user_id, @code, @source, @now)
+ON CONFLICT DO NOTHING;
+
+-- name: EquipCosmetic :exec
+INSERT INTO commerce.cosmetic_equipped (user_id, kind, code, updated_at) VALUES (@user_id, @kind, @code, @now)
+ON CONFLICT (user_id, kind) DO UPDATE SET code = EXCLUDED.code, updated_at = EXCLUDED.updated_at;
+
+-- name: UnequipCosmetic :exec
+DELETE FROM commerce.cosmetic_equipped WHERE user_id = @user_id AND kind = @kind;
+
+-- name: EquippedOf :many
+SELECT user_id, kind, code FROM commerce.cosmetic_equipped WHERE user_id = ANY(@user_ids::uuid[]);
+
+-- name: UsersWithEntitlement :many
+-- Which of users hold an entitlement now (Plus-only cosmetics, D-106).
+SELECT DISTINCT user_id FROM commerce.entitlements
+WHERE user_id = ANY(@user_ids::uuid[]) AND code = @code AND starts_at <= @now AND (ends_at IS NULL OR ends_at > @now);

@@ -1,3 +1,5 @@
+import '../../../core/widgets/cosmetics.dart';
+
 /// The preset avatars (D-021, D-059) and the emoji the app draws for them
 /// until the artwork arrives.
 const avatarEmoji = <String, String>{
@@ -16,4 +18,5 @@ const avatarEmoji = <String, String>{
 };
 
 /// Emoji of [avatarId]; unknown ids (newer server) get a neutral face.
-String avatarFor(String avatarId) => avatarEmoji[avatarId] ?? '🙂';
+String avatarFor(String avatarId) =>
+    avatarEmoji[avatarId] ?? specialAvatarEmoji[avatarId] ?? '🙂';

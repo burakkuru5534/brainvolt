@@ -192,7 +192,11 @@ class _DailyScreenState extends ConsumerState<DailyScreen> {
                         ),
                       ),
                     ),
-                    AvatarBubble(avatarFor(e.user?.avatarId ?? ''), size: 40),
+                    AvatarBubble(
+                      avatarFor(e.user?.avatarId ?? ''),
+                      size: 40,
+                      frame: e.user?.frame ?? '',
+                    ),
                   ],
                 ),
               ),

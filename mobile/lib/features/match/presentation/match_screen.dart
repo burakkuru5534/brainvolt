@@ -10,11 +10,14 @@ import '../../../core/l10n/l10n.dart';
 import '../../../core/realtime/realtime_client.dart';
 import '../../../core/realtime/realtime_providers.dart';
 import '../../../core/widgets/bv.dart';
+import '../../../core/widgets/cosmetics.dart';
 import '../../../core/widgets/dialogs.dart';
 import '../../chat/domain/chat_repository.dart';
 import '../../chat/presentation/chat_screen.dart';
 import '../../lobby/presentation/room_return.dart';
 import '../../profile/domain/avatars.dart';
+import '../../store/domain/store_repository.dart';
+import '../../store/presentation/cosmetics_tab.dart';
 import '../domain/match_state.dart';
 import 'match_type_name.dart';
 import 'play_again.dart';
@@ -155,71 +158,77 @@ class _MatchScreenState extends ConsumerState<MatchScreen> {
         }
       },
       child: Scaffold(
-        body: SafeArea(
-          child: Column(
-            children: [
-              _Header(
-                title: state.round != null && state.questionCount > 0
-                    ? l10n.roundOf(state.round!.roundNo, state.questionCount)
-                    : matchTypeName(l10n, state.matchType),
-                progress: state.round != null && state.questionCount > 0
-                    ? state.round!.roundNo / state.questionCount
-                    : null,
-                onLeave: _leave,
-              ),
-              if (rt.status != RealtimeStatus.connected)
-                _Notice(l10n.reconnecting, key: const Key('reconnecting')),
-              if (opponent?.status == 'disconnected')
-                _Notice(l10n.opponentDisconnected),
-              if (state.seatMoved) _Notice(l10n.seatMoved),
-              if (state.resumed && state.phase == MatchPhase.question)
-                _Notice(l10n.matchResumed),
-              _Scoreboard(state: state),
-              _QuickLine(
-                quick: {
-                  for (final e in _quick.entries)
-                    if (e.value.$2.isAfter(DateTime.now())) e.key: e.value.$1,
-                },
-                names: {for (final p in state.players) p.userId: p.displayName},
-                me: state.myUserId,
-                onPick: state.over ? null : _pickQuick,
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: switch (state.phase) {
-                    MatchPhase.waiting => _waiting(context, state, now),
-                    MatchPhase.countdown => Center(
-                      child: _Countdown(
-                        text: l10n.matchStartsIn(
-                          ((state.startsAt - now) / 1000).ceil().clamp(0, 9),
+        body: _ThemedBackdrop(
+          // A worn match theme: background and answer buttons (D-106).
+          style: matchThemeStyle(myCosmetic(ref, CosmeticKind.matchTheme)),
+          child: SafeArea(
+            child: Column(
+              children: [
+                _Header(
+                  title: state.round != null && state.questionCount > 0
+                      ? l10n.roundOf(state.round!.roundNo, state.questionCount)
+                      : matchTypeName(l10n, state.matchType),
+                  progress: state.round != null && state.questionCount > 0
+                      ? state.round!.roundNo / state.questionCount
+                      : null,
+                  onLeave: _leave,
+                ),
+                if (rt.status != RealtimeStatus.connected)
+                  _Notice(l10n.reconnecting, key: const Key('reconnecting')),
+                if (opponent?.status == 'disconnected')
+                  _Notice(l10n.opponentDisconnected),
+                if (state.seatMoved) _Notice(l10n.seatMoved),
+                if (state.resumed && state.phase == MatchPhase.question)
+                  _Notice(l10n.matchResumed),
+                _Scoreboard(state: state),
+                _QuickLine(
+                  quick: {
+                    for (final e in _quick.entries)
+                      if (e.value.$2.isAfter(DateTime.now())) e.key: e.value.$1,
+                  },
+                  names: {
+                    for (final p in state.players) p.userId: p.displayName,
+                  },
+                  me: state.myUserId,
+                  onPick: state.over ? null : _pickQuick,
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: switch (state.phase) {
+                      MatchPhase.waiting => _waiting(context, state, now),
+                      MatchPhase.countdown => Center(
+                        child: _Countdown(
+                          text: l10n.matchStartsIn(
+                            ((state.startsAt - now) / 1000).ceil().clamp(0, 9),
+                          ),
                         ),
                       ),
-                    ),
-                    MatchPhase.preRound => _PickView(
-                      state: state,
-                      now: now,
-                      onPick: (id) => _run(() => _ctrl.pick(id)),
-                    ),
-                    MatchPhase.question || MatchPhase.reveal =>
-                      state.round == null
-                          ? const Center(child: CircularProgressIndicator())
-                          : _RoundView(
-                              state: state,
-                              now: now,
-                              onAnswer: (id) => _run(
-                                () => state.sharedAnswer
-                                    ? _ctrl.propose(id)
-                                    : _ctrl.answer(id),
+                      MatchPhase.preRound => _PickView(
+                        state: state,
+                        now: now,
+                        onPick: (id) => _run(() => _ctrl.pick(id)),
+                      ),
+                      MatchPhase.question || MatchPhase.reveal =>
+                        state.round == null
+                            ? const Center(child: CircularProgressIndicator())
+                            : _RoundView(
+                                state: state,
+                                now: now,
+                                onAnswer: (id) => _run(
+                                  () => state.sharedAnswer
+                                      ? _ctrl.propose(id)
+                                      : _ctrl.answer(id),
+                                ),
+                                onLock: (id) => _run(() => _ctrl.lock(id)),
                               ),
-                              onLock: (id) => _run(() => _ctrl.lock(id)),
-                            ),
-                    MatchPhase.completed ||
-                    MatchPhase.cancelled => _End(state: state),
-                  },
+                      MatchPhase.completed ||
+                      MatchPhase.cancelled => _End(state: state),
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -359,6 +368,37 @@ class _Header extends StatelessWidget {
   );
 }
 
+/// The match screen under a worn theme (D-106): its background and the
+/// answer buttons' colours; nothing changes without one.
+class _ThemedBackdrop extends StatelessWidget {
+  const _ThemedBackdrop({required this.style, required this.child});
+
+  final MatchThemeStyle? style;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = style;
+    if (s == null) {
+      return child;
+    }
+    return MatchThemeScope(
+      style: s,
+      child: DecoratedBox(
+        key: const Key('match-theme'),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: s.background,
+          ),
+        ),
+        child: child,
+      ),
+    );
+  }
+}
+
 class _Scoreboard extends StatelessWidget {
   const _Scoreboard({required this.state});
 
@@ -372,14 +412,22 @@ class _Scoreboard extends StatelessWidget {
     final answered = state.round?.answered ?? const {};
     final text = Theme.of(context).textTheme;
     Widget side(Player? p, String name, int score, {required bool mine}) {
-      final avatar = AvatarBubble(avatarFor(p?.avatarId ?? ''), size: 56);
+      final avatar = AvatarBubble(
+        avatarFor(p?.avatarId ?? ''),
+        size: 56,
+        frame: p?.frame ?? '',
+      );
       final info = Expanded(
         child: Column(
           crossAxisAlignment: mine
               ? CrossAxisAlignment.start
               : CrossAxisAlignment.end,
           children: [
-            Text(name, overflow: TextOverflow.ellipsis, style: text.labelLarge),
+            CosmeticName(
+              name,
+              nameColor: p?.nameColor ?? '',
+              style: text.labelLarge,
+            ),
             Text(
               '$score',
               key: Key(mine ? 'my-score' : 'opponent-score'),

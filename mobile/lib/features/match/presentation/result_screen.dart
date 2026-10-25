@@ -11,11 +11,14 @@ import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/share/result_card.dart';
 import '../../../core/widgets/bv.dart';
+import '../../../core/widgets/cosmetics.dart';
 import '../../ads/presentation/ads.dart';
 import '../../lobby/presentation/room_controller.dart';
 import '../../moderation/presentation/report_dialog.dart';
 import '../../profile/domain/avatars.dart';
 import '../../progress/presentation/progress_widgets.dart';
+import '../../store/domain/store_repository.dart';
+import '../../store/presentation/cosmetics_tab.dart';
 import '../data/match_providers.dart';
 import '../domain/match_repository.dart';
 import 'play_again.dart';
@@ -43,6 +46,7 @@ class ResultScreen extends ConsumerWidget {
       _ => '',
     };
     final result = ref.watch(matchResultProvider(matchId));
+    final victory = myCosmetic(ref, CosmeticKind.victory);
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.resultTitle),
@@ -57,7 +61,19 @@ class ResultScreen extends ConsumerWidget {
         ],
       ),
       body: switch (result) {
-        AsyncData(:final value) => _body(context, ref, value, me),
+        AsyncData(:final value) => Stack(
+          children: [
+            Positioned.fill(child: _body(context, ref, value, me)),
+            // The worn victory animation after a win (D-106).
+            if (_won(value, me) && victory.isNotEmpty)
+              Positioned.fill(
+                child: VictoryCelebration(
+                  key: const Key('victory-celebration'),
+                  code: victory,
+                ),
+              ),
+          ],
+        ),
         AsyncError(:final error) => ErrorView(
           message: playErrorText(l10n, error),
           retryLabel: l10n.retry,
@@ -66,6 +82,14 @@ class ResultScreen extends ConsumerWidget {
         _ => const LoadingView(),
       },
     );
+  }
+
+  static bool _won(MatchResult r, String me) {
+    final side = r.players.where((p) => p.userId == me).firstOrNull?.side;
+    return r.status == 'completed' &&
+        !r.isDraw &&
+        side != null &&
+        r.winnerSide == side;
   }
 
   Future<void> _share(

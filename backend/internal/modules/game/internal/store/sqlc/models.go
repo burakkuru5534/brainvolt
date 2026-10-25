@@ -54,6 +54,20 @@ type CommerceAdReward struct {
 	GrantedAt     *time.Time
 }
 
+type CommerceCosmeticEquipped struct {
+	UserID    uuid.UUID
+	Kind      string
+	Code      string
+	UpdatedAt time.Time
+}
+
+type CommerceCosmeticInventory struct {
+	UserID     uuid.UUID
+	Code       string
+	Source     string
+	AcquiredAt time.Time
+}
+
 type CommerceEntitlement struct {
 	UserID     uuid.UUID
 	Code       string

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/theme.dart';
 import '../l10n/l10n.dart';
+import 'cosmetics.dart';
 
 /// A frosted glass card with a hairline border; [onTap] makes it a
 /// button. [color] or [gradient] replace the glass fill.
@@ -554,6 +555,7 @@ class AvatarBubble extends StatelessWidget {
     this.size = 56,
     this.online = false,
     this.ring = true,
+    this.frame = '',
     super.key,
   });
 
@@ -562,34 +564,60 @@ class AvatarBubble extends StatelessWidget {
   final bool online;
   final bool ring;
 
+  /// A worn avatar frame (D-106); replaces the brand ring.
+  final String frame;
+
   @override
   Widget build(BuildContext context) {
     final bv = BvColors.of(context);
+    final fs = frameStyle(frame);
+    final ringOn = ring || fs != null;
     return SizedBox(
       width: size,
       height: size,
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           Container(
             width: size,
             height: size,
-            padding: EdgeInsets.all(ring ? 2.5 : 0),
+            padding: EdgeInsets.all(
+              fs != null ? fs.width * size / 56 : (ring ? 2.5 : 0),
+            ),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: ring ? bv.gradient : null,
+              gradient: fs?.gradient ?? (ring ? bv.gradient : null),
+              boxShadow: [
+                if (fs?.glow case final glow?)
+                  BoxShadow(
+                    color: glow.withAlpha(150),
+                    blurRadius: size * 0.18,
+                  ),
+              ],
             ),
             child: Container(
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: ring ? bv.surface : bv.badge,
+                color: ringOn ? bv.surface : bv.badge,
               ),
               child: Text(
                 emoji,
-                style: TextStyle(fontSize: size * (ring ? 0.5 : 0.55)),
+                style: TextStyle(fontSize: size * (ringOn ? 0.5 : 0.55)),
               ),
             ),
           ),
+          if (fs?.crown ?? false)
+            Positioned(
+              top: -size * 0.22,
+              left: 0,
+              right: 0,
+              child: Text(
+                '👑',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: size * 0.3),
+              ),
+            ),
           if (online)
             Positioned(
               right: 1,
@@ -636,9 +664,13 @@ class OptionTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bv = BvColors.of(context);
+    final theme = MatchThemeScope.of(context); // a worn match theme (D-106)
     final filled = look != OptionLook.idle && look != OptionLook.proposed;
     final ink = filled ? Colors.white : bv.ink;
     final gradient = switch (look) {
+      OptionLook.chosen when theme != null => LinearGradient(
+        colors: theme.chosen,
+      ),
       OptionLook.chosen => bv.gradient,
       OptionLook.correct => LinearGradient(
         colors: [bv.success, bv.success.withAlpha(220)],
@@ -660,7 +692,7 @@ class OptionTile extends StatelessWidget {
         gradient: gradient,
         color: look == OptionLook.proposed
             ? bv.gradientStart.withAlpha(60)
-            : null,
+            : (look == OptionLook.idle ? theme?.option.withAlpha(200) : null),
         radius: 18,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         child: Row(

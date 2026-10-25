@@ -3464,5 +3464,188 @@
   "error_VOLT_INSUFFICIENT": "Yeterli Volt'un yok.",
   "@error_VOLT_INSUFFICIENT": {
     "description": "Server error code VOLT_INSUFFICIENT (docs/api/errors.md)."
+  },
+  "storeTabVolt": "Volt",
+  "@storeTabVolt": {
+    "description": "Cosmetics (D-106)."
+  },
+  "storeTabCosmetics": "Kozmetik",
+  "@storeTabCosmetics": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosmeticFrames": "Avatar çerçeveleri",
+  "@cosmeticFrames": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosmeticAvatars": "Özel avatarlar",
+  "@cosmeticAvatars": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosmeticNameColors": "İsim rengi",
+  "@cosmeticNameColors": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosmeticVictory": "Zafer animasyonu",
+  "@cosmeticVictory": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosmeticThemes": "Maç teması",
+  "@cosmeticThemes": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosmeticFramesSub": "Sıralamada, maçta ve profilde herkes görür.",
+  "@cosmeticFramesSub": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosmeticAvatarsSub": "Hazır avatarlara ek; profilinde kullanılır.",
+  "@cosmeticAvatarsSub": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosmeticNameColorsSub": "Sıralamada ve maç ekranında görünür.",
+  "@cosmeticNameColorsSub": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosmeticVictorySub": "Kazandığın maçın sonunda oynar.",
+  "@cosmeticVictorySub": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosmeticThemesSub": "Cevap butonları ve arka plan; sadece senin ekranında.",
+  "@cosmeticThemesSub": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosmeticUse": "Kullan",
+  "@cosmeticUse": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosmeticWorn": "Takılı",
+  "@cosmeticWorn": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosmeticRemove": "Çıkar",
+  "@cosmeticRemove": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosmeticPreview": "Önizle",
+  "@cosmeticPreview": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosmeticPlusOnly": "Plus'a özel",
+  "@cosmeticPlusOnly": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosmeticBought": "{item} senin!",
+  "@cosmeticBought": {
+    "description": "Cosmetics (D-106).",
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "cosmeticEquipped": "{item} takıldı",
+  "@cosmeticEquipped": {
+    "description": "Cosmetics (D-106).",
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "voltReasonCosmetic": "Kozmetik: {item}",
+  "@voltReasonCosmetic": {
+    "description": "Cosmetics (D-106).",
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "cosFrameBronze": "Bronz Halka",
+  "@cosFrameBronze": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosFrameNeon": "Neon",
+  "@cosFrameNeon": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosFrameFlame": "Alev",
+  "@cosFrameFlame": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosFrameCrown": "Altın Taç",
+  "@cosFrameCrown": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosFramePlus": "Plus Çerçevesi",
+  "@cosFramePlus": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosAvatarOctopus": "Ahtapot",
+  "@cosAvatarOctopus": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosAvatarEagle": "Kartal",
+  "@cosAvatarEagle": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosAvatarRobot": "Robot",
+  "@cosAvatarRobot": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosAvatarAlien": "Uzaylı",
+  "@cosAvatarAlien": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosAvatarDragon": "Ejderha",
+  "@cosAvatarDragon": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosAvatarUnicorn": "Unicorn",
+  "@cosAvatarUnicorn": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosNameGold": "Altın",
+  "@cosNameGold": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosNameNeon": "Neon Yeşil",
+  "@cosNameNeon": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosNamePink": "Pembe",
+  "@cosNamePink": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosNameIce": "Buz Mavisi",
+  "@cosNameIce": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosNameRainbow": "Gökkuşağı",
+  "@cosNameRainbow": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosVictoryConfetti": "Konfeti",
+  "@cosVictoryConfetti": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosVictoryFireworks": "Havai Fişek",
+  "@cosVictoryFireworks": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosVictoryLightning": "Şimşek Yağmuru",
+  "@cosVictoryLightning": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosThemeMidnight": "Gece Mavisi",
+  "@cosThemeMidnight": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosThemeSunset": "Gün Batımı",
+  "@cosThemeSunset": {
+    "description": "Cosmetics (D-106)."
+  },
+  "cosThemeEmerald": "Zümrüt Orman",
+  "@cosThemeEmerald": {
+    "description": "Cosmetics (D-106)."
   }
 }

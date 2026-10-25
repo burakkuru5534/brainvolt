@@ -9,6 +9,7 @@ import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/widgets/bv.dart';
+import '../../../core/widgets/cosmetics.dart';
 import '../../../core/widgets/dialogs.dart';
 import '../../profile/domain/avatars.dart';
 import '../data/social_providers.dart';
@@ -145,17 +146,20 @@ class _Header extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return Row(
       children: [
-        AvatarBubble(avatarFor(card.avatarId), size: large ? 72 : 60),
+        AvatarBubble(
+          avatarFor(card.avatarId),
+          size: large ? 72 : 60,
+          frame: card.frame,
+        ),
         const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              CosmeticName(
                 card.displayName,
                 key: const Key('player-name'),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+                nameColor: card.nameColor,
                 style: large ? text.headlineSmall : text.titleLarge,
               ),
               if (card.username.isNotEmpty)

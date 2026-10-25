@@ -153,3 +153,28 @@ func (r EntitlementReader) HasEntitlement(ctx context.Context, user uuid.UUID, c
 func (m *Module) HasEntitlement(ctx context.Context, user uuid.UUID, codes ...string) (bool, error) {
 	return m.svc.HasEntitlement(ctx, user, codes...)
 }
+
+// Worn is what others see of a player's cosmetics (D-106).
+type Worn = service.Worn
+
+// CosmeticsReader answers profile's questions about cosmetics without the
+// rest of the module (profiles are built in the API and the worker).
+type CosmeticsReader struct{ svc *service.Service }
+
+// NewCosmeticsReader returns a reader over db.
+func NewCosmeticsReader(db *pgxpool.Pool, c clock.Clock) CosmeticsReader {
+	return CosmeticsReader{svc: service.New(service.Deps{DB: db, Clock: c})}
+}
+
+// WornBy returns the frame and name colour users wear (profile's cards).
+func (r CosmeticsReader) WornBy(ctx context.Context, users []uuid.UUID) (map[uuid.UUID]Worn, error) {
+	return r.svc.WornBy(ctx, users)
+}
+
+// OwnsAvatar reports whether user owns the special avatar avatarID.
+func (r CosmeticsReader) OwnsAvatar(ctx context.Context, user uuid.UUID, avatarID string) (bool, error) {
+	return r.svc.OwnsAvatar(ctx, user, avatarID)
+}
+
+// IsSpecialAvatar reports whether avatarID is sold as a cosmetic.
+func IsSpecialAvatar(avatarID string) bool { return service.IsSpecialAvatar(avatarID) }

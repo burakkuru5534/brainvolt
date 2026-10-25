@@ -222,6 +222,7 @@ func (m *meta) participantList() []map[string]any {
 		out = append(out, map[string]any{
 			"user_id": s.UserID, "side_no": s.Side, "seat_no": s.Seat,
 			"display_name": c.DisplayName, "avatar_id": c.AvatarID, "country_code": c.CountryCode,
+			"frame": c.Frame, "name_color": c.NameColor,
 		})
 	}
 	return out
@@ -236,6 +237,7 @@ func (m *meta) snapshot(match *engine.Match, r recipient, ts int64) wsserver.Out
 		parts = append(parts, map[string]any{
 			"user_id": p.UserID, "side_no": p.Side, "seat_no": p.Seat, "status": p.Status,
 			"display_name": c.DisplayName, "avatar_id": c.AvatarID, "country_code": c.CountryCode,
+			"frame": c.Frame, "name_color": c.NameColor,
 		})
 	}
 	sides := make([]map[string]any, 2)

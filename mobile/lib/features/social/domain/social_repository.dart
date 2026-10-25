@@ -8,6 +8,8 @@ class UserCard {
     required this.displayName,
     this.username = '',
     this.avatarId = '',
+    this.frame = '',
+    this.nameColor = '',
   });
 
   factory UserCard.fromJson(Map<String, dynamic> j) => UserCard(
@@ -15,12 +17,18 @@ class UserCard {
     username: j['username'] as String? ?? '',
     displayName: j['display_name'] as String? ?? '',
     avatarId: j['avatar_id'] as String? ?? '',
+    frame: j['frame'] as String? ?? '',
+    nameColor: j['name_color'] as String? ?? '',
   );
 
   final String userId;
   final String username;
   final String displayName;
   final String avatarId;
+
+  /// Worn cosmetics (D-106); empty when none.
+  final String frame;
+  final String nameColor;
 }
 
 /// A friend; [online] is null when they hide their status.

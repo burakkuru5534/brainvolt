@@ -48,6 +48,8 @@ func (s *Service) View(ctx context.Context, viewer, user uuid.UUID) (PublicProfi
 		return PublicProfile{}, err
 	}
 	pub.Private = privacy[user].ProfilePrivate
+	w := s.worn(ctx, []uuid.UUID{user})[user]
+	pub.Frame, pub.NameColor = w.Frame, w.NameColor
 	pub.Relation = RelationNone
 	switch {
 	case viewer == user:

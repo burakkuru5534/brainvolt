@@ -121,7 +121,10 @@ func (t *Transport) patchProfile(w http.ResponseWriter, r *http.Request) error {
 	if err := httpserver.DecodeJSON(r, &req); err != nil {
 		return err
 	}
-	patch, err := validateProfile(req, p)
+	patch, err := validateProfile(req, p, func(id string) bool {
+		ok, err := t.svc.OwnsAvatar(ctx, p.UserID, id) // special avatars (D-106)
+		return err == nil && ok
+	})
 	if err != nil {
 		return err
 	}
@@ -135,7 +138,7 @@ func (t *Transport) patchProfile(w http.ResponseWriter, r *http.Request) error {
 	return httpserver.WriteJSON(w, http.StatusOK, out)
 }
 
-func validateProfile(req ProfileRequest, p identity.Principal) (service.ProfilePatch, error) {
+func validateProfile(req ProfileRequest, p identity.Principal, ownsAvatar func(string) bool) (service.ProfilePatch, error) {
 	var (
 		f     apierror.Fields
 		patch service.ProfilePatch
@@ -167,7 +170,7 @@ func validateProfile(req ProfileRequest, p identity.Principal) (service.ProfileP
 		patch.Username = &v
 	}
 	if req.AvatarID != nil {
-		if !domain.ValidAvatar(*req.AvatarID) {
+		if !domain.ValidAvatar(*req.AvatarID) && !ownsAvatar(*req.AvatarID) {
 			f.Add("avatar_id", "enum", "allowed", domain.Avatars)
 		}
 		patch.AvatarID = req.AvatarID

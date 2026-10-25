@@ -231,7 +231,7 @@ type modules struct {
 // identity authenticates WebSocket sessions for realtime; game runs live
 // matches on the gateway with content texts and profile cards.
 func registerModules(srv *httpserver.Server, d moduleDeps) modules {
-	prof := profile.New(d.db, d.clock)
+	prof := newProfiles(d.db, d.clock)
 	ident := identity.New(identity.Deps{
 		DB: d.db, Verifier: d.verifier, Profiles: prof.Provisioner(), Events: d.bus,
 		Limiter: d.limiter, Idempotency: d.idem, Clock: d.clock, Logger: d.logger,
@@ -386,7 +386,7 @@ func newBus(db *pgxpool.Pool, logger *slog.Logger, push notification.Sender, liv
 // created from the API), bracket changes pushed through realtime.
 func newTournament(db *pgxpool.Pool, bus *events.Bus, logger *slog.Logger, live *livePusher) *tournament.Module {
 	return tournament.New(tournament.Deps{
-		DB: db, Profiles: profile.New(db, clock.Real{}), Teams: team.New(team.Deps{DB: db, Clock: clock.Real{}}),
+		DB: db, Profiles: newProfiles(db, clock.Real{}), Teams: team.New(team.Deps{DB: db, Clock: clock.Real{}}),
 		Pusher: live, Events: bus, Clock: clock.Real{}, Logger: logger,
 	})
 }
@@ -395,7 +395,7 @@ func newTournament(db *pgxpool.Pool, bus *events.Bus, logger *slog.Logger, live 
 // from profile, inbox.new through realtime, push through push.
 func newNotification(db *pgxpool.Pool, logger *slog.Logger, push notification.Sender, live *livePusher) *notification.Module {
 	return notification.New(notification.Deps{
-		DB: db, Profiles: profile.New(db, clock.Real{}), Sender: push, Pusher: live, Clock: clock.Real{}, Logger: logger,
+		DB: db, Profiles: newProfiles(db, clock.Real{}), Sender: push, Pusher: live, Clock: clock.Real{}, Logger: logger,
 	})
 }
 
@@ -423,7 +423,7 @@ func (f fcmSender) Send(ctx context.Context, p notification.Push) (string, error
 // SeasonEnded on bus and awards pushed through realtime; no routes.
 func newRanking(db *pgxpool.Pool, bus *events.Bus, logger *slog.Logger, live *livePusher) *ranking.Module {
 	return ranking.New(ranking.Deps{
-		DB: db, Profiles: profile.New(db, clock.Real{}), Teams: team.New(team.Deps{DB: db, Clock: clock.Real{}}),
+		DB: db, Profiles: newProfiles(db, clock.Real{}), Teams: team.New(team.Deps{DB: db, Clock: clock.Real{}}),
 		Events: bus, Pusher: live, Clock: clock.Real{}, Logger: logger,
 	})
 }
@@ -624,4 +624,23 @@ func Main(build func(context.Context, config.Config, *slog.Logger) (*App, error)
 		return 1
 	}
 	return 0
+}
+
+// cosmetics adapts commerce's cosmetics to profile's cards (D-106).
+type cosmetics struct{ commerce.CosmeticsReader }
+
+func (c cosmetics) WornBy(ctx context.Context, users []uuid.UUID) (map[uuid.UUID]profile.Worn, error) {
+	w, err := c.CosmeticsReader.WornBy(ctx, users)
+	out := make(map[uuid.UUID]profile.Worn, len(w))
+	for u, x := range w {
+		out[u] = profile.Worn{Frame: x.Frame, NameColor: x.NameColor}
+	}
+	return out, err
+}
+
+// newProfiles builds the profile module with cosmetics on its cards.
+func newProfiles(db *pgxpool.Pool, c clock.Clock) *profile.Module {
+	p := profile.New(db, c)
+	p.SetCosmetics(cosmetics{commerce.NewCosmeticsReader(db, c)})
+	return p
 }

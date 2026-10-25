@@ -10,6 +10,7 @@ import 'package:brainvolt/core/purchases/purchase_gateway.dart';
 import 'package:brainvolt/core/realtime/realtime_client.dart';
 import 'package:brainvolt/core/realtime/realtime_providers.dart';
 import 'package:brainvolt/core/share/share_service.dart';
+import 'package:brainvolt/core/widgets/cosmetics.dart';
 import 'package:brainvolt/features/ads/domain/ads_repository.dart';
 import 'package:brainvolt/features/ads/presentation/ads.dart';
 import 'package:brainvolt/features/auth/data/auth_providers.dart';
@@ -1137,6 +1138,100 @@ class FakeStoreRepository implements StoreRepository {
   @override
   Future<Wallet> wallet() async => walletValue;
 
+  /// Cosmetics (D-106).
+  MyCosmetics cosmeticsValue = MyCosmetics(
+    items: [
+      for (final (code, kind, price) in const [
+        ('frame_bronze', 'frame', 200),
+        ('frame_neon', 'frame', 300),
+        ('frame_flame', 'frame', 400),
+        ('frame_crown', 'frame', 600),
+        ('frame_plus', 'frame', 0),
+        ('avatar_octopus', 'avatar', 150),
+        ('avatar_dragon', 'avatar', 250),
+        ('name_gold', 'name_color', 300),
+        ('name_rainbow', 'name_color', 0),
+        ('victory_confetti', 'victory', 250),
+        ('theme_sunset', 'match_theme', 400),
+      ])
+        CosmeticItem(
+          code: code,
+          kind: kind,
+          price: price,
+          plusOnly: price == 0,
+          owned: code == 'frame_bronze',
+        ),
+    ],
+  );
+  final equipCalls = <String>[];
+
+  @override
+  Future<MyCosmetics> cosmetics() async => cosmeticsValue;
+
+  @override
+  Future<int> buyCosmetic(String code) async {
+    if (buyError case final code?) {
+      throw ApiException(code: code, status: 409);
+    }
+    bought.add(code);
+    final c = cosmeticsValue;
+    final item = c.items.firstWhere((i) => i.code == code);
+    cosmeticsValue = MyCosmetics(
+      items: [
+        for (final i in c.items)
+          i.code == code
+              ? CosmeticItem(
+                  code: i.code,
+                  kind: i.kind,
+                  price: i.price,
+                  owned: true,
+                )
+              : i,
+      ],
+      equipped: c.equipped,
+      plus: c.plus,
+    );
+    final w = walletValue;
+    walletValue = Wallet(
+      balance: w.balance - item.price,
+      items: w.items,
+      history: w.history,
+      adVoltLeft: w.adVoltLeft,
+      adVolt: w.adVolt,
+    );
+    return walletValue.balance;
+  }
+
+  @override
+  Future<MyCosmetics> equip(String kind, String? code) async {
+    equipCalls.add('$kind:${code ?? '-'}');
+    final c = cosmeticsValue;
+    final equipped = {...c.equipped};
+    if (code == null) {
+      equipped.remove(kind);
+    } else {
+      equipped[kind] = code;
+    }
+    cosmeticsValue = MyCosmetics(
+      items: [
+        for (final i in c.items)
+          i.kind == kind
+              ? CosmeticItem(
+                  code: i.code,
+                  kind: i.kind,
+                  price: i.price,
+                  plusOnly: i.plusOnly,
+                  owned: i.owned,
+                  equipped: i.code == code,
+                )
+              : i,
+      ],
+      equipped: equipped,
+      plus: c.plus,
+    );
+    return cosmeticsValue;
+  }
+
   @override
   Future<int> buy(String item) async {
     if (buyError case final code?) {
@@ -1215,6 +1310,7 @@ class TestApp {
     AuthUser? user,
     Map<String, Object> prefs = const {},
   }) async {
+    cosmeticAnimations = false; // endless animations never settle
     SharedPreferences.setMockInitialValues({
       'age_confirmed': ?(ageConfirmed ? true : null),
       ...prefs,

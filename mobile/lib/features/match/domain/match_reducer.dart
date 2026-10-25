@@ -14,6 +14,8 @@ List<Player> _players(Object? list, List<Player> known) => [
       side: _int(p['side_no']),
       displayName: _str(p['display_name']) ?? '',
       avatarId: _str(p['avatar_id']) ?? '',
+      frame: _str(p['frame']) ?? '',
+      nameColor: _str(p['name_color']) ?? '',
       status:
           _str(p['status']) ??
           known.where((k) => k.userId == p['user_id']).firstOrNull?.status ??

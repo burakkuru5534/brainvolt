@@ -283,6 +283,10 @@ components:
                         - "null"
                 display_name:
                     type: string
+                frame:
+                    type: string
+                name_color:
+                    type: string
                 user_id:
                     format: uuid
                     type: string
@@ -642,6 +646,48 @@ components:
                 - format
                 - match_type
                 - origin
+            type: object
+        Cosmetic:
+            properties:
+                code:
+                    type: string
+                kind:
+                    type: string
+                plus_only:
+                    type: boolean
+                price:
+                    type: integer
+            required:
+                - code
+                - kind
+                - plus_only
+                - price
+            type: object
+        CosmeticItem:
+            properties:
+                Cosmetic:
+                    $ref: '#/components/schemas/Cosmetic'
+                equipped:
+                    type: boolean
+                owned:
+                    type: boolean
+            required:
+                - Cosmetic
+                - equipped
+                - owned
+            type: object
+        CosmeticPurchase:
+            properties:
+                balance:
+                    type: integer
+                code:
+                    type: string
+                price:
+                    type: integer
+            required:
+                - balance
+                - code
+                - price
             type: object
         Counts:
             properties:
@@ -1123,6 +1169,15 @@ components:
                 - rank
                 - score
             type: object
+        EquipRequest:
+            properties:
+                code:
+                    type:
+                        - string
+                        - "null"
+            required:
+                - code
+            type: object
         ErrorEnvelope:
             properties:
                 error:
@@ -1564,6 +1619,23 @@ components:
                 - removed
                 - sender
             type: object
+        MyCosmetics:
+            properties:
+                equipped:
+                    additionalProperties:
+                        type: string
+                    type: object
+                items:
+                    items:
+                        $ref: '#/components/schemas/CosmeticItem'
+                    type: array
+                plus:
+                    type: boolean
+            required:
+                - equipped
+                - items
+                - plus
+            type: object
         MyCouple:
             properties:
                 couple:
@@ -1666,6 +1738,10 @@ components:
                         - string
                         - "null"
                 display_name:
+                    type: string
+                frame:
+                    type: string
+                name_color:
                     type: string
                 score_contribution:
                     type: integer
@@ -1813,6 +1889,10 @@ components:
                         - string
                         - "null"
                 display_name:
+                    type: string
+                frame:
+                    type: string
+                name_color:
                     type: string
                 private:
                     type: boolean
@@ -8303,6 +8383,84 @@ paths:
             tags:
                 - progression
             x-auth: any
+    /v1/me/cosmetics/{kind}:
+        put:
+            operationId: putV1MeCosmeticsKind
+            parameters:
+                - in: path
+                  name: kind
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/EquipRequest'
+                required: true
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MyCosmetics'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST, VALIDATION_FAILED'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ITEM_UNAVAILABLE'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Wear a cosmetic of a kind (frame, name_color, victory, match_theme); code null takes it off
+            tags:
+                - commerce
+            x-auth: any
     /v1/me/couple:
         get:
             operationId: getV1MeCouple
@@ -11252,6 +11410,133 @@ paths:
             summary: League, division, SP and record of a user, team or couple (current season or season_id)
             tags:
                 - ranking
+            x-auth: any
+    /v1/store/cosmetics:
+        get:
+            operationId: getV1StoreCosmetics
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MyCosmetics'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: The cosmetics catalogue (D-106) with what the caller owns and wears; Plus-only items are owned while Plus lasts
+            tags:
+                - commerce
+            x-auth: any
+    /v1/store/cosmetics/{code}/buy:
+        post:
+            operationId: postV1StoreCosmeticsCodeBuy
+            parameters:
+                - in: path
+                  name: code
+                  required: true
+                  schema:
+                    type: string
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CosmeticPurchase'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "404":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: NOT_FOUND'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ITEM_UNAVAILABLE, VOLT_INSUFFICIENT'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Buy a cosmetic with Volt, once (special avatars are then set through PATCH /v1/me/profile)
+            tags:
+                - commerce
             x-auth: any
     /v1/store/items/{code}/buy:
         post:

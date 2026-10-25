@@ -15,6 +15,7 @@ import '../../match/presentation/play_error_text.dart';
 import '../../progress/presentation/progress_widgets.dart';
 import '../../progress/presentation/quests_screen.dart';
 import '../domain/store_repository.dart';
+import 'cosmetics_tab.dart';
 import 'plus_screen.dart';
 
 /// Volt's icon everywhere (D-105).
@@ -106,7 +107,10 @@ Future<bool> buyVoltItem(
 /// The Volt store (D-105): balance, the daily Volt ad, items, how Volt is
 /// earned and the latest movements.
 class VoltScreen extends ConsumerStatefulWidget {
-  const VoltScreen({super.key});
+  const VoltScreen({this.cosmetics = false, super.key});
+
+  /// Opens on the cosmetics tab.
+  final bool cosmetics;
 
   @override
   ConsumerState<VoltScreen> createState() => _VoltScreenState();
@@ -151,20 +155,53 @@ class _VoltScreenState extends ConsumerState<VoltScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.voltTitle)),
-      body: switch (ref.watch(walletProvider)) {
-        AsyncData(:final value) => RefreshIndicator(
-          onRefresh: () => ref.refresh(walletProvider.future),
-          child: _body(context, value),
+    final balance = ref.watch(walletProvider).value?.balance;
+    return DefaultTabController(
+      length: 2,
+      initialIndex: widget.cosmetics ? 1 : 0,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.voltTitle),
+          actions: [
+            if (balance != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Pill(
+                  '$balance',
+                  key: const Key('store-balance'),
+                  icon: voltIcon,
+                  color: BvColors.of(context).accent,
+                ),
+              ),
+          ],
+          bottom: TabBar(
+            tabs: [
+              Tab(key: const Key('tab-volt'), text: l10n.storeTabVolt),
+              Tab(
+                key: const Key('tab-cosmetics'),
+                text: l10n.storeTabCosmetics,
+              ),
+            ],
+          ),
         ),
-        AsyncError(:final error) => ErrorView(
-          message: playErrorText(l10n, error),
-          retryLabel: l10n.retry,
-          onRetry: () => ref.invalidate(walletProvider),
+        body: TabBarView(
+          children: [
+            switch (ref.watch(walletProvider)) {
+              AsyncData(:final value) => RefreshIndicator(
+                onRefresh: () => ref.refresh(walletProvider.future),
+                child: _body(context, value),
+              ),
+              AsyncError(:final error) => ErrorView(
+                message: playErrorText(l10n, error),
+                retryLabel: l10n.retry,
+                onRetry: () => ref.invalidate(walletProvider),
+              ),
+              _ => const LoadingView(),
+            },
+            const CosmeticsTab(),
+          ],
         ),
-        _ => const LoadingView(),
-      },
+      ),
     );
   }
 
@@ -228,6 +265,7 @@ class _VoltScreenState extends ConsumerState<VoltScreen> {
       'plus_monthly' => l10n.voltReasonPlus,
       'plus_refund' => l10n.voltReasonPlusRefund,
       'item' => l10n.voltReasonItem(voltItemName(l10n, e.ref)),
+      'cosmetic' => l10n.voltReasonCosmetic(cosmeticName(l10n, e.ref)),
       _ => l10n.voltReasonOther,
     };
 

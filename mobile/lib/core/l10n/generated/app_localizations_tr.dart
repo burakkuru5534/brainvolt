@@ -2520,4 +2520,138 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get error_VOLT_INSUFFICIENT => 'Yeterli Volt\'un yok.';
+
+  @override
+  String get storeTabVolt => 'Volt';
+
+  @override
+  String get storeTabCosmetics => 'Kozmetik';
+
+  @override
+  String get cosmeticFrames => 'Avatar çerçeveleri';
+
+  @override
+  String get cosmeticAvatars => 'Özel avatarlar';
+
+  @override
+  String get cosmeticNameColors => 'İsim rengi';
+
+  @override
+  String get cosmeticVictory => 'Zafer animasyonu';
+
+  @override
+  String get cosmeticThemes => 'Maç teması';
+
+  @override
+  String get cosmeticFramesSub => 'Sıralamada, maçta ve profilde herkes görür.';
+
+  @override
+  String get cosmeticAvatarsSub =>
+      'Hazır avatarlara ek; profilinde kullanılır.';
+
+  @override
+  String get cosmeticNameColorsSub => 'Sıralamada ve maç ekranında görünür.';
+
+  @override
+  String get cosmeticVictorySub => 'Kazandığın maçın sonunda oynar.';
+
+  @override
+  String get cosmeticThemesSub =>
+      'Cevap butonları ve arka plan; sadece senin ekranında.';
+
+  @override
+  String get cosmeticUse => 'Kullan';
+
+  @override
+  String get cosmeticWorn => 'Takılı';
+
+  @override
+  String get cosmeticRemove => 'Çıkar';
+
+  @override
+  String get cosmeticPreview => 'Önizle';
+
+  @override
+  String get cosmeticPlusOnly => 'Plus\'a özel';
+
+  @override
+  String cosmeticBought(String item) {
+    return '$item senin!';
+  }
+
+  @override
+  String cosmeticEquipped(String item) {
+    return '$item takıldı';
+  }
+
+  @override
+  String voltReasonCosmetic(String item) {
+    return 'Kozmetik: $item';
+  }
+
+  @override
+  String get cosFrameBronze => 'Bronz Halka';
+
+  @override
+  String get cosFrameNeon => 'Neon';
+
+  @override
+  String get cosFrameFlame => 'Alev';
+
+  @override
+  String get cosFrameCrown => 'Altın Taç';
+
+  @override
+  String get cosFramePlus => 'Plus Çerçevesi';
+
+  @override
+  String get cosAvatarOctopus => 'Ahtapot';
+
+  @override
+  String get cosAvatarEagle => 'Kartal';
+
+  @override
+  String get cosAvatarRobot => 'Robot';
+
+  @override
+  String get cosAvatarAlien => 'Uzaylı';
+
+  @override
+  String get cosAvatarDragon => 'Ejderha';
+
+  @override
+  String get cosAvatarUnicorn => 'Unicorn';
+
+  @override
+  String get cosNameGold => 'Altın';
+
+  @override
+  String get cosNameNeon => 'Neon Yeşil';
+
+  @override
+  String get cosNamePink => 'Pembe';
+
+  @override
+  String get cosNameIce => 'Buz Mavisi';
+
+  @override
+  String get cosNameRainbow => 'Gökkuşağı';
+
+  @override
+  String get cosVictoryConfetti => 'Konfeti';
+
+  @override
+  String get cosVictoryFireworks => 'Havai Fişek';
+
+  @override
+  String get cosVictoryLightning => 'Şimşek Yağmuru';
+
+  @override
+  String get cosThemeMidnight => 'Gece Mavisi';
+
+  @override
+  String get cosThemeSunset => 'Gün Batımı';
+
+  @override
+  String get cosThemeEmerald => 'Zümrüt Orman';
 }

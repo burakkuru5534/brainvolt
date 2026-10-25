@@ -137,6 +137,10 @@ class ApiClient {
     ),
   );
 
+  /// PUT returning the decoded JSON object.
+  Future<Map<String, dynamic>> putJson(String path, {required Object body}) =>
+      _send(() => _dio.put<dynamic>(path, data: body));
+
   /// DELETE; null for 204 No Content.
   Future<Map<String, dynamic>?> delete(String path) =>
       _sendNullable(() => _dio.delete<dynamic>(path));

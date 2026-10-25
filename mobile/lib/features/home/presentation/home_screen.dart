@@ -24,6 +24,8 @@ import '../../match/presentation/topic_picker.dart';
 import '../../notifications/presentation/inbox_screen.dart';
 import '../../profile/domain/avatars.dart';
 import '../../progress/presentation/progress_widgets.dart';
+import '../../store/domain/store_repository.dart';
+import '../../store/presentation/cosmetics_tab.dart';
 import '../../store/presentation/plus_screen.dart';
 import '../../store/presentation/volt_screen.dart';
 import 'main_nav.dart';
@@ -114,6 +116,7 @@ class HomeScreen extends ConsumerWidget {
             _PlayerCard(
               name: session?.profile.displayName,
               avatar: session?.profile.avatarId,
+              frame: myCosmetic(ref, CosmeticKind.frame),
             ),
             const StreakRepairBanner(),
             const SizedBox(height: 14),
@@ -318,10 +321,13 @@ class _TopBar extends ConsumerWidget {
 
 /// The player card: avatar with the brand ring, greeting, level and XP.
 class _PlayerCard extends StatelessWidget {
-  const _PlayerCard({this.name, this.avatar});
+  const _PlayerCard({this.name, this.avatar, this.frame = ''});
 
   final String? name;
   final String? avatar;
+
+  /// The worn frame (D-106) replaces the crown.
+  final String frame;
 
   @override
   Widget build(BuildContext context) {
@@ -343,17 +349,19 @@ class _PlayerCard extends StatelessWidget {
                   avatarFor(avatar ?? 'penguin'),
                   size: 66,
                   online: true,
+                  frame: frame,
                 ),
-                const Positioned(
-                  top: -14,
-                  left: 0,
-                  right: 0,
-                  child: Text(
-                    '👑',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 20),
+                if (frame.isEmpty)
+                  const Positioned(
+                    top: -14,
+                    left: 0,
+                    right: 0,
+                    child: Text(
+                      '👑',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 20),
+                    ),
                   ),
-                ),
               ],
             ),
           ),

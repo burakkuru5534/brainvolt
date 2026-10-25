@@ -25,7 +25,7 @@
 |---|---|---|---|---|---|
 | GET | `/v1/profiles/{user_id}` | any | — | 1 | Player profile (no email): card, `private`, the caller's `relation` (`self` / `friend` / `request_sent` / `request_received` / `blocked` / `none`) and `stats` (level, matches, wins, badges, streak) — `null` when the profile is private and the caller is not a friend, or on a block (D-101). |
 | GET | `/v1/profiles/by-username/{username}` | any | — | 5 | Lookup for friend search. |
-| PATCH | `/v1/me/profile` | any | — | 1 | `display_name`, `avatar_id`, `country_code` (30-day limit), `locale`. Username change: `full` only, 30-day limit. |
+| PATCH | `/v1/me/profile` | any | — | 1 | `display_name`, `avatar_id` (a preset or an owned special avatar, D-106), `country_code` (30-day limit), `locale`. Username change: `full` only, 30-day limit. |
 | GET / PATCH | `/v1/me/settings` | any | — | 1 | privacy (`challenges_from`, `show_online_status`, `allow_friend_requests`, `profile_private`), sound/music/haptics. |
 | GET | `/v1/me/history?type=&cursor=` | any | — | 4 | Own match history (and Daily runs with `type=daily`). |
 | GET | `/v1/me/stats` | any | — | 7 | Aggregated stats (accuracy, per-category, per-mode). |
@@ -175,6 +175,9 @@
 | POST | `/v1/store/revenuecat/webhook` | pub (Authorization = secret) | — | 9 | RevenueCat webhook (D-104): wrong or missing Authorization → 401, no secret configured → 503. Recorded once per event id in `commerce.store_events`; subscription events change the `plus` entitlement (purchase/renewal extend to the expiration, cancellation keeps it, refund/expiration end it, transfer moves it); events of unknown users or other products are only recorded. Always 200 once stored. |
 | GET | `/v1/me/wallet` | any | — | 9 | The caller's Volt (D-105): `{balance, items [{code, price}], history [{amount, reason, ref, created_at}] (latest 30), ad_volt_left, ad_volt}`. A paying Plus subscriber gets the month's 400 Volt on the first read of the month. |
 | POST | `/v1/store/items/{code}/buy` | any | — | 9 | Buy a store item with Volt (D-105): `streak_shield` (100) or `quest_reroll` (30) → `{item, price, balance}`. `VOLT_INSUFFICIENT` (`price`, `balance`), `ITEM_UNAVAILABLE` (`reason`: `shields_full`, `free_reroll_left`, `no_open_quest`), 404 for an unknown item. The effect and the charge commit together. |
+| GET | `/v1/store/cosmetics` | any | — | 9 | The cosmetics catalogue (D-106): `{items [{code, kind, price, plus_only, owned, equipped}], equipped {kind: code}, plus}`. Kinds: `frame`, `avatar`, `name_color`, `victory`, `match_theme`. Plus-only items count as owned while Plus lasts. |
+| POST | `/v1/store/cosmetics/{code}/buy` | any | — | 9 | Buy a cosmetic with Volt, once → `{code, price, balance}`. `ITEM_UNAVAILABLE` (`already_owned`, `plus_only`), `VOLT_INSUFFICIENT`, 404. A bought special avatar `avatar_<id>` is then set with `PATCH /v1/me/profile {avatar_id: <id>}`. |
+| PUT | `/v1/me/cosmetics/{kind}` | any | — | 9 | Wear a cosmetic `{code}` (`null` takes it off) of `frame`, `name_color`, `victory` or `match_theme` → the catalogue. `ITEM_UNAVAILABLE` (`not_owned`, `plus_only`), 400 for a code of another kind, 404 for another kind. Frames and name colours appear on every public card as `frame` / `name_color` (omitted when none). |
 | POST | `/v1/ads/rewards/{id}/dev-grant` | any | — | 9 | **Development only** (not registered in prod): grant without AdMob, because test ads cannot call a local server. |
 
 ## 16. creator

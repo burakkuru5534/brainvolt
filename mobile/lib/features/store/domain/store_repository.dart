@@ -100,6 +100,89 @@ class Entitlements {
   final DateTime? plusUntil;
 }
 
+/// Cosmetic kinds (D-106).
+abstract final class CosmeticKind {
+  static const frame = 'frame';
+  static const avatar = 'avatar';
+  static const nameColor = 'name_color';
+  static const victory = 'victory';
+  static const matchTheme = 'match_theme';
+
+  static const all = [frame, avatar, nameColor, victory, matchTheme];
+}
+
+/// A cosmetic of the catalogue for the caller.
+class CosmeticItem {
+  const CosmeticItem({
+    required this.code,
+    required this.kind,
+    this.price = 0,
+    this.plusOnly = false,
+    this.owned = false,
+    this.equipped = false,
+  });
+
+  factory CosmeticItem.fromJson(Map<String, dynamic> j) => CosmeticItem(
+    code: j['code'] as String? ?? '',
+    kind: j['kind'] as String? ?? '',
+    price: _int(j['price']),
+    plusOnly: j['plus_only'] == true,
+    owned: j['owned'] == true,
+    equipped: j['equipped'] == true,
+  );
+
+  final String code;
+  final String kind;
+  final int price;
+  final bool plusOnly;
+  final bool owned;
+  final bool equipped;
+
+  /// The profile avatar id of an avatar cosmetic (avatar_dragon → dragon).
+  String get avatarId => code.startsWith('avatar_') ? code.substring(7) : '';
+}
+
+/// GET /v1/store/cosmetics.
+class MyCosmetics {
+  const MyCosmetics({
+    this.items = const [],
+    this.equipped = const {},
+    this.plus = false,
+  });
+
+  factory MyCosmetics.fromJson(Map<String, dynamic> j) => MyCosmetics(
+    items: [
+      for (final i in (j['items'] as List?) ?? const [])
+        CosmeticItem.fromJson((i as Map).cast<String, dynamic>()),
+    ],
+    equipped: {
+      for (final e
+          in ((j['equipped'] as Map?) ?? const {})
+              .cast<String, dynamic>()
+              .entries)
+        e.key: e.value as String,
+    },
+    plus: j['plus'] == true,
+  );
+
+  final List<CosmeticItem> items;
+
+  /// The worn code per kind (frame, name_color, victory, match_theme).
+  final Map<String, String> equipped;
+  final bool plus;
+
+  String worn(String kind) => equipped[kind] ?? '';
+
+  List<CosmeticItem> ofKind(String kind) =>
+      items.where((i) => i.kind == kind).toList();
+
+  /// Avatar ids of the special avatars the player owns.
+  List<String> get ownedAvatars => [
+    for (final i in items)
+      if (i.kind == CosmeticKind.avatar && i.owned) i.avatarId,
+  ];
+}
+
 abstract interface class StoreRepository {
   Future<Entitlements> entitlements();
 
@@ -107,4 +190,12 @@ abstract interface class StoreRepository {
 
   /// Buys a store item; returns the new balance.
   Future<int> buy(String item);
+
+  Future<MyCosmetics> cosmetics();
+
+  /// Buys a cosmetic once; returns the new balance.
+  Future<int> buyCosmetic(String code);
+
+  /// Wears [code] in [kind]; null takes the kind off.
+  Future<MyCosmetics> equip(String kind, String? code);
 }

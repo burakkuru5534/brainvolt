@@ -10,12 +10,15 @@ import '../../../app/theme.dart';
 import '../../../core/l10n/l10n.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/widgets/bv.dart';
+import '../../../core/widgets/cosmetics.dart';
 import '../../../core/widgets/dialogs.dart';
 import '../../auth/domain/session.dart';
 import '../../home/presentation/main_nav.dart';
 import '../../progress/domain/progress_repository.dart';
 import '../../progress/presentation/badges_screen.dart';
 import '../../progress/presentation/progress_widgets.dart';
+import '../../store/domain/store_repository.dart';
+import '../../store/presentation/cosmetics_tab.dart';
 import '../data/profile_providers.dart';
 import '../domain/avatars.dart';
 import '../domain/me.dart';
@@ -143,8 +146,14 @@ class _ProfileFormState extends ConsumerState<_ProfileForm> {
                 spacing: 10,
                 runSpacing: 10,
                 children: [
-                  for (final MapEntry(key: id, value: emoji)
-                      in avatarEmoji.entries)
+                  for (final MapEntry(key: id, value: emoji) in {
+                    ...avatarEmoji,
+                    // Special avatars bought in the store (D-106).
+                    for (final a
+                        in ref.watch(cosmeticsProvider).value?.ownedAvatars ??
+                            const <String>[])
+                      a: avatarFor(a),
+                  }.entries)
                     Semantics(
                       selected: _avatar == id,
                       button: true,
@@ -282,7 +291,11 @@ class _Header extends ConsumerWidget {
                 ),
                 Positioned(
                   top: 44,
-                  child: AvatarBubble(avatarFor(avatar), size: 100),
+                  child: AvatarBubble(
+                    avatarFor(avatar),
+                    size: 100,
+                    frame: myCosmetic(ref, CosmeticKind.frame),
+                  ),
                 ),
               ],
             ),
@@ -291,8 +304,9 @@ class _Header extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Column(
               children: [
-                Text(
+                CosmeticName(
                   profile.displayName,
+                  nameColor: myCosmetic(ref, CosmeticKind.nameColor),
                   textAlign: TextAlign.center,
                   style: text.headlineSmall,
                 ),

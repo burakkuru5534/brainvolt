@@ -103,6 +103,58 @@ func (q *Queries) EndEntitlement(ctx context.Context, arg EndEntitlementParams) 
 	return err
 }
 
+const equipCosmetic = `-- name: EquipCosmetic :exec
+INSERT INTO commerce.cosmetic_equipped (user_id, kind, code, updated_at) VALUES ($1, $2, $3, $4)
+ON CONFLICT (user_id, kind) DO UPDATE SET code = EXCLUDED.code, updated_at = EXCLUDED.updated_at
+`
+
+type EquipCosmeticParams struct {
+	UserID uuid.UUID
+	Kind   string
+	Code   string
+	Now    time.Time
+}
+
+func (q *Queries) EquipCosmetic(ctx context.Context, arg EquipCosmeticParams) error {
+	_, err := q.db.Exec(ctx, equipCosmetic,
+		arg.UserID,
+		arg.Kind,
+		arg.Code,
+		arg.Now,
+	)
+	return err
+}
+
+const equippedOf = `-- name: EquippedOf :many
+SELECT user_id, kind, code FROM commerce.cosmetic_equipped WHERE user_id = ANY($1::uuid[])
+`
+
+type EquippedOfRow struct {
+	UserID uuid.UUID
+	Kind   string
+	Code   string
+}
+
+func (q *Queries) EquippedOf(ctx context.Context, userIds []uuid.UUID) ([]EquippedOfRow, error) {
+	rows, err := q.db.Query(ctx, equippedOf, userIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []EquippedOfRow{}
+	for rows.Next() {
+		var i EquippedOfRow
+		if err := rows.Scan(&i.UserID, &i.Kind, &i.Code); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const extendEntitlement = `-- name: ExtendEntitlement :exec
 INSERT INTO commerce.entitlements (user_id, code, source_kind, source_id, starts_at, ends_at, trial)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -261,6 +313,32 @@ func (q *Queries) InsertAdReward(ctx context.Context, arg InsertAdRewardParams) 
 	return err
 }
 
+const insertCosmetic = `-- name: InsertCosmetic :execrows
+INSERT INTO commerce.cosmetic_inventory (user_id, code, source, acquired_at)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT DO NOTHING
+`
+
+type InsertCosmeticParams struct {
+	UserID uuid.UUID
+	Code   string
+	Source string
+	Now    time.Time
+}
+
+func (q *Queries) InsertCosmetic(ctx context.Context, arg InsertCosmeticParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertCosmetic,
+		arg.UserID,
+		arg.Code,
+		arg.Source,
+		arg.Now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const insertStoreEvent = `-- name: InsertStoreEvent :execrows
 
 INSERT INTO commerce.store_events (id, store, event_id, kind, user_id, payload, received_at)
@@ -402,6 +480,48 @@ func (q *Queries) OpenAdReward(ctx context.Context, arg OpenAdRewardParams) (Com
 	return i, err
 }
 
+const ownedCosmetics = `-- name: OwnedCosmetics :many
+
+SELECT code FROM commerce.cosmetic_inventory WHERE user_id = $1 ORDER BY acquired_at
+`
+
+// ---------- Cosmetics (D-106) ----------
+func (q *Queries) OwnedCosmetics(ctx context.Context, userID uuid.UUID) ([]string, error) {
+	rows, err := q.db.Query(ctx, ownedCosmetics, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var code string
+		if err := rows.Scan(&code); err != nil {
+			return nil, err
+		}
+		items = append(items, code)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const ownsCosmetic = `-- name: OwnsCosmetic :one
+SELECT EXISTS (SELECT 1 FROM commerce.cosmetic_inventory WHERE user_id = $1 AND code = $2)
+`
+
+type OwnsCosmeticParams struct {
+	UserID uuid.UUID
+	Code   string
+}
+
+func (q *Queries) OwnsCosmetic(ctx context.Context, arg OwnsCosmeticParams) (bool, error) {
+	row := q.db.QueryRow(ctx, ownsCosmetic, arg.UserID, arg.Code)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const paidEntitlement = `-- name: PaidEntitlement :one
 SELECT EXISTS (
   SELECT 1 FROM commerce.entitlements
@@ -463,6 +583,52 @@ func (q *Queries) SubscriptionEntitlements(ctx context.Context, userID uuid.UUID
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const unequipCosmetic = `-- name: UnequipCosmetic :exec
+DELETE FROM commerce.cosmetic_equipped WHERE user_id = $1 AND kind = $2
+`
+
+type UnequipCosmeticParams struct {
+	UserID uuid.UUID
+	Kind   string
+}
+
+func (q *Queries) UnequipCosmetic(ctx context.Context, arg UnequipCosmeticParams) error {
+	_, err := q.db.Exec(ctx, unequipCosmetic, arg.UserID, arg.Kind)
+	return err
+}
+
+const usersWithEntitlement = `-- name: UsersWithEntitlement :many
+SELECT DISTINCT user_id FROM commerce.entitlements
+WHERE user_id = ANY($1::uuid[]) AND code = $2 AND starts_at <= $3 AND (ends_at IS NULL OR ends_at > $3)
+`
+
+type UsersWithEntitlementParams struct {
+	UserIds []uuid.UUID
+	Code    string
+	Now     time.Time
+}
+
+// Which of users hold an entitlement now (Plus-only cosmetics, D-106).
+func (q *Queries) UsersWithEntitlement(ctx context.Context, arg UsersWithEntitlementParams) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, usersWithEntitlement, arg.UserIds, arg.Code, arg.Now)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var user_id uuid.UUID
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
