@@ -229,6 +229,18 @@ void main() {
       );
     });
 
+    testWidgets('private profile switch (D-101)', (tester) async {
+      final t = await launch(tester);
+      await tapKey(tester, 'open-settings');
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('setting-private')),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tapKey(tester, 'setting-private');
+      expect(t.profiles.userSettings.profilePrivate, isTrue);
+    });
+
     testWidgets('profile edit sends only changes; guests keep the username', (
       tester,
     ) async {

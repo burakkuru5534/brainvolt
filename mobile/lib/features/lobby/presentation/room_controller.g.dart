@@ -125,7 +125,7 @@ final class RoomControllerProvider
   }
 }
 
-String _$roomControllerHash() => r'cc5091517b59b93b46b4d672f0113ebf9b235610';
+String _$roomControllerHash() => r'e15871b9ab5239c18a8b988394d6dbeb96746b63';
 
 /// One private room: asks for its state on every (re)connect (room.join)
 /// and follows the room stream (room.state, room.match_starting,

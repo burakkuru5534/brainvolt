@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/identity"
+	"github.com/burakkuru5534/brainvolt/backend/internal/modules/profile"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/progression/internal/service"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/progression/internal/transport"
 	"github.com/burakkuru5534/brainvolt/backend/internal/modules/ranking"
@@ -96,4 +97,13 @@ func (s seasons) SeasonResults(ctx context.Context, season uuid.UUID) ([]service
 // and daily_challenge quests.
 func (m *Module) OnDailyRunCompleted(ctx context.Context, e events.Envelope) error {
 	return m.svc.OnDailyRunCompleted(ctx, e)
+}
+
+// PlayerStats is a player's public progress (profile's StatsReader, D-101).
+func (m *Module) PlayerStats(ctx context.Context, user uuid.UUID) (profile.PlayerStats, error) {
+	p, err := m.svc.Progress(ctx, user)
+	if err != nil {
+		return profile.PlayerStats{}, err
+	}
+	return profile.PlayerStats{Level: p.Level, Matches: p.Matches, Wins: p.Wins, Badges: p.Badges, Streak: p.Streak.Current}, nil
 }

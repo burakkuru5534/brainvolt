@@ -33,6 +33,7 @@ import '../features/progress/presentation/badges_screen.dart';
 import '../features/progress/presentation/leaderboards_screen.dart';
 import '../features/progress/presentation/quests_screen.dart';
 import '../features/social/presentation/friends_screen.dart';
+import '../features/social/presentation/player_profile.dart';
 import '../features/team/presentation/teams_screen.dart';
 import '../features/tournament/presentation/tournament_screens.dart';
 import 'session_controller.dart';
@@ -53,6 +54,7 @@ abstract final class Routes {
   static const verifyEmail = '/account/verify-email';
   static const credits = '/credits';
   static const friends = '/friends';
+  static String player(String id) => '/players/$id';
   static const challenges = '/challenges';
   static const modes = '/modes';
   static const teams = '/teams';
@@ -161,6 +163,11 @@ GoRouter router(Ref ref) {
         path: '/daily/runs/:id',
         builder: (context, state) =>
             DailyRunScreen(runId: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/players/:id',
+        builder: (context, state) =>
+            PlayerProfileScreen(userId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: Routes.leaderboards,

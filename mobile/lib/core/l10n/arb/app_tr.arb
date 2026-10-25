@@ -2857,5 +2857,86 @@
   "dailyAnswersEmpty": "Dün için cevap yok.",
   "@dailyAnswersEmpty": {
     "description": "Hidden answers (D-100)."
+  },
+  "playerProfileTitle": "Oyuncu profili",
+  "@playerProfileTitle": {
+    "description": "Player profiles (D-101)."
+  },
+  "playerViewProfile": "Profili gör",
+  "@playerViewProfile": {
+    "description": "Player profiles (D-101)."
+  },
+  "playerAddFriend": "Arkadaş ekle",
+  "@playerAddFriend": {
+    "description": "Player profiles (D-101)."
+  },
+  "playerAccept": "İsteği kabul et",
+  "@playerAccept": {
+    "description": "Player profiles (D-101)."
+  },
+  "playerFriend": "Arkadaşsınız",
+  "@playerFriend": {
+    "description": "Player profiles (D-101)."
+  },
+  "playerRequestSent": "İstek gönderildi",
+  "@playerRequestSent": {
+    "description": "Player profiles (D-101)."
+  },
+  "playerPrivate": "Bu profil gizli. İstatistikleri yalnızca arkadaşları görebilir.",
+  "@playerPrivate": {
+    "description": "Player profiles (D-101)."
+  },
+  "playerPrivateTag": "Gizli profil",
+  "@playerPrivateTag": {
+    "description": "Player profiles (D-101)."
+  },
+  "playerBlocked": "Bu oyuncunun profilini göremezsin.",
+  "@playerBlocked": {
+    "description": "Player profiles (D-101)."
+  },
+  "playerStats": "İstatistikler",
+  "@playerStats": {
+    "description": "Player profiles (D-101)."
+  },
+  "playerLevel": "Seviye {level}",
+  "@playerLevel": {
+    "description": "Player profiles (D-101).",
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "playerLevelLabel": "Seviye",
+  "@playerLevelLabel": {
+    "description": "Player profiles (D-101)."
+  },
+  "playerMatches": "Maç",
+  "@playerMatches": {
+    "description": "Player profiles (D-101)."
+  },
+  "playerWins": "Galibiyet",
+  "@playerWins": {
+    "description": "Player profiles (D-101)."
+  },
+  "playerWinRate": "Kazanma",
+  "@playerWinRate": {
+    "description": "Player profiles (D-101)."
+  },
+  "playerBadges": "Rozet",
+  "@playerBadges": {
+    "description": "Player profiles (D-101)."
+  },
+  "playerStreak": "Seri",
+  "@playerStreak": {
+    "description": "Player profiles (D-101)."
+  },
+  "settingsPrivateProfile": "Profilimi gizle",
+  "@settingsPrivateProfile": {
+    "description": "Player profiles (D-101)."
+  },
+  "settingsPrivateProfileSub": "İstatistiklerini yalnızca arkadaşların görür. Adın sıralamalarda görünmeye devam eder.",
+  "@settingsPrivateProfileSub": {
+    "description": "Player profiles (D-101)."
   }
 }

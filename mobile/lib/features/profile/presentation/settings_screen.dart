@@ -218,6 +218,14 @@ class _ServerSettings extends ConsumerWidget {
               s.allowFriendRequests,
               s.copyWith(allowFriendRequests: !s.allowFriendRequests),
             ),
+            SwitchListTile(
+              key: const Key('setting-private'),
+              title: Text(l10n.settingsPrivateProfile),
+              subtitle: Text(l10n.settingsPrivateProfileSub),
+              value: s.profilePrivate,
+              onChanged: (_) =>
+                  change(s.copyWith(profilePrivate: !s.profilePrivate)),
+            ),
             ListTile(
               title: Text(l10n.settingsChallengesFrom),
               trailing: DropdownButton<ChallengesFrom>(

@@ -23,10 +23,10 @@
 ## 2. profile
 | Method | Path | Auth | Idem | Ph | Purpose |
 |---|---|---|---|---|---|
-| GET | `/v1/profiles/{user_id}` | any | — | 1 | Public profile (no email), league, level, badges, stats (respecting privacy). |
+| GET | `/v1/profiles/{user_id}` | any | — | 1 | Player profile (no email): card, `private`, the caller's `relation` (`self` / `friend` / `request_sent` / `request_received` / `blocked` / `none`) and `stats` (level, matches, wins, badges, streak) — `null` when the profile is private and the caller is not a friend, or on a block (D-101). |
 | GET | `/v1/profiles/by-username/{username}` | any | — | 5 | Lookup for friend search. |
 | PATCH | `/v1/me/profile` | any | — | 1 | `display_name`, `avatar_id`, `country_code` (30-day limit), `locale`. Username change: `full` only, 30-day limit. |
-| GET / PATCH | `/v1/me/settings` | any | — | 1 | privacy (`challenges_from`, `show_online_status`, `allow_friend_requests`), sound/music/haptics. |
+| GET / PATCH | `/v1/me/settings` | any | — | 1 | privacy (`challenges_from`, `show_online_status`, `allow_friend_requests`, `profile_private`), sound/music/haptics. |
 | GET | `/v1/me/history?type=&cursor=` | any | — | 4 | Own match history (and Daily runs with `type=daily`). |
 | GET | `/v1/me/stats` | any | — | 7 | Aggregated stats (accuracy, per-category, per-mode). |
 

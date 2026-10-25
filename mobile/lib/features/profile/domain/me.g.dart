@@ -72,6 +72,7 @@ _UserSettings _$UserSettingsFromJson(Map<String, dynamic> json) =>
       soundEnabled: json['sound_enabled'] as bool,
       musicEnabled: json['music_enabled'] as bool,
       hapticsEnabled: json['haptics_enabled'] as bool,
+      profilePrivate: json['profile_private'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$UserSettingsToJson(_UserSettings instance) =>
@@ -82,6 +83,7 @@ Map<String, dynamic> _$UserSettingsToJson(_UserSettings instance) =>
       'sound_enabled': instance.soundEnabled,
       'music_enabled': instance.musicEnabled,
       'haptics_enabled': instance.hapticsEnabled,
+      'profile_private': instance.profilePrivate,
     };
 
 const _$ChallengesFromEnumMap = {

@@ -1627,6 +1627,25 @@ components:
                 - status
                 - user_id
             type: object
+        PlayerStats:
+            properties:
+                badges:
+                    type: integer
+                level:
+                    type: integer
+                matches:
+                    type: integer
+                streak:
+                    type: integer
+                wins:
+                    type: integer
+            required:
+                - badges
+                - level
+                - matches
+                - streak
+                - wins
+            type: object
         Preferences:
             properties:
                 categories:
@@ -1732,6 +1751,14 @@ components:
                         - "null"
                 display_name:
                     type: string
+                private:
+                    type: boolean
+                relation:
+                    type: string
+                stats:
+                    oneOf:
+                        - $ref: '#/components/schemas/PlayerStats'
+                        - type: "null"
                 user_id:
                     format: uuid
                     type: string
@@ -1741,6 +1768,9 @@ components:
                 - avatar_id
                 - country_code
                 - display_name
+                - private
+                - relation
+                - stats
                 - user_id
                 - username
             type: object
@@ -2684,6 +2714,8 @@ components:
                     type: boolean
                 music_enabled:
                     type: boolean
+                profile_private:
+                    type: boolean
                 show_online_status:
                     type: boolean
                 sound_enabled:
@@ -2693,6 +2725,7 @@ components:
                 - challenges_from
                 - haptics_enabled
                 - music_enabled
+                - profile_private
                 - show_online_status
                 - sound_enabled
             type: object
@@ -2711,6 +2744,10 @@ components:
                         - boolean
                         - "null"
                 music_enabled:
+                    type:
+                        - boolean
+                        - "null"
+                profile_private:
                     type:
                         - boolean
                         - "null"
@@ -9172,7 +9209,7 @@ paths:
                     description: 'Error codes: UNAVAILABLE'
             security:
                 - firebase: []
-            summary: Public profile of a user (no email)
+            summary: 'Player profile (no email): card, relation, stats unless private (D-101)'
             tags:
                 - profile
             x-auth: any

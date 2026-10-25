@@ -79,6 +79,7 @@ void main() {
     expect(adapter.requests.last.data, {
       ..._settings,
       'challenges_from': 'nobody',
+      'profile_private': false,
     });
   });
 }

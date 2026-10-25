@@ -133,7 +133,8 @@ CREATE TABLE profile.settings (
   sound_enabled           boolean NOT NULL DEFAULT true,
   music_enabled           boolean NOT NULL DEFAULT true,
   haptics_enabled         boolean NOT NULL DEFAULT true,
-  updated_at              timestamptz NOT NULL
+  updated_at              timestamptz NOT NULL,
+  profile_private         boolean NOT NULL DEFAULT false  -- D-101 (migration 000025)
 );
 ```
 
@@ -143,6 +144,7 @@ Rules:
 - **Country** change: at most once per 30 days (prevents country-leaderboard hopping).
 - **Display name** and **username** pass the profanity/impersonation filter (moderation, Phase 8; a basic word list from Phase 1).
 - Email is **never** stored in `profile` and never returned by public profile endpoints.
+- **Private profile** (D-101): with `profile_private` the player's stats (level, matches, wins, badges, streak) are shown only to the player and their friends; name, avatar and country stay public (leaderboards, matches), and friend requests still follow `allow_friend_requests`. A block hides the stats both ways.
 
 ---
 

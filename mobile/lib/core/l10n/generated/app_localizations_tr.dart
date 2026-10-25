@@ -2080,4 +2080,65 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get dailyAnswersEmpty => 'Dün için cevap yok.';
+
+  @override
+  String get playerProfileTitle => 'Oyuncu profili';
+
+  @override
+  String get playerViewProfile => 'Profili gör';
+
+  @override
+  String get playerAddFriend => 'Arkadaş ekle';
+
+  @override
+  String get playerAccept => 'İsteği kabul et';
+
+  @override
+  String get playerFriend => 'Arkadaşsınız';
+
+  @override
+  String get playerRequestSent => 'İstek gönderildi';
+
+  @override
+  String get playerPrivate =>
+      'Bu profil gizli. İstatistikleri yalnızca arkadaşları görebilir.';
+
+  @override
+  String get playerPrivateTag => 'Gizli profil';
+
+  @override
+  String get playerBlocked => 'Bu oyuncunun profilini göremezsin.';
+
+  @override
+  String get playerStats => 'İstatistikler';
+
+  @override
+  String playerLevel(int level) {
+    return 'Seviye $level';
+  }
+
+  @override
+  String get playerLevelLabel => 'Seviye';
+
+  @override
+  String get playerMatches => 'Maç';
+
+  @override
+  String get playerWins => 'Galibiyet';
+
+  @override
+  String get playerWinRate => 'Kazanma';
+
+  @override
+  String get playerBadges => 'Rozet';
+
+  @override
+  String get playerStreak => 'Seri';
+
+  @override
+  String get settingsPrivateProfile => 'Profilimi gizle';
+
+  @override
+  String get settingsPrivateProfileSub =>
+      'İstatistiklerini yalnızca arkadaşların görür. Adın sıralamalarda görünmeye devam eder.';
 }

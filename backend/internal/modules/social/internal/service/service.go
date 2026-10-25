@@ -354,6 +354,29 @@ func (s *Service) IsBlocked(ctx context.Context, a, b uuid.UUID) (bool, error) {
 	return sqlc.New(s.d.DB).IsBlocked(ctx, sqlc.IsBlockedParams{A: a, B: b})
 }
 
+// Relation is viewer's tie to other for player profiles (D-101): blocked,
+// friend, request_sent, request_received or none.
+func (s *Service) Relation(ctx context.Context, viewer, other uuid.UUID) (string, error) {
+	q := sqlc.New(s.d.DB)
+	if blocked, err := q.IsBlocked(ctx, sqlc.IsBlockedParams{A: viewer, B: other}); err != nil || blocked {
+		return profile.RelationBlocked, err
+	}
+	if friends, err := q.AreFriends(ctx, sqlc.AreFriendsParams{A: viewer, B: other}); err != nil || friends {
+		return profile.RelationFriend, err
+	}
+	from, err := q.PendingDirection(ctx, sqlc.PendingDirectionParams{Now: s.d.Clock.Now().UTC(), A: viewer, B: other})
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		return profile.RelationNone, nil
+	case err != nil:
+		return "", err
+	case from == viewer:
+		return profile.RelationSent, nil
+	default:
+		return profile.RelationReceived, nil
+	}
+}
+
 // BlockedWith lists every user blocking or blocked by user (matchmaking).
 func (s *Service) BlockedWith(ctx context.Context, user uuid.UUID) ([]uuid.UUID, error) {
 	return sqlc.New(s.d.DB).BlockedByOrBlocking(ctx, user)

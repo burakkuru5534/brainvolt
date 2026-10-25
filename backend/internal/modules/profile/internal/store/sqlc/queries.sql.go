@@ -57,7 +57,7 @@ func (q *Queries) GetProfileForUpdate(ctx context.Context, userID uuid.UUID) (Pr
 }
 
 const getSettings = `-- name: GetSettings :one
-SELECT user_id, challenges_from, show_online_status, allow_friend_requests, sound_enabled, music_enabled, haptics_enabled, updated_at FROM profile.settings WHERE user_id = $1
+SELECT user_id, challenges_from, show_online_status, allow_friend_requests, sound_enabled, music_enabled, haptics_enabled, updated_at, profile_private FROM profile.settings WHERE user_id = $1
 `
 
 func (q *Queries) GetSettings(ctx context.Context, userID uuid.UUID) (ProfileSetting, error) {
@@ -72,6 +72,7 @@ func (q *Queries) GetSettings(ctx context.Context, userID uuid.UUID) (ProfileSet
 		&i.MusicEnabled,
 		&i.HapticsEnabled,
 		&i.UpdatedAt,
+		&i.ProfilePrivate,
 	)
 	return i, err
 }
@@ -155,7 +156,7 @@ func (q *Queries) LocalesOf(ctx context.Context, ids []uuid.UUID) ([]LocalesOfRo
 }
 
 const privacyOf = `-- name: PrivacyOf :many
-SELECT user_id, challenges_from, show_online_status, allow_friend_requests FROM profile.settings WHERE user_id = ANY($1::uuid[])
+SELECT user_id, challenges_from, show_online_status, allow_friend_requests, profile_private FROM profile.settings WHERE user_id = ANY($1::uuid[])
 `
 
 type PrivacyOfRow struct {
@@ -163,6 +164,7 @@ type PrivacyOfRow struct {
 	ChallengesFrom      string
 	ShowOnlineStatus    bool
 	AllowFriendRequests bool
+	ProfilePrivate      bool
 }
 
 func (q *Queries) PrivacyOf(ctx context.Context, ids []uuid.UUID) ([]PrivacyOfRow, error) {
@@ -179,6 +181,7 @@ func (q *Queries) PrivacyOf(ctx context.Context, ids []uuid.UUID) ([]PrivacyOfRo
 			&i.ChallengesFrom,
 			&i.ShowOnlineStatus,
 			&i.AllowFriendRequests,
+			&i.ProfilePrivate,
 		); err != nil {
 			return nil, err
 		}
@@ -268,8 +271,9 @@ const updateSettings = `-- name: UpdateSettings :exec
 UPDATE profile.settings
 SET challenges_from = $1, show_online_status = $2,
     allow_friend_requests = $3, sound_enabled = $4,
-    music_enabled = $5, haptics_enabled = $6, updated_at = $7
-WHERE user_id = $8
+    music_enabled = $5, haptics_enabled = $6,
+    profile_private = $7, updated_at = $8
+WHERE user_id = $9
 `
 
 type UpdateSettingsParams struct {
@@ -279,6 +283,7 @@ type UpdateSettingsParams struct {
 	SoundEnabled        bool
 	MusicEnabled        bool
 	HapticsEnabled      bool
+	ProfilePrivate      bool
 	Now                 time.Time
 	UserID              uuid.UUID
 }
@@ -291,6 +296,7 @@ func (q *Queries) UpdateSettings(ctx context.Context, arg UpdateSettingsParams) 
 		arg.SoundEnabled,
 		arg.MusicEnabled,
 		arg.HapticsEnabled,
+		arg.ProfilePrivate,
 		arg.Now,
 		arg.UserID,
 	)

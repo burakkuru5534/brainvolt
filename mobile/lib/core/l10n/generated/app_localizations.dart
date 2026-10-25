@@ -3805,6 +3805,120 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Dün için cevap yok.'**
   String get dailyAnswersEmpty;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyuncu profili'**
+  String get playerProfileTitle;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Profili gör'**
+  String get playerViewProfile;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaş ekle'**
+  String get playerAddFriend;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'İsteği kabul et'**
+  String get playerAccept;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Arkadaşsınız'**
+  String get playerFriend;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek gönderildi'**
+  String get playerRequestSent;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu profil gizli. İstatistikleri yalnızca arkadaşları görebilir.'**
+  String get playerPrivate;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Gizli profil'**
+  String get playerPrivateTag;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu oyuncunun profilini göremezsin.'**
+  String get playerBlocked;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'İstatistikler'**
+  String get playerStats;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Seviye {level}'**
+  String playerLevel(int level);
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Seviye'**
+  String get playerLevelLabel;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç'**
+  String get playerMatches;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Galibiyet'**
+  String get playerWins;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Kazanma'**
+  String get playerWinRate;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Rozet'**
+  String get playerBadges;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Seri'**
+  String get playerStreak;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'Profilimi gizle'**
+  String get settingsPrivateProfile;
+
+  /// Player profiles (D-101).
+  ///
+  /// In tr, this message translates to:
+  /// **'İstatistiklerini yalnızca arkadaşların görür. Adın sıralamalarda görünmeye devam eder.'**
+  String get settingsPrivateProfileSub;
 }
 
 class _AppLocalizationsDelegate

@@ -5,6 +5,7 @@ import 'package:brainvolt/app/router.dart';
 import 'package:brainvolt/core/realtime/realtime_providers.dart';
 import 'package:brainvolt/features/match/domain/match_repository.dart';
 import 'package:brainvolt/features/progress/domain/progress_repository.dart';
+import 'package:brainvolt/features/social/domain/social_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -106,6 +107,73 @@ void main() {
     expect(find.text('Kartallar [KRT]'), findsOneWidget);
     expect(t.progress.boardCalls, contains('weekly/user/friends'));
     expect(t.progress.boardCalls.last, 'season/team/global');
+    await finish(tester, t);
+  });
+
+  testWidgets('leaderboards: a player card adds a friend and opens the '
+      'profile (D-101)', (tester) async {
+    final t = await launch(tester, (t) {
+      t.progress.boards['weekly/user/global'] = const Board(
+        entries: [
+          BoardEntry(
+            rank: 1,
+            entityId: 'u-ali',
+            score: 90,
+            name: 'Ali',
+            user: UserCard(
+              userId: 'u-ali',
+              displayName: 'Ali',
+              username: 'ali',
+            ),
+          ),
+          BoardEntry(
+            rank: 2,
+            entityId: 'u-gizli',
+            score: 70,
+            name: 'Gizli',
+            user: UserCard(userId: 'u-gizli', displayName: 'Gizli'),
+          ),
+        ],
+      );
+      t.social.profiles['u-ali'] = const PlayerProfile(
+        card: UserCard(userId: 'u-ali', displayName: 'Ali', username: 'ali'),
+        countryCode: 'TR',
+        stats: PlayerStats(level: 7, matches: 40, wins: 30, badges: 5),
+      );
+      t.social.profiles['u-gizli'] = const PlayerProfile(
+        card: UserCard(userId: 'u-gizli', displayName: 'Gizli'),
+        private: true,
+        relation: Relation.requestSent,
+      );
+    });
+    await tester.tap(find.byKey(const Key('open-leaderboards')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('board-row-u-ali')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('player-sheet')), findsOneWidget);
+    expect(find.text('@ali'), findsOneWidget);
+    expect(find.text('%75'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('player-add-friend')));
+    await tester.pumpAndSettle();
+    expect(t.social.calls, contains('send:u-ali:profile'));
+
+    await tester.tap(find.byKey(const Key('player-view-profile')));
+    await tester.pumpAndSettle();
+    expect(find.text('Oyuncu profili'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.byKey(const Key('player-level'))).data,
+      '7',
+    );
+    t.container.read(routerProvider).pop();
+    await tester.pumpAndSettle();
+
+    // A private profile shows no stats and the request state.
+    await tester.tap(find.byKey(const Key('board-row-u-gizli')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('player-private')), findsOneWidget);
+    expect(find.text('İstek gönderildi'), findsOneWidget);
+    expect(find.byKey(const Key('player-add-friend')), findsNothing);
     await finish(tester, t);
   });
 

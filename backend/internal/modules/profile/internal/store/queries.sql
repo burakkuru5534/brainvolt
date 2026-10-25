@@ -33,7 +33,8 @@ WHERE user_id = @user_id;
 UPDATE profile.settings
 SET challenges_from = @challenges_from, show_online_status = @show_online_status,
     allow_friend_requests = @allow_friend_requests, sound_enabled = @sound_enabled,
-    music_enabled = @music_enabled, haptics_enabled = @haptics_enabled, updated_at = @now
+    music_enabled = @music_enabled, haptics_enabled = @haptics_enabled,
+    profile_private = @profile_private, updated_at = @now
 WHERE user_id = @user_id;
 
 -- name: PublicCards :many
@@ -43,7 +44,7 @@ SELECT user_id, username, display_name, avatar_id, country_code FROM profile.pro
 SELECT user_id FROM profile.profiles WHERE username = $1;
 
 -- name: PrivacyOf :many
-SELECT user_id, challenges_from, show_online_status, allow_friend_requests FROM profile.settings WHERE user_id = ANY(@ids::uuid[]);
+SELECT user_id, challenges_from, show_online_status, allow_friend_requests, profile_private FROM profile.settings WHERE user_id = ANY(@ids::uuid[]);
 
 -- name: LocalesOf :many
 SELECT user_id, locale FROM profile.profiles WHERE user_id = ANY(@ids::uuid[]);

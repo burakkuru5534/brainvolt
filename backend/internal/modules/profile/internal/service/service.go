@@ -28,8 +28,10 @@ const maxUsernameAttempts = 10
 
 // Service implements profile's use cases.
 type Service struct {
-	db    *pgxpool.Pool
-	clock clock.Clock
+	db        *pgxpool.Pool
+	clock     clock.Clock
+	relations RelationReader
+	stats     StatsReader
 }
 
 // New returns a service.
@@ -181,6 +183,9 @@ type Settings struct {
 	SoundEnabled        bool   `json:"sound_enabled"`
 	MusicEnabled        bool   `json:"music_enabled"`
 	HapticsEnabled      bool   `json:"haptics_enabled"`
+	// ProfilePrivate hides level, matches, wins, badges and streak from
+	// everyone but friends (D-101).
+	ProfilePrivate bool `json:"profile_private"`
 }
 
 // SettingsPatch is a validated PATCH /v1/me/settings; nil fields stay.
@@ -191,6 +196,7 @@ type SettingsPatch struct {
 	SoundEnabled        *bool
 	MusicEnabled        *bool
 	HapticsEnabled      *bool
+	ProfilePrivate      *bool
 }
 
 // Settings returns the caller's settings.
@@ -203,7 +209,8 @@ func (s *Service) Settings(ctx context.Context, userID uuid.UUID) (Settings, err
 		return Settings{}, err
 	}
 	return Settings{ChallengesFrom: st.ChallengesFrom, ShowOnlineStatus: st.ShowOnlineStatus, AllowFriendRequests: st.AllowFriendRequests,
-		SoundEnabled: st.SoundEnabled, MusicEnabled: st.MusicEnabled, HapticsEnabled: st.HapticsEnabled}, nil
+		SoundEnabled: st.SoundEnabled, MusicEnabled: st.MusicEnabled, HapticsEnabled: st.HapticsEnabled,
+		ProfilePrivate: st.ProfilePrivate}, nil
 }
 
 // UpdateSettings applies a patch.
@@ -225,21 +232,40 @@ func (s *Service) UpdateSettings(ctx context.Context, userID uuid.UUID, patch Se
 	set(&cur.SoundEnabled, patch.SoundEnabled)
 	set(&cur.MusicEnabled, patch.MusicEnabled)
 	set(&cur.HapticsEnabled, patch.HapticsEnabled)
+	set(&cur.ProfilePrivate, patch.ProfilePrivate)
 	err = sqlc.New(s.db).UpdateSettings(ctx, sqlc.UpdateSettingsParams{
 		UserID: userID, ChallengesFrom: cur.ChallengesFrom, ShowOnlineStatus: cur.ShowOnlineStatus,
 		AllowFriendRequests: cur.AllowFriendRequests, SoundEnabled: cur.SoundEnabled,
-		MusicEnabled: cur.MusicEnabled, HapticsEnabled: cur.HapticsEnabled, Now: s.clock.Now().UTC(),
+		MusicEnabled: cur.MusicEnabled, HapticsEnabled: cur.HapticsEnabled, ProfilePrivate: cur.ProfilePrivate,
+		Now: s.clock.Now().UTC(),
 	})
 	return cur, err
 }
 
 // PublicProfile is what any signed-in user may see (never the email).
+// Private, Relation and Stats are filled by the transport (D-101).
 type PublicProfile struct {
 	UserID      uuid.UUID `json:"user_id"`
 	Username    string    `json:"username"`
 	DisplayName string    `json:"display_name"`
 	AvatarID    string    `json:"avatar_id"`
 	CountryCode *string   `json:"country_code"`
+	// Private: the owner hides the stats from non-friends.
+	Private bool `json:"private"`
+	// Relation is the caller's tie to this user: self | friend |
+	// request_sent | request_received | blocked | none.
+	Relation string `json:"relation"`
+	// Stats is null when hidden (private and not a friend, or blocked).
+	Stats *PlayerStats `json:"stats"`
+}
+
+// PlayerStats is the public part of a player's progress (D-101).
+type PlayerStats struct {
+	Level   int `json:"level"`
+	Matches int `json:"matches"`
+	Wins    int `json:"wins"`
+	Badges  int `json:"badges"`
+	Streak  int `json:"streak"`
 }
 
 // Public returns another user's public profile.
@@ -287,6 +313,7 @@ type Privacy struct {
 	ChallengesFrom      string // everyone | friends | nobody
 	ShowOnlineStatus    bool
 	AllowFriendRequests bool
+	ProfilePrivate      bool
 }
 
 // PrivacyOf returns the privacy settings of users (defaults for missing ones).
@@ -300,7 +327,8 @@ func (s *Service) PrivacyOf(ctx context.Context, ids []uuid.UUID) (map[uuid.UUID
 		out[id] = Privacy{ChallengesFrom: "everyone", ShowOnlineStatus: true, AllowFriendRequests: true}
 	}
 	for _, r := range rows {
-		out[r.UserID] = Privacy{ChallengesFrom: r.ChallengesFrom, ShowOnlineStatus: r.ShowOnlineStatus, AllowFriendRequests: r.AllowFriendRequests}
+		out[r.UserID] = Privacy{ChallengesFrom: r.ChallengesFrom, ShowOnlineStatus: r.ShowOnlineStatus,
+			AllowFriendRequests: r.AllowFriendRequests, ProfilePrivate: r.ProfilePrivate}
 	}
 	return out, nil
 }

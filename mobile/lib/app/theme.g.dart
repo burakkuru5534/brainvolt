@@ -8,15 +8,18 @@ part of 'theme.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// The user's light / dark choice; system by default (D-085).
+/// The former light / dark choice (D-085). BrainVolt is dark only
+/// (D-099); the stored value is kept but no longer applied.
 
 @ProviderFor(ThemeModeSetting)
 final themeModeSettingProvider = ThemeModeSettingProvider._();
 
-/// The user's light / dark choice; system by default (D-085).
+/// The former light / dark choice (D-085). BrainVolt is dark only
+/// (D-099); the stored value is kept but no longer applied.
 final class ThemeModeSettingProvider
     extends $NotifierProvider<ThemeModeSetting, ThemeMode> {
-  /// The user's light / dark choice; system by default (D-085).
+  /// The former light / dark choice (D-085). BrainVolt is dark only
+  /// (D-099); the stored value is kept but no longer applied.
   ThemeModeSettingProvider._()
     : super(
         from: null,
@@ -46,7 +49,8 @@ final class ThemeModeSettingProvider
 
 String _$themeModeSettingHash() => r'b52a351bb2291cdec71ce71bc941fa6057f7d8a4';
 
-/// The user's light / dark choice; system by default (D-085).
+/// The former light / dark choice (D-085). BrainVolt is dark only
+/// (D-099); the stored value is kept but no longer applied.
 
 abstract class _$ThemeModeSetting extends $Notifier<ThemeMode> {
   ThemeMode build();

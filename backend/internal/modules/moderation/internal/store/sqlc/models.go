@@ -612,6 +612,7 @@ type ProfileSetting struct {
 	MusicEnabled        bool
 	HapticsEnabled      bool
 	UpdatedAt           time.Time
+	ProfilePrivate      bool
 }
 
 type ProgressionBadge struct {

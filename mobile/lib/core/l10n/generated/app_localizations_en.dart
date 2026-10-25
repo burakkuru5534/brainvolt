@@ -2087,4 +2087,65 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dailyAnswersEmpty => 'No answers for yesterday.';
+
+  @override
+  String get playerProfileTitle => 'Player profile';
+
+  @override
+  String get playerViewProfile => 'View profile';
+
+  @override
+  String get playerAddFriend => 'Add friend';
+
+  @override
+  String get playerAccept => 'Accept request';
+
+  @override
+  String get playerFriend => 'You are friends';
+
+  @override
+  String get playerRequestSent => 'Request sent';
+
+  @override
+  String get playerPrivate =>
+      'This profile is private. Only their friends can see the stats.';
+
+  @override
+  String get playerPrivateTag => 'Private profile';
+
+  @override
+  String get playerBlocked => 'You can\'t see this player\'s profile.';
+
+  @override
+  String get playerStats => 'Stats';
+
+  @override
+  String playerLevel(int level) {
+    return 'Level $level';
+  }
+
+  @override
+  String get playerLevelLabel => 'Level';
+
+  @override
+  String get playerMatches => 'Matches';
+
+  @override
+  String get playerWins => 'Wins';
+
+  @override
+  String get playerWinRate => 'Win rate';
+
+  @override
+  String get playerBadges => 'Badges';
+
+  @override
+  String get playerStreak => 'Streak';
+
+  @override
+  String get settingsPrivateProfile => 'Private profile';
+
+  @override
+  String get settingsPrivateProfileSub =>
+      'Only your friends see your stats. Your name still shows on leaderboards.';
 }

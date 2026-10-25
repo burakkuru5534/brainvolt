@@ -50,7 +50,7 @@ final class QueueControllerProvider
   }
 }
 
-String _$queueControllerHash() => r'6735a9f7e5a31b8840d0b62bb0742c6bf1be1349';
+String _$queueControllerHash() => r'cbf89845a2748fbcb4fcae6442f35ceefd7e9baf';
 
 /// Looking for an opponent (rest.md §5, websocket.md mm.*). The match is
 /// announced by mm.match_found; /v1/matches/current is polled as well in
@@ -130,7 +130,7 @@ final class MatchControllerProvider
   }
 }
 
-String _$matchControllerHash() => r'0ad54fa2cb171435d333f268876a655dc5f30968';
+String _$matchControllerHash() => r'2ab6815363c7794769386074079dfa905ef05027';
 
 /// One live match: joins it on every (re)connect, folds the match stream
 /// into [MatchState] and sends the player's intents.
@@ -187,17 +187,17 @@ abstract class _$MatchController extends $Notifier<MatchState> {
   }
 }
 
-/// "Play again" on the result screen: everyone accepts within 30 s of the
+/// "Play again" (D-091): everyone accepts within 60 s of the
 /// end → game creates the rematch (rematch.result carries its id).
 
 @ProviderFor(RematchController)
 final rematchControllerProvider = RematchControllerFamily._();
 
-/// "Play again" on the result screen: everyone accepts within 30 s of the
+/// "Play again" (D-091): everyone accepts within 60 s of the
 /// end → game creates the rematch (rematch.result carries its id).
 final class RematchControllerProvider
     extends $NotifierProvider<RematchController, RematchState> {
-  /// "Play again" on the result screen: everyone accepts within 30 s of the
+  /// "Play again" (D-091): everyone accepts within 60 s of the
   /// end → game creates the rematch (rematch.result carries its id).
   RematchControllerProvider._({
     required RematchControllerFamily super.from,
@@ -243,9 +243,9 @@ final class RematchControllerProvider
   }
 }
 
-String _$rematchControllerHash() => r'7b5b6454b4afe7e090a7cbbe5930f2fd79018a6f';
+String _$rematchControllerHash() => r'68263dd71fd6cbf565000c525f2de3b49e0035fd';
 
-/// "Play again" on the result screen: everyone accepts within 30 s of the
+/// "Play again" (D-091): everyone accepts within 60 s of the
 /// end → game creates the rematch (rematch.result carries its id).
 
 final class RematchControllerFamily extends $Family
@@ -266,7 +266,7 @@ final class RematchControllerFamily extends $Family
         isAutoDispose: true,
       );
 
-  /// "Play again" on the result screen: everyone accepts within 30 s of the
+  /// "Play again" (D-091): everyone accepts within 60 s of the
   /// end → game creates the rematch (rematch.result carries its id).
 
   RematchControllerProvider call(String matchId) =>
@@ -276,7 +276,7 @@ final class RematchControllerFamily extends $Family
   String toString() => r'rematchControllerProvider';
 }
 
-/// "Play again" on the result screen: everyone accepts within 30 s of the
+/// "Play again" (D-091): everyone accepts within 60 s of the
 /// end → game creates the rematch (rematch.result carries its id).
 
 abstract class _$RematchController extends $Notifier<RematchState> {

@@ -59,6 +59,7 @@ type SettingsRequest struct {
 	SoundEnabled        *bool   `json:"sound_enabled,omitempty"`
 	MusicEnabled        *bool   `json:"music_enabled,omitempty"`
 	HapticsEnabled      *bool   `json:"haptics_enabled,omitempty"`
+	ProfilePrivate      *bool   `json:"profile_private,omitempty"`
 }
 
 // Register adds profile's routes.
@@ -83,7 +84,7 @@ func (t *Transport) Register(s *httpserver.Server) {
 		Errors: []apierror.Code{apierror.ValidationFailed, apierror.AccountSuspended, apierror.AccountDeletionPending},
 	}))
 	s.Handle("GET /v1/profiles/{user_id}", a(t.publicProfile), httpserver.WithDoc(httpserver.Doc{
-		Tag: "profile", Auth: "any", Summary: "Public profile of a user (no email)", Response: service.PublicProfile{},
+		Tag: "profile", Auth: "any", Summary: "Player profile (no email): card, relation, stats unless private (D-101)", Response: service.PublicProfile{},
 		Errors: []apierror.Code{apierror.NotFound, apierror.AccountSuspended, apierror.AccountDeletionPending},
 	}))
 	s.Handle("GET /v1/profiles/by-username/{username}", a(t.byUsername), httpserver.WithDoc(httpserver.Doc{
@@ -208,7 +209,7 @@ func (t *Transport) patchSettings(w http.ResponseWriter, r *http.Request) error 
 	st, err := t.svc.UpdateSettings(r.Context(), principal(r).UserID, service.SettingsPatch{
 		ChallengesFrom: req.ChallengesFrom, ShowOnlineStatus: req.ShowOnlineStatus,
 		AllowFriendRequests: req.AllowFriendRequests, SoundEnabled: req.SoundEnabled,
-		MusicEnabled: req.MusicEnabled, HapticsEnabled: req.HapticsEnabled,
+		MusicEnabled: req.MusicEnabled, HapticsEnabled: req.HapticsEnabled, ProfilePrivate: req.ProfilePrivate,
 	})
 	if err != nil {
 		return err
@@ -242,7 +243,7 @@ func (t *Transport) writePublic(w http.ResponseWriter, r *http.Request, id uuid.
 	if u.Status == identity.StatusDeleted {
 		return apierror.New(apierror.NotFound)
 	}
-	pub, err := t.svc.Public(ctx, id)
+	pub, err := t.svc.View(ctx, principal(r).UserID, id)
 	if err != nil {
 		return err
 	}

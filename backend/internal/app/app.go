@@ -249,6 +249,7 @@ func registerModules(srv *httpserver.Server, d moduleDeps) modules {
 	rk.Register(srv, ident)
 	prog := progression.New(progression.Deps{DB: d.db, Ranking: rk, Clock: d.clock, Logger: d.logger})
 	prog.Register(srv, ident, d.idem)
+	prof.SetReaders(soc, prog) // player profiles (D-101): relation and stats
 	g := game.New(game.Deps{
 		DB: d.db, Content: cont, Identity: ident, Profiles: prof, Realtime: rt, Teams: tm, Seasons: rk, Sanctions: mod,
 		Events: d.bus, Clock: d.clock, Logger: d.logger, Instance: d.instance,

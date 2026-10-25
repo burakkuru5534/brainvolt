@@ -425,6 +425,28 @@ func (q *Queries) PendingBetween(ctx context.Context, arg PendingBetweenParams) 
 	return i, err
 }
 
+const pendingDirection = `-- name: PendingDirection :one
+SELECT from_user_id FROM social.friend_requests
+WHERE status = 'pending' AND expires_at > $1
+  AND ((from_user_id = $2 AND to_user_id = $3) OR (from_user_id = $3 AND to_user_id = $2))
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+type PendingDirectionParams struct {
+	Now time.Time
+	A   uuid.UUID
+	B   uuid.UUID
+}
+
+// Who asked whom, without a lock (player profiles, D-101).
+func (q *Queries) PendingDirection(ctx context.Context, arg PendingDirectionParams) (uuid.UUID, error) {
+	row := q.db.QueryRow(ctx, pendingDirection, arg.Now, arg.A, arg.B)
+	var from_user_id uuid.UUID
+	err := row.Scan(&from_user_id)
+	return from_user_id, err
+}
+
 const sentSince = `-- name: SentSince :one
 SELECT count(*) FROM social.friend_requests WHERE from_user_id = $1 AND created_at > $2
 `

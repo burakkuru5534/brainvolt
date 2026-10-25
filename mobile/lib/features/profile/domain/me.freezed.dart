@@ -909,7 +909,7 @@ as DateTime?,
 /// @nodoc
 mixin _$UserSettings {
 
- ChallengesFrom get challengesFrom; bool get showOnlineStatus; bool get allowFriendRequests; bool get soundEnabled; bool get musicEnabled; bool get hapticsEnabled;
+ ChallengesFrom get challengesFrom; bool get showOnlineStatus; bool get allowFriendRequests; bool get soundEnabled; bool get musicEnabled; bool get hapticsEnabled; bool get profilePrivate;
 /// Create a copy of UserSettings
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -923,20 +923,20 @@ $UserSettingsCopyWith<UserSettings> get copyWith => _$UserSettingsCopyWithImpl<U
 @override
 bool operator ==(Object other) {
   final _this = this as UserSettings;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserSettings&&(identical(other.challengesFrom, _this.challengesFrom) || other.challengesFrom == _this.challengesFrom)&&(identical(other.showOnlineStatus, _this.showOnlineStatus) || other.showOnlineStatus == _this.showOnlineStatus)&&(identical(other.allowFriendRequests, _this.allowFriendRequests) || other.allowFriendRequests == _this.allowFriendRequests)&&(identical(other.soundEnabled, _this.soundEnabled) || other.soundEnabled == _this.soundEnabled)&&(identical(other.musicEnabled, _this.musicEnabled) || other.musicEnabled == _this.musicEnabled)&&(identical(other.hapticsEnabled, _this.hapticsEnabled) || other.hapticsEnabled == _this.hapticsEnabled));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserSettings&&(identical(other.challengesFrom, _this.challengesFrom) || other.challengesFrom == _this.challengesFrom)&&(identical(other.showOnlineStatus, _this.showOnlineStatus) || other.showOnlineStatus == _this.showOnlineStatus)&&(identical(other.allowFriendRequests, _this.allowFriendRequests) || other.allowFriendRequests == _this.allowFriendRequests)&&(identical(other.soundEnabled, _this.soundEnabled) || other.soundEnabled == _this.soundEnabled)&&(identical(other.musicEnabled, _this.musicEnabled) || other.musicEnabled == _this.musicEnabled)&&(identical(other.hapticsEnabled, _this.hapticsEnabled) || other.hapticsEnabled == _this.hapticsEnabled)&&(identical(other.profilePrivate, _this.profilePrivate) || other.profilePrivate == _this.profilePrivate));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as UserSettings;
-  return Object.hash(runtimeType,_this.challengesFrom,_this.showOnlineStatus,_this.allowFriendRequests,_this.soundEnabled,_this.musicEnabled,_this.hapticsEnabled);
+  return Object.hash(runtimeType,_this.challengesFrom,_this.showOnlineStatus,_this.allowFriendRequests,_this.soundEnabled,_this.musicEnabled,_this.hapticsEnabled,_this.profilePrivate);
 }
 
 @override
 String toString() {
   final _this = this as UserSettings;
-  return 'UserSettings(challengesFrom: ${_this.challengesFrom}, showOnlineStatus: ${_this.showOnlineStatus}, allowFriendRequests: ${_this.allowFriendRequests}, soundEnabled: ${_this.soundEnabled}, musicEnabled: ${_this.musicEnabled}, hapticsEnabled: ${_this.hapticsEnabled})';
+  return 'UserSettings(challengesFrom: ${_this.challengesFrom}, showOnlineStatus: ${_this.showOnlineStatus}, allowFriendRequests: ${_this.allowFriendRequests}, soundEnabled: ${_this.soundEnabled}, musicEnabled: ${_this.musicEnabled}, hapticsEnabled: ${_this.hapticsEnabled}, profilePrivate: ${_this.profilePrivate})';
 }
 
 
@@ -947,7 +947,7 @@ abstract mixin class $UserSettingsCopyWith<$Res>  {
   factory $UserSettingsCopyWith(UserSettings value, $Res Function(UserSettings) _then) = _$UserSettingsCopyWithImpl;
 @useResult
 $Res call({
- ChallengesFrom challengesFrom, bool showOnlineStatus, bool allowFriendRequests, bool soundEnabled, bool musicEnabled, bool hapticsEnabled
+ ChallengesFrom challengesFrom, bool showOnlineStatus, bool allowFriendRequests, bool soundEnabled, bool musicEnabled, bool hapticsEnabled, bool profilePrivate
 });
 
 
@@ -964,7 +964,7 @@ class _$UserSettingsCopyWithImpl<$Res>
 
 /// Create a copy of UserSettings
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? challengesFrom = null,Object? showOnlineStatus = null,Object? allowFriendRequests = null,Object? soundEnabled = null,Object? musicEnabled = null,Object? hapticsEnabled = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? challengesFrom = null,Object? showOnlineStatus = null,Object? allowFriendRequests = null,Object? soundEnabled = null,Object? musicEnabled = null,Object? hapticsEnabled = null,Object? profilePrivate = null,}) {
   return _then(UserSettings(
 challengesFrom: null == challengesFrom ? _self.challengesFrom : challengesFrom // ignore: cast_nullable_to_non_nullable
 as ChallengesFrom,showOnlineStatus: null == showOnlineStatus ? _self.showOnlineStatus : showOnlineStatus // ignore: cast_nullable_to_non_nullable
@@ -972,6 +972,7 @@ as bool,allowFriendRequests: null == allowFriendRequests ? _self.allowFriendRequ
 as bool,soundEnabled: null == soundEnabled ? _self.soundEnabled : soundEnabled // ignore: cast_nullable_to_non_nullable
 as bool,musicEnabled: null == musicEnabled ? _self.musicEnabled : musicEnabled // ignore: cast_nullable_to_non_nullable
 as bool,hapticsEnabled: null == hapticsEnabled ? _self.hapticsEnabled : hapticsEnabled // ignore: cast_nullable_to_non_nullable
+as bool,profilePrivate: null == profilePrivate ? _self.profilePrivate : profilePrivate // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -1057,10 +1058,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ChallengesFrom challengesFrom,  bool showOnlineStatus,  bool allowFriendRequests,  bool soundEnabled,  bool musicEnabled,  bool hapticsEnabled)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ChallengesFrom challengesFrom,  bool showOnlineStatus,  bool allowFriendRequests,  bool soundEnabled,  bool musicEnabled,  bool hapticsEnabled,  bool profilePrivate)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UserSettings() when $default != null:
-return $default(_that.challengesFrom,_that.showOnlineStatus,_that.allowFriendRequests,_that.soundEnabled,_that.musicEnabled,_that.hapticsEnabled);case _:
+return $default(_that.challengesFrom,_that.showOnlineStatus,_that.allowFriendRequests,_that.soundEnabled,_that.musicEnabled,_that.hapticsEnabled,_that.profilePrivate);case _:
   return orElse();
 
 }
@@ -1078,10 +1079,10 @@ return $default(_that.challengesFrom,_that.showOnlineStatus,_that.allowFriendReq
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ChallengesFrom challengesFrom,  bool showOnlineStatus,  bool allowFriendRequests,  bool soundEnabled,  bool musicEnabled,  bool hapticsEnabled)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ChallengesFrom challengesFrom,  bool showOnlineStatus,  bool allowFriendRequests,  bool soundEnabled,  bool musicEnabled,  bool hapticsEnabled,  bool profilePrivate)  $default,) {final _that = this;
 switch (_that) {
 case _UserSettings():
-return $default(_that.challengesFrom,_that.showOnlineStatus,_that.allowFriendRequests,_that.soundEnabled,_that.musicEnabled,_that.hapticsEnabled);case _:
+return $default(_that.challengesFrom,_that.showOnlineStatus,_that.allowFriendRequests,_that.soundEnabled,_that.musicEnabled,_that.hapticsEnabled,_that.profilePrivate);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1098,10 +1099,10 @@ return $default(_that.challengesFrom,_that.showOnlineStatus,_that.allowFriendReq
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ChallengesFrom challengesFrom,  bool showOnlineStatus,  bool allowFriendRequests,  bool soundEnabled,  bool musicEnabled,  bool hapticsEnabled)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ChallengesFrom challengesFrom,  bool showOnlineStatus,  bool allowFriendRequests,  bool soundEnabled,  bool musicEnabled,  bool hapticsEnabled,  bool profilePrivate)?  $default,) {final _that = this;
 switch (_that) {
 case _UserSettings() when $default != null:
-return $default(_that.challengesFrom,_that.showOnlineStatus,_that.allowFriendRequests,_that.soundEnabled,_that.musicEnabled,_that.hapticsEnabled);case _:
+return $default(_that.challengesFrom,_that.showOnlineStatus,_that.allowFriendRequests,_that.soundEnabled,_that.musicEnabled,_that.hapticsEnabled,_that.profilePrivate);case _:
   return null;
 
 }
@@ -1113,7 +1114,7 @@ return $default(_that.challengesFrom,_that.showOnlineStatus,_that.allowFriendReq
 @JsonSerializable()
 
 class _UserSettings implements UserSettings {
-  const _UserSettings({required this.challengesFrom, required this.showOnlineStatus, required this.allowFriendRequests, required this.soundEnabled, required this.musicEnabled, required this.hapticsEnabled});
+  const _UserSettings({required this.challengesFrom, required this.showOnlineStatus, required this.allowFriendRequests, required this.soundEnabled, required this.musicEnabled, required this.hapticsEnabled, this.profilePrivate = false});
   factory _UserSettings.fromJson(Map<String, dynamic> json) => _$UserSettingsFromJson(json);
 
 @override final  ChallengesFrom challengesFrom;
@@ -1122,6 +1123,7 @@ class _UserSettings implements UserSettings {
 @override final  bool soundEnabled;
 @override final  bool musicEnabled;
 @override final  bool hapticsEnabled;
+@override@JsonKey() final  bool profilePrivate;
 
 /// Create a copy of UserSettings
 /// with the given fields replaced by the non-null parameter values.
@@ -1136,18 +1138,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserSettings&&(identical(other.challengesFrom, challengesFrom) || other.challengesFrom == challengesFrom)&&(identical(other.showOnlineStatus, showOnlineStatus) || other.showOnlineStatus == showOnlineStatus)&&(identical(other.allowFriendRequests, allowFriendRequests) || other.allowFriendRequests == allowFriendRequests)&&(identical(other.soundEnabled, soundEnabled) || other.soundEnabled == soundEnabled)&&(identical(other.musicEnabled, musicEnabled) || other.musicEnabled == musicEnabled)&&(identical(other.hapticsEnabled, hapticsEnabled) || other.hapticsEnabled == hapticsEnabled));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserSettings&&(identical(other.challengesFrom, challengesFrom) || other.challengesFrom == challengesFrom)&&(identical(other.showOnlineStatus, showOnlineStatus) || other.showOnlineStatus == showOnlineStatus)&&(identical(other.allowFriendRequests, allowFriendRequests) || other.allowFriendRequests == allowFriendRequests)&&(identical(other.soundEnabled, soundEnabled) || other.soundEnabled == soundEnabled)&&(identical(other.musicEnabled, musicEnabled) || other.musicEnabled == musicEnabled)&&(identical(other.hapticsEnabled, hapticsEnabled) || other.hapticsEnabled == hapticsEnabled)&&(identical(other.profilePrivate, profilePrivate) || other.profilePrivate == profilePrivate));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,challengesFrom,showOnlineStatus,allowFriendRequests,soundEnabled,musicEnabled,hapticsEnabled);
+    return Object.hash(runtimeType,challengesFrom,showOnlineStatus,allowFriendRequests,soundEnabled,musicEnabled,hapticsEnabled,profilePrivate);
 }
 
 @override
 String toString() {
-    return 'UserSettings(challengesFrom: $challengesFrom, showOnlineStatus: $showOnlineStatus, allowFriendRequests: $allowFriendRequests, soundEnabled: $soundEnabled, musicEnabled: $musicEnabled, hapticsEnabled: $hapticsEnabled)';
+    return 'UserSettings(challengesFrom: $challengesFrom, showOnlineStatus: $showOnlineStatus, allowFriendRequests: $allowFriendRequests, soundEnabled: $soundEnabled, musicEnabled: $musicEnabled, hapticsEnabled: $hapticsEnabled, profilePrivate: $profilePrivate)';
 }
 
 
@@ -1158,7 +1160,7 @@ abstract mixin class _$UserSettingsCopyWith<$Res> implements $UserSettingsCopyWi
   factory _$UserSettingsCopyWith(_UserSettings value, $Res Function(_UserSettings) _then) = __$UserSettingsCopyWithImpl;
 @override @useResult
 $Res call({
- ChallengesFrom challengesFrom, bool showOnlineStatus, bool allowFriendRequests, bool soundEnabled, bool musicEnabled, bool hapticsEnabled
+ ChallengesFrom challengesFrom, bool showOnlineStatus, bool allowFriendRequests, bool soundEnabled, bool musicEnabled, bool hapticsEnabled, bool profilePrivate
 });
 
 
@@ -1175,7 +1177,7 @@ class __$UserSettingsCopyWithImpl<$Res>
 
 /// Create a copy of UserSettings
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? challengesFrom = null,Object? showOnlineStatus = null,Object? allowFriendRequests = null,Object? soundEnabled = null,Object? musicEnabled = null,Object? hapticsEnabled = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? challengesFrom = null,Object? showOnlineStatus = null,Object? allowFriendRequests = null,Object? soundEnabled = null,Object? musicEnabled = null,Object? hapticsEnabled = null,Object? profilePrivate = null,}) {
   return _then(_UserSettings(
 challengesFrom: null == challengesFrom ? _self.challengesFrom : challengesFrom // ignore: cast_nullable_to_non_nullable
 as ChallengesFrom,showOnlineStatus: null == showOnlineStatus ? _self.showOnlineStatus : showOnlineStatus // ignore: cast_nullable_to_non_nullable
@@ -1183,6 +1185,7 @@ as bool,allowFriendRequests: null == allowFriendRequests ? _self.allowFriendRequ
 as bool,soundEnabled: null == soundEnabled ? _self.soundEnabled : soundEnabled // ignore: cast_nullable_to_non_nullable
 as bool,musicEnabled: null == musicEnabled ? _self.musicEnabled : musicEnabled // ignore: cast_nullable_to_non_nullable
 as bool,hapticsEnabled: null == hapticsEnabled ? _self.hapticsEnabled : hapticsEnabled // ignore: cast_nullable_to_non_nullable
+as bool,profilePrivate: null == profilePrivate ? _self.profilePrivate : profilePrivate // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }

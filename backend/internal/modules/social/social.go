@@ -75,6 +75,11 @@ func (m *Module) FriendIDs(ctx context.Context, user uuid.UUID) ([]uuid.UUID, er
 	return m.svc.FriendIDs(ctx, user)
 }
 
+// Relation is viewer's tie to other (profile's RelationReader, D-101).
+func (m *Module) Relation(ctx context.Context, viewer, other uuid.UUID) (string, error) {
+	return m.svc.Relation(ctx, viewer, other)
+}
+
 // IsBlocked reports a block between a and b in either direction.
 func (m *Module) IsBlocked(ctx context.Context, a, b uuid.UUID) (bool, error) {
 	return m.svc.IsBlocked(ctx, a, b)

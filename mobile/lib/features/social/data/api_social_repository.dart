@@ -59,6 +59,10 @@ class ApiSocialRepository implements SocialRepository {
   Future<void> unfriend(String userId) => api.delete('/v1/friends/$userId');
 
   @override
+  Future<PlayerProfile> profile(String userId) async =>
+      PlayerProfile.fromJson(await api.getJson('/v1/profiles/$userId'));
+
+  @override
   Future<void> block(String userId) =>
       api.postJson('/v1/blocks', body: {'user_id': userId});
 }

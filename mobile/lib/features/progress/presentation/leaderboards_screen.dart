@@ -7,6 +7,7 @@ import '../../../core/widgets/bv.dart';
 import '../../home/presentation/main_nav.dart';
 import '../../match/presentation/play_error_text.dart';
 import '../../profile/domain/avatars.dart';
+import '../../social/presentation/player_profile.dart';
 import '../../team/domain/team_repository.dart';
 import '../data/progress_providers.dart';
 import '../domain/progress_repository.dart';
@@ -175,6 +176,15 @@ String _leading(BoardEntry entry) => entry.emblemId.isNotEmpty
     ? avatarFor(entry.avatarId)
     : '👥';
 
+/// Opens a player's card (D-101); teams, couples and the caller have none.
+VoidCallback? _openPlayer(BuildContext context, BoardEntry e, String? me) {
+  final user = e.user;
+  if (user == null || e.entityId == me) {
+    return null;
+  }
+  return () => showPlayerSheet(context, user);
+}
+
 const _medals = [Color(0xFFFBBF24), Color(0xFFCBD5E1), Color(0xFFF59E5B)];
 
 /// The top three on steps: second, first (with the crown), third.
@@ -197,65 +207,71 @@ class _Podium extends StatelessWidget {
       final first = i == 0;
       final medal = _medals[i];
       return Expanded(
-        child: Column(
-          key: Key('board-row-${e.entityId}'),
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            if (first)
-              Icon(Icons.workspace_premium_rounded, color: bv.gold, size: 30),
-            Container(
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(colors: [medal, medal.withAlpha(140)]),
-                boxShadow: [
-                  BoxShadow(color: medal.withAlpha(90), blurRadius: 14),
-                ],
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _openPlayer(context, e, me),
+          child: Column(
+            key: Key('board-row-${e.entityId}'),
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (first)
+                Icon(Icons.workspace_premium_rounded, color: bv.gold, size: 30),
+              Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [medal, medal.withAlpha(140)],
+                  ),
+                  boxShadow: [
+                    BoxShadow(color: medal.withAlpha(90), blurRadius: 14),
+                  ],
+                ),
+                child: CircleAvatar(
+                  radius: first ? 34 : 27,
+                  backgroundColor: bv.surface,
+                  child: Text(
+                    _leading(e),
+                    style: TextStyle(fontSize: first ? 32 : 26),
+                  ),
+                ),
               ),
-              child: CircleAvatar(
-                radius: first ? 34 : 27,
-                backgroundColor: bv.surface,
+              const SizedBox(height: 6),
+              Text(
+                e.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: text.titleSmall?.copyWith(
+                  color: e.entityId == me ? bv.accent : bv.ink,
+                ),
+              ),
+              Text(
+                l10n.boardPoints(e.score),
+                style: text.labelMedium?.copyWith(color: bv.muted),
+              ),
+              const SizedBox(height: 6),
+              Container(
+                height: first ? 64 : (i == 1 ? 46 : 34),
+                width: double.infinity,
+                margin: const EdgeInsets.symmetric(horizontal: 6),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(14),
+                  ),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [medal.withAlpha(150), medal.withAlpha(25)],
+                  ),
+                ),
                 child: Text(
-                  _leading(e),
-                  style: TextStyle(fontSize: first ? 32 : 26),
+                  '${e.rank}',
+                  style: text.headlineSmall?.copyWith(color: Colors.white),
                 ),
               ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              e.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: text.titleSmall?.copyWith(
-                color: e.entityId == me ? bv.accent : bv.ink,
-              ),
-            ),
-            Text(
-              l10n.boardPoints(e.score),
-              style: text.labelMedium?.copyWith(color: bv.muted),
-            ),
-            const SizedBox(height: 6),
-            Container(
-              height: first ? 64 : (i == 1 ? 46 : 34),
-              width: double.infinity,
-              margin: const EdgeInsets.symmetric(horizontal: 6),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(14),
-                ),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [medal.withAlpha(150), medal.withAlpha(25)],
-                ),
-              ),
-              child: Text(
-                '${e.rank}',
-                style: text.headlineSmall?.copyWith(color: Colors.white),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }
@@ -281,6 +297,7 @@ class _Row extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     return BvCard(
       key: Key('board-row-${entry.entityId}'),
+      onTap: mine ? null : _openPlayer(context, entry, null),
       radius: 18,
       color: mine ? bv.gradientStart.withAlpha(70) : null,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),

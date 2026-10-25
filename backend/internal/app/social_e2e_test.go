@@ -110,3 +110,58 @@ func (x *e2e) userOf(token string) uuid.UUID {
 	id, _ := r.get("user", "id").(string)
 	return uuid.MustParse(id)
 }
+
+// TestPlayerProfile covers D-101: the relation of the viewer, the stats
+// and a private profile that only friends can open.
+func TestPlayerProfile(t *testing.T) {
+	x := newE2E(t)
+	tokA, a, _ := x.fullUser()
+	tokB, b, _ := x.fullUser()
+	tokC, _, _ := x.fullUser()
+	profileOf := func(tok string, id uuid.UUID) response {
+		t.Helper()
+		r := x.do(http.MethodGet, "/v1/profiles/"+id.String(), tok, nil)
+		if r.code != 200 {
+			t.Fatalf("profile %s", r.raw)
+		}
+		return r
+	}
+	relation := func(tok string, id uuid.UUID, rel string, stats bool) {
+		t.Helper()
+		r := profileOf(tok, id)
+		if r.get("relation") != rel || (r.get("stats") != nil) != stats {
+			t.Fatalf("want %s stats=%v: %s", rel, stats, r.raw)
+		}
+	}
+
+	r := profileOf(tokA, a)
+	if r.get("relation") != "self" || r.get("private") != false || r.get("stats", "level") != float64(1) {
+		t.Fatalf("self %s", r.raw)
+	}
+	relation(tokA, b, "none", true)
+
+	want(t, "request", x.post("/v1/friend-requests", tokA, map[string]any{"to_user_id": b}), 201, "")
+	relation(tokA, b, "request_sent", true)
+	relation(tokB, a, "request_received", true)
+
+	// B goes private: strangers lose the stats, B still sees its own.
+	st := x.do(http.MethodPatch, "/v1/me/settings", tokB, map[string]any{"profile_private": true})
+	if st.code != 200 || st.get("profile_private") != true {
+		t.Fatalf("settings %s", st.raw)
+	}
+	if r := profileOf(tokC, b); r.get("private") != true || r.get("stats") != nil {
+		t.Fatalf("stranger sees private stats %s", r.raw)
+	}
+	relation(tokB, b, "self", true)
+	relation(tokA, b, "request_sent", false)
+
+	// Friends see a private profile.
+	in := x.do(http.MethodGet, "/v1/friend-requests", tokB, nil)
+	id := in.get("requests").([]any)[0].(map[string]any)["id"].(string)
+	want(t, "accept", x.do(http.MethodPost, "/v1/friend-requests/"+id+"/accept", tokB, nil), 204, "")
+	relation(tokA, b, "friend", true)
+
+	// A block hides the stats both ways.
+	want(t, "block", x.do(http.MethodPost, "/v1/blocks", tokA, map[string]any{"user_id": b}), 204, "")
+	relation(tokB, a, "blocked", false)
+}

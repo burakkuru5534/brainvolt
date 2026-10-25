@@ -44,6 +44,75 @@ class FriendRequest {
   final bool incoming;
 }
 
+/// The viewer's tie to a player (D-101).
+enum Relation { self, friend, requestSent, requestReceived, blocked, none }
+
+Relation _relation(String? v) => switch (v) {
+  'self' => Relation.self,
+  'friend' => Relation.friend,
+  'request_sent' => Relation.requestSent,
+  'request_received' => Relation.requestReceived,
+  'blocked' => Relation.blocked,
+  _ => Relation.none,
+};
+
+/// A player's public progress.
+class PlayerStats {
+  const PlayerStats({
+    this.level = 1,
+    this.matches = 0,
+    this.wins = 0,
+    this.badges = 0,
+    this.streak = 0,
+  });
+
+  factory PlayerStats.fromJson(Map<String, dynamic> j) => PlayerStats(
+    level: (j['level'] as num?)?.toInt() ?? 1,
+    matches: (j['matches'] as num?)?.toInt() ?? 0,
+    wins: (j['wins'] as num?)?.toInt() ?? 0,
+    badges: (j['badges'] as num?)?.toInt() ?? 0,
+    streak: (j['streak'] as num?)?.toInt() ?? 0,
+  );
+
+  final int level;
+  final int matches;
+  final int wins;
+  final int badges;
+  final int streak;
+
+  /// Wins in percent of matches (0 without matches).
+  int get winRate => matches == 0 ? 0 : (wins * 100 / matches).round();
+}
+
+/// GET /v1/profiles/{id}: a player as the viewer sees them (D-101).
+/// [stats] is null when the profile is private and the viewer is not a
+/// friend, or on a block.
+class PlayerProfile {
+  const PlayerProfile({
+    required this.card,
+    this.countryCode,
+    this.private = false,
+    this.relation = Relation.none,
+    this.stats,
+  });
+
+  factory PlayerProfile.fromJson(Map<String, dynamic> j) => PlayerProfile(
+    card: UserCard.fromJson(j),
+    countryCode: j['country_code'] as String?,
+    private: j['private'] == true,
+    relation: _relation(j['relation'] as String?),
+    stats: j['stats'] is Map
+        ? PlayerStats.fromJson((j['stats'] as Map).cast<String, dynamic>())
+        : null,
+  );
+
+  final UserCard card;
+  final String? countryCode;
+  final bool private;
+  final Relation relation;
+  final PlayerStats? stats;
+}
+
 /// Friend request actions.
 enum RequestAction { accept, decline, cancel }
 
@@ -65,4 +134,7 @@ abstract interface class SocialRepository {
   Future<void> unfriend(String userId);
 
   Future<void> block(String userId);
+
+  /// A player's profile as the caller sees it (D-101).
+  Future<PlayerProfile> profile(String userId);
 }

@@ -50,7 +50,7 @@ Layer 5  ranking   progression   moderation   notification   (event consumers)
 | Module | May import |
 |--------|-----------|
 | identity | — |
-| profile | identity |
+| profile | identity, social*, progression* |
 | commerce | identity |
 | content | identity |
 | social | identity, profile |
@@ -67,7 +67,7 @@ Layer 5  ranking   progression   moderation   notification   (event consumers)
 | moderation | identity, profile, content, game, creator, chat |
 | notification | identity, profile, social, team |
 
-\* **matchmaking → ranking** (and **identity → game** for the guest-cleanup `ActivityReader`, see `schema-identity.md` §6) are the upward reads: matchmaking needs a player's current rating to place them in a queue. It goes through a narrow read-only interface (`ranking.RatingReader`) declared in matchmaking and **implemented** by ranking, wired in `internal/app`. matchmaking never imports ranking's package directly, so there is no import cycle. **matchmaking → social*** is the same pattern for the block list (`matchmaking.BlockReader`, implemented by social): social sits in the same layer and is not imported.
+\* **matchmaking → ranking** (and **identity → game** for the guest-cleanup `ActivityReader`, see `schema-identity.md` §6) are the upward reads: matchmaking needs a player's current rating to place them in a queue. It goes through a narrow read-only interface (`ranking.RatingReader`) declared in matchmaking and **implemented** by ranking, wired in `internal/app`. matchmaking never imports ranking's package directly, so there is no import cycle. **matchmaking → social*** is the same pattern for the block list (`matchmaking.BlockReader`, implemented by social): social sits in the same layer and is not imported. **profile → social*, progression*** serve player profiles (D-101): `profile.RelationReader` (implemented by social) and `profile.StatsReader` (implemented by progression), wired with `profile.SetReaders` in `internal/app`.
 
 **Rules**
 1. **No cycles.** If two modules need each other, one side defines an interface and `internal/app` wires the implementation (same pattern as `RatingReader`).

@@ -65,6 +65,28 @@ func (m *Module) UserIDByUsername(ctx context.Context, username string) (uuid.UU
 	return m.svc.UserIDByUsername(ctx, username)
 }
 
+// PlayerStats is the public part of a player's progress (D-101).
+type PlayerStats = service.PlayerStats
+
+// RelationReader is implemented by social (profile → social*).
+type RelationReader = service.RelationReader
+
+// StatsReader is implemented by progression (profile → progression*).
+type StatsReader = service.StatsReader
+
+// Relation values of a player profile (D-101).
+const (
+	RelationSelf     = service.RelationSelf
+	RelationFriend   = service.RelationFriend
+	RelationSent     = service.RelationSent
+	RelationReceived = service.RelationReceived
+	RelationBlocked  = service.RelationBlocked
+	RelationNone     = service.RelationNone
+)
+
+// SetReaders wires the upward reads of player profiles (internal/app).
+func (m *Module) SetReaders(rel RelationReader, stats StatsReader) { m.svc.SetReaders(rel, stats) }
+
 // Register adds profile's routes; ident authenticates them.
 func (m *Module) Register(s *httpserver.Server, ident *identity.Module, limiter *ratelimit.Limiter) {
 	transport.New(m.svc, ident, limiter).Register(s)

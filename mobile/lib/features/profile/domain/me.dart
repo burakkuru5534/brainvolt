@@ -57,6 +57,8 @@ abstract class UserSettings with _$UserSettings {
     required bool soundEnabled,
     required bool musicEnabled,
     required bool hapticsEnabled,
+    // D-101: only friends see the stats.
+    @Default(false) bool profilePrivate,
   }) = _UserSettings;
 
   factory UserSettings.fromJson(Map<String, dynamic> json) =>

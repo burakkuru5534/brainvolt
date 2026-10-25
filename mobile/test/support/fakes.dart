@@ -424,6 +424,31 @@ class FakeSocialRepository implements SocialRepository {
     return false;
   }
 
+  /// Profiles by user id; unknown ids get a public stranger.
+  final profiles = <String, PlayerProfile>{};
+
+  @override
+  Future<PlayerProfile> profile(String userId) async {
+    _check();
+    return profiles[userId] ??
+        PlayerProfile(
+          card: UserCard(
+            userId: userId,
+            displayName: 'Deniz',
+            username: 'deniz',
+            avatarId: 'fox',
+          ),
+          countryCode: 'TR',
+          stats: const PlayerStats(
+            level: 4,
+            matches: 20,
+            wins: 12,
+            badges: 3,
+            streak: 2,
+          ),
+        );
+  }
+
   @override
   Future<void> respond(String requestId, RequestAction action) async =>
       calls.add('${action.name}:$requestId');

@@ -10,6 +10,14 @@ WHERE status = 'pending' AND expires_at > @now
   AND ((from_user_id = @a AND to_user_id = @b) OR (from_user_id = @b AND to_user_id = @a))
 FOR UPDATE;
 
+-- name: PendingDirection :one
+-- Who asked whom, without a lock (player profiles, D-101).
+SELECT from_user_id FROM social.friend_requests
+WHERE status = 'pending' AND expires_at > @now
+  AND ((from_user_id = @a AND to_user_id = @b) OR (from_user_id = @b AND to_user_id = @a))
+ORDER BY created_at DESC
+LIMIT 1;
+
 -- name: GetRequestForUpdate :one
 SELECT * FROM social.friend_requests WHERE id = $1 FOR UPDATE;
 
