@@ -28,7 +28,7 @@ func TestCosmetics(t *testing.T) {
 	}
 
 	c := x.do(http.MethodGet, "/v1/store/cosmetics", tok, nil)
-	if c.code != 200 || len(c.get("items").([]any)) != 23 || c.get("plus") != false {
+	if c.code != 200 || len(c.get("items").([]any)) != 28 || c.get("plus") != false {
 		t.Fatalf("catalogue %s", c.raw)
 	}
 

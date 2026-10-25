@@ -6,6 +6,7 @@ package progression
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"time"
 
@@ -70,7 +71,7 @@ type Module struct {
 // New builds the module.
 func New(d Deps) *Module {
 	return &Module{
-		svc:     service.New(service.Deps{DB: d.DB, Pusher: d.Pusher, Plus: d.Plus, Wallet: d.Wallet, Clock: d.Clock, Logger: d.Logger}),
+		svc:     service.New(service.Deps{DB: d.DB, Pusher: d.Pusher, Plus: d.Plus, Wallet: d.Wallet, Season: currentSeason{d.Ranking}, Clock: d.Clock, Logger: d.Logger}),
 		ranking: d.Ranking,
 	}
 }
@@ -141,4 +142,15 @@ func (m *Module) OnAdRewardGranted(ctx context.Context, e events.Envelope) error
 // purchase's transaction (commerce's ItemApplier, D-105).
 func (m *Module) ApplyItemTx(ctx context.Context, tx pgx.Tx, user uuid.UUID, item, ref string, now time.Time) error {
 	return m.svc.ApplyItemTx(ctx, tx, user, item, ref, now)
+}
+
+// currentSeason adapts ranking's current season for the Season Pass.
+type currentSeason struct{ *ranking.Module }
+
+func (c currentSeason) CurrentSeason(ctx context.Context) (service.SeasonInfo, error) {
+	if c.Module == nil {
+		return service.SeasonInfo{}, errors.New("progression: no ranking module")
+	}
+	se, err := c.Module.CurrentSeason(ctx)
+	return service.SeasonInfo{ID: se.ID, Number: int(se.Number), StartsAt: se.StartsAt, EndsAt: se.EndsAt, Names: se.Names}, err
 }

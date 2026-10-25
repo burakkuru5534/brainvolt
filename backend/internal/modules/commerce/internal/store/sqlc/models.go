@@ -814,6 +814,20 @@ type ProgressionQuestTranslation struct {
 	Description string
 }
 
+type ProgressionSeasonPass struct {
+	UserID    uuid.UUID
+	SeasonID  uuid.UUID
+	PremiumAt time.Time
+}
+
+type ProgressionSeasonPassClaim struct {
+	UserID    uuid.UUID
+	SeasonID  uuid.UUID
+	Track     string
+	Tier      int32
+	ClaimedAt time.Time
+}
+
 type ProgressionUserBadge struct {
 	UserID    uuid.UUID
 	BadgeID   uuid.UUID

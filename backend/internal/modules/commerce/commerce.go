@@ -59,6 +59,16 @@ func (VoltWriter) CreditTx(ctx context.Context, tx pgx.Tx, user uuid.UUID, amoun
 	return service.CreditTx(ctx, tx, user, amount, reason, ref, key, now)
 }
 
+// DebitTx spends amount Volt inside tx (VOLT_INSUFFICIENT when short).
+func (VoltWriter) DebitTx(ctx context.Context, tx pgx.Tx, user uuid.UUID, amount int, reason, ref, key string, now time.Time) error {
+	return service.DebitTx(ctx, tx, user, amount, reason, ref, key, now)
+}
+
+// GrantCosmeticTx gives a cosmetic inside tx (Season Pass rewards).
+func (VoltWriter) GrantCosmeticTx(ctx context.Context, tx pgx.Tx, user uuid.UUID, code string, now time.Time) error {
+	return service.GrantCosmeticTx(ctx, tx, user, code, now)
+}
+
 // AdRewardGranted is EventAdRewardGranted's payload.
 type AdRewardGranted = service.AdRewardGranted
 

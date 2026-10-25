@@ -465,6 +465,53 @@ func (q *Queries) InsertAssignment(ctx context.Context, arg InsertAssignmentPara
 	return err
 }
 
+const insertPassClaim = `-- name: InsertPassClaim :execrows
+INSERT INTO progression.season_pass_claims (user_id, season_id, track, tier, claimed_at)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT DO NOTHING
+`
+
+type InsertPassClaimParams struct {
+	UserID   uuid.UUID
+	SeasonID uuid.UUID
+	Track    string
+	Tier     int32
+	Now      time.Time
+}
+
+func (q *Queries) InsertPassClaim(ctx context.Context, arg InsertPassClaimParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertPassClaim,
+		arg.UserID,
+		arg.SeasonID,
+		arg.Track,
+		arg.Tier,
+		arg.Now,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const insertPassPremium = `-- name: InsertPassPremium :execrows
+INSERT INTO progression.season_pass (user_id, season_id, premium_at) VALUES ($1, $2, $3)
+ON CONFLICT DO NOTHING
+`
+
+type InsertPassPremiumParams struct {
+	UserID   uuid.UUID
+	SeasonID uuid.UUID
+	Now      time.Time
+}
+
+func (q *Queries) InsertPassPremium(ctx context.Context, arg InsertPassPremiumParams) (int64, error) {
+	result, err := q.db.Exec(ctx, insertPassPremium, arg.UserID, arg.SeasonID, arg.Now)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const insertXP = `-- name: InsertXP :execrows
 
 INSERT INTO progression.xp_ledger (id, user_id, amount, source, source_ref, created_at)
@@ -591,6 +638,56 @@ func (q *Queries) MatchXPEntry(ctx context.Context, arg MatchXPEntryParams) (Mat
 	var i MatchXPEntryRow
 	err := row.Scan(&i.Amount, &i.CreatedAt)
 	return i, err
+}
+
+const passClaims = `-- name: PassClaims :many
+SELECT track, tier FROM progression.season_pass_claims WHERE user_id = $1 AND season_id = $2
+`
+
+type PassClaimsParams struct {
+	UserID   uuid.UUID
+	SeasonID uuid.UUID
+}
+
+type PassClaimsRow struct {
+	Track string
+	Tier  int32
+}
+
+func (q *Queries) PassClaims(ctx context.Context, arg PassClaimsParams) ([]PassClaimsRow, error) {
+	rows, err := q.db.Query(ctx, passClaims, arg.UserID, arg.SeasonID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []PassClaimsRow{}
+	for rows.Next() {
+		var i PassClaimsRow
+		if err := rows.Scan(&i.Track, &i.Tier); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const passPremium = `-- name: PassPremium :one
+SELECT EXISTS (SELECT 1 FROM progression.season_pass WHERE user_id = $1 AND season_id = $2)
+`
+
+type PassPremiumParams struct {
+	UserID   uuid.UUID
+	SeasonID uuid.UUID
+}
+
+func (q *Queries) PassPremium(ctx context.Context, arg PassPremiumParams) (bool, error) {
+	row := q.db.QueryRow(ctx, passPremium, arg.UserID, arg.SeasonID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const periodAssignments = `-- name: PeriodAssignments :many
@@ -831,4 +928,24 @@ func (q *Queries) UseReroll(ctx context.Context, arg UseRerollParams) (UseReroll
 	var i UseRerollRow
 	err := row.Scan(&i.Count, &i.Bonus)
 	return i, err
+}
+
+const xPBetween = `-- name: XPBetween :one
+
+SELECT coalesce(sum(amount), 0)::bigint FROM progression.xp_ledger
+WHERE user_id = $1 AND created_at >= $2 AND created_at < $3
+`
+
+type XPBetweenParams struct {
+	UserID uuid.UUID
+	Since  time.Time
+	Until  time.Time
+}
+
+// ---------- Season Pass (D-108) ----------
+func (q *Queries) XPBetween(ctx context.Context, arg XPBetweenParams) (int64, error) {
+	row := q.db.QueryRow(ctx, xPBetween, arg.UserID, arg.Since, arg.Until)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
 }

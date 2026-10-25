@@ -17,6 +17,7 @@ const specialAvatarEmoji = <String, String>{
   'robot': '🤖',
   'alien': '👽',
   'dragon': '🐉',
+  'stormcloud': '🌩️',
   'unicorn': '🦄',
 };
 
@@ -69,6 +70,18 @@ FrameStyle? frameStyle(String code) => switch (code) {
     width: 4,
     crown: true,
   ),
+  'frame_s1_storm' => const FrameStyle(
+    gradient: SweepGradient(
+      colors: [
+        Color(0xFF5B8CFF),
+        Color(0xFFB36BFF),
+        Color(0xFFFFF04D),
+        Color(0xFF5B8CFF),
+      ],
+    ),
+    glow: Color(0xFF7C9BFF),
+    width: 4.5,
+  ),
   'frame_starter' => const FrameStyle(
     gradient: LinearGradient(
       begin: Alignment.topLeft,
@@ -120,6 +133,11 @@ NameStyle? nameStyle(String code) => switch (code) {
   'name_neon' => const NameStyle(color: Color(0xFF39FF88)),
   'name_pink' => const NameStyle(color: Color(0xFFFF5FB8)),
   'name_ice' => const NameStyle(color: Color(0xFF8FE3FF)),
+  'name_s1_electric' => const NameStyle(
+    gradient: LinearGradient(
+      colors: [Color(0xFF6FD3FF), Color(0xFF8E6BFF), Color(0xFF6FD3FF)],
+    ),
+  ),
   'name_rainbow' => const NameStyle(
     gradient: LinearGradient(colors: _rainbow),
     animated: true,
@@ -246,6 +264,11 @@ MatchThemeStyle? matchThemeStyle(String code) => switch (code) {
     option: Color(0xFF6A2848),
     chosen: [Color(0xFFFF7E5F), Color(0xFFFEB47B)],
   ),
+  'theme_s1_storm' => const MatchThemeStyle(
+    background: [Color(0xFF0D0B2E), Color(0xFF1F1A5C), Color(0xFF080618)],
+    option: Color(0xFF2A2770),
+    chosen: [Color(0xFF6F5BFF), Color(0xFFFFE04D)],
+  ),
   'theme_emerald' => const MatchThemeStyle(
     background: [Color(0xFF062A22), Color(0xFF0B3D2E), Color(0xFF031A14)],
     option: Color(0xFF145A45),
@@ -268,12 +291,13 @@ class MatchThemeScope extends InheritedWidget {
 }
 
 /// The victory animations (D-106).
-enum VictoryKind { confetti, fireworks, lightning }
+enum VictoryKind { confetti, fireworks, lightning, thunder }
 
 VictoryKind? victoryKind(String code) => switch (code) {
   'victory_confetti' => VictoryKind.confetti,
   'victory_fireworks' => VictoryKind.fireworks,
   'victory_lightning' => VictoryKind.lightning,
+  'victory_s1_thunder' => VictoryKind.thunder,
   _ => null,
 };
 
@@ -387,18 +411,24 @@ class _VictoryPainter extends CustomPainter {
             );
           }
         }
-      case VictoryKind.lightning:
-        final flash = (math.sin(t * math.pi * 6)).abs() * (1 - t) * 0.25;
+      case VictoryKind.lightning || VictoryKind.thunder:
+        final thunder = kind == VictoryKind.thunder;
+        final flash =
+            (math.sin(t * math.pi * (thunder ? 10 : 6))).abs() *
+            (1 - t) *
+            (thunder ? 0.45 : 0.25);
         canvas.drawRect(
           Offset.zero & size,
           Paint()..color = const Color(0xFFFFF6B0).withValues(alpha: flash),
         );
         final bolt = Paint()
-          ..color = const Color(0xFFFFE04D).withValues(alpha: fade)
-          ..strokeWidth = 4
+          ..color =
+              (thunder ? const Color(0xFFB9A8FF) : const Color(0xFFFFE04D))
+                  .withValues(alpha: fade)
+          ..strokeWidth = thunder ? 6 : 4
           ..style = PaintingStyle.stroke
           ..strokeJoin = StrokeJoin.round;
-        for (var i = 0; i < 7; i++) {
+        for (var i = 0; i < (thunder ? 12 : 7); i++) {
           final x = size.width * (0.08 + rnd.nextDouble() * 0.84);
           final y0 =
               size.height *

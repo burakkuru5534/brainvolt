@@ -46,6 +46,11 @@ String cosmeticName(AppLocalizations l10n, String code) => switch (code) {
   'frame_crown' => l10n.cosFrameCrown,
   'frame_plus' => l10n.cosFramePlus,
   'frame_starter' => l10n.cosFrameStarter,
+  'frame_s1_storm' => l10n.cosFrameS1Storm,
+  'avatar_stormcloud' => l10n.cosAvatarStormcloud,
+  'name_s1_electric' => l10n.cosNameS1Electric,
+  'theme_s1_storm' => l10n.cosThemeS1Storm,
+  'victory_s1_thunder' => l10n.cosVictoryS1Thunder,
   'avatar_octopus' => l10n.cosAvatarOctopus,
   'avatar_eagle' => l10n.cosAvatarEagle,
   'avatar_robot' => l10n.cosAvatarRobot,
@@ -240,7 +245,14 @@ class _CosmeticsTabState extends ConsumerState<CosmeticsTab> {
         ? me?.avatarId == item.avatarId
         : item.equipped;
     final Widget action;
-    if (item.packOnly && !item.owned) {
+    if (item.season > 0 && !item.owned) {
+      action = OutlinedButton.icon(
+        key: Key('cos-season-${item.code}'),
+        icon: const Icon(Icons.military_tech_rounded, size: 16),
+        onPressed: () => context.push(Routes.seasonPass),
+        label: Text(l10n.passSeasonOnly, overflow: TextOverflow.ellipsis),
+      );
+    } else if (item.packOnly && !item.owned) {
       action = OutlinedButton.icon(
         key: Key('cos-pack-${item.code}'),
         icon: const Icon(Icons.card_giftcard_rounded, size: 16),
@@ -336,6 +348,7 @@ class _CosmeticsTabState extends ConsumerState<CosmeticsTab> {
         icon: Icon(switch (victoryKind(item.code)) {
           VictoryKind.fireworks => Icons.celebration_rounded,
           VictoryKind.lightning => Icons.bolt_rounded,
+          VictoryKind.thunder => Icons.thunderstorm_rounded,
           _ => Icons.auto_awesome_rounded,
         }, size: 30),
         onPressed: () => _preview(item.code),

@@ -56,7 +56,10 @@ void main() {
   testWidgets('bell badge, inbox, tapping opens the route and reads it', (
     tester,
   ) async {
-    final t = await launch(tester, (t) => t.notifications.items = [request]);
+    final t = await launch(tester, (t) {
+      t.notifications.items = [request];
+      t.seasonPass.tier = 0; // no Season Pass badge next to the bell's
+    });
     expect(find.text('1'), findsOneWidget);
     await tester.tap(find.byKey(const Key('open-inbox')));
     await tester.pumpAndSettle();

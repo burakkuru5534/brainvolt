@@ -152,6 +152,7 @@ class CosmeticItem {
     this.price = 0,
     this.plusOnly = false,
     this.packOnly = false,
+    this.season = 0,
     this.owned = false,
     this.equipped = false,
   });
@@ -162,6 +163,7 @@ class CosmeticItem {
     price: _int(j['price']),
     plusOnly: j['plus_only'] == true,
     packOnly: j['pack_only'] == true,
+    season: _int(j['season']),
     owned: j['owned'] == true,
     equipped: j['equipped'] == true,
   );
@@ -173,6 +175,9 @@ class CosmeticItem {
 
   /// Only in a Volt pack (the starter frame, D-107).
   final bool packOnly;
+
+  /// Only in that season's Season Pass (D-108).
+  final int season;
   final bool owned;
   final bool equipped;
 

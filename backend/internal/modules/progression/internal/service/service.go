@@ -35,13 +35,18 @@ type Deps struct {
 	// Wallet credits Volt in progression's transactions (commerce, D-105);
 	// nil = no Volt.
 	Wallet Wallet
+	// Season is the current ranked season (the Season Pass, D-108).
+	Season SeasonSource
 	Clock  clock.Clock
 	Logger *slog.Logger
 }
 
-// Wallet writes Volt to commerce's ledger inside tx, once per key.
+// Wallet writes Volt and cosmetics to commerce inside tx, once per key.
 type Wallet interface {
 	CreditTx(ctx context.Context, tx pgx.Tx, user uuid.UUID, amount int, reason, ref, key string, now time.Time) error
+	// DebitTx refuses with VOLT_INSUFFICIENT when the balance is short.
+	DebitTx(ctx context.Context, tx pgx.Tx, user uuid.UUID, amount int, reason, ref, key string, now time.Time) error
+	GrantCosmeticTx(ctx context.Context, tx pgx.Tx, user uuid.UUID, code string, now time.Time) error
 }
 
 // Volt rewards (D-105): quests by cadence, the Daily Challenge, each level

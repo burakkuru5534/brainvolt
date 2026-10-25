@@ -22,6 +22,7 @@ import '../../match/domain/match_repository.dart';
 import '../../match/presentation/mode_picker_screen.dart';
 import '../../match/presentation/topic_picker.dart';
 import '../../notifications/presentation/inbox_screen.dart';
+import '../../pass/presentation/season_pass_screen.dart';
 import '../../profile/domain/avatars.dart';
 import '../../progress/presentation/progress_widgets.dart';
 import '../../store/domain/store_repository.dart';
@@ -119,6 +120,7 @@ class HomeScreen extends ConsumerWidget {
               frame: myCosmetic(ref, CosmeticKind.frame),
             ),
             const StreakRepairBanner(),
+            const SeasonPassCard(),
             const SizedBox(height: 14),
             _DailyCard(onTap: () => context.push(Routes.daily)),
             SectionTitle(

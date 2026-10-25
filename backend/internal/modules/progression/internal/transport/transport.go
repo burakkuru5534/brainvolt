@@ -60,6 +60,16 @@ func (t *Transport) Register(s *httpserver.Server) {
 	s.Handle("GET /v1/me/badges", a(t.badges(true)), doc(httpserver.Doc{
 		Summary: "The caller's earned badges", Response: Badges{},
 	}))
+	s.Handle("GET /v1/me/season-pass", a(t.seasonPass), doc(httpserver.Doc{
+		Summary: "The Season Pass of the current season (D-108): XP, tier, both tracks' rewards and what was claimed", Response: service.SeasonPass{},
+	}))
+	s.Handle("POST /v1/me/season-pass/premium", a(t.idem.Wrap(idempotency.Optional, t.buyPremium)), doc(httpserver.Doc{
+		Summary: "Open the premium track for 900 Volt (once a season)", Response: service.SeasonPass{},
+		Errors: []apierror.Code{apierror.VoltInsufficient, apierror.ItemUnavailable},
+	}))
+	s.Handle("POST /v1/me/season-pass/claim", a(t.idem.Wrap(idempotency.Optional, t.claimPass)), doc(httpserver.Doc{
+		Summary: "Claim every reached, unclaimed reward of the caller's tracks", Response: service.PassClaimed{},
+	}))
 	s.Handle("GET /v1/me/awards/{match_id}", a(t.awards), doc(httpserver.Doc{
 		Summary:  "Progression awards of a finished match (the match.awards content) for clients that missed the message",
 		Response: service.Awards{}, Errors: []apierror.Code{apierror.NotFound},
@@ -141,4 +151,28 @@ func (t *Transport) awards(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 	return httpserver.WriteJSON(w, http.StatusOK, a)
+}
+
+func (t *Transport) seasonPass(w http.ResponseWriter, r *http.Request) error {
+	out, err := t.svc.SeasonPass(r.Context(), me(r), locale(r))
+	if err != nil {
+		return err
+	}
+	return httpserver.WriteJSON(w, http.StatusOK, out)
+}
+
+func (t *Transport) buyPremium(w http.ResponseWriter, r *http.Request) error {
+	out, err := t.svc.BuyPremium(r.Context(), me(r), locale(r))
+	if err != nil {
+		return err
+	}
+	return httpserver.WriteJSON(w, http.StatusOK, out)
+}
+
+func (t *Transport) claimPass(w http.ResponseWriter, r *http.Request) error {
+	out, err := t.svc.ClaimPass(r.Context(), me(r), locale(r))
+	if err != nil {
+		return err
+	}
+	return httpserver.WriteJSON(w, http.StatusOK, out)
 }

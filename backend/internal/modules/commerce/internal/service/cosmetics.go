@@ -38,6 +38,8 @@ type Cosmetic struct {
 	PlusOnly bool   `json:"plus_only"`
 	// PackOnly items come only with a Volt pack (the starter frame, D-107).
 	PackOnly bool `json:"pack_only,omitempty"`
+	// Season items come only from that season's Season Pass (D-108).
+	Season int `json:"season,omitempty"`
 }
 
 // Cosmetics is the catalogue (D-106), in display order.
@@ -48,6 +50,7 @@ var Cosmetics = []Cosmetic{
 	{Code: "frame_crown", Kind: KindFrame, Price: 600},
 	{Code: "frame_plus", Kind: KindFrame, PlusOnly: true},
 	{Code: "frame_starter", Kind: KindFrame, PackOnly: true},
+	{Code: "frame_s1_storm", Kind: KindFrame, Season: 1},
 
 	{Code: "avatar_octopus", Kind: KindAvatar, Price: 150},
 	{Code: "avatar_eagle", Kind: KindAvatar, Price: 150},
@@ -55,20 +58,24 @@ var Cosmetics = []Cosmetic{
 	{Code: "avatar_alien", Kind: KindAvatar, Price: 200},
 	{Code: "avatar_dragon", Kind: KindAvatar, Price: 250},
 	{Code: "avatar_unicorn", Kind: KindAvatar, Price: 250},
+	{Code: "avatar_stormcloud", Kind: KindAvatar, Season: 1},
 
 	{Code: "name_gold", Kind: KindNameColor, Price: 300},
 	{Code: "name_neon", Kind: KindNameColor, Price: 300},
 	{Code: "name_pink", Kind: KindNameColor, Price: 300},
 	{Code: "name_ice", Kind: KindNameColor, Price: 300},
 	{Code: "name_rainbow", Kind: KindNameColor, PlusOnly: true},
+	{Code: "name_s1_electric", Kind: KindNameColor, Season: 1},
 
 	{Code: "victory_confetti", Kind: KindVictory, Price: 250},
 	{Code: "victory_fireworks", Kind: KindVictory, Price: 250},
 	{Code: "victory_lightning", Kind: KindVictory, Price: 250},
+	{Code: "victory_s1_thunder", Kind: KindVictory, Season: 1},
 
 	{Code: "theme_midnight", Kind: KindMatchTheme, Price: 400},
 	{Code: "theme_sunset", Kind: KindMatchTheme, Price: 400},
 	{Code: "theme_emerald", Kind: KindMatchTheme, Price: 400},
+	{Code: "theme_s1_storm", Kind: KindMatchTheme, Season: 1},
 }
 
 // cosmetic finds a catalogue entry.
@@ -149,6 +156,9 @@ func (s *Service) BuyCosmetic(ctx context.Context, user uuid.UUID, code string) 
 	}
 	if c.PackOnly {
 		return CosmeticPurchase{}, unavailable(code, "pack_only")
+	}
+	if c.Season > 0 {
+		return CosmeticPurchase{}, unavailable(code, "season_only")
 	}
 	now := s.d.Clock.Now()
 	if err := s.plusMonthly(ctx, user, now); err != nil {

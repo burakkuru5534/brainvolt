@@ -227,3 +227,25 @@ func refundPlusVolt(ctx context.Context, q *sqlc.Queries, user uuid.UUID, start,
 	}
 	return nil
 }
+
+// DebitTx spends amount Volt of user inside tx, once per key; a short
+// balance refuses with VOLT_INSUFFICIENT (the Season Pass, D-108).
+func DebitTx(ctx context.Context, tx pgx.Tx, user uuid.UUID, amount int, reason, ref, key string, now time.Time) error {
+	q := sqlc.New(tx)
+	bal, err := q.LockWallet(ctx, sqlc.LockWalletParams{UserID: user, Now: now})
+	if err != nil {
+		return err
+	}
+	if bal < int64(amount) {
+		return apierror.New(apierror.VoltInsufficient).With("price", amount).With("balance", bal)
+	}
+	_, _, err = credit(ctx, q, user, -amount, reason, ref, key, now)
+	return err
+}
+
+// GrantCosmeticTx adds a cosmetic to user's inventory inside tx (a Season
+// Pass reward, D-108); an owned one is left as it is.
+func GrantCosmeticTx(ctx context.Context, tx pgx.Tx, user uuid.UUID, code string, now time.Time) error {
+	_, err := sqlc.New(tx).InsertCosmetic(ctx, sqlc.InsertCosmeticParams{UserID: user, Code: code, Source: "reward", Now: now})
+	return err
+}

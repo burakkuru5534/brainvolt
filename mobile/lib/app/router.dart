@@ -27,6 +27,7 @@ import '../features/match/presentation/result_screen.dart';
 import '../features/moderation/presentation/sanctions_screen.dart';
 import '../features/notifications/presentation/inbox_screen.dart';
 import '../features/notifications/presentation/notification_settings_screen.dart';
+import '../features/pass/presentation/season_pass_screen.dart';
 import '../features/profile/presentation/guide_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/profile/presentation/settings_screen.dart';
@@ -82,6 +83,7 @@ abstract final class Routes {
   static const guide = '/settings/guide';
   static const plus = '/plus';
   static const store = '/store';
+  static const seasonPass = '/season-pass';
   static const quizNew = '/quizzes/new';
   static String quiz(String id) => '/quizzes/$id';
   static String dailyRun(String id) => '/daily/runs/$id';
@@ -178,6 +180,10 @@ GoRouter router(Ref ref) {
       GoRoute(
         path: Routes.plus,
         builder: (context, state) => const PlusScreen(),
+      ),
+      GoRoute(
+        path: Routes.seasonPass,
+        builder: (context, state) => const SeasonPassScreen(),
       ),
       GoRoute(
         path: Routes.store,

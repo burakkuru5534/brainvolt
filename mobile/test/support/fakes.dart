@@ -34,6 +34,8 @@ import 'package:brainvolt/features/moderation/data/moderation_providers.dart';
 import 'package:brainvolt/features/moderation/domain/moderation_repository.dart';
 import 'package:brainvolt/features/notifications/data/notification_providers.dart';
 import 'package:brainvolt/features/notifications/domain/notification_repository.dart';
+import 'package:brainvolt/features/pass/domain/season_pass.dart';
+import 'package:brainvolt/features/pass/presentation/season_pass_screen.dart';
 import 'package:brainvolt/features/profile/data/profile_providers.dart';
 import 'package:brainvolt/features/profile/domain/me.dart';
 import 'package:brainvolt/features/profile/domain/profile_repository.dart';
@@ -1095,6 +1097,96 @@ class FakeAdsRepository implements AdsRepository {
   }
 }
 
+/// The Season Pass (D-108): tier 6 of 40, free track only; claims give
+/// what is reached.
+class FakeSeasonPassRepository implements SeasonPassRepository {
+  FakeSeasonPassRepository(this.store);
+
+  final FakeStoreRepository store;
+  final calls = <String>[];
+  var premium = false;
+  final claimed = <String>{};
+
+  static const _free = {5: PassReward(volt: 50), 10: PassReward(shield: true)};
+  static PassReward? _premium(int t) => switch (t) {
+    1 => const PassReward(cosmetic: 'frame_s1_storm'),
+    10 => const PassReward(cosmetic: 'avatar_stormcloud'),
+    5 || 15 || 25 || 35 => const PassReward(shield: true),
+    40 => const PassReward(cosmetic: 'victory_s1_thunder', volt: 150),
+    _ when t.isEven => const PassReward(volt: 60),
+    _ => null,
+  };
+
+  /// The tier reached.
+  var tier = 6;
+
+  SeasonPass get value {
+    var claimable = 0;
+    final tiers = [
+      for (var t = 1; t <= 40; t++)
+        PassTier(
+          tier: t,
+          free: _free[t],
+          premium: _premium(t),
+          freeClaimed: claimed.contains('free:$t'),
+          premiumClaimed: claimed.contains('premium:$t'),
+        ),
+    ];
+    for (final t in tiers.take(tier)) {
+      if (t.free != null && !t.freeClaimed) claimable++;
+      if (premium && t.premium != null && !t.premiumClaimed) claimable++;
+    }
+    return SeasonPass(
+      seasonNumber: 1,
+      seasonName: 'Fırtına Sezonu',
+      endsAt: DateTime.now().add(const Duration(days: 30, hours: 1)),
+      xp: 3200,
+      tier: tier,
+      tierXp: 200,
+      premium: premium,
+      claimable: claimable,
+      tiers: tiers,
+    );
+  }
+
+  @override
+  Future<SeasonPass> pass() async => value;
+
+  @override
+  Future<SeasonPass> buyPremium() async {
+    calls.add('premium');
+    premium = true;
+    await store.buy(StoreItemCode.questReroll); // a stand-in charge
+    return value;
+  }
+
+  @override
+  Future<PassClaim> claim() async {
+    calls.add('claim');
+    var volt = 0;
+    var shields = 0;
+    final cosmetics = <String>[];
+    for (final t in value.tiers.take(value.tier)) {
+      for (final (track, r, done) in [
+        ('free', t.free, t.freeClaimed),
+        ('premium', premium ? t.premium : null, t.premiumClaimed),
+      ]) {
+        if (r == null || done) continue;
+        claimed.add('$track:${t.tier}');
+        volt += r.volt;
+        if (r.shield) shields++;
+        if (r.cosmetic.isNotEmpty) cosmetics.add(r.cosmetic);
+      }
+    }
+    return PassClaim(
+      pass: value,
+      volt: volt,
+      shields: shields,
+      cosmetics: cosmetics,
+    );
+  }
+}
+
 /// BrainVolt Plus (D-104): a store whose purchases always go through.
 class FakeStoreRepository implements StoreRepository {
   Entitlements value = const Entitlements();
@@ -1380,6 +1472,7 @@ class TestApp {
     final tournaments = FakeTournamentRepository();
     final ads = FakeAdsRepository();
     final store = FakeStoreRepository();
+    final seasonPass = FakeSeasonPassRepository(store);
     final purchases = FakePurchaseGateway(store);
     final adGateway = FakeAdGateway();
     final sockets = <FakeSocket>[];
@@ -1413,6 +1506,7 @@ class TestApp {
         tournamentRepositoryProvider.overrideWithValue(tournaments),
         adsRepositoryProvider.overrideWithValue(ads),
         storeRepositoryProvider.overrideWithValue(store),
+        seasonPassRepositoryProvider.overrideWithValue(seasonPass),
         purchaseGatewayProvider.overrideWithValue(purchases),
         plusPollEveryProvider.overrideWithValue(Duration.zero),
         adGatewayProvider.overrideWithValue(adGateway),
@@ -1459,12 +1553,14 @@ class TestApp {
       ..ads = ads
       ..adGateway = adGateway
       ..store = store
+      ..seasonPass = seasonPass
       ..purchases = purchases;
   }
 
   late final FakeAdsRepository ads;
   late final FakeAdGateway adGateway;
   late final FakeStoreRepository store;
+  late final FakeSeasonPassRepository seasonPass;
   late final FakePurchaseGateway purchases;
 
   final ProviderContainer container;

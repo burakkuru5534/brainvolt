@@ -3719,5 +3719,148 @@
   "cosmeticPackOnly": "İlk alım paketinde",
   "@cosmeticPackOnly": {
     "description": "Volt packs (D-107)."
+  },
+  "passTitle": "Sezon Bileti",
+  "@passTitle": {
+    "description": "Season Pass (D-108)."
+  },
+  "passSeason": "Sezon {number}: {name}",
+  "@passSeason": {
+    "description": "Season Pass (D-108).",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "passEndsIn": "{days} gün kaldı",
+  "@passEndsIn": {
+    "description": "Season Pass (D-108).",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "passTier": "Kademe {tier}/{max}",
+  "@passTier": {
+    "description": "Season Pass (D-108).",
+    "placeholders": {
+      "tier": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "passXpToNext": "Sonraki kademeye {xp} XP",
+  "@passXpToNext": {
+    "description": "Season Pass (D-108).",
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "passAllDone": "Tüm kademeler tamam!",
+  "@passAllDone": {
+    "description": "Season Pass (D-108)."
+  },
+  "passFree": "Ücretsiz",
+  "@passFree": {
+    "description": "Season Pass (D-108)."
+  },
+  "passPremium": "Ücretli",
+  "@passPremium": {
+    "description": "Season Pass (D-108)."
+  },
+  "passUnlock": "Ücretli yolu aç",
+  "@passUnlock": {
+    "description": "Season Pass (D-108)."
+  },
+  "passUnlockSub": "5 sezona özel kozmetik ve 1.000'den fazla Volt",
+  "@passUnlockSub": {
+    "description": "Season Pass (D-108)."
+  },
+  "passUnlockTitle": "Ücretli yol açılsın mı?",
+  "@passUnlockTitle": {
+    "description": "Season Pass (D-108)."
+  },
+  "passUnlocked": "Ücretli yol açıldı!",
+  "@passUnlocked": {
+    "description": "Season Pass (D-108)."
+  },
+  "passClaimAll": "Ödülleri al ({count})",
+  "@passClaimAll": {
+    "description": "Season Pass (D-108).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "passClaimedVolt": "+{volt} Volt",
+  "@passClaimedVolt": {
+    "description": "Season Pass (D-108).",
+    "placeholders": {
+      "volt": {
+        "type": "int"
+      }
+    }
+  },
+  "passClaimedMore": "{text} · {shields} kalkan · {cosmetics} kozmetik",
+  "@passClaimedMore": {
+    "description": "Season Pass (D-108).",
+    "placeholders": {
+      "text": {
+        "type": "String"
+      },
+      "shields": {
+        "type": "int"
+      },
+      "cosmetics": {
+        "type": "int"
+      }
+    }
+  },
+  "passRewardShield": "Seri kalkanı",
+  "@passRewardShield": {
+    "description": "Season Pass (D-108)."
+  },
+  "passSeasonOnly": "Sezon Bileti'nde",
+  "@passSeasonOnly": {
+    "description": "Season Pass (D-108)."
+  },
+  "voltReasonSeasonPass": "Sezon Bileti",
+  "@voltReasonSeasonPass": {
+    "description": "Season Pass (D-108)."
+  },
+  "voltReasonPassReward": "Sezon Bileti ödülü",
+  "@voltReasonPassReward": {
+    "description": "Season Pass (D-108)."
+  },
+  "cosFrameS1Storm": "Fırtına Çerçevesi",
+  "@cosFrameS1Storm": {
+    "description": "Season Pass (D-108)."
+  },
+  "cosAvatarStormcloud": "Şimşek Bulutu",
+  "@cosAvatarStormcloud": {
+    "description": "Season Pass (D-108)."
+  },
+  "cosNameS1Electric": "Elektrik",
+  "@cosNameS1Electric": {
+    "description": "Season Pass (D-108)."
+  },
+  "cosThemeS1Storm": "Fırtına",
+  "@cosThemeS1Storm": {
+    "description": "Season Pass (D-108)."
+  },
+  "cosVictoryS1Thunder": "Gök Gürültüsü",
+  "@cosVictoryS1Thunder": {
+    "description": "Season Pass (D-108)."
   }
 }

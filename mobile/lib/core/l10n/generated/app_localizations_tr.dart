@@ -2702,4 +2702,90 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get cosmeticPackOnly => 'İlk alım paketinde';
+
+  @override
+  String get passTitle => 'Sezon Bileti';
+
+  @override
+  String passSeason(int number, String name) {
+    return 'Sezon $number: $name';
+  }
+
+  @override
+  String passEndsIn(int days) {
+    return '$days gün kaldı';
+  }
+
+  @override
+  String passTier(int tier, int max) {
+    return 'Kademe $tier/$max';
+  }
+
+  @override
+  String passXpToNext(int xp) {
+    return 'Sonraki kademeye $xp XP';
+  }
+
+  @override
+  String get passAllDone => 'Tüm kademeler tamam!';
+
+  @override
+  String get passFree => 'Ücretsiz';
+
+  @override
+  String get passPremium => 'Ücretli';
+
+  @override
+  String get passUnlock => 'Ücretli yolu aç';
+
+  @override
+  String get passUnlockSub => '5 sezona özel kozmetik ve 1.000\'den fazla Volt';
+
+  @override
+  String get passUnlockTitle => 'Ücretli yol açılsın mı?';
+
+  @override
+  String get passUnlocked => 'Ücretli yol açıldı!';
+
+  @override
+  String passClaimAll(int count) {
+    return 'Ödülleri al ($count)';
+  }
+
+  @override
+  String passClaimedVolt(int volt) {
+    return '+$volt Volt';
+  }
+
+  @override
+  String passClaimedMore(String text, int shields, int cosmetics) {
+    return '$text · $shields kalkan · $cosmetics kozmetik';
+  }
+
+  @override
+  String get passRewardShield => 'Seri kalkanı';
+
+  @override
+  String get passSeasonOnly => 'Sezon Bileti\'nde';
+
+  @override
+  String get voltReasonSeasonPass => 'Sezon Bileti';
+
+  @override
+  String get voltReasonPassReward => 'Sezon Bileti ödülü';
+
+  @override
+  String get cosFrameS1Storm => 'Fırtına Çerçevesi';
+
+  @override
+  String get cosAvatarStormcloud => 'Şimşek Bulutu';
+
+  @override
+  String get cosNameS1Electric => 'Elektrik';
+
+  @override
+  String get cosThemeS1Storm => 'Fırtına';
+
+  @override
+  String get cosVictoryS1Thunder => 'Gök Gürültüsü';
 }

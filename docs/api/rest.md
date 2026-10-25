@@ -116,6 +116,9 @@
 |---|---|---|---|---|---|
 | GET | `/v1/me/progress` | any | — | 7 | XP, level, next level, play streak (with `shields` / `max_shields`, D-105). |
 | GET | `/v1/me/quests` | any | — | 7 | Active quests & progress (each with `reward_xp` and `reward_volt`, D-105). |
+| GET | `/v1/me/season-pass` | any | — | 9 | The Season Pass of the current season (D-108): `{season {id, number, name, ends_at}, xp, tier, tier_xp, tier_size 500, premium, price 900, claimable, tiers [{tier, free {volt?, shield?, cosmetic?}\|null, premium …, free_claimed, premium_claimed}]}`. |
+| POST | `/v1/me/season-pass/premium` | any | — | 9 | Open the premium track for 900 Volt, once a season → the pass. `VOLT_INSUFFICIENT`, `ITEM_UNAVAILABLE` (`already_owned`). |
+| POST | `/v1/me/season-pass/claim` | any | — | 9 | Claim every reached, unclaimed reward of the caller's tracks → `{pass, volt, shields, cosmetics []}`. A shield beyond the two held is 30 Volt. |
 | POST | `/v1/me/quests/{assignment_id}/claim` | any | ✓ | 7 | Claim reward. |
 | POST | `/v1/me/quests/{assignment_id}/reroll` | any | ✓ | 7 | Daily free reroll / ad reroll. |
 | GET | `/v1/badges` · `/v1/me/badges` | any | — | 7 | Catalogue / earned. |

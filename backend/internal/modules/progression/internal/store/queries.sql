@@ -154,3 +154,24 @@ UPDATE progression.play_streaks SET last_play_day = @day, updated_at = @now WHER
 
 -- name: GetStats :one
 SELECT matches, wins FROM progression.user_stats WHERE user_id = @user_id;
+
+-- ---------- Season Pass (D-108) ----------
+
+-- name: XPBetween :one
+SELECT coalesce(sum(amount), 0)::bigint FROM progression.xp_ledger
+WHERE user_id = @user_id AND created_at >= @since AND created_at < @until;
+
+-- name: PassPremium :one
+SELECT EXISTS (SELECT 1 FROM progression.season_pass WHERE user_id = @user_id AND season_id = @season_id);
+
+-- name: InsertPassPremium :execrows
+INSERT INTO progression.season_pass (user_id, season_id, premium_at) VALUES (@user_id, @season_id, @now)
+ON CONFLICT DO NOTHING;
+
+-- name: PassClaims :many
+SELECT track, tier FROM progression.season_pass_claims WHERE user_id = @user_id AND season_id = @season_id;
+
+-- name: InsertPassClaim :execrows
+INSERT INTO progression.season_pass_claims (user_id, season_id, track, tier, claimed_at)
+VALUES (@user_id, @season_id, @track, @tier, @now)
+ON CONFLICT DO NOTHING;

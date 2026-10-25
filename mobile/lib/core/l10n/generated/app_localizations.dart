@@ -4891,6 +4891,150 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'İlk alım paketinde'**
   String get cosmeticPackOnly;
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Sezon Bileti'**
+  String get passTitle;
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Sezon {number}: {name}'**
+  String passSeason(int number, String name);
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'{days} gün kaldı'**
+  String passEndsIn(int days);
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Kademe {tier}/{max}'**
+  String passTier(int tier, int max);
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Sonraki kademeye {xp} XP'**
+  String passXpToNext(int xp);
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm kademeler tamam!'**
+  String get passAllDone;
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Ücretsiz'**
+  String get passFree;
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Ücretli'**
+  String get passPremium;
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Ücretli yolu aç'**
+  String get passUnlock;
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'5 sezona özel kozmetik ve 1.000\'den fazla Volt'**
+  String get passUnlockSub;
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Ücretli yol açılsın mı?'**
+  String get passUnlockTitle;
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Ücretli yol açıldı!'**
+  String get passUnlocked;
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Ödülleri al ({count})'**
+  String passClaimAll(int count);
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'+{volt} Volt'**
+  String passClaimedVolt(int volt);
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'{text} · {shields} kalkan · {cosmetics} kozmetik'**
+  String passClaimedMore(String text, int shields, int cosmetics);
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Seri kalkanı'**
+  String get passRewardShield;
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Sezon Bileti\'nde'**
+  String get passSeasonOnly;
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Sezon Bileti'**
+  String get voltReasonSeasonPass;
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Sezon Bileti ödülü'**
+  String get voltReasonPassReward;
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Fırtına Çerçevesi'**
+  String get cosFrameS1Storm;
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Şimşek Bulutu'**
+  String get cosAvatarStormcloud;
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Elektrik'**
+  String get cosNameS1Electric;
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Fırtına'**
+  String get cosThemeS1Storm;
+
+  /// Season Pass (D-108).
+  ///
+  /// In tr, this message translates to:
+  /// **'Gök Gürültüsü'**
+  String get cosVictoryS1Thunder;
 }
 
 class _AppLocalizationsDelegate

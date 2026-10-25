@@ -269,6 +269,8 @@ class _VoltScreenState extends ConsumerState<VoltScreen> {
       'cosmetic' => l10n.voltReasonCosmetic(cosmeticName(l10n, e.ref)),
       'purchase' => l10n.voltReasonPurchase,
       'purchase_refund' => l10n.voltReasonPurchaseRefund,
+      'season_pass' => l10n.voltReasonSeasonPass,
+      'pass_reward' => l10n.voltReasonPassReward,
       _ => l10n.voltReasonOther,
     };
 

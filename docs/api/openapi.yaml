@@ -659,6 +659,8 @@ components:
                     type: boolean
                 price:
                     type: integer
+                season:
+                    type: integer
             required:
                 - code
                 - kind
@@ -1768,6 +1770,74 @@ components:
                 - status
                 - user_id
             type: object
+        PassClaimed:
+            properties:
+                cosmetics:
+                    items:
+                        type: string
+                    type: array
+                pass:
+                    $ref: '#/components/schemas/SeasonPass'
+                shields:
+                    type: integer
+                volt:
+                    type: integer
+            required:
+                - cosmetics
+                - pass
+                - shields
+                - volt
+            type: object
+        PassReward:
+            properties:
+                cosmetic:
+                    type: string
+                shield:
+                    type: boolean
+                volt:
+                    type: integer
+            type: object
+        PassSeason:
+            properties:
+                ends_at:
+                    format: date-time
+                    type: string
+                id:
+                    format: uuid
+                    type: string
+                name:
+                    type: string
+                number:
+                    type: integer
+            required:
+                - ends_at
+                - id
+                - name
+                - number
+            type: object
+        PassTier:
+            properties:
+                free:
+                    oneOf:
+                        - $ref: '#/components/schemas/PassReward'
+                        - type: "null"
+                free_claimed:
+                    type: boolean
+                premium:
+                    oneOf:
+                        - $ref: '#/components/schemas/PassReward'
+                        - type: "null"
+                premium_claimed:
+                    type: boolean
+                tier:
+                    type: integer
+            required:
+                - free
+                - free_claimed
+                - premium
+                - premium_claimed
+                - tier
+            type: object
         PlayerStats:
             properties:
                 badges:
@@ -2819,6 +2889,39 @@ components:
                 - number
                 - starts_at
                 - status
+            type: object
+        SeasonPass:
+            properties:
+                claimable:
+                    type: integer
+                premium:
+                    type: boolean
+                price:
+                    type: integer
+                season:
+                    $ref: '#/components/schemas/PassSeason'
+                tier:
+                    type: integer
+                tier_size:
+                    type: integer
+                tier_xp:
+                    type: integer
+                tiers:
+                    items:
+                        $ref: '#/components/schemas/PassTier'
+                    type: array
+                xp:
+                    type: integer
+            required:
+                - claimable
+                - premium
+                - price
+                - season
+                - tier
+                - tier_size
+                - tier_xp
+                - tiers
+                - xp
             type: object
         SendRequest:
             properties:
@@ -9599,6 +9702,177 @@ paths:
             summary: Appeal a sanction (one appeal per sanction; also while suspended)
             tags:
                 - moderation
+            x-auth: any
+    /v1/me/season-pass:
+        get:
+            operationId: getV1MeSeasonPass
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SeasonPass'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: 'The Season Pass of the current season (D-108): XP, tier, both tracks'' rewards and what was claimed'
+            tags:
+                - progression
+            x-auth: any
+    /v1/me/season-pass/claim:
+        post:
+            operationId: postV1MeSeasonPassClaim
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PassClaimed'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Claim every reached, unclaimed reward of the caller's tracks
+            tags:
+                - progression
+            x-auth: any
+    /v1/me/season-pass/premium:
+        post:
+            operationId: postV1MeSeasonPassPremium
+            parameters:
+                - in: header
+                  name: Accept-Language
+                  required: false
+                  schema:
+                    enum:
+                        - tr
+                        - en
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/SeasonPass'
+                    description: OK
+                "400":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: MALFORMED_REQUEST'
+                "401":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: TOKEN_EXPIRED, UNAUTHENTICATED'
+                "409":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: ITEM_UNAVAILABLE, VOLT_INSUFFICIENT'
+                "429":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: RATE_LIMITED'
+                "500":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: INTERNAL'
+                "503":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorEnvelope'
+                    description: 'Error codes: UNAVAILABLE'
+            security:
+                - firebase: []
+            summary: Open the premium track for 900 Volt (once a season)
+            tags:
+                - progression
             x-auth: any
     /v1/me/settings:
         get:

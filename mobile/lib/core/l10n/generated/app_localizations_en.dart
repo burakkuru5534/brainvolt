@@ -2710,4 +2710,90 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cosmeticPackOnly => 'In the starter pack';
+
+  @override
+  String get passTitle => 'Season Pass';
+
+  @override
+  String passSeason(int number, String name) {
+    return 'Season $number: $name';
+  }
+
+  @override
+  String passEndsIn(int days) {
+    return '$days days left';
+  }
+
+  @override
+  String passTier(int tier, int max) {
+    return 'Tier $tier/$max';
+  }
+
+  @override
+  String passXpToNext(int xp) {
+    return '$xp XP to the next tier';
+  }
+
+  @override
+  String get passAllDone => 'Every tier done!';
+
+  @override
+  String get passFree => 'Free';
+
+  @override
+  String get passPremium => 'Premium';
+
+  @override
+  String get passUnlock => 'Unlock premium';
+
+  @override
+  String get passUnlockSub => '5 season-only cosmetics and over 1,000 Volt';
+
+  @override
+  String get passUnlockTitle => 'Unlock the premium track?';
+
+  @override
+  String get passUnlocked => 'Premium track unlocked!';
+
+  @override
+  String passClaimAll(int count) {
+    return 'Claim rewards ($count)';
+  }
+
+  @override
+  String passClaimedVolt(int volt) {
+    return '+$volt Volt';
+  }
+
+  @override
+  String passClaimedMore(String text, int shields, int cosmetics) {
+    return '$text · $shields shields · $cosmetics cosmetics';
+  }
+
+  @override
+  String get passRewardShield => 'Streak shield';
+
+  @override
+  String get passSeasonOnly => 'In the Season Pass';
+
+  @override
+  String get voltReasonSeasonPass => 'Season Pass';
+
+  @override
+  String get voltReasonPassReward => 'Season Pass reward';
+
+  @override
+  String get cosFrameS1Storm => 'Storm Frame';
+
+  @override
+  String get cosAvatarStormcloud => 'Storm Cloud';
+
+  @override
+  String get cosNameS1Electric => 'Electric';
+
+  @override
+  String get cosThemeS1Storm => 'Storm';
+
+  @override
+  String get cosVictoryS1Thunder => 'Thunder';
 }

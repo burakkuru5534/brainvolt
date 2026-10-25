@@ -155,6 +155,7 @@ void main() {
       ('tournament_new', Routes.tournamentNew),
       ('quiz_new', Routes.quizNew),
       ('store', Routes.store),
+      ('season_pass', Routes.seasonPass),
       ('store_cosmetics', '${Routes.store}?tab=cosmetics'),
     ]) {
       testWidgets('$name ${mode.name}', (tester) async {
