@@ -4,7 +4,7 @@ publish_to: 'none'
 
 # Sent to the backend as X-App-Version (conventions.md §2); bump the build
 # number (+N) for every store upload.
-version: 1.0.0+17
+version: 1.0.0+14
 
 environment:
   sdk: ^3.13.1
@@ -26,14 +26,14 @@ dependencies:
   package_info_plus: ^10.2.2
   riverpod_annotation: ^4.0.7
   shared_preferences: ^2.5.6
-  firebase_core: ^5.0.0
-  firebase_auth: ^7.0.0
+  firebase_core: ^4.15.2
+  firebase_auth: ^6.7.1
   google_sign_in: ^7.2.0
   sign_in_with_apple: ^8.2.0
   uuid: ^4.6.0
   crypto: ^3.0.7
   web_socket_channel: ^3.0.3
-  firebase_messaging: ^17.0.0
+  firebase_messaging: ^16.7.1
   share_plus: ^13.3.1
   google_mobile_ads: ^9.2.0
   purchases_flutter: ^10.18.1

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,9 +59,14 @@ class FirebasePushService implements PushService {
         return null;
       }
       await _fm.setAutoInitEnabled(true);
-      final id = _fm.onRegistered.first.timeout(const Duration(seconds: 10));
-      await _fm.register();
-      return await id;
+      // iOS: FCM needs the APNs token first, which arrives shortly after
+      // the permission (firebase_messaging 16, Firebase iOS SDK 12: D-110).
+      if (Platform.isIOS) {
+        for (var i = 0; i < 10 && await _fm.getAPNSToken() == null; i++) {
+          await Future<void>.delayed(const Duration(seconds: 1));
+        }
+      }
+      return await _fm.getToken().timeout(const Duration(seconds: 10));
     } on Object catch (e) {
       // No Google Play services, simulator without APNs, GMS proxy failure, etc.
       _log.warning('no push token', e);
@@ -71,7 +77,7 @@ class FirebasePushService implements PushService {
   @override
   Stream<String> get tokenRefresh {
     try {
-      return _fm.onRegistered.handleError((Object e) {
+      return _fm.onTokenRefresh.handleError((Object e) {
         _log.warning('tokenRefresh stream error', e);
       });
     } on Object catch (e) {
