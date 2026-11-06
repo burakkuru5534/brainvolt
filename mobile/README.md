@@ -55,12 +55,17 @@ One-time setup:
 2. App Store Connect → Users and Access → Integrations → App Store Connect
    API → new key, role **App Manager**; keep the Issuer ID, Key ID and the
    `.p8` (downloadable once; never commit it).
-3. Codemagic → Team settings → Integrations → **Developer Portal** → add the
-   key under the name **`BrainVolt ASC`** (the name `codemagic.yaml` uses).
-4. Codemagic → add the repository → it finds `codemagic.yaml`.
-5. Apple Developer → Keys → new key with **APNs** → upload the `.p8` to
+3. Codemagic → add the repository (a free personal account is enough) →
+   the app's **Environment variables** → group **`app_store`**, all marked
+   *Secure*: `APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_KEY_IDENTIFIER`,
+   `APP_STORE_CONNECT_PRIVATE_KEY` (the whole `.p8` text) and
+   `CERTIFICATE_PRIVATE_KEY` (an RSA key: `ssh-keygen -t rsa -b 2048 -m PEM
+   -f brainvolt_cert_key -q -N ""`, paste `brainvolt_cert_key`; keep it,
+   never commit it). The build fetches or creates the distribution
+   certificate and the App Store profile itself.
+4. Apple Developer → Keys → new key with **APNs** → upload the `.p8` to
    Firebase → Project settings → Cloud Messaging → Apple app (push).
-6. Firebase → Authentication → Sign-in method → enable **Apple**.
+5. Firebase → Authentication → Sign-in method → enable **Apple**.
 
 A build: Codemagic → BrainVolt → Start new build → `ios-testflight`. The
 build number is Codemagic's run counter; the version name comes from
