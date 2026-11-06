@@ -42,6 +42,35 @@ flutter run --dart-define-from-file=env/dev.json
 
 Optional, for faster builds: keep the pub cache on the project's drive (`setx PUB_CACHE D:\pub-cache`, open a new terminal, `flutter pub get`).
 
+## iOS build (Codemagic)
+
+There is no Mac in the team (D-057): iOS builds run on Codemagic from
+`codemagic.yaml` at the repo root (workflow `ios-testflight`, started by hand)
+and go straight to TestFlight.
+
+One-time setup:
+
+1. Apple Developer: App ID `com.brainvolt.app` with **Push Notifications**
+   and **Sign in with Apple**; App Store Connect app on that bundle id.
+2. App Store Connect → Users and Access → Integrations → App Store Connect
+   API → new key, role **App Manager**; keep the Issuer ID, Key ID and the
+   `.p8` (downloadable once; never commit it).
+3. Codemagic → Team settings → Integrations → **Developer Portal** → add the
+   key under the name **`BrainVolt ASC`** (the name `codemagic.yaml` uses).
+4. Codemagic → add the repository → it finds `codemagic.yaml`.
+5. Apple Developer → Keys → new key with **APNs** → upload the `.p8` to
+   Firebase → Project settings → Cloud Messaging → Apple app (push).
+6. Firebase → Authentication → Sign-in method → enable **Apple**.
+
+A build: Codemagic → BrainVolt → Start new build → `ios-testflight`. The
+build number is Codemagic's run counter; the version name comes from
+`pubspec.yaml`. Info.plist carries AdMob's SKAdNetwork ids, the tracking
+(ATT) text and `ITSAppUsesNonExemptEncryption = false`.
+
+Not on iOS yet: real AdMob units (iOS uses Google's sample app id and test
+units until BrainVolt has an iOS app in AdMob) and purchases (RevenueCat is
+Android-only; the store shows as unavailable).
+
 ## Develop
 
 | Task | Command (or `make …` from the repository root) |

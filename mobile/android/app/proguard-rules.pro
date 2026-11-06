@@ -23,3 +23,11 @@
 -keep class io.flutter.util.** { *; }
 -keep class io.flutter.view.** { *; }
 -keep class io.flutter.embedding.** { *; }
+
+# WorkManager / Room (release'te açılışta çökme düzeltmesi):
+# Room, veritabanı sınıfını (ör. WorkDatabase_Impl) reflection ile oluşturur;
+# R8 bu sınıfı ya da boş constructor'ını silerse uygulama açılırken çöker.
+-keep class * extends androidx.room.RoomDatabase { <init>(); }
+-keep class androidx.work.impl.WorkDatabase_Impl { *; }
+-keep class androidx.work.** { *; }
+-dontwarn androidx.work.**

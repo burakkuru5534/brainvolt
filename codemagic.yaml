@@ -1,0 +1,44 @@
+# Codemagic CI for BrainVolt iOS (D-057): builds the Flutter app on
+# Codemagic's Macs and uploads it to TestFlight, so no local Mac/Xcode is
+# needed. Setup steps: mobile/README.md, "iOS build (Codemagic)".
+workflows:
+  ios-testflight:
+    name: iOS → TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    working_directory: mobile
+    # Manual starts only (no triggering block): each run is an upload.
+    integrations:
+      # Codemagic → Team settings → Integrations → Developer Portal: the
+      # App Store Connect API key, saved under this exact name.
+      app_store_connect: BrainVolt ASC
+    environment:
+      flutter: 3.47.1 # .flutter-version (ADR-0001)
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        # Codemagic creates/fetches the distribution certificate and the
+        # App Store profile through the API key.
+        distribution_type: app_store
+        bundle_identifier: com.brainvolt.app
+    scripts:
+      - name: Flutter packages
+        script: flutter pub get
+      - name: Code signing
+        script: xcode-project use-profiles
+      - name: Build IPA
+        script: |
+          # Codemagic's run counter keeps iOS build numbers increasing; the
+          # version name (1.0.0) comes from pubspec.yaml.
+          flutter build ipa --release \
+            --dart-define-from-file=env/prod.json \
+            --build-number=$PROJECT_BUILD_NUMBER \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
