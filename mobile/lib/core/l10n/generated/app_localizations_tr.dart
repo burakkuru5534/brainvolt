@@ -2065,6 +2065,16 @@ class AppLocalizationsTr extends AppLocalizations {
       'Abonelik iptal edilmedikçe her dönemin sonunda Google Play üzerinden otomatik yenilenir. İstediğin zaman Google Play\'den iptal edebilirsin.';
 
   @override
+  String get plusLegalIos =>
+      'Abonelik, dönem bitmeden en az 24 saat önce iptal edilmedikçe her dönemin sonunda otomatik yenilenir ve ücret Apple ID hesabından alınır. İstediğin zaman App Store hesap ayarlarından iptal edebilirsin.';
+
+  @override
+  String get plusTerms => 'Kullanım Koşulları';
+
+  @override
+  String get plusPrivacy => 'Gizlilik Politikası';
+
+  @override
   String get plusActive => 'Plus aktif.';
 
   @override

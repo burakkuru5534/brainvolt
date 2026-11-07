@@ -70,9 +70,13 @@ Future<void> main() async {
         ),
         pushServiceProvider.overrideWithValue(pushService),
         adGatewayProvider.overrideWithValue(ads),
-        // BrainVolt Plus (D-104): RevenueCat's public Android SDK key.
+        // BrainVolt Plus and Volt (D-104, D-110): RevenueCat's public SDK
+        // keys (Play Store, App Store).
         purchaseGatewayProvider.overrideWithValue(
-          RevenueCatGateway(androidApiKey: 'goog_liACWsaAFzDWajaNhBiaLhKjkrX'),
+          RevenueCatGateway(
+            androidApiKey: 'goog_liACWsaAFzDWajaNhBiaLhKjkrX',
+            iosApiKey: 'appl_pVPwrFUqBcievSGFYhTSzJVTtWD',
+          ),
         ),
         tokenSourceProvider.overrideWith(
           (ref) => AuthTokenSource(ref.watch(authRepositoryProvider)),

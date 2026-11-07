@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -63,10 +64,21 @@ final plusOptionsProvider = FutureProvider.autoDispose<List<PlusOption>>((ref) {
   return gateway.plusOptions(user);
 });
 
-/// Google Play's page for managing this app's subscription.
-final _manageUrl = Uri.parse(
-  'https://play.google.com/store/account/subscriptions'
-  '?sku=brainvolt_plus&package=com.brainvolt.app',
+/// The store's page for managing this app's subscription.
+final _manageUrl = Platform.isIOS
+    ? Uri.parse('https://apps.apple.com/account/subscriptions')
+    : Uri.parse(
+        'https://play.google.com/store/account/subscriptions'
+        '?sku=brainvolt_plus&package=com.brainvolt.app',
+      );
+
+/// Terms of Use (Apple's standard EULA) and the privacy policy, shown next
+/// to the subscription (App Store Guideline 3.1.2, D-110).
+final _termsUrl = Uri.parse(
+  'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
+);
+final _privacyUrl = Uri.parse(
+  'https://sites.google.com/view/brainvolt-privacy-policy/ana-sayfa',
 );
 
 /// BrainVolt Plus (D-104): what it gives, the plans, buy and restore.
@@ -344,9 +356,28 @@ class _PlusScreenState extends ConsumerState<PlusScreen> {
         child: Text(l10n.plusRestore),
       ),
       Text(
-        l10n.plusLegal,
+        Platform.isIOS ? l10n.plusLegalIos : l10n.plusLegal,
         textAlign: TextAlign.center,
         style: text.bodySmall?.copyWith(color: bv.muted),
+      ),
+      Wrap(
+        alignment: WrapAlignment.center,
+        children: [
+          TextButton(
+            key: const Key('plus-terms'),
+            onPressed: () => unawaited(
+              launchUrl(_termsUrl, mode: LaunchMode.externalApplication),
+            ),
+            child: Text(l10n.plusTerms),
+          ),
+          TextButton(
+            key: const Key('plus-privacy'),
+            onPressed: () => unawaited(
+              launchUrl(_privacyUrl, mode: LaunchMode.externalApplication),
+            ),
+            child: Text(l10n.plusPrivacy),
+          ),
+        ],
       ),
     ];
   }

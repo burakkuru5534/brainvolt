@@ -3770,6 +3770,24 @@ abstract class AppLocalizations {
   /// **'Abonelik iptal edilmedikçe her dönemin sonunda Google Play üzerinden otomatik yenilenir. İstediğin zaman Google Play\'den iptal edebilirsin.'**
   String get plusLegal;
 
+  /// Auto-renewal terms on the Plus screen on iOS (App Store, D-110).
+  ///
+  /// In tr, this message translates to:
+  /// **'Abonelik, dönem bitmeden en az 24 saat önce iptal edilmedikçe her dönemin sonunda otomatik yenilenir ve ücret Apple ID hesabından alınır. İstediğin zaman App Store hesap ayarlarından iptal edebilirsin.'**
+  String get plusLegalIos;
+
+  /// Link to the Terms of Use (Apple standard EULA) on the Plus screen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kullanım Koşulları'**
+  String get plusTerms;
+
+  /// Link to the privacy policy on the Plus screen.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gizlilik Politikası'**
+  String get plusPrivacy;
+
   /// BrainVolt Plus (D-104).
   ///
   /// In tr, this message translates to:

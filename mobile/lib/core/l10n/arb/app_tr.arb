@@ -2871,6 +2871,18 @@
     "description": "BrainVolt Plus (D-104)."
   },
   "plusLegal": "Abonelik iptal edilmedikçe her dönemin sonunda Google Play üzerinden otomatik yenilenir. İstediğin zaman Google Play'den iptal edebilirsin.",
+  "plusLegalIos": "Abonelik, dönem bitmeden en az 24 saat önce iptal edilmedikçe her dönemin sonunda otomatik yenilenir ve ücret Apple ID hesabından alınır. İstediğin zaman App Store hesap ayarlarından iptal edebilirsin.",
+  "plusTerms": "Kullanım Koşulları",
+  "plusPrivacy": "Gizlilik Politikası",
+  "@plusLegalIos": {
+    "description": "Auto-renewal terms on the Plus screen on iOS (App Store, D-110)."
+  },
+  "@plusTerms": {
+    "description": "Link to the Terms of Use (Apple standard EULA) on the Plus screen."
+  },
+  "@plusPrivacy": {
+    "description": "Link to the privacy policy on the Plus screen."
+  },
   "@plusLegal": {
     "description": "BrainVolt Plus (D-104)."
   },

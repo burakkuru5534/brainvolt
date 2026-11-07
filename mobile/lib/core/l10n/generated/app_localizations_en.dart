@@ -2067,6 +2067,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'The subscription renews automatically through Google Play at the end of each period unless cancelled. Cancel any time in Google Play.';
 
   @override
+  String get plusLegalIos =>
+      'The subscription renews automatically at the end of each period unless cancelled at least 24 hours before it ends, and is charged to your Apple ID account. Cancel any time in your App Store account settings.';
+
+  @override
+  String get plusTerms => 'Terms of Use';
+
+  @override
+  String get plusPrivacy => 'Privacy Policy';
+
+  @override
   String get plusActive => 'Plus is active.';
 
   @override

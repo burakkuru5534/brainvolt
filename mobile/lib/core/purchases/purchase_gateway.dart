@@ -86,17 +86,20 @@ class NoPurchaseGateway implements PurchaseGateway {
       BuyResult.failed;
 }
 
-/// [PurchaseGateway] over purchases_flutter (Android; RevenueCat project
-/// BrainVolt, entitlement `plus`, offering `default`).
+/// [PurchaseGateway] over purchases_flutter (Android and iOS; RevenueCat
+/// project BrainVolt, entitlement `plus`, offerings `default` and `volt`).
 class RevenueCatGateway implements PurchaseGateway {
-  RevenueCatGateway({required this.androidApiKey});
+  RevenueCatGateway({required this.androidApiKey, required this.iosApiKey});
 
   /// The public Android SDK key (`goog_…`); not a secret.
   final String androidApiKey;
+
+  /// The public App Store SDK key (`appl_…`, D-110); not a secret.
+  final String iosApiKey;
   String? _user;
 
   @override
-  bool get available => Platform.isAndroid;
+  bool get available => Platform.isAndroid || Platform.isIOS;
 
   Future<void> _ensure(String userId) async {
     if (_user == userId) {
@@ -104,7 +107,8 @@ class RevenueCatGateway implements PurchaseGateway {
     }
     if (_user == null) {
       await Purchases.configure(
-        PurchasesConfiguration(androidApiKey)..appUserID = userId,
+        PurchasesConfiguration(Platform.isIOS ? iosApiKey : androidApiKey)
+          ..appUserID = userId,
       );
     } else {
       await Purchases.logIn(userId);
